@@ -662,6 +662,7 @@ const [isInteractive, setIsInteractive] = useState(false);
             phone: item.phone,
             email: item.email || '',
             verified: item.verified === true,
+            isVerified: item.verified === true,
             rating: item.rating || 4.8,
             bio: item.bio || "Professional artisan verified by Skills Connect.",
             image_url: item.image_url,
