@@ -31,6 +31,7 @@ export interface Artisan {
   
   // 👇 CHANGE THIS to match your Database Column Name
   isVerified: boolean; 
+  verified?: boolean;
   is_claimed?: boolean;
   portfolio_urls?: string[];
   // ... other fields
