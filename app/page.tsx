@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 
 // --- DYNAMIC COMPONENTS ---
-// This must sit below all imports, but above your config!
 const MapView = dynamic(() => import('../components/MapView').then((mod) => mod.MapView), { 
   ssr: false 
 });
@@ -85,8 +84,6 @@ const HeroTyper: React.FC = () => {
     const [subIndex, setSubIndex] = useState(0);
     const [reverse, setReverse] = useState(false);
     const [blink, setBlink] = useState(true);
- 
-    
 
     useEffect(() => {
         const timeout2 = setTimeout(() => setBlink(!blink), 500);
@@ -450,6 +447,7 @@ const SuggestionModal: React.FC<{ onClose: () => void; isDarkMode: boolean; show
         </div>
     );
 };
+
 const App: React.FC = () => {
 
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -458,38 +456,8 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 🚀 START ON THE WELCOME SPLASH SCREEN
-const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
-// Add this with your other refs (categoryInputRef, locationInputRef, etc.)
-const pillRef = useRef<HTMLDivElement>(null);
-// 1. The Shapeshifter State (👉 THIS LINE WAS MISSING!)
-const [isInteractive, setIsInteractive] = useState(false);
+  const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
 
-// 🎬 2. The Morph Sequence (Tied to the Home Screen!)
-  useEffect(() => {
-  let timer: NodeJS.Timeout;
-
-  if (appState === AppState.HOME) {
-    setIsInteractive(false);
-
-    timer = setTimeout(() => {
-      setIsInteractive(true);
-
-      // Scroll pill into the center of the viewport after morph
-      setTimeout(() => {
-        if (pillRef.current) {
-          const rect = pillRef.current.getBoundingClientRect();
-          const scrollTop = window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2);
-          window.scrollTo({ top: scrollTop, behavior: 'smooth' });
-        }
-      }, 200);
-    }, 2500);
-  }
-
-  return () => {
-    if (timer) clearTimeout(timer);
-  };
-}, [appState]); 
   const [rovingIndex, setRovingIndex] = useState<number | null>(null);
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -601,13 +569,8 @@ const [isInteractive, setIsInteractive] = useState(false);
   };
 
   const handleCardSelect = (id: string, label: string) => {
-    // 1. Set the chosen category
     setCategoryInput(label);
-    
-    // 2. Open the Cinematic Overlay
     setIsSearchActive(true);
-    
-    // 3. Skip the category step and go straight to Location!
     setSearchStep('location');
   };
 
@@ -653,6 +616,7 @@ const [isInteractive, setIsInteractive] = useState(false);
         setLoading(true);
         const { data, error } = await supabase.from('artisans').select('id, first_name, last_name, category, location, phone, email, bio, verified, rating, image_url, portfolio_images, proof_of_work, website_url');
         if (data) {
+          console.log("RAW SUPABASE DATA:", data);
           const formattedData: Artisan[] = data.map((item: any) => ({
             id: item.id,
             name: `${item.first_name} ${item.last_name || ''}`,
@@ -666,7 +630,9 @@ const [isInteractive, setIsInteractive] = useState(false);
             rating: item.rating || 4.8,
             bio: item.bio || "Professional artisan verified by Skills Connect.",
             image_url: item.image_url,
-            portfolio_images: item.proof_of_work || [],
+            portfolio_images: Array.isArray(item.proof_of_work) 
+  ? item.proof_of_work 
+  : (item.proof_of_work ? [item.proof_of_work] : []),
             services: ["Consultation", "Installation", "Maintenance"],
             reviews: []
           }));
@@ -768,15 +734,15 @@ const [isInteractive, setIsInteractive] = useState(false);
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-useEffect(() => {
+
+  useEffect(() => {
     if (appState !== AppState.HOME) return;
-    
     const interval = setInterval(() => {
       setRovingIndex(Math.floor(Math.random() * QUICK_CATEGORIES.length));
-    }, 3000); // Shifts the glow every 3 seconds
-
+    }, 3000);
     return () => clearInterval(interval);
   }, [appState]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryInput) { showToast('Please select a skill category first!', "error"); return; }
@@ -803,21 +769,22 @@ useEffect(() => {
     setCategoryInput(''); setLocationInput(''); setIsSubmitted(false); setIsMobileMenuOpen(false);
     setAppState(AppState.HOME); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-const handleFindService = () => {
-    goHome(); // Ensure we are on the main screen
-    setIsMobileMenuOpen(false); // Close the menu if on mobile
-    
-    // Smoothly open the new Cinematic Overlay!
+
+  const handleFindService = () => {
+    goHome();
+    setIsMobileMenuOpen(false);
     setTimeout(() => {
       setIsSearchActive(true);
       setSearchStep('category');
     }, 150);
   };
+
   const goToRegistration = () => {
     setIsSubmitted(false); setRegForm({ firstName: '', lastName: '', trade: '', area: '', phone: '', bio: '', referralSource: '', institution: '' });
     setSelectedImages([]); setImagePreviews([]); setCaptchaVerified(false); setIsMobileMenuOpen(false);
     setAppState(AppState.REGISTRATION); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
   const goToQuickJoin = () => {
     setIsMobileMenuOpen(false);
     setAppState(AppState.QUICK_JOIN); 
@@ -852,69 +819,49 @@ const handleFindService = () => {
         setTimeout(() => { setIsSubmitting(false); setIsSubmitted(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 2000);
     } catch (err) { console.error("Error submitting:", err); showToast("System Error: Could not save application.", "error"); }
     setIsSubmitting(false);
-};
+  };
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'bg-[#150f0a] text-white' : 'bg-stone-50 text-gray-900'}`}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
         
-        /* 3D PERSPECTIVE SYSTEM */
-        .perspective-container {
-            perspective: 2000px;
-        }
+        .perspective-container { perspective: 2000px; }
+
         @keyframes central-glow {
-            0%, 100% {
-                box-shadow: 
-                    0 0 15px rgba(250, 204, 21, 0.4),
-                    0 0 40px rgba(250, 204, 21, 0.15);
-            }
-            50% {
-                /* The 3-layer stack for maximum depth and richness */
-                box-shadow: 
-                    0 0 25px rgba(250, 204, 21, 0.7),
-                    0 0 60px rgba(250, 204, 21, 0.4),
-                    0 0 100px rgba(250, 204, 21, 0.2);
-            }
+            0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.4), 0 0 40px rgba(250, 204, 21, 0.15); }
+            50% { box-shadow: 0 0 25px rgba(250, 204, 21, 0.7), 0 0 60px rgba(250, 204, 21, 0.4), 0 0 100px rgba(250, 204, 21, 0.2); }
         }
+
         .card-3d {
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
             transform-style: preserve-3d;
             transform: rotateX(0) rotateY(0);
         }
-
         .card-3d:hover {
             transform: rotateX(5deg) rotateY(0deg) translateY(-10px);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
+        .text-flat { transform: translateZ(30px); transform-style: preserve-3d; }
 
-        .text-flat {
-            transform: translateZ(30px);
-            transform-style: preserve-3d;
-        }
-
-      /* 🌍 PREMIUM AFRICAN PATTERNS */
         .bg-mudcloth {
             background-color: transparent;
-            /* Swapped to Brand Yellow with higher base opacity so it pops! */
             background-image: 
                 linear-gradient(135deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%), 
                 linear-gradient(225deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%), 
                 linear-gradient(45deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%), 
                 linear-gradient(315deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%);
-            background-position:  16px 0, 16px 0, 0 0, 0 0;
+            background-position: 16px 0, 16px 0, 0 0, 0 0;
             background-size: 32px 32px;
         }
 
         .bg-basket-weave {
             background-color: transparent;
-            /* Zulu/Ndebele inspired woven line texture */
             background-image: 
                 repeating-linear-gradient(45deg, rgba(250, 204, 21, 0.1) 0, rgba(250, 204, 21, 0.1) 2px, transparent 2px, transparent 10px),
                 repeating-linear-gradient(-45deg, rgba(250, 204, 21, 0.1) 0, rgba(250, 204, 21, 0.1) 2px, transparent 2px, transparent 10px);
             background-size: 24px 24px;
         }
-
         .bg-basket-weave {
             background-image: linear-gradient(45deg, #1f1209 25%, transparent 25%, transparent 75%, #1f1209 75%, #1f1209), 
             linear-gradient(45deg, #1f1209 25%, transparent 25%, transparent 75%, #1f1209 75%, #1f1209);
@@ -923,10 +870,7 @@ const handleFindService = () => {
         }
 
         .icon-token {
-            box-shadow: 
-                inset 0 0 10px rgba(0,0,0,0.8),
-                0 4px 6px rgba(0,0,0,0.3),
-                0 0 0 2px #d97706; /* Gold rim */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 0 4px 6px rgba(0,0,0,0.3), 0 0 0 2px #d97706;
             background: linear-gradient(135deg, #4a2c18, #2e1a0a);
         }
 
@@ -939,7 +883,8 @@ const handleFindService = () => {
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(250, 204, 21, 0.3); border-radius: 4px; }
       `}</style>
-{/* 🚀 FULL-SCREEN CINEMATIC SEARCH OVERLAY (UNLEASHED) */}
+
+      {/* 🚀 FULL-SCREEN CINEMATIC SEARCH OVERLAY */}
       {isSearchActive && (
         <div className="fixed inset-0 z-[999999] flex flex-col justify-center px-4 md:px-8 bg-black/95 backdrop-blur-2xl animate-fade-in" style={{ position: 'fixed' }}>
           
@@ -984,7 +929,6 @@ const handleFindService = () => {
                       className="w-full bg-transparent p-4 md:p-6 text-2xl md:text-4xl text-white font-bold outline-none placeholder:text-zinc-600"
                     />
                     
-                    {/* ⚡ SKILL AUTOFILL WITH ANTI-FREEZE */}
                     {showSkillSuggestions && (
                       <div className="absolute top-[115%] left-0 right-0 z-50">
                         {filteredSkills && filteredSkills.length > 0 ? (
@@ -1035,7 +979,6 @@ const handleFindService = () => {
                       className="w-full bg-transparent p-4 md:p-6 text-2xl md:text-4xl text-white font-bold outline-none placeholder:text-zinc-600"
                     />
 
-                    {/* ⚡ LOCATION AUTOFILL WITH ANTI-FREEZE */}
                     {showLocationSuggestions && (
                       <div className="absolute top-[115%] left-0 right-0 z-50">
                         {filteredLocations && filteredLocations.length > 0 ? (
@@ -1068,7 +1011,6 @@ const handleFindService = () => {
                   </div>
                 )}
                 
-                {/* The Action Button */}
                 <button 
                   onClick={() => {
                     if (searchStep === 'category') {
@@ -1087,13 +1029,13 @@ const handleFindService = () => {
               </div>
             </div>
             
-            {/* Helpful Hint */}
             <p className="text-center text-zinc-500 font-bold uppercase tracking-widest text-xs mt-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               Press Enter to continue
             </p>
           </div>
         </div>
       )}
+
       {/* OVERLAYS */}
       {activeModal === 'privacy' && <InfoModal title="Privacy Policy" content={PRIVACY_POLICY} onClose={() => setActiveModal(null)} />}
       {activeModal === 'verification' && <InfoModal title="Verification Process" content={VERIFICATION_PROCESS} onClose={() => setActiveModal(null)} />}
@@ -1120,38 +1062,30 @@ const handleFindService = () => {
         </div>
       )}
 
-     {/* --- APP-LIKE WELCOME SPLASH SCREEN --- */}
-    {/* --- APP-LIKE WELCOME SPLASH SCREEN --- */}
+      {/* --- WELCOME SPLASH SCREEN --- */}
       {appState === AppState.WELCOME && (
         <WelcomeSplash 
           isDarkMode={isDarkMode} 
-          onEnter={() => {
-            setAppState(AppState.HOME);
-            // No more scrolling! We let the Shapeshifter take over natively.
-          }} 
+          onEnter={() => { setAppState(AppState.HOME); }} 
         />
       )}
 
-{/* NAVBAR (Hidden on Welcome Screen) */}
+      {/* NAVBAR */}
       {appState !== AppState.WELCOME && (
       <nav className={`border-b sticky top-0 z-50 py-4 transition-colors duration-300 backdrop-blur-md ${isDarkMode ? 'bg-[#150f0a]/80 border-white/5' : 'bg-white/80 border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center relative">
           
-          {/* Logo */}
           <div className="flex items-center cursor-pointer group" onClick={goHome}>
             <img src="/logo-new.svg" alt="SkillsConnectPro" className="w-48 md:w-64 h-auto transition-transform group-hover:scale-105 origin-left" />
           </div>
           
-          {/* Right Side Actions */}
           <div className="flex items-center gap-3 md:gap-6">
-            {/* Desktop Links */}
             <div className="hidden md:flex items-center space-x-8 text-xs font-black uppercase tracking-widest text-gray-400">
                 <button onClick={handleFindService} className="hover:text-brand-yellow transition-colors">Find Artisans</button>
                 <button onClick={goToRegistration} className="hover:text-brand-yellow transition-colors">Standard Form</button>
                 <button onClick={handleSupport} className="hover:text-brand-yellow transition-colors">Support</button>
             </div>
             
-            {/* ⚡ 1-Click Join Button (Responsive) */}
             <button 
               onClick={goToQuickJoin} 
               className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 px-3 py-1.5 md:px-5 md:py-2.5 text-[10px] md:text-sm rounded-full hover:bg-emerald-500 hover:text-black transition-all shadow-[0_0_20px_rgba(16,185,129,0.15)] font-black uppercase tracking-wider whitespace-nowrap"
@@ -1159,14 +1093,12 @@ const handleFindService = () => {
               ⚡ 1-Click Join
             </button>
             
-            {/* Single Mobile Hamburger */}
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 text-gray-400 hover:text-brand-yellow transition-colors">
               {isMobileMenuOpen ? '✕' : '☰'}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
           <div className={`md:hidden absolute top-full left-0 right-0 border-b shadow-2xl animate-fade-in z-40 ${isDarkMode ? 'bg-[#150f0a] border-white/10' : 'bg-white border-gray-200'}`}>
             <div className="flex flex-col p-6 space-y-6 text-center text-sm font-black uppercase tracking-widest">
@@ -1185,231 +1117,211 @@ const handleFindService = () => {
         ) : (
           <>
           {appState === AppState.HOME && (
-            <div className="animate-fade-in perspective-container">
-              <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden py-32">
-        {/* MUTED, CINEMATIC DARK BROWN BACKGROUND */}
-              <div className="absolute inset-0 z-0 bg-[#0c0906]">
+            <div className="animate-fade-in">
+
+              {/* ============================================================
+                  ✅ NEW: CLEAN, CENTERED HERO — Google-Style Directory Layout
+                  Replaces the old "Shapeshifter" section entirely.
+                  No timed transitions. No scroll hijacking. Just clarity.
+              ============================================================ */}
+              <section className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden py-20 px-4">
                 
-                {/* 1. Base Image (At the very bottom) */}
-                <img src="/artisans/hero-welder.jpg" className="absolute inset-0 w-full h-full object-cover animate-deep-breathing opacity-20 mix-blend-luminosity z-0" />
-                
-                {/* 2. Dark Gradient (Softens the image) */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/70 to-[#150f0a] z-10"></div>
-                
+                {/* Cinematic Background — kept from original, just no JS animation */}
+                <div className="absolute inset-0 z-0 bg-[#0c0906]">
+                  <img
+                    src="/artisans/hero-welder.jpg"
+                    className="absolute inset-0 w-full h-full object-cover animate-deep-breathing opacity-20 mix-blend-luminosity"
+                    alt=""
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/70 to-[#150f0a]"></div>
                 </div>
-                
-{/* 🎬 DYNAMIC APP SPLASH: THE SHAPESHIFTER */}
-<div className="relative z-20 w-full max-w-6xl mx-auto px-4 md:px-6 flex flex-col items-center justify-center min-h-[85vh] py-10">
-  <div className={`w-full backdrop-blur-xl rounded-[3rem] p-6 py-10 md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 ${isDarkMode ? 'bg-black/40' : 'bg-white/40'} flex flex-col items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] relative overflow-hidden`}>
-              
-             
-    {/* --- THE TEXT BLOCK --- */}
-    <div
-      style={{
-        transform: isInteractive ? 'translateY(-24px) scale(0.93)' : 'translateY(0px) scale(1)',
-        transition: 'transform 1000ms cubic-bezier(0.25, 1, 0.5, 1)',
-      }}
-      className="w-full flex flex-col justify-center items-center text-center origin-top"
-    >
-      {/* 1. Top Pill */}
-      <div className="mb-4 md:mb-6">
-        <div className="bg-brand-yellow/10 border border-brand-yellow/30 text-brand-yellow px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.2em] inline-block shadow-[0_0_15px_rgba(250,204,21,0.2)]">
-          Far East Rand Specialist Network
-        </div>
-      </div>
 
-      {/* 2. Main Header */}
-      <h1 className={`text-[2.75rem] leading-[1.1] md:text-6xl lg:text-7xl font-black tracking-tighter transition-colors duration-700 ${isDarkMode ? 'text-white' : 'text-gray-900'} ${isInteractive ? 'opacity-90' : ''}`}>
-        Find Verified <span className="text-brand-yellow"><HeroTyper /></span>{' '}
-        <br className="hidden md:block" />
-        in the <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-yellow-500 drop-shadow-sm">East Rand.</span>
-      </h1>
+                {/* Centered Content Column */}
+                <div className="relative z-10 flex flex-col items-center text-center w-full max-w-4xl mx-auto gap-6">
 
-      {/* 3. Subtitle — collapses when interactive */}
-      <div
-        style={{
-          maxHeight: isInteractive ? '0px' : '200px',
-          opacity: isInteractive ? 0 : 1,
-          marginTop: isInteractive ? '0px' : '1.5rem',
-          overflow: 'hidden',
-          transition: [
-            'max-height 900ms cubic-bezier(0.25, 1, 0.5, 1)',
-            'opacity 600ms cubic-bezier(0.25, 1, 0.5, 1)',
-            'margin-top 900ms cubic-bezier(0.25, 1, 0.5, 1)',
-          ].join(', '),
-        }}
-        className="w-full"
-      >
-        <p className={`text-lg md:text-xl lg:text-2xl font-medium max-w-3xl mx-auto drop-shadow-md ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Discover top-tier professionals in{' '}
-          <span className="text-brand-yellow font-bold">Tsakane, KwaThema, Springs</span> and more.
-        </p>
-      </div>
-    </div>
+                  {/* Top Badge Pill */}
+                  <div className="bg-brand-yellow/10 border border-brand-yellow/30 text-brand-yellow px-5 py-2 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.25em] shadow-[0_0_20px_rgba(250,204,21,0.15)]">
+                    Far East Rand Specialist Network
+                  </div>
 
-    {/* --- THE SEARCH PILL (Arcade Design + Autoscroll Ref) --- */}
-              <div
-                ref={pillRef}
-                style={{
-                  opacity: isInteractive ? 1 : 0,
-                  transform: isInteractive ? 'translateY(0px)' : 'translateY(48px)',
-                  maxHeight: isInteractive ? '200px' : '0px',
-                  marginTop: isInteractive ? '2rem' : '0px',
-                  pointerEvents: isInteractive ? 'auto' : 'none',
-                  overflow: 'hidden',
-                  transition: [
-                    'opacity 800ms cubic-bezier(0.25, 1, 0.5, 1) 150ms',
-                    'transform 1000ms cubic-bezier(0.25, 1, 0.5, 1) 150ms',
-                    'max-height 1000ms cubic-bezier(0.25, 1, 0.5, 1)',
-                    'margin-top 1000ms cubic-bezier(0.25, 1, 0.5, 1)',
-                  ].join(', '),
-                }}
-                className="max-w-4xl mx-auto w-full relative z-20"
-              >
-                <button 
-                  onClick={() => {
-                    setIsSearchActive(true);
-                    setCategoryInput(''); 
-                    setLocationInput(''); 
-                    setSearchStep('category');
-                    setShowSkillSuggestions(false);
-                    setShowLocationSuggestions(false);
-                  }}
-                  /* Arcade style kept, tactile click kept, but NO rectangular neon glow! */
-                  className={`w-full bg-[#111]/90 backdrop-blur-2xl border-[3px] p-2 md:p-3 rounded-[3rem] flex items-center justify-between group transition-all duration-500 hover:scale-[1.02] active:scale-95 overflow-hidden ${!isInteractive ? 'border-transparent shadow-none' : 'border-brand-yellow/60 hover:border-brand-yellow shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
-                >
-                  
-                  {/* ✨ The Laser Shimmer Sweep Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] skew-x-12 pointer-events-none"></div>
-
-                  {/* Left Side: Bold Label (Added whitespace-nowrap and mobile resizing) */}
-                  <div className="flex items-center gap-2 md:gap-6 pl-2 md:pl-6 relative z-10 shrink-0">
-                    <div className="text-brand-yellow drop-shadow-[0_0_10px_rgba(250,204,21,0.5)] group-hover:rotate-12 transition-transform duration-500 hidden sm:block">
-                      <SearchIcon className="w-5 h-5 md:w-10 md:h-10" />
-                    </div>
-                    <span className="text-sm sm:text-lg md:text-3xl font-black tracking-[0.1em] uppercase text-white drop-shadow-lg group-hover:text-brand-yellow transition-colors duration-300 whitespace-nowrap">
-                      Find a Pro
+                  {/* Bold Headline */}
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white leading-[1.05]">
+                    Find Verified{' '}
+                    <span className="text-brand-yellow"><HeroTyper /></span>
+                    <br className="hidden md:block" />
+                    in the{' '}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-yellow-500">
+                      East Rand.
                     </span>
+                  </h1>
+
+                  {/* Subtitle */}
+                  <p className={`text-base md:text-xl font-medium max-w-2xl leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Discover top-tier professionals in{' '}
+                    <span className="text-brand-yellow font-bold">Tsakane, KwaThema, Springs</span> and more.
+                  </p>
+
+                  {/* ── THE GOOGLE-STYLE SEARCH BAR ── */}
+                  <div className="w-full max-w-3xl mt-4 relative group">
+                    {/* Glow halo */}
+                    <div className="absolute -inset-1 bg-gradient-to-r from-brand-yellow to-yellow-500 rounded-[3rem] blur-xl opacity-25 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none"></div>
+
+                    <button
+                      onClick={() => {
+                        setIsSearchActive(true);
+                        setCategoryInput('');
+                        setLocationInput('');
+                        setSearchStep('category');
+                        setShowSkillSuggestions(false);
+                        setShowLocationSuggestions(false);
+                      }}
+                      className="relative w-full flex items-center justify-between gap-4 bg-zinc-900/90 backdrop-blur-xl border-2 border-brand-yellow/40 hover:border-brand-yellow rounded-[3rem] px-6 py-4 md:px-8 md:py-5 shadow-2xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] overflow-hidden"
+                    >
+                      {/* Shimmer sweep on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:animate-[shimmer_2s_infinite] skew-x-12 pointer-events-none"></div>
+
+                      {/* Left: icon + placeholder text */}
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <SearchIcon className="w-5 h-5 md:w-6 md:h-6 text-brand-yellow shrink-0" />
+                        <span className="text-sm md:text-xl font-bold text-zinc-400 text-left">
+                          Search: <span className="text-white">Plumber, Electrician, Builder...</span>
+                        </span>
+                      </div>
+
+                      {/* Right: CTA button */}
+                      <div className="bg-brand-yellow text-black px-5 py-2.5 md:px-8 md:py-3.5 rounded-[2rem] font-black uppercase tracking-widest text-xs md:text-sm shadow-lg shrink-0 transition-all group-hover:shadow-[0_0_25px_rgba(250,204,21,0.4)]">
+                        Search
+                      </div>
+                    </button>
                   </div>
 
-                  {/* Right Side: The Inner "Arcade" Trigger Button (Scaled padding for mobile) */}
-                  <div className="bg-gradient-to-br from-brand-yellow to-yellow-600 text-black px-4 py-3 md:px-10 md:py-5 rounded-[2.5rem] font-black uppercase tracking-widest text-xs md:text-xl flex items-center gap-2 md:gap-3 shadow-[0_0_20px_rgba(250,204,21,0.3)] group-hover:shadow-[0_0_30px_rgba(250,204,21,0.6)] transition-all relative z-10 shrink-0 whitespace-nowrap">
-                    <span>Search</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="currentColor" className="w-4 h-4 md:w-6 md:h-6 group-hover:translate-x-1 md:group-hover:translate-x-2 transition-transform duration-300">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
+                  {/* Quick-access category chips */}
+                  <div className="flex flex-wrap justify-center gap-2 mt-2">
+                    {['Plumber', 'Electrician', 'Builder', 'Painter', 'Welder'].map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setCategoryInput(cat);
+                          setIsSearchActive(true);
+                          setSearchStep('location');
+                        }}
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all hover:border-brand-yellow hover:text-brand-yellow active:scale-95 ${isDarkMode ? 'border-white/10 text-gray-400 bg-white/5' : 'border-gray-300 text-gray-500 bg-white'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
                   </div>
 
-                </button>
-              </div>
-
-  </div>
-</div>  
-           </section> 
-
-      {/* --- DIRECTORY SECTION --- */}
-      <section className="w-full mt-12 max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex items-end justify-between mb-8 px-2">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-yellow mb-2">Directory</p>
-            <h3 className={`text-2xl md:text-3xl font-black tracking-tighter ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Popular Trades</h3>
-          </div>
-          <div className="hidden md:block h-px flex-1 bg-white/10 ml-8 mb-2"></div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-16 perspective-container" onMouseEnter={() => setRovingIndex(null)}>
-          {QUICK_CATEGORIES.map((cat, index) => {
-            const isRoving = rovingIndex === index;
-            return (
-              <button 
-                key={cat.id} 
-                onClick={() => handleCardSelect(cat.id, cat.label)} 
-                className={`group relative h-48 rounded-3xl overflow-hidden border transition-all duration-700 ease-out card-3d ${isDarkMode ? 'border-brand-yellow/20 shadow-[0_10px_30px_rgba(0,0,0,0.5)]' : 'border-gray-200 shadow-xl'} ${isRoving ? 'ring-2 ring-brand-yellow shadow-[0_0_30px_rgba(250,204,21,0.5)] -translate-y-2' : ''} hover:ring-2 hover:ring-brand-yellow hover:shadow-[0_0_30px_rgba(250,204,21,0.5)]`}
-                style={{ transitionDelay: `${index * 20}ms` }}
-              >
-                <div className="absolute inset-0 w-full h-full overflow-hidden">
-                  <ImageWithSkeleton src={cat.image} alt={cat.label} className={`absolute inset-0 w-full h-full object-cover transform transition-transform duration-1000 ${isRoving ? 'scale-110' : 'group-hover:scale-110'}`} />
                 </div>
-                <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent transition-opacity duration-500 ${isRoving ? 'opacity-80' : 'opacity-90 group-hover:opacity-80'}`} />
-                <div className="absolute inset-0 p-5 flex flex-col justify-end items-start text-flat">
-                  <div className={`h-1 bg-brand-yellow mb-3 transform origin-left transition-all duration-500 shadow-[0_0_10px_#facc15] ${isRoving ? 'w-12' : 'w-8 group-hover:w-12'}`}></div>
-                  <span className={`font-black text-[10px] sm:text-sm md:text-lg uppercase tracking-normal sm:tracking-widest transition-colors relative z-10 drop-shadow-lg w-full text-center leading-none sm:leading-tight break-words px-1 ${isRoving ? 'text-brand-yellow' : 'text-white'}`}>
-                    {cat.label}
-                  </span>
-                  <span className={`text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1 transform transition-all duration-500 ${isRoving ? 'opacity-100 translate-y-0 text-white' : 'opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0'}`}>
-                    View Pros →
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+              </section>
+              {/* ============================================================
+                  END NEW HERO SECTION
+              ============================================================ */}
 
-        <div className="reveal perspective-container">
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className={`h-px w-12 ${isDarkMode ? 'bg-white/10' : 'bg-gray-200'}`}></div>
-            <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Additional Services</p>
-            <div className={`h-px w-12 ${isDarkMode ? 'bg-white/10' : 'bg-gray-200'}`}></div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 max-w-5xl mx-auto px-2">
-            {MORE_SERVICES.map((service, idx) => (
-              <button key={service.id} onClick={() => handleCardSelect(service.id, service.label)} className="group relative h-48 md:h-56 rounded-[2rem] overflow-hidden cursor-pointer border border-white/5 hover:border-brand-yellow/50 transition-all duration-500 shadow-lg hover:shadow-[0_0_40px_rgba(250,204,21,0.15)] w-full block text-center">
-                <img src={service.image} alt={service.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0906] via-[#0c0906]/60 to-transparent transition-opacity duration-300"></div>
-                <div className="absolute inset-0 p-6 flex flex-col justify-end items-center pb-8">
-                  <div className="w-14 h-14 mb-4 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-brand-yellow group-hover:bg-brand-yellow group-hover:text-black group-hover:scale-110 transition-all duration-300 shadow-2xl *:w-6 *:h-6">
-                    {service.icon} 
+              {/* --- DIRECTORY SECTION --- */}
+              <section className="w-full mt-12 max-w-7xl mx-auto px-4 md:px-8">
+                <div className="flex items-end justify-between mb-8 px-2">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-yellow mb-2">Directory</p>
+                    <h3 className={`text-2xl md:text-3xl font-black tracking-tighter ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Popular Trades</h3>
                   </div>
-                  <span className="text-white font-black uppercase tracking-widest text-[10px] md:text-xs leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] group-hover:text-brand-yellow transition-colors block w-full px-1 text-center break-words">
-                    {service.label}
-                  </span>
+                  <div className="hidden md:block h-px flex-1 bg-white/10 ml-8 mb-2"></div>
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* --- PARTNER SHOWCASE SECTION --- */}
-      <section className={`py-24 relative mt-16 ${isDarkMode ? 'bg-[#150f0a]' : 'bg-gray-100'}`}>
-        <div className="absolute top-0 left-0 right-0 h-4 bg-basket-weave opacity-30"></div>
-        <div className="max-w-7xl mx-auto px-6 perspective-container">
-          <div className="flex flex-col items-center mb-16 reveal">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-brand-yellow mb-4">Partner Showcase</h3>
-            <h2 className={`text-4xl md:text-5xl font-black tracking-tighter text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Elite Featured Traders</h2>
-            <div className="h-1 w-20 bg-brand-yellow mt-6"></div>
-          </div>
-
-          {loadingAds ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className={`h-[450px] rounded-[2.5rem] animate-pulse-fast p-8 flex flex-col justify-end ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border-gray-200'}`}>
-                  <div className="w-full h-full bg-gray-400/10 rounded-xl"></div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-16 perspective-container" onMouseEnter={() => setRovingIndex(null)}>
+                  {QUICK_CATEGORIES.map((cat, index) => {
+                    const isRoving = rovingIndex === index;
+                    return (
+                      <button 
+                        key={cat.id} 
+                        onClick={() => handleCardSelect(cat.id, cat.label)} 
+                        className={`group relative h-48 rounded-3xl overflow-hidden border transition-all duration-700 ease-out card-3d ${isDarkMode ? 'border-brand-yellow/20 shadow-[0_10px_30px_rgba(0,0,0,0.5)]' : 'border-gray-200 shadow-xl'} ${isRoving ? 'ring-2 ring-brand-yellow shadow-[0_0_30px_rgba(250,204,21,0.5)] -translate-y-2' : ''} hover:ring-2 hover:ring-brand-yellow hover:shadow-[0_0_30px_rgba(250,204,21,0.5)]`}
+                        style={{ transitionDelay: `${index * 20}ms` }}
+                      >
+                        <div className="absolute inset-0 w-full h-full overflow-hidden">
+                          <ImageWithSkeleton src={cat.image} alt={cat.label} className={`absolute inset-0 w-full h-full object-cover transform transition-transform duration-1000 ${isRoving ? 'scale-110' : 'group-hover:scale-110'}`} />
+                        </div>
+                        <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent transition-opacity duration-500 ${isRoving ? 'opacity-80' : 'opacity-90 group-hover:opacity-80'}`} />
+                        <div className="absolute inset-0 p-5 flex flex-col justify-end items-start text-flat">
+                          <div className={`h-1 bg-brand-yellow mb-3 transform origin-left transition-all duration-500 shadow-[0_0_10px_#facc15] ${isRoving ? 'w-12' : 'w-8 group-hover:w-12'}`}></div>
+                          <span className={`font-black text-[10px] sm:text-sm md:text-lg uppercase tracking-normal sm:tracking-widest transition-colors relative z-10 drop-shadow-lg w-full text-center leading-none sm:leading-tight break-words px-1 ${isRoving ? 'text-brand-yellow' : 'text-white'}`}>
+                            {cat.label}
+                          </span>
+                          <span className={`text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1 transform transition-all duration-500 ${isRoving ? 'opacity-100 translate-y-0 text-white' : 'opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0'}`}>
+                            View Pros →
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          ) : featuredAds && featuredAds.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 reveal">
-              {featuredAds.map((ad, index) => (
-                <div key={ad.id} style={{ transitionDelay: `${index * 100}ms` }} onClick={() => { setSelectedBusinessId(ad.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`group relative h-[450px] rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d ${isDarkMode ? 'border-brand-yellow/20' : 'border-gray-200'}`}>
-                  <ImageWithSkeleton src={ad.image_url} alt={ad.brand_name} className="absolute inset-0 w-full h-full" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-opacity duration-500"></div>
-                  <div className="absolute inset-0 p-8 flex flex-col justify-end z-30 text-flat">
-                    <div className="bg-brand-yellow/90 backdrop-blur-sm text-brand-black w-fit px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest mb-4">Elite Member • {ad.category}</div>
-                    <h4 className="text-xs font-black uppercase text-brand-yellow tracking-[0.2em] mb-1">{ad.brand_name}</h4>
-                    <h3 className="text-2xl font-black mb-2 leading-tight text-white group-hover:text-brand-yellow transition-colors">{ad.title}</h3>
-                    <p className="text-gray-300 text-sm font-medium mb-6 line-clamp-2">{ad.subtitle}</p>
-                    <div className="w-full h-12 bg-white/10 border border-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-yellow group-hover:text-black transition-all text-white">Contact Business</div>
+
+                <div className="reveal perspective-container">
+                  <div className="flex items-center justify-center gap-4 mb-8">
+                    <div className={`h-px w-12 ${isDarkMode ? 'bg-white/10' : 'bg-gray-200'}`}></div>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Additional Services</p>
+                    <div className={`h-px w-12 ${isDarkMode ? 'bg-white/10' : 'bg-gray-200'}`}></div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 max-w-5xl mx-auto px-2">
+                    {MORE_SERVICES.map((service, idx) => (
+                      <button key={service.id} onClick={() => handleCardSelect(service.id, service.label)} className="group relative h-48 md:h-56 rounded-[2rem] overflow-hidden cursor-pointer border border-white/5 hover:border-brand-yellow/50 transition-all duration-500 shadow-lg hover:shadow-[0_0_40px_rgba(250,204,21,0.15)] w-full block text-center">
+                        <img src={service.image} alt={service.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0906] via-[#0c0906]/60 to-transparent transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 p-6 flex flex-col justify-end items-center pb-8">
+                          <div className="w-14 h-14 mb-4 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-brand-yellow group-hover:bg-brand-yellow group-hover:text-black group-hover:scale-110 transition-all duration-300 shadow-2xl *:w-6 *:h-6">
+                            {service.icon} 
+                          </div>
+                          <span className="text-white font-black uppercase tracking-widest text-[10px] md:text-xs leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] group-hover:text-brand-yellow transition-colors block w-full px-1 text-center break-words">
+                            {service.label}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-gray-500 py-12"><p>No featured partners available.</p></div>
-          )}
-        </div>
-      </section>
+              </section>
+
+              {/* --- PARTNER SHOWCASE SECTION --- */}
+              <section className={`py-24 relative mt-16 ${isDarkMode ? 'bg-[#150f0a]' : 'bg-gray-100'}`}>
+                <div className="absolute top-0 left-0 right-0 h-4 bg-basket-weave opacity-30"></div>
+                <div className="max-w-7xl mx-auto px-6 perspective-container">
+                  <div className="flex flex-col items-center mb-16 reveal">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-brand-yellow mb-4">Partner Showcase</h3>
+                    <h2 className={`text-4xl md:text-5xl font-black tracking-tighter text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Elite Featured Traders</h2>
+                    <div className="h-1 w-20 bg-brand-yellow mt-6"></div>
+                  </div>
+
+                  {loadingAds ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className={`h-[450px] rounded-[2.5rem] animate-pulse-fast p-8 flex flex-col justify-end ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border-gray-200'}`}>
+                          <div className="w-full h-full bg-gray-400/10 rounded-xl"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : featuredAds && featuredAds.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 reveal">
+                      {featuredAds.map((ad, index) => (
+                        <div key={ad.id} style={{ transitionDelay: `${index * 100}ms` }} onClick={() => { setSelectedBusinessId(ad.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`group relative h-[450px] rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d ${isDarkMode ? 'border-brand-yellow/20' : 'border-gray-200'}`}>
+                          <ImageWithSkeleton src={ad.image_url} alt={ad.brand_name} className="absolute inset-0 w-full h-full" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-opacity duration-500"></div>
+                          <div className="absolute inset-0 p-8 flex flex-col justify-end z-30 text-flat">
+                            <div className="bg-brand-yellow/90 backdrop-blur-sm text-brand-black w-fit px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest mb-4">Elite Member • {ad.category}</div>
+                            <h4 className="text-xs font-black uppercase text-brand-yellow tracking-[0.2em] mb-1">{ad.brand_name}</h4>
+                            <h3 className="text-2xl font-black mb-2 leading-tight text-white group-hover:text-brand-yellow transition-colors">{ad.title}</h3>
+                            <p className="text-gray-300 text-sm font-medium mb-6 line-clamp-2">{ad.subtitle}</p>
+                            <div className="w-full h-12 bg-white/10 border border-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-yellow group-hover:text-black transition-all text-white">Contact Business</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500 py-12"><p>No featured partners available.</p></div>
+                  )}
+                </div>
+              </section>
+
             </div>
           )}
 
@@ -1464,69 +1376,58 @@ const handleFindService = () => {
                     ))}
                   </div>
                 ) : (
-      <div className={`relative text-center py-24 px-6 rounded-[3rem] border overflow-hidden transition-all duration-500 ${isDarkMode ? 'bg-[#111] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-yellow/5 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
-
-  <div className="relative z-10 flex flex-col items-center">
-    <div className="relative mb-10">
-      <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-20 duration-1000"></div>
-      <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-10 animation-delay-500 duration-1000"></div>
-      <div className={`relative w-24 h-24 rounded-full flex items-center justify-center border-2 backdrop-blur-md shadow-2xl ${isDarkMode ? 'bg-black/40 border-brand-yellow text-white' : 'bg-white border-brand-yellow text-black'}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-brand-yellow animate-pulse">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
-      </div>
-    </div>
-
-    <h3 className={`text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-      Professionals <span className="text-brand-yellow">Loading...</span>
-    </h3>
-
-    <div className="max-w-lg mx-auto mb-10 space-y-2">
-      <p className={`text-sm md:text-base font-medium leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-        We are hard at work sourcing trusted <span className="text-brand-yellow font-bold uppercase">{executedSearch.category || 'specialists'}</span> for you.
-      </p>
-      <p className="text-xs md:text-sm text-gray-500 uppercase tracking-widest">
-        Stay Connected • Quality takes time
-      </p>
-    </div>
-
-    <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-      <button onClick={goHome} className="px-8 py-4 bg-brand-yellow text-black font-black uppercase text-xs tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-yellow/20">
-        Browse Other Services
-      </button>
-      <button onClick={() => setShowSuggestionForm(true)} className={`px-8 py-4 border font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-white/5 transition-colors ${isDarkMode ? 'border-white/20 text-white' : 'border-gray-300 text-gray-700'}`}>
-        Suggest a Pro
-      </button>
-    </div>
-
-  </div>
-</div>
+                  <div className={`relative text-center py-24 px-6 rounded-[3rem] border overflow-hidden transition-all duration-500 ${isDarkMode ? 'bg-[#111] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-yellow/5 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+                    <div className="relative z-10 flex flex-col items-center">
+                      <div className="relative mb-10">
+                        <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-20 duration-1000"></div>
+                        <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-10 animation-delay-500 duration-1000"></div>
+                        <div className={`relative w-24 h-24 rounded-full flex items-center justify-center border-2 backdrop-blur-md shadow-2xl ${isDarkMode ? 'bg-black/40 border-brand-yellow text-white' : 'bg-white border-brand-yellow text-black'}`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-brand-yellow animate-pulse">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className={`text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Professionals <span className="text-brand-yellow">Loading...</span>
+                      </h3>
+                      <div className="max-w-lg mx-auto mb-10 space-y-2">
+                        <p className={`text-sm md:text-base font-medium leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          We are hard at work sourcing trusted <span className="text-brand-yellow font-bold uppercase">{executedSearch.category || 'specialists'}</span> for you.
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-widest">Stay Connected • Quality takes time</p>
+                      </div>
+                      <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                        <button onClick={goHome} className="px-8 py-4 bg-brand-yellow text-black font-black uppercase text-xs tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-yellow/20">Browse Other Services</button>
+                        <button onClick={() => setShowSuggestionForm(true)} className={`px-8 py-4 border font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-white/5 transition-colors ${isDarkMode ? 'border-white/20 text-white' : 'border-gray-300 text-gray-700'}`}>Suggest a Pro</button>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 </>
               )}
             </section>
           )}
-{/* 🚀 PRIVATE BETA BANNER */}
-      {showBetaBanner && (
-        <div className="bg-zinc-950 border-b border-yellow-500/30 px-4 py-3 flex items-start md:items-center justify-between relative z-[9999] w-full shadow-lg">
-          <div className="flex items-start md:items-center gap-3">
-            <span className="shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-500 mt-0.5 md:mt-0">
-              <Info size={14} strokeWidth={3} />
-            </span>
-            <p className="text-xs md:text-sm text-white font-medium leading-relaxed">
-              <strong className="text-yellow-500 font-black uppercase tracking-widest mr-2">Private Beta:</strong>
-              SkillsConnectPro is currently in active development. Features, profiles, and UI are actively being tested.
-            </p>
-          </div>
-          <button 
-            onClick={() => setShowBetaBanner(false)} 
-            className="shrink-0 ml-4 text-gray-400 hover:text-yellow-500 p-1 transition-colors"
-          >
-            <X size={18} strokeWidth={2.5} />
-          </button>
-        </div>
-      )}          {appState === AppState.PROFILE && selectedArtisan && (
+
+          {/* 🚀 PRIVATE BETA BANNER */}
+          {showBetaBanner && (
+            <div className="bg-zinc-950 border-b border-yellow-500/30 px-4 py-3 flex items-start md:items-center justify-between relative z-[9999] w-full shadow-lg">
+              <div className="flex items-start md:items-center gap-3">
+                <span className="shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-500 mt-0.5 md:mt-0">
+                  <Info size={14} strokeWidth={3} />
+                </span>
+                <p className="text-xs md:text-sm text-white font-medium leading-relaxed">
+                  <strong className="text-yellow-500 font-black uppercase tracking-widest mr-2">Private Beta:</strong>
+                  SkillsConnectPro is currently in active development. Features, profiles, and UI are actively being tested.
+                </p>
+              </div>
+              <button onClick={() => setShowBetaBanner(false)} className="shrink-0 ml-4 text-gray-400 hover:text-yellow-500 p-1 transition-colors">
+                <X size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+          )}
+
+          {appState === AppState.PROFILE && selectedArtisan && (
             <div className={`min-h-screen pt-24 pb-12 px-6 relative animate-fade-in ${isDarkMode ? 'bg-[#150f0a] text-white' : 'bg-white text-gray-900'}`}>
               <button onClick={() => setAppState(AppState.SEARCH_RESULTS)} className="mb-8 flex items-center gap-2 text-gray-400 hover:text-brand-yellow transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
@@ -1605,12 +1506,10 @@ const handleFindService = () => {
                         )}
                    </div>
 
-                   {/* 📸 PROOF OF WORK SECTION (God-Mode Parser) */}
+                   {/* 📸 PROOF OF WORK SECTION */}
                    {(() => {
-                     // Safely grab the raw data from Supabase
-                     const rawUrls = selectedArtisan?.portfolio_urls || selectedArtisan?.portfolio;
+                     const rawUrls = selectedArtisan?.portfolio_images || selectedArtisan?.proof_of_work || selectedArtisan?.portfolio_urls;
                      
-                     // Handle the Supabase JSON String Trap
                      let urls: string[] = [];
                      if (Array.isArray(rawUrls)) {
                        urls = rawUrls;
@@ -1622,7 +1521,6 @@ const handleFindService = () => {
                        }
                      }
 
-                     // If they are verified but have no photos uploaded yet
                      if (selectedArtisan?.verified && urls.length === 0) {
                         return (
                           <div>
@@ -1634,7 +1532,6 @@ const handleFindService = () => {
                         );
                      }
 
-                     // If they are NOT verified and have no photos (Locked State)
                      if (!selectedArtisan?.verified && urls.length === 0) {
                         return (
                           <div className={`p-8 border rounded-3xl text-center mb-8 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
@@ -1644,12 +1541,9 @@ const handleFindService = () => {
                         );
                      }
 
-                     // 🌟 THE PREMIUM IMAGE GRID (For Artisans with Photos!)
                      return (
                        <div className="mb-12 w-full animate-fade-in-up">
-                         <h3 className="text-brand-yellow text-xs font-black uppercase tracking-[0.2em] mb-6 ml-2">
-                           Proof of Work
-                         </h3>
+                         <h3 className="text-brand-yellow text-xs font-black uppercase tracking-[0.2em] mb-6 ml-2">Proof of Work</h3>
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                            {urls.slice(0, 4).map((imgUrl: string, index: number) => (
                              <div 
@@ -1659,7 +1553,7 @@ const handleFindService = () => {
                               >
                                <img 
                                  src={imgUrl} 
-                                 alt={`${selectedArtisan.first_name}'s Work ${index + 1}`} 
+                                 alt={`${selectedArtisan.name}'s Work ${index + 1}`} 
                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
                                />
                              </div>
@@ -1677,7 +1571,8 @@ const handleFindService = () => {
               </div>
             </div>
           )}
-{/* --- 1-CLICK AI ONBOARDING PAGE --- */}
+
+          {/* --- 1-CLICK AI ONBOARDING PAGE --- */}
           {appState === AppState.QUICK_JOIN && (
             <div className="animate-fade-in pt-24 pb-12 w-full max-w-2xl mx-auto reveal">
               <button onClick={goHome} className="mb-6 ml-6 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-brand-yellow flex items-center transition-colors group">
@@ -1692,6 +1587,7 @@ const handleFindService = () => {
               />
             </div>
           )}
+
           {appState === AppState.REGISTRATION && (
             <div className="animate-fade-in max-w-2xl mx-auto px-6 py-24 w-full reveal">
               <button onClick={goHome} className="mb-12 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-brand-yellow flex items-center transition-colors group"><span className="mr-3 transition-transform group-hover:-translate-x-1">←</span> Back Home</button>
@@ -1805,7 +1701,7 @@ const handleFindService = () => {
         )}
       </main>
 
-      {/* FOOTER (Hidden on Welcome Screen) */}
+      {/* FOOTER */}
       {appState !== AppState.WELCOME && (
       <footer className={`border-t pt-24 pb-12 ${isDarkMode ? 'bg-[#150f0a] border-white/5' : 'bg-gray-100 border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 text-center">
@@ -1825,7 +1721,7 @@ const handleFindService = () => {
       </footer>
       )}
 
-      {/* --- AI CAMERA ASSISTANT (Hidden on Welcome Screen) --- */}
+      {/* --- AI CAMERA ASSISTANT --- */}
       {appState !== AppState.WELCOME && (
       <CameraAssistant 
         onSearch={(term) => {
@@ -1841,7 +1737,7 @@ const handleFindService = () => {
       />
       )}
 
-      {/* --- AI VOICE ASSISTANT (Hidden on Welcome Screen) --- */}
+      {/* --- AI VOICE ASSISTANT --- */}
       {appState !== AppState.WELCOME && (
       <VoiceAssistant 
         isDarkMode={isDarkMode} 
@@ -1856,33 +1752,21 @@ const handleFindService = () => {
       />
       )}
 
-    </div> // Main closing div
+    </div>
   );
-}// ==========================================
-// 2. PASTE YOUR ENTIRE APP COMPONENTS HERE
-// (From QUICK_CATEGORIES all the way down to the end of the App component)
-// DO NOT paste your old AppWrapper. 
-// ==========================================
+}
 
-
-// ==========================================
-// 3. THE NEW NEXT.JS VIP ROUTER WRAPPER
-// ==========================================
 const AppWrapperContent = () => {
-  // Next.js way of reading the ?claim= URL parameter safely
   const searchParams = useSearchParams();
   const claimId = searchParams.get('claim');
 
-  // If the VIP link is detected, show the Claim Screen!
   if (claimId) {
     return <ClaimProfile />;
   }
 
-  // Otherwise, load the app normally!
   return <App />;
 };
 
-// This is what Next.js actually looks for to render the page
 export default function Page() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#150f0a]" />}>
