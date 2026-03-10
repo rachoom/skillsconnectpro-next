@@ -1102,7 +1102,7 @@ const handleFindService = () => {
       
       {showReviewModal && selectedArtisan && (
         <ReviewModal 
-            artisanId={selectedArtisan.id as number} 
+            artisanId={selectedArtisan.id as any}
             artisanName={selectedArtisan.name} 
             onClose={() => setShowReviewModal(false)} 
             isDarkMode={isDarkMode} 
