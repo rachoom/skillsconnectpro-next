@@ -40,6 +40,8 @@ export interface Artisan {
   reviews?: any[];
   first_name?: string;
   last_name?: string;
+  referral_source?: string; // Existing
+  referralSource?: string;
 }
 
 export enum AppState {
