@@ -29,8 +29,10 @@ export interface Artisan {
   verified?: boolean;
   isVerified?: boolean;
   rating?: number;
+  reviewCount?: number; // Added for mockData
   bio?: string;
   image_url?: string;
+  imageUrl?: string;  // Added for mockData
   portfolio_images?: string[];
   portfolio_urls?: string[] | string;
   portfolio?: string[] | string;
@@ -40,7 +42,7 @@ export interface Artisan {
   reviews?: any[];
   first_name?: string;
   last_name?: string;
-  referral_source?: string; // Existing
+  referral_source?: string;
   referralSource?: string;
 }
 
