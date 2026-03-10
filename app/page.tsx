@@ -841,7 +841,7 @@ const handleFindService = () => {
                 location: regForm.area, 
                 phone: regForm.phone,
                 bio: regForm.bio,
-                referral_source: regForm.referral,
+                referral_source: regForm.referralSource,
                 institution: regForm.institution,
                 images: uploadedImageUrls
             }
