@@ -20,21 +20,26 @@ export interface Review {
 }
 
 export interface Artisan {
-  id: string;
+  id: string | number;
   name: string;
-  category: ArtisanCategory;
+  category: string;
   location: string;
   phone: string;
-  email?: string; 
-  
-    image_url: string; 
-  
-  // 👇 CHANGE THIS to match your Database Column Name
-  isVerified: boolean; 
+  email?: string;
   verified?: boolean;
-  is_claimed?: boolean;
-  portfolio_urls?: string[];
-  // ... other fields
+  isVerified?: boolean;
+  rating?: number;
+  bio?: string;
+  image_url?: string;
+  portfolio_images?: string[];
+  portfolio_urls?: string[] | string;
+  portfolio?: string[] | string;
+  proof_of_work?: string[];
+  website?: string | null;
+  services?: string[];
+  reviews?: any[];
+  first_name?: string;
+  last_name?: string;
 }
 
 export enum AppState {
