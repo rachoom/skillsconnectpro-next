@@ -666,12 +666,7 @@ const [isInteractive, setIsInteractive] = useState(false);
             rating: item.rating || 4.8,
             bio: item.bio || "Professional artisan verified by Skills Connect.",
             image_url: item.image_url,
-            // This checks proof_of_work, then portfolio_images, then portfolio, then images.
-            portfolio_images: 
-  (item.proof_of_work?.length > 0) ? item.proof_of_work : 
-  (item.portfolio_images?.length > 0) ? item.portfolio_images : 
-  (item.portfolio?.length > 0) ? item.portfolio : 
-  (item.images?.length > 0) ? item.images : [],
+            portfolio_images: item.proof_of_work || [],
             services: ["Consultation", "Installation", "Maintenance"],
             reviews: []
           }));
