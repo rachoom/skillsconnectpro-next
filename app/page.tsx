@@ -814,7 +814,7 @@ const handleFindService = () => {
     }, 150);
   };
   const goToRegistration = () => {
-    setIsSubmitted(false); setRegForm({ firstName: '', lastName: '', trade: '', area: '', phone: '', bio: '', referral: '', institution: '' });
+    setIsSubmitted(false); setRegForm({ firstName: '', lastName: '', trade: '', area: '', phone: '', bio: '', referralSource: '', institution: '' });
     setSelectedImages([]); setImagePreviews([]); setCaptchaVerified(false); setIsMobileMenuOpen(false);
     setAppState(AppState.REGISTRATION); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
