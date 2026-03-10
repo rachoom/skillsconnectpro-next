@@ -522,7 +522,7 @@ const [isInteractive, setIsInteractive] = useState(false);
     area: '', 
     phone: '', 
     bio: '', 
-    referral: '',
+    referralSource: '',
     institution: '' 
   });
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
