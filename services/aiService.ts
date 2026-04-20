@@ -1,14 +1,18 @@
-const API_KEY = "AIzaSyAjaXrOUa3jVKH_ZD7amk2CVK5lEuEXB_8"; // Note: Consider moving this to an .env file before going live!
+
 
 // ==========================================
 // 1. TEXT/VOICE INTENT ANALYZER
 // ==========================================
 export const analyzeIntent = async (userText: string) => {
-  if (!API_KEY || API_KEY.startsWith("YOUR_")) return smartFallback(userText);
+  const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  if (!API_KEY) {
+    console.error("🚨 CRITICAL: API Key is undefined! Check your .env.local file.");
+    return smartFallback(userText);
+  }
 
   try {
-    // 🛑 FIX 1: Changed to the correct 'gemini-1.5-flash' model
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+   // 🛑 FIX 1: Changed to the correct 'gemini-1.5-flash' model
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -45,11 +49,17 @@ export const analyzeIntent = async (userText: string) => {
 // 2. VISUAL QUOTING (IMAGE) ANALYZER
 // ==========================================
 export const analyzeImageIntent = async (base64Image: string, mimeType: string) => {
+  const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  if (!API_KEY) {
+    console.error("🚨 CRITICAL: API Key is undefined! Check your .env.local file.");
+    throw new Error("Missing API Key");
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000); 
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: controller.signal, 
@@ -61,7 +71,8 @@ export const analyzeImageIntent = async (base64Image: string, mimeType: string) 
             {
               inlineData: {
                 mimeType: mimeType,
-                data: base64Image
+                // Strips the "data:image/jpeg;base64," prefix so the API doesn't crash
+                data: base64Image.includes(',') ? base64Image.split(',')[1] : base64Image
               }
             },
             {
