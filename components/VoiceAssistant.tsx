@@ -158,11 +158,12 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onExecuteSearch,
       }, 3000); 
     };
 
-    recognition.onresult = (event: any) => {
-      let currentTranscript = '';
-      for (let i = 0; i < event.results.length; i++) {
-        currentTranscript += event.results[i][0].transcript;
-      }
+  recognition.onresult = (event: any) => {
+      // THE ANDROID FIX: Instead of looping and gluing chunks together, 
+      // we just grab the very last, most complete transcription array item.
+      const lastResultIndex = event.results.length - 1;
+      const currentTranscript = event.results[lastResultIndex][0].transcript.trim();
+        
       const cleanedText = applySAContext(currentTranscript);
       setTranscript(cleanedText);
     };
@@ -285,7 +286,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onExecuteSearch,
 
       {/* Floating Button */}
       {!isOpen && (
-        <button onClick={() => setIsOpen(true)} className="fixed bottom-6 right-6 z-[90] h-16 w-16 bg-brand-yellow rounded-full shadow-[0_0_20px_rgba(250,204,21,0.4)] flex items-center justify-center hover:scale-110 transition-all border-2 border-[#0c0906] group">
+        <button onClick={() => setIsOpen(true)} className="fixed bottom-6 right-6 z-[90] h-16 w-16 liquid-glass glass-mic rounded-full flex items-center justify-center hover:scale-110 transition-all group">
           <Mic className="text-[#0c0906] w-7 h-7 group-hover:animate-pulse" strokeWidth={2.5} />
         </button>
       )}
