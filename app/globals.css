@@ -1,5 +1,6 @@
 @import "tailwindcss";
 /* ...existing code... */
+@plugin "@tailwindcss/typography";
 
 /* --- SKILLS CONNECT CUSTOM THEME --- */
 @theme {

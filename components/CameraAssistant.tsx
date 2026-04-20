@@ -120,7 +120,7 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
       {!showResult && (
         <button 
           onClick={handleCameraClick}
-          className="fixed bottom-6 left-6 z-[90] h-16 w-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full shadow-[0_8px_20px_rgba(16,185,129,0.4),_inset_0_-4px_0_rgba(4,120,87,0.6)] flex items-center justify-center hover:-translate-y-1 hover:shadow-[0_12px_25px_rgba(16,185,129,0.5),_inset_0_-4px_0_rgba(4,120,87,0.6)] active:translate-y-1 active:shadow-[0_2px_10px_rgba(16,185,129,0.4),_inset_0_-1px_0_rgba(4,120,87,0.6)] transition-all group border-2 border-emerald-300/30"
+          className="fixed bottom-6 left-6 z-[90] h-16 w-16 liquid-glass glass-camera rounded-full flex items-center justify-center hover:scale-110 transition-all group"
         >
           <Camera className="text-[#0c0906] w-7 h-7 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
         </button>

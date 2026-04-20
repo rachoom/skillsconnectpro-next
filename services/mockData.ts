@@ -93,16 +93,27 @@ export const ARTISANS: Artisan[] = [
 export const EAST_RAND_LOCATIONS = [
   'Tsakane',
   'KwaThema',
-  'Kwate', // User variant
+  'Kwate', 
   'Nigel',
-  'Maniger', // User variant
   'Springs',
   'Brakpan',
   'Duduza',
-  'Selefield',
+  'Selection Park',
   'Sharon Park',
   'Geluksdal',
   'Langaville',
   'Alra Park',
-  'Daveyton' // Added per request
+  'Daveyton',
+  // Add the missing ones here!
+  'Vosloorus',
+  'Katlehong',
+  'Tembisa',
+  'Boksburg',
+  'Benoni',
+  'Germiston',
+  'Kempton Park',
+  'Alberton',
+  'Edenvale',
+  'Bedfordview',
+  'Heidelberg'
 ];

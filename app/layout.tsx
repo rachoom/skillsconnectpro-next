@@ -2,19 +2,20 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SkillsConnectPro | East Rand Specialist Network',
-  description: 'Connect with verified, top-tier artisans in your area instantly. 100% Free to search.',
+  metadataBase: new URL('https://www.skillsconnectpro.co.za'), // 👈 ADD THIS LINE
+  title: 'Skills Connect Pro | Free Directory for Kasi Artisans',
+  description: 'Looking for skilled plumbers, builders, electricians, or mechanics? Skills Connect Pro is the free online directory connecting you with local kasi talent.',
   openGraph: {
-    title: 'SkillsConnectPro | Verified Artisans in the East Rand',
-    description: 'Find and book verified plumbers, electricians, welders and more in the Far East Rand. Fast, reliable, trusted.',
+    title: 'Skills Connect Pro | Free Kasi Artisan Directory',
+    description: 'Find and book skilled plumbers, electricians, builders, and mechanics in your area. Fast, local, and reliable.',
     url: 'https://www.skillsconnectpro.co.za',
-    siteName: 'SkillsConnectPro',
+    siteName: 'Skills Connect Pro',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'SkillsConnectPro - East Rand Artisan Network',
+        alt: 'Skills Connect Pro - Kasi Artisan Directory',
       },
     ],
     locale: 'en_ZA',
@@ -22,8 +23,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SkillsConnectPro | Verified Artisans in the East Rand',
-    description: 'Find and book verified artisans instantly.',
+    title: 'Skills Connect Pro | Free Kasi Artisan Directory',
+    description: 'Find and book local kasi artisans instantly.',
     images: ['/og-image.jpg'],
   },
 };
