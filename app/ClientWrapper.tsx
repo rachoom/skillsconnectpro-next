@@ -1323,11 +1323,11 @@ const { error } = await supabase.from('artisan_applications').insert([
     poster="/hero-poster.jpg"
     className="absolute inset-0 w-full h-full object-cover opacity-100 mix-blend-luminosity z-0"
   >
-    <source src="/download.webm" type="video/webm" />
+    <source src="/download.mp4" type="video/mp4" />
   </video>
 
   {/* 2. Dark Gradient Overlay */}
-  <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/70 to-[#150f0a] z-10"></div>
+  <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/40 to-[#150f0a] z-10"></div>
 </div>
               {/* Centered Content Column */}
                 <div className="relative z-10 flex flex-col items-center text-center w-full max-w-4xl mx-auto gap-4 md:gap-6">

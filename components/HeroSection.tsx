@@ -9,9 +9,9 @@ export default function HeroSection() {
         muted
         playsInline
         poster="/hero-poster.webp" // Your extracted first frame
-        className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity" 
+        className="absolute inset-0 w-full h-full object-cover opacity-70 mix-blend-luminosity" 
       >
-        <source src="/download.webm" type="video/webm" />
+        <source src="/download.mp4" type="video/mp4" />
         {/* Add an MP4 fallback here later if needed for older Safari versions */}
       </video>
 

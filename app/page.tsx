@@ -13,8 +13,9 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   
-  // Grab the ID from the URL
-  const targetId = searchParams.claim || searchParams.profile;
+  // Grab the ID from the
+  const resolvedParams = await searchParams;
+  const targetId = resolvedParams.claim || resolvedParams.profile;
 
   // 1. DYNAMIC METADATA (If an artisan link is shared)
   if (targetId && typeof targetId === 'string') {
