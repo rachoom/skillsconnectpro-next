@@ -815,35 +815,45 @@ useEffect(() => {
 }, [executedSearch.category, executedSearch.location]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => { if (entry.isIntersecting) (entry.target as Element).classList.add('active'); });
-    }, { threshold: 0.1 });
-    const revealElements = document.querySelectorAll('.reveal');
-    revealElements.forEach((el) => observer.observe(el));
-    return () => { revealElements.forEach((el) => observer.unobserve(el)); };
-  }, [appState, loadingAds]);
+  // 2. Fetch from Supabase whenever the search changes
+useEffect(() => {
+  const fetchFromDatabase = async () => {
+    try {
+      let query = supabase.from('artisans').select('*');
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) setShowLocationSuggestions(false);
-      if (skillSuggestionRef.current && !skillSuggestionRef.current.contains(event.target as Node)) setShowSkillSuggestions(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+      // 1. Fix the Plural Bug (e.g., changes "Plumbers" to "Plumber")
+      let cat = executedSearch.category ? executedSearch.category.trim() : '';
+      if (cat.toLowerCase().endsWith('s')) {
+         cat = cat.slice(0, -1);
+      }
 
-  useEffect(() => {
-    if (appState !== AppState.HOME) return;
-    const interval = setInterval(() => {
-      setRovingIndex(Math.floor(Math.random() * QUICK_CATEGORIES.length));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [appState]);
+      if (cat) {
+         query = query.ilike('category', `%${cat}%`);
+      }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!categoryInput) { showToast('Please select a skill category first!', "error"); return; }
-    setExecutedSearch({ category: categoryInput, location: locationInput });
+      if (executedSearch.location) {
+         query = query.ilike('location', `%${executedSearch.location.trim()}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        // 2. Force unwrap the hidden network error
+        console.error("🔥 SUPABASE ERROR:", error.message || "Failed to fetch. Check Network Tab.");
+      }
+
+      if (data) {
+         setLiveFilteredPros(data);
+      }
+    } catch (err: any) {
+      console.error("🔥 CATCH ERROR:", err.message || err);
+    }
+  };
+
+  if (executedSearch.category || executedSearch.location) {
+     fetchFromDatabase();
+  }
+}, [executedSearch.category, executedSearch.location]);
 
     if (locationInput) {
       const correctedLocation = findClosestLocation(locationInput);
