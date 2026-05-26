@@ -800,7 +800,7 @@ useEffect(() => {
     const { data, error } = await query;
     
     if (error) {
-      console.error("Supabase fetch error:", error);
+      console.error("Supabase fetch error:", error.message, error.details);
     }
     
     if (data) {
@@ -814,7 +814,6 @@ useEffect(() => {
   }
 }, [executedSearch.category, executedSearch.location]);
 
-  useEffect(() => {
   // 2. Fetch from Supabase whenever the search changes
 useEffect(() => {
   const fetchFromDatabase = async () => {
@@ -838,15 +837,16 @@ useEffect(() => {
       const { data, error } = await query;
 
       if (error) {
-        // 2. Force unwrap the hidden network error
-        console.error("🔥 SUPABASE ERROR:", error.message || "Failed to fetch. Check Network Tab.");
+        // 2. Force the error to pop up on your screen!
+        alert("SUPABASE ERROR: " + JSON.stringify(error));
+        console.error("🔥 SUPABASE ERROR:", error);
       }
 
       if (data) {
          setLiveFilteredPros(data);
       }
     } catch (err: any) {
-      console.error("🔥 CATCH ERROR:", err.message || err);
+      alert("NETWORK CATCH ERROR: " + err.message);
     }
   };
 
@@ -854,6 +854,7 @@ useEffect(() => {
      fetchFromDatabase();
   }
 }, [executedSearch.category, executedSearch.location]);
+
 
     if (locationInput) {
       const correctedLocation = findClosestLocation(locationInput);
