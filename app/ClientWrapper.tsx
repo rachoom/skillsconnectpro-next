@@ -809,30 +809,42 @@ const locationAliases: Record<string, string> = {
         }
     }
 
-    const rawFiltered = artisans.filter(artisan => {
-      let matchCategory = false;
-      if (executedSearch.category === '') matchCategory = true;
-      else {
-        const searchTerm = executedSearch.category.toLowerCase();
-        const dbCategory = artisan.category ? artisan.category.toLowerCase() : '';
-        const searchRoot = searchTerm.length > 3 && searchTerm.endsWith('s') ? searchTerm.slice(0, -1) : searchTerm;
-        const dbRoot = dbCategory.length > 3 && dbCategory.endsWith('s') ? dbCategory.slice(0, -1) : dbCategory;
-        matchCategory = dbCategory.includes(searchRoot) || searchTerm.includes(dbRoot);
-      }
+    // 1. Create a state to hold the live database results
+const [liveFilteredPros, setLiveFilteredPros] = useState<Artisan[]>([]);
 
-      let locationMatch = false;
-      if (normalizedLocationInput === '') locationMatch = true;
-      else {
-          const dbLocations = artisan.location ? artisan.location.toLowerCase().split(',').map(l => l.trim()) : [];
-          locationMatch = dbLocations.some(dbLoc => locationSearchTerms.some(term => dbLoc.includes(term)));
-      }
-      return matchCategory && locationMatch;
-    });
-    return [...rawFiltered]
-  .sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0))
-  .sort(() => Math.random() - 0.5)  // shuffle within verified/unverified groups
-  .slice(0, 5);
-  }, [executedSearch, artisans]);
+// 2. Fetch from Supabase whenever the search changes
+useEffect(() => {
+  const fetchFromDatabase = async () => {
+    // Start the base query
+    let query = supabase.from('artisans').select('*');
+
+    // If they typed a category, use ilike for flexible case-insensitive matching
+    if (executedSearch.category) {
+       query = query.ilike('category', `%${executedSearch.category.trim()}%`);
+    }
+
+    // If they typed a location, match that too
+    if (executedSearch.location) {
+       query = query.ilike('location', `%${executedSearch.location.trim()}%`);
+    }
+
+    // Execute the query
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error("Supabase fetch error:", error);
+    }
+    
+    if (data) {
+       setLiveFilteredPros(data);
+    }
+  };
+
+  // Trigger the fetch if a search exists
+  if (executedSearch.category || executedSearch.location) {
+     fetchFromDatabase();
+  }
+}, [executedSearch.category, executedSearch.location]);
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
