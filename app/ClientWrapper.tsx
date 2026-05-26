@@ -776,38 +776,6 @@ const locationAliases: Record<string, string> = {
     return CATEGORIES.filter(cat => cat.toLowerCase().includes(categoryInput.toLowerCase())).slice(0, 5);
   }, [categoryInput]);
 
-  const searchResults = useMemo(() => {
-    let normalizedLocationInput = executedSearch.location.toLowerCase().trim();
-   const locationAliases: Record<string, string[]> = {
-  'tsakane':      ['tsakane', 'tsakani'],
-  'kwathema':     ['kwathema', 'kwa thema', 'kwa-thema', 'kwate'],
-  'springs':      ['springs', 'spring', 'cbd'],
-  'brakpan':      ['brakpan', 'brak pan', 'brackpan'],
-  'benoni':       ['benoni'],
-  'nigel':        ['nigel', 'negel'],
-  'daveyton':     ['daveyton', 'dave'],
-  'germiston':    ['germiston', 'germiston cbd'],
-  'boksburg':     ['boksburg', 'bokkie'],
-  'kempton park': ['kempton park', 'kempton', 'kemptonpark'],
-  'alberton':     ['alberton', 'alb'],
-  'edenvale':     ['edenvale', 'eden'],
-  'tembisa':      ['tembisa', 'temba'],
-  'katlehong':    ['katlehong', 'katl'],
-  'vosloorus':    ['vosloorus', 'vosloo'],
-  'bedfordview':  ['bedfordview', 'bedford'],
-  'heidelberg':   ['heidelberg', 'heidel'],
-  'etwatwa':      ['etwatwa'],
-  'wattville':    ['wattville'],
-  'palm ridge':   ['palm ridge', 'palmridge'],
-};
-
-    let locationSearchTerms: string[] = [normalizedLocationInput];
-    if (locationAliases[normalizedLocationInput]) locationSearchTerms = locationAliases[normalizedLocationInput];
-    else {
-        for (const [, variations] of Object.entries(locationAliases)) {
-            if (variations.includes(normalizedLocationInput)) { locationSearchTerms = variations; break; }
-        }
-    }
 
     // 1. Create a state to hold the live database results
 const [liveFilteredPros, setLiveFilteredPros] = useState<Artisan[]>([]);
@@ -1568,7 +1536,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                     <span className="text-sm font-bold uppercase tracking-widest">Back to Search</span>
                   </button>
                   <div>
-                    <h2 className={`text-4xl font-black uppercase tracking-tighter mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Found <span className="text-brand-yellow">{searchResults.length}</span> Pros</h2>
+                    <h2 className={`text-4xl font-black uppercase tracking-tighter mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Found <span className="text-brand-yellow">{liveFilteredPros.length}</span> Pros</h2>
                     <p className="text-gray-400 text-sm">Top-rated artisans ready to help in {executedSearch.location || "East Rand"}</p>
                   </div>
                 </div>
