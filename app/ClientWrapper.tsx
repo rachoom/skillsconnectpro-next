@@ -1577,11 +1577,11 @@ const { error } = await supabase.from('artisan_applications').insert([
                   <button onClick={() => setViewMode('map')} className={`px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${viewMode === 'map' ? 'bg-brand-yellow text-black shadow-lg' : 'text-gray-400 hover:text-gray-500'}`}>Map</button>
                 </div>
               </div>
-              {viewMode === 'map' ? ( <div className="mb-12 animate-fade-in"><MapView artisans={searchResults} /></div> ) : (
+              {viewMode === 'map' ? ( <div className="mb-12 animate-fade-in"><MapView artisans={liveFilteredPros} /></div> ) : (
                 <>
-                {searchResults.length > 0 ? (
+                {liveFilteredPros.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up">
-                    {searchResults.map((artisan) => (
+                    {liveFilteredPros.map((artisan) => (
                       <div key={artisan.id} onClick={() => { setSelectedArtisan(artisan); setAppState(AppState.PROFILE); window.scrollTo({ top: 0, behavior: 'auto' }); }} className={`group relative rounded-3xl overflow-hidden cursor-pointer border transition-all card-3d ${isDarkMode ? 'bg-[#111] border-white/5 hover:border-brand-yellow/30' : 'bg-white border-gray-200 hover:border-brand-yellow/50'}`}>
                         <div className="h-64 bg-gray-200 relative overflow-hidden">
                           <ImageWithSkeleton src={artisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={artisan.name} className="w-full h-full" />
