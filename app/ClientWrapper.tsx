@@ -1063,7 +1063,7 @@ const { error } = await supabase.from('artisan_applications').insert([
     0% { transform: translate(0, 0) scale(0.8); }
     100% { transform: translate(30px, -50px) scale(1.2); }
 }
-      `}</style>
+      ` }} />
 
       {/* 🚀 FULL-SCREEN CINEMATIC SEARCH OVERLAY */}
       {isSearchActive && (
