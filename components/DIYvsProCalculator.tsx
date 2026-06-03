@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Hammer, Clock, Wrench, PackageOpen, X, Camera, MessageCircle, Info, Loader2, ChevronDown, Trash2, Share2 } from 'lucide-react';
 
 interface TaskItem { item: string; cost: number; }
@@ -33,7 +33,6 @@ export default function DIYvsProCalculator() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-load shared estimates from URL ?ref= param
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sharedId = params.get("ref");
@@ -79,7 +78,6 @@ export default function DIYvsProCalculator() {
     setSelectedImages(prev => [...prev, ...newFilesArray]);
     setImagePreviews(prev => [...prev, ...newFilesArray.map(f => URL.createObjectURL(f))]);
     setError(null);
-    // Reset input so the same file can be re-selected if removed
     event.target.value = "";
   };
 
@@ -116,7 +114,6 @@ export default function DIYvsProCalculator() {
       setActiveMaterials(data.materialsBoM || []);
       setActiveTools(data.toolsBoM || []);
 
-      // Update URL with share ref without reloading
       if (data.shareId) {
         window.history.pushState({}, '', `?ref=${data.shareId}`);
       }
@@ -159,7 +156,6 @@ export default function DIYvsProCalculator() {
 
   return (
     <div className="relative min-h-screen bg-[#0a0a0a] overflow-hidden text-white font-sans">
-      {/* Background glows */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px]" />
@@ -167,7 +163,6 @@ export default function DIYvsProCalculator() {
 
       <div className="relative z-10 max-w-4xl mx-auto p-4 md:p-8">
 
-        {/* Header */}
         <div className="text-center mb-8">
           <span className={`${glassClasses} px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-yellow-400`}>
             Skills Connect Pro
@@ -177,11 +172,8 @@ export default function DIYvsProCalculator() {
           </h1>
         </div>
 
-        {/* Input Card */}
         <div className={`${glassClasses} rounded-3xl p-6 mb-8`}>
           <div className="space-y-6">
-
-            {/* Task Input */}
             <div className="relative">
               <input
                 type="text"
@@ -209,7 +201,6 @@ export default function DIYvsProCalculator() {
               />
             </div>
 
-            {/* Image previews */}
             <AnimatePresence>
               {imagePreviews.length > 0 && (
                 <motion.div
@@ -255,7 +246,6 @@ export default function DIYvsProCalculator() {
               )}
             </AnimatePresence>
 
-            {/* Hourly Rate + Submit */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <label className="text-xs font-bold text-gray-500 uppercase mb-2 block tracking-tight">
@@ -283,11 +273,9 @@ export default function DIYvsProCalculator() {
           </div>
         </div>
 
-        {/* Results */}
         {estimate && !isLoading && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
 
-            {/* Clarifying Questions */}
             {estimate.clarifyingQuestions && estimate.clarifyingQuestions.length > 0 && (
               <div className={`${glassClasses} border-yellow-400/30 p-5 rounded-2xl`}>
                 <h4 className="text-yellow-400 font-bold mb-3 flex items-center gap-2">
@@ -300,7 +288,6 @@ export default function DIYvsProCalculator() {
               </div>
             )}
 
-            {/* AI Assumptions */}
             <div className={`${glassClasses} border-blue-500/20 p-4 rounded-2xl text-sm flex gap-3`}>
               <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
               <p className="text-blue-100">
@@ -309,7 +296,6 @@ export default function DIYvsProCalculator() {
               </p>
             </div>
 
-            {/* Estimate Card */}
             <div className={`${glassClasses} rounded-3xl p-6 md:p-8 relative overflow-hidden`}>
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400" />
 
@@ -350,7 +336,6 @@ export default function DIYvsProCalculator() {
                 </div>
               </div>
 
-              {/* Toggle Itemized BoM */}
               <button
                 onClick={() => setShowItemized(!showItemized)}
                 className="w-full mt-8 bg-white/5 hover:bg-white/10 py-4 rounded-xl text-sm font-bold text-gray-300 transition-colors flex items-center justify-center gap-2 border border-white/5"
@@ -359,80 +344,83 @@ export default function DIYvsProCalculator() {
                 <ChevronDown className={`w-4 h-4 transition-transform ${showItemized ? 'rotate-180' : ''}`} />
               </button>
 
-              {showItemized && (
-                <div className="bg-black/30 rounded-2xl p-4 md:p-6 border border-white/5 mt-6">
-                  <p className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5" />
-                    Remove items you already own. The total will update automatically.
-                  </p>
-                  <div className="grid md:grid-cols-2 gap-8">
-                    {/* Materials */}
-                    <div>
-                      <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
-                        <PackageOpen className="w-4 h-4" /> Materials Breakdown
-                      </h4>
-                      {activeMaterials.length === 0 ? (
-                        <p className="text-xs text-gray-600 italic">All materials removed.</p>
-                      ) : activeMaterials.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-sm mb-3">
-                          <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
-                            <button onClick={() => removeMaterial(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+              <AnimatePresence>
+                {showItemized && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden mt-6"
+                  >
+                    <div className="bg-black/30 rounded-2xl p-4 md:p-6 border border-white/5">
+                      <p className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
+                        <Info className="w-3.5 h-3.5" />
+                        Remove items you already own. The total will update automatically.
+                      </p>
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div>
+                          <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
+                            <PackageOpen className="w-4 h-4" /> Materials Breakdown
+                          </h4>
+                          {activeMaterials.length === 0 ? (
+                            <p className="text-xs text-gray-600 italic">All materials removed.</p>
+                          ) : activeMaterials.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center text-sm mb-3">
+                              <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
+                                <button onClick={() => removeMaterial(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
 
-                    {/* Tools */}
-                    <div>
-                      <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
-                        <Wrench className="w-4 h-4" /> Tools Required
-                      </h4>
-                      {activeTools.length === 0 ? (
-                        <p className="text-xs text-gray-600 italic">All tools removed.</p>
-                      ) : activeTools.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-sm mb-3">
-                          <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
-                            <button onClick={() => removeTool(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                        <div>
+                          <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
+                            <Wrench className="w-4 h-4" /> Tools Required
+                          </h4>
+                          {activeTools.length === 0 ? (
+                            <p className="text-xs text-gray-600 italic">All tools removed.</p>
+                          ) : activeTools.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center text-sm mb-3">
+                              <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
+                                <button onClick={() => removeTool(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.div>
-        )}
 
-            {/* Action Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 onClick={handleWhatsAppShare}
                 disabled={!estimate?.shareId}
-                className="rounded-2xl px-6 py-4 bg-green-500 text-black font-bold uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="w-full bg-[#25D366] hover:bg-[#20bd5a] disabled:bg-gray-800 disabled:opacity-50 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-900/20"
               >
-                Share Estimate
+                <Share2 className="w-5 h-5" /> Share via WhatsApp
               </button>
-              <button
-                type="button"
-                onClick={() => setShowItemized((prev) => !prev)}
-                className="rounded-2xl px-6 py-4 bg-white/10 text-white font-bold uppercase tracking-widest hover:bg-white/20 transition"
+              
+              <a
+                href="/"
+                className="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl border border-white/10 transition-all flex items-center justify-center"
               >
-                {showItemized ? "Hide Itemized" : "Show Itemized"}
-              </button>
+                Back to Directory
+              </a>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
 }
-

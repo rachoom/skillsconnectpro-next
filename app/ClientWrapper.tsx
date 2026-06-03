@@ -251,30 +251,17 @@ const WelcomeSplash: React.FC<{ onEnter: () => void, isDarkMode: boolean }> = ({
                     Connect with verified, top-tier artisans in your area instantly. <br/><span className="text-white font-bold">100% Free to search.</span>
                 </p>
 
-                {/* CTA Buttons Container */}
-                <div className="w-full flex flex-col md:flex-row items-center gap-4 mt-2">
-                    
-                    {/* 1. Existing "Find a Service" Button */}
-                    <button 
-                        onClick={onEnter}
-                        className="group relative w-full md:w-1/2 bg-brand-yellow text-black py-5 md:py-6 rounded-3xl font-black uppercase tracking-widest text-sm md:text-lg hover:bg-white transition-all duration-300 shadow-[0_20px_40px_rgba(250,204,21,0.3)] hover:shadow-[0_20px_60px_rgba(250,204,21,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-4 overflow-hidden"
-                    >
-                        <div className="absolute inset-0 w-full h-full bg-white/20 translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] skew-x-12"></div>
-                        <span>Find a Service</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-2 shrink-0">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                        </svg>
-                    </button>
-
-                    {/* 2. NEW Glassmorphism AI Estimator Button */}
-                    <Link 
-                        href="/estimator" 
-                        className="w-full md:w-1/2 flex items-center justify-center px-4 py-5 md:py-6 text-white text-xs md:text-sm font-black uppercase tracking-widest rounded-3xl backdrop-blur-md bg-white/10 border border-white/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)] hover:bg-white/20 hover:border-brand-yellow/50 hover:text-brand-yellow hover:-translate-y-1 transition-all duration-300 text-center"
-                    >
-                        Calculate Project Costs (AI)
-                    </Link>
-                    
-                </div>
+                {/* The "Enter App" Button */}
+                <button 
+                    onClick={onEnter}
+                    className="group relative w-full bg-brand-yellow text-black py-6 rounded-3xl font-black uppercase tracking-widest text-lg hover:bg-white transition-all duration-300 shadow-[0_20px_40px_rgba(250,204,21,0.3)] hover:shadow-[0_20px_60px_rgba(250,204,21,0.5)] hover:-translate-y-2 flex items-center justify-center gap-4 overflow-hidden"
+                >
+                    <div className="absolute inset-0 w-full h-full bg-white/20 translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] skew-x-12"></div>
+                    <span>Find a Service</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6 transition-transform group-hover:translate-x-2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
             </div>
         </div>
     );
@@ -1195,7 +1182,7 @@ const { error } = await supabase.from('artisan_applications').insert([
     poster="/hero-poster.jpg"
     className="absolute inset-0 w-full h-full object-cover opacity-100  z-0"
   >
-    <source src="/download.mp4" type="video/mp4" />
+    <source src="/download.webm" type="video/webm" />
   </video>
 
   {/* 2. Dark Gradient Overlay */}
@@ -1273,6 +1260,16 @@ const { error } = await supabase.from('artisan_applications').insert([
                         {cat}
                       </button>
                     ))}
+                  </div>
+
+                  {/* AI ESTIMATOR BUTTON IN HERO */}
+                  <div className="mt-8 md:mt-10 w-full max-w-md mx-auto px-2">
+                    <Link 
+                        href="/estimator" 
+                        className="flex items-center justify-center w-full px-6 py-4 md:py-5 text-white text-xs md:text-sm font-black uppercase tracking-widest rounded-full backdrop-blur-md bg-white/10 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:bg-white/20 hover:border-brand-yellow/50 hover:text-brand-yellow hover:-translate-y-1 transition-all duration-300 text-center"
+                    >
+                        Calculate Project Costs (AI)
+                    </Link>
                   </div>
 
                 </div>
