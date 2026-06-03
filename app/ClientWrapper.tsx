@@ -938,7 +938,7 @@ const { error } = await supabase.from('artisan_applications').insert([
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'bg-[#150f0a] text-white' : 'bg-stone-50 text-gray-900'}`}>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
         
         .perspective-container { perspective: 2000px; }
