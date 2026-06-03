@@ -21,3 +21,21 @@ export const getGeminiResponse = async (userMessage: string) => {
     return "I'm having trouble connecting to the server. Please check your internet and try again.";
   }
 };
+
+export const getConstructionEstimate = async (description: string, imageFiles: File[] = []) => {
+  const responseText = await getGeminiResponse(
+    `Please provide a short construction estimate for the following task: ${description}`
+  );
+
+  return {
+    shareId: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    tradeNeeded: "General Contractor",
+    assumptions: responseText,
+    diyHours: 8,
+    riskFactor: 15,
+    clarifyingQuestions: [],
+    materialsBoM: [{ item: "Materials", cost: 1200 }],
+    toolsBoM: [{ item: "Tools", cost: 350 }],
+    userInput: description,
+  };
+};

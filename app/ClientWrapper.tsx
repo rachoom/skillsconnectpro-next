@@ -218,13 +218,13 @@ const WelcomeSplash: React.FC<{ onEnter: () => void, isDarkMode: boolean }> = ({
     muted
     playsInline
     poster="/hero-poster.jpg" 
-    className="absolute inset-0 w-full h-full object-cover opacity-100 mix-blend-luminosity z-0"
+    className="absolute inset-0 w-full h-full object-cover opacity-100  z-0"
 >
     <source src="/download.webm" type="video/webm" />
 </video>
                 
                 {/* 2. Dark Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/70 to-[#150f0a] z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[#150f0a] z-10"></div>
                 
                 {/* 3. The Mudcloth Pattern (Sits ON TOP so it's fully visible!) */}
                 <div className="absolute inset-0 z-20 bg-mudcloth opacity-0"></div>
@@ -251,17 +251,30 @@ const WelcomeSplash: React.FC<{ onEnter: () => void, isDarkMode: boolean }> = ({
                     Connect with verified, top-tier artisans in your area instantly. <br/><span className="text-white font-bold">100% Free to search.</span>
                 </p>
 
-                {/* The "Enter App" Button */}
-                <button 
-                    onClick={onEnter}
-                    className="group relative w-full bg-brand-yellow text-black py-6 rounded-3xl font-black uppercase tracking-widest text-lg hover:bg-white transition-all duration-300 shadow-[0_20px_40px_rgba(250,204,21,0.3)] hover:shadow-[0_20px_60px_rgba(250,204,21,0.5)] hover:-translate-y-2 flex items-center justify-center gap-4 overflow-hidden"
-                >
-                    <div className="absolute inset-0 w-full h-full bg-white/20 translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] skew-x-12"></div>
-                    <span>Find a Service</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6 transition-transform group-hover:translate-x-2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
-                </button>
+                {/* CTA Buttons Container */}
+                <div className="w-full flex flex-col md:flex-row items-center gap-4 mt-2">
+                    
+                    {/* 1. Existing "Find a Service" Button */}
+                    <button 
+                        onClick={onEnter}
+                        className="group relative w-full md:w-1/2 bg-brand-yellow text-black py-5 md:py-6 rounded-3xl font-black uppercase tracking-widest text-sm md:text-lg hover:bg-white transition-all duration-300 shadow-[0_20px_40px_rgba(250,204,21,0.3)] hover:shadow-[0_20px_60px_rgba(250,204,21,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-4 overflow-hidden"
+                    >
+                        <div className="absolute inset-0 w-full h-full bg-white/20 translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] skew-x-12"></div>
+                        <span>Find a Service</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-2 shrink-0">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </button>
+
+                    {/* 2. NEW Glassmorphism AI Estimator Button */}
+                    <Link 
+                        href="/estimator" 
+                        className="w-full md:w-1/2 flex items-center justify-center px-4 py-5 md:py-6 text-white text-xs md:text-sm font-black uppercase tracking-widest rounded-3xl backdrop-blur-md bg-white/10 border border-white/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)] hover:bg-white/20 hover:border-brand-yellow/50 hover:text-brand-yellow hover:-translate-y-1 transition-all duration-300 text-center"
+                    >
+                        Calculate Project Costs (AI)
+                    </Link>
+                    
+                </div>
             </div>
         </div>
     );
@@ -856,23 +869,7 @@ useEffect(() => {
 }, [executedSearch.category, executedSearch.location]);
 
 
-    if (locationInput) {
-      const correctedLocation = findClosestLocation(locationInput);
-      if (correctedLocation && correctedLocation !== locationInput && correctedLocation.toLowerCase() !== locationInput.toLowerCase()) {
-        if (confirm(`Did you mean "${correctedLocation}"?`)) {
-           setExecutedSearch(prev => ({...prev, location: correctedLocation}));
-           setLocationInput(correctedLocation);
-        }
-      }
-    }
-    setShowLocationSuggestions(false);
-    setShowSkillSuggestions(false);
-    setAppState(AppState.SEARCH_RESULTS);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setCategoryInput('');
-    setLocationInput('');
-  };
-
+    // Removed stray top-level search navigation block that executed during SSR.
   const goHome = () => {
     setCategoryInput(''); setLocationInput(''); setIsSubmitted(false); setIsMobileMenuOpen(false);
     setAppState(AppState.WELCOME); // Set welcome or HOME based on standard flow
@@ -938,132 +935,7 @@ const { error } = await supabase.from('artisan_applications').insert([
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'bg-[#150f0a] text-white' : 'bg-stone-50 text-gray-900'}`}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-        
-        .perspective-container { perspective: 2000px; }
-
-        @keyframes central-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.4), 0 0 40px rgba(250, 204, 21, 0.15); }
-            50% { box-shadow: 0 0 25px rgba(250, 204, 21, 0.7), 0 0 60px rgba(250, 204, 21, 0.4), 0 0 100px rgba(250, 204, 21, 0.2); }
-        }
-
-        .card-3d {
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
-            transform-style: preserve-3d;
-            transform: rotateX(0) rotateY(0);
-        }
-        .card-3d:hover {
-            transform: rotateX(5deg) rotateY(0deg) translateY(-10px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        .text-flat { transform: translateZ(30px); transform-style: preserve-3d; }
-
-        .bg-mudcloth {
-            background-color: transparent;
-            background-image: 
-                linear-gradient(135deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%), 
-                linear-gradient(225deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%), 
-                linear-gradient(45deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%), 
-                linear-gradient(315deg, rgba(250, 204, 21, 0.25) 25%, transparent 25%);
-            background-position: 16px 0, 16px 0, 0 0, 0 0;
-            background-size: 32px 32px;
-        }
-
-        .bg-basket-weave {
-            background-color: transparent;
-            background-image: 
-                repeating-linear-gradient(45deg, rgba(250, 204, 21, 0.1) 0, rgba(250, 204, 21, 0.1) 2px, transparent 2px, transparent 10px),
-                repeating-linear-gradient(-45deg, rgba(250, 204, 21, 0.1) 0, rgba(250, 204, 21, 0.1) 2px, transparent 2px, transparent 10px);
-            background-size: 24px 24px;
-        }
-        .bg-basket-weave {
-            background-image: linear-gradient(45deg, #1f1209 25%, transparent 25%, transparent 75%, #1f1209 75%, #1f1209), 
-            linear-gradient(45deg, #1f1209 25%, transparent 25%, transparent 75%, #1f1209 75%, #1f1209);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
-        }
-
-        .icon-token {
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 0 4px 6px rgba(0,0,0,0.3), 0 0 0 2px #d97706;
-            background: linear-gradient(135deg, #4a2c18, #2e1a0a);
-        }
-
-        @keyframes deep-breathing { 0%, 100% { opacity: 0.35; filter: brightness(0.6) saturate(1.1); scale: 1; } 50% { opacity: 0.8; filter: brightness(1.4) saturate(1.3); scale: 1.05; } }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .animate-deep-breathing { animation: deep-breathing 8s ease-in-out infinite; }
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(250, 204, 21, 0.3); border-radius: 4px; }
-        /* --- NEW TECH STYLES --- */
-.bg-tech-grid {
-    background-size: 50px 50px;
-    background-image:
-        linear-gradient(to right, rgba(250, 204, 21, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(250, 204, 21, 0.05) 1px, transparent 1px);
-    mask-image: radial-gradient(circle at center, black 30%, transparent 90%);
-    -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 90%);
-}
-
-.glass-panel {
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-/* --- LIQUID GLASS UTILITIES --- */
-.liquid-glass {
-    backdrop-filter: blur(12px) saturate(120%);
-    -webkit-backdrop-filter: blur(12px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
-        0 8px 32px 0 rgba(0, 0, 0, 0.3), 
-        inset 0 2px 4px 0 rgba(255, 255, 255, 0.4), 
-        inset 0 -2px 4px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.liquid-glass:hover {
-    transform: translateY(-3px);
-    box-shadow: 
-        0 12px 40px 0 rgba(0, 0, 0, 0.4), 
-        inset 0 4px 8px 0 rgba(255, 255, 255, 0.5), 
-        inset 0 -2px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.glass-btn-join {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%);
-    border-color: rgba(16, 185, 129, 0.4);
-}
-
-.glass-camera {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.6) 0%, rgba(16, 185, 129, 0.2) 100%);
-    border-color: rgba(16, 185, 129, 0.4);
-}
-
-.glass-mic {
-    background: linear-gradient(135deg, rgba(250, 204, 21, 0.6) 0%, rgba(250, 204, 21, 0.2) 100%);
-    border-color: rgba(250, 204, 21, 0.4);
-}
-
-.glowing-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(90px);
-    z-index: -1;
-    animation: orb-float 10s ease-in-out infinite alternate;
-    opacity: 0.15;
-}
-
-@keyframes orb-float {
-    0% { transform: translate(0, 0) scale(0.8); }
-    100% { transform: translate(30px, -50px) scale(1.2); }
-}
-      ` }} />
+      
 
       {/* 🚀 FULL-SCREEN CINEMATIC SEARCH OVERLAY */}
       {isSearchActive && (
@@ -1321,13 +1193,13 @@ const { error } = await supabase.from('artisan_applications').insert([
     muted
     playsInline
     poster="/hero-poster.jpg"
-    className="absolute inset-0 w-full h-full object-cover opacity-100 mix-blend-luminosity z-0"
+    className="absolute inset-0 w-full h-full object-cover opacity-100  z-0"
   >
     <source src="/download.mp4" type="video/mp4" />
   </video>
 
   {/* 2. Dark Gradient Overlay */}
-  <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/40 to-[#150f0a] z-10"></div>
+  <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[#150f0a] z-10"></div>
 </div>
               {/* Centered Content Column */}
                 <div className="relative z-10 flex flex-col items-center text-center w-full max-w-4xl mx-auto gap-4 md:gap-6">

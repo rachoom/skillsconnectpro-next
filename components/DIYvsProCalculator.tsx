@@ -359,69 +359,80 @@ export default function DIYvsProCalculator() {
                 <ChevronDown className={`w-4 h-4 transition-transform ${showItemized ? 'rotate-180' : ''}`} />
               </button>
 
-              <AnimatePresence>
-                {showItemized && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden mt-6"
-                  >
-                    <div className="bg-black/30 rounded-2xl p-4 md:p-6 border border-white/5">
-                      <p className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
-                        <Info className="w-3.5 h-3.5" />
-                        Remove items you already own. The total will update automatically.
-                      </p>
-                      <div className="grid md:grid-cols-2 gap-8">
-                        {/* Materials */}
-                        <div>
-                          <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
-                            <PackageOpen className="w-4 h-4" /> Materials Breakdown
-                          </h4>
-                          {activeMaterials.length === 0 ? (
-                            <p className="text-xs text-gray-600 italic">All materials removed.</p>
-                          ) : activeMaterials.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-sm mb-3">
-                              <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
-                              <div className="flex items-center gap-3 shrink-0">
-                                <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
-                                <button onClick={() => removeMaterial(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+              {showItemized && (
+                <div className="bg-black/30 rounded-2xl p-4 md:p-6 border border-white/5 mt-6">
+                  <p className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5" />
+                    Remove items you already own. The total will update automatically.
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {/* Materials */}
+                    <div>
+                      <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
+                        <PackageOpen className="w-4 h-4" /> Materials Breakdown
+                      </h4>
+                      {activeMaterials.length === 0 ? (
+                        <p className="text-xs text-gray-600 italic">All materials removed.</p>
+                      ) : activeMaterials.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-sm mb-3">
+                          <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
+                            <button onClick={() => removeMaterial(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-
-                        {/* Tools */}
-                        <div>
-                          <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
-                            <Wrench className="w-4 h-4" /> Tools Required
-                          </h4>
-                          {activeTools.length === 0 ? (
-                            <p className="text-xs text-gray-600 italic">All tools removed.</p>
-                          ) : activeTools.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-sm mb-3">
-                              <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
-                              <div className="flex items-center gap-3 shrink-0">
-                                <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
-                                <button onClick={() => removeTool(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+
+                    {/* Tools */}
+                    <div>
+                      <h4 className="flex items-center gap-2 text-xs font-bold text-yellow-400 mb-4 uppercase tracking-widest border-b border-white/10 pb-2">
+                        <Wrench className="w-4 h-4" /> Tools Required
+                      </h4>
+                      {activeTools.length === 0 ? (
+                        <p className="text-xs text-gray-600 italic">All tools removed.</p>
+                      ) : activeTools.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-sm mb-3">
+                          <span className="text-gray-300 flex-1 leading-tight pr-2">{item.item}</span>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className="font-mono font-bold text-white">R {item.cost.toLocaleString()}</span>
+                            <button onClick={() => removeTool(idx)} className="text-gray-600 hover:text-red-500 p-1 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+          </motion.div>
+        )}
 
             {/* Action Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 onClick={handleWhatsAppShare}
-                disabled={!estimate.shareId}
-            
+                disabled={!estimate?.shareId}
+                className="rounded-2xl px-6 py-4 bg-green-500 text-black font-bold uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                Share Estimate
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowItemized((prev) => !prev)}
+                className="rounded-2xl px-6 py-4 bg-white/10 text-white font-bold uppercase tracking-widest hover:bg-white/20 transition"
+              >
+                {showItemized ? "Hide Itemized" : "Show Itemized"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
