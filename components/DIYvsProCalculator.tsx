@@ -146,7 +146,7 @@ export default function DIYvsProCalculator() {
     const message = encodeURIComponent(
       `🛠️ *Skills Connect Pro Estimate*\n\n` +
       `*Project:* ${userInput}\n` +
-      `*Estimated Cost:* R ${trueCost.toLocaleString()}\n\n` +
+      `*Estimated Cost:* R ${(Number(trueCost) || 0).toLocaleString()}\n\n` +
       `View your full shopping list here: ${shareUrl}`
     );
     window.open(`https://wa.me/?text=${message}`, '_blank');
@@ -320,7 +320,7 @@ export default function DIYvsProCalculator() {
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Labor ({estimate?.diyHours || 0}h @ R{hourlyRate}/hr)</span>
-                  <span className="font-mono font-bold">R {((estimate?.diyHours || 0) * (hourlyRate || 0)).toLocaleString()}</span>
+                  <span className="font-mono font-bold">R {(Number((estimate?.diyHours || 0) * (hourlyRate || 0)) || 0).toLocaleString()}</span>
                 </div>
                 {estimate.riskFactor > 0 && (
                   <div className="flex justify-between text-orange-400/80 text-base">
@@ -331,7 +331,7 @@ export default function DIYvsProCalculator() {
                 <div className="pt-6 border-t border-white/10 flex justify-between items-end font-black text-white">
                   <span className="text-lg">True Project Cost</span>
                   <span className="text-5xl text-yellow-400 tracking-tighter drop-shadow-[0_0_15px_rgba(250,204,21,0.3)] font-mono">
-                    R {trueCost.toLocaleString()}
+                    R {(Number(trueCost) || 0).toLocaleString()}
                   </span>
                 </div>
               </div>
