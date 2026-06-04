@@ -136,7 +136,7 @@ export default function DIYvsProCalculator() {
 
   const trueCost = useMemo(() => {
     if (!estimate) return 0;
-    const base = currentMaterialsTotal + currentToolsTotal + (estimate.diyHours * hourlyRate);
+    const base = currentMaterialsTotal + currentToolsTotal + ((estimate?.diyHours || 0) * (hourlyRate || 0));
     return Math.round(base * (1 + (estimate.riskFactor || 0) / 100));
   }, [estimate, currentMaterialsTotal, currentToolsTotal, hourlyRate]);
 
@@ -319,8 +319,8 @@ export default function DIYvsProCalculator() {
                   <span className="font-mono font-bold">R {currentToolsTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
-                  <span>Labor ({estimate.diyHours}h @ R{hourlyRate}/hr)</span>
-                  <span className="font-mono font-bold">R {(estimate.diyHours * hourlyRate).toLocaleString()}</span>
+                  <span>Labor ({estimate?.diyHours || 0}h @ R{hourlyRate}/hr)</span>
+                  <span className="font-mono font-bold">R {((estimate?.diyHours || 0) * (hourlyRate || 0)).toLocaleString()}</span>
                 </div>
                 {estimate.riskFactor > 0 && (
                   <div className="flex justify-between text-orange-400/80 text-base">
