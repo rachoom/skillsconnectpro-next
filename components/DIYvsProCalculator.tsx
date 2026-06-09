@@ -96,6 +96,12 @@ export default function DIYvsProCalculator() {
     setEstimate(null);
     setShowItemized(false);
 
+    console.log("Submitting AI estimate request", {
+      userInput,
+      hourlyRate,
+      selectedImagesCount: selectedImages.length,
+    });
+
     try {
       const formData = new FormData();
       formData.append("task", userInput);
@@ -103,22 +109,42 @@ export default function DIYvsProCalculator() {
       selectedImages.forEach(file => formData.append("images", file));
 
       const response = await fetch("/api/estimate", { method: "POST", body: formData });
+      console.log("/api/estimate response status", response.status, response.statusText);
+
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error("Failed to parse /api/estimate JSON response", responseText, parseError);
+        throw new Error("Invalid JSON response from estimate API.");
+      }
+
+      console.log("/api/estimate response body", data);
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Estimation failed.");
+        console.error("Estimate API returned non-OK status", { status: response.status, body: data });
+        throw new Error(data?.error || `Estimate API error ${response.status}`);
       }
 
-      const data: EstimateData = await response.json();
-      setEstimate(data);
-      setActiveMaterials(data.materialsBoM || []);
-      setActiveTools(data.toolsBoM || []);
+      const returnedEstimate: EstimateData = data.estimate ?? data;
+      if (!returnedEstimate || typeof returnedEstimate !== "object") {
+        console.error("Estimate API returned unexpected payload", data);
+        throw new Error("Estimate API returned an unexpected response shape.");
+      }
 
-      if (data.shareId) {
-        window.history.pushState({}, '', `?ref=${data.shareId}`);
+      setEstimate(returnedEstimate);
+      setActiveMaterials(returnedEstimate.materialsBoM || []);
+      setActiveTools(returnedEstimate.toolsBoM || []);
+
+      if (returnedEstimate.shareId) {
+        window.history.pushState({}, '', `?ref=${returnedEstimate.shareId}`);
       }
     } catch (err: any) {
-      setError(err.message || "AI analysis failed. Please try again.");
+      console.error("Estimate request failed", err);
+      const message = err?.message || "AI analysis failed. Please try again.";
+      setError(message);
+      alert(`Estimate request failed: ${message}`);
     } finally {
       setIsLoading(false);
     }
