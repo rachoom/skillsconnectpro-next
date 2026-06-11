@@ -49,44 +49,18 @@ export const analyzeIntent = async (userText: string) => {
 // 2. VISUAL QUOTING (IMAGE) ANALYZER
 // ==========================================
 export const analyzeImageIntent = async (base64Image: string, mimeType: string) => {
-  const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  if (!API_KEY) {
-    console.error("🚨 CRITICAL: API Key is undefined! Check your .env.local file.");
-    throw new Error("Missing API Key");
-  }
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000); 
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+    const response = await fetch('/api/ai', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: controller.signal, 
       body: JSON.stringify({
-        // 🛑 FIX 3: Force JSON output for the vision model too
-        generationConfig: { responseMimeType: "application/json" },
-        contents: [{
-          parts: [
-            {
-              inlineData: {
-                mimeType: mimeType,
-                // Strips the "data:image/jpeg;base64," prefix so the API doesn't crash
-                data: base64Image.includes(',') ? base64Image.split(',')[1] : base64Image
-              }
-            },
-            {
-              text: `
-                You are a master South African artisan inspector. 
-                Look at this image and tell me:
-                1. What is broken or needs fixing? (Short description, e.g. "Burnt wall socket")
-                2. What TRADE is needed? (Choose ONLY from: Plumber, Electrician, Builder, Mechanic, Welder, Painter, Tiler, Carpenter, Locksmith, Appliance Repair).
-                
-                Format as JSON: { "trade": "string or null", "problem": "string", "success": true }
-              `
-            }
-          ]
-        }]
+        type: 'vision',
+        base64Image,
+        mimeType,
       })
     });
 
@@ -95,6 +69,9 @@ export const analyzeImageIntent = async (base64Image: string, mimeType: string) 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("🛑 Gemini Camera API Error:", errorText);
+      if (errorText.includes('GEMINI_API_KEY')) {
+        throw new Error('Missing API Key');
+      }
       throw new Error("Failed to process image with AI.");
     }
 

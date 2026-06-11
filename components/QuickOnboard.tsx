@@ -10,25 +10,81 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
   const [errorMessage, setErrorMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Re-using your excellent compression logic!
-  const compressImage = (file: File): Promise<string> => {
+  const compressImage = (file: File, maxBytes = 950 * 1024): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+
+      reader.onerror = () => reject(new Error('Unable to read the image file.'));
       reader.onload = (event) => {
         const img = new Image();
-        img.src = event.target?.result as string;
+
+        img.onerror = () => reject(new Error('Unable to load the image.'));
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800; // Good enough for reading text
-          const scaleSize = MAX_WIDTH / img.width;
-          canvas.width = MAX_WIDTH;
-          canvas.height = img.height * scaleSize;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.6).split(',')[1]);
+          const originalWidth = img.width;
+          const originalHeight = img.height;
+          const qualitySteps = [0.82, 0.72, 0.62, 0.52, 0.42, 0.32];
+          const minimumWidth = 720;
+
+          const renderAndMeasure = (width: number, height: number) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              throw new Error('Canvas is not supported in this browser.');
+            }
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            for (const quality of qualitySteps) {
+              const base64 = canvas.toDataURL('image/jpeg', quality).split(',')[1];
+              const estimatedBytes = Math.ceil((base64.length * 3) / 4);
+
+              if (estimatedBytes <= maxBytes) {
+                return base64;
+              }
+            }
+
+            return null;
+          };
+
+          let nextWidth = originalWidth;
+          let nextHeight = originalHeight;
+
+          while (nextWidth >= minimumWidth) {
+            const compressed = renderAndMeasure(nextWidth, nextHeight);
+            if (compressed) {
+              resolve(compressed);
+              return;
+            }
+
+            nextWidth = Math.max(minimumWidth, Math.floor(nextWidth * 0.82));
+            nextHeight = Math.max(1, Math.round((nextWidth / originalWidth) * originalHeight));
+
+            if (nextWidth === minimumWidth) {
+              break;
+            }
+          }
+
+          const fallbackCanvas = document.createElement('canvas');
+          fallbackCanvas.width = Math.max(1, nextWidth);
+          fallbackCanvas.height = Math.max(1, nextHeight);
+
+          const fallbackCtx = fallbackCanvas.getContext('2d');
+          if (!fallbackCtx) {
+            reject(new Error('Canvas is not supported in this browser.'));
+            return;
+          }
+
+          fallbackCtx.drawImage(img, 0, 0, fallbackCanvas.width, fallbackCanvas.height);
+          resolve(fallbackCanvas.toDataURL('image/jpeg', 0.3).split(',')[1]);
         };
+
+        img.src = event.target?.result as string;
       };
+
+      reader.readAsDataURL(file);
     });
   };
 
