@@ -104,7 +104,7 @@ export default function DIYvsProCalculator() {
 
     try {
       const formData = new FormData();
-      formData.append("task", userInput);
+      formData.append("description", userInput);
       formData.append("timeValue", hourlyRate.toString());
       selectedImages.forEach(file => formData.append("images", file));
 
