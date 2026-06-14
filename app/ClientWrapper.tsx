@@ -217,7 +217,7 @@ const WelcomeSplash: React.FC<{ onEnter: () => void, isDarkMode: boolean }> = ({
     loop
     muted
     playsInline
-    poster="/hero-poster.jpg" 
+    poster="/" 
     className="absolute inset-0 w-full h-full object-cover opacity-100  z-0"
 >
     <source src="/download.webm" type="video/webm" />
@@ -787,14 +787,10 @@ useEffect(() => {
     let query = supabase.from('artisans').select('*');
 
     // If they typed a category, use ilike for flexible case-insensitive matching
-    if (executedSearch.category) {
-       query = query.ilike('category', `%${executedSearch.category.trim()}%`);
-    }
+    
 
     // If they typed a location, match that too
-    if (executedSearch.location) {
-       query = query.ilike('location', `%${executedSearch.location.trim()}%`);
-    }
+    
 
     // Execute the query
     const { data, error } = await query;
@@ -804,8 +800,36 @@ useEffect(() => {
     }
     
     if (data) {
-       setLiveFilteredPros(data);
-    }
+              const cat = executedSearch.category ? executedSearch.category.toLowerCase().trim() : '';
+              const loc = executedSearch.location ? executedSearch.location.toLowerCase().trim() : '';
+              
+              // Smart plural handling (e.g., "plumbers" -> "plumber")
+          const rawCat = executedSearch.category ? executedSearch.category.toLowerCase().trim() : '';
+          const searchCat = rawCat.endsWith('s') && !rawCat.endsWith('ss') ? rawCat.slice(0, -1) : rawCat;
+          
+          
+          
+          const filtered = data.filter(pro => {
+            // Check category and services for the singularized term
+            const inCat = pro.category && pro.category.toLowerCase().includes(searchCat);
+            const inServ = pro.services && Array.isArray(pro.services) && pro.services.some(s => s.toLowerCase().includes(searchCat));
+            
+            // Allow searching directly by business name!
+            const combinedName = `${pro.first_name || ''} ${pro.last_name || ''}`.toLowerCase();
+            const inName = combinedName.includes(rawCat);
+            
+            const matchesCat = !rawCat || inCat || inServ || inName;
+            
+            // Location matching
+            const matchesLoc = !loc || (pro.location && pro.location.toLowerCase().includes(loc));
+                
+            return matchesCat && matchesLoc;
+          });
+          
+          // Shuffle the matched pros and limit to 5
+          const randomizedPros = filtered.sort(() => 0.5 - Math.random()).slice(0, 5);
+          setLiveFilteredPros(randomizedPros);
+            }
   };
 
   // Trigger the fetch if a search exists
@@ -827,12 +851,10 @@ useEffect(() => {
       }
 
       if (cat) {
-         query = query.ilike('category', `%${cat}%`);
+         // Server-side filter neutralized
       }
 
-      if (executedSearch.location) {
-         query = query.ilike('location', `%${executedSearch.location.trim()}%`);
-      }
+      
 
       const { data, error } = await query;
 
@@ -843,8 +865,22 @@ useEffect(() => {
       }
 
       if (data) {
-         setLiveFilteredPros(data);
-      }
+              const cat = executedSearch.category ? executedSearch.category.toLowerCase().trim() : '';
+              
+              
+              const filtered = data.filter(pro => {
+                const matchesCat = !cat || 
+                    (pro.category && pro.category.toLowerCase().includes(cat)) || 
+                    (pro.services && Array.isArray(pro.services) && pro.services.some(s => s.toLowerCase().includes(cat)));
+                
+                const matchesLoc = !loc || 
+                    (pro.location && pro.location.toLowerCase().includes(loc));
+                    
+                return matchesCat && matchesLoc;
+              });
+              
+              setLiveFilteredPros(filtered);
+            }
     } catch (err: any) {
       alert("NETWORK CATCH ERROR: " + err.message);
     }
@@ -1179,7 +1215,7 @@ const { error } = await supabase.from('artisan_applications').insert([
     loop
     muted
     playsInline
-    poster="/hero-poster.jpg"
+    poster="/"
     className="absolute inset-0 w-full h-full object-cover opacity-100  z-0"
   >
     <source src="/download.webm" type="video/webm" />
@@ -1432,7 +1468,9 @@ const { error } = await supabase.from('artisan_applications').insert([
                     {liveFilteredPros.map((artisan) => (
                       <div key={artisan.id} onClick={() => { setSelectedArtisan(artisan); setAppState(AppState.PROFILE); window.scrollTo({ top: 0, behavior: 'auto' }); }} className={`group relative rounded-3xl overflow-hidden cursor-pointer border transition-all card-3d ${isDarkMode ? 'bg-[#111] border-white/5 hover:border-brand-yellow/30' : 'bg-white border-gray-200 hover:border-brand-yellow/50'}`}>
                         <div className="h-64 bg-gray-200 relative overflow-hidden">
-                          <ImageWithSkeleton src={artisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={artisan.name} className="w-full h-full" />
+{/* Frosted Glass Overlay */}
+<div className="absolute bottom-0 w-full h-[45%] bg-black/40 backdrop-blur-md z-10 pointer-events-none border-t border-white/10"></div>
+                          <ImageWithSkeleton src={artisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())} className="w-full h-full" />
                           <div className={`absolute inset-0 bg-gradient-to-t opacity-90 z-20 ${isDarkMode ? 'from-[#111] via-transparent to-transparent' : 'from-white via-transparent to-transparent'}`} />
                           <div className="absolute top-4 right-4 flex gap-2 z-30 text-flat">
                             {artisan.verified && <span className="bg-green-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">Verified Pro</span>}
@@ -1441,10 +1479,14 @@ const { error } = await supabase.from('artisan_applications').insert([
                         </div>
                         <div className="p-6 relative -mt-12 z-30 text-flat">
                           <div className="mb-2">
-                            <span className="bg-gradient-to-r from-brand-yellow/20 via-brand-yellow/10 to-transparent text-brand-yellow text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">{artisan.category}</span>
+                            <span className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest line-clamp-1 mb-1 block">
+  {artisan.category}
+</span>
                           </div>
                           <div className="mb-4">
-                            <h3 className={`text-2xl font-black leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{artisan.name}</h3>
+                            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 leading-tight mb-4 line-clamp-2" title={(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}>
+  {(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}
+</h2>
                             <p className="text-gray-400 text-sm flex items-center gap-1 mt-1">📍 {artisan.location}</p>
                           </div>
                           <div className="grid grid-cols-2 gap-3 mt-6">
@@ -1520,7 +1562,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                     <ImageWithSkeleton src={selectedArtisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={selectedArtisan.name} className="w-full h-full" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 z-20" />
                     <div className="absolute bottom-8 left-8 z-30">
-                  <h2 className="text-4xl md:text-5xl font-black uppercase italic leading-none mb-2 text-white">{selectedArtisan.name}</h2>
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 leading-tight mb-4 line-clamp-2" title={(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}>{(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}</h2>
                   <p className="text-brand-yellow font-bold tracking-widest uppercase text-sm">{selectedArtisan.category} • {selectedArtisan.location}</p>
                   
                 {selectedArtisan.verified && !['Creche', 'Creches', 
