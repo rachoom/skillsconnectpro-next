@@ -812,7 +812,7 @@ useEffect(() => {
           const filtered = data.filter(pro => {
             // Check category and services for the singularized term
             const inCat = pro.category && pro.category.toLowerCase().includes(searchCat);
-            const inServ = pro.services && Array.isArray(pro.services) && pro.services.some(s => s.toLowerCase().includes(searchCat));
+            const inServ = pro.services && Array.isArray(pro.services) && pro.services.some((s: any) => s.toLowerCase().includes(searchCat));
             
             // Allow searching directly by business name!
             const combinedName = `${pro.first_name || ''} ${pro.last_name || ''}`.toLowerCase();
@@ -871,7 +871,7 @@ useEffect(() => {
               const filtered = data.filter(pro => {
                 const matchesCat = !cat || 
                     (pro.category && pro.category.toLowerCase().includes(cat)) || 
-                    (pro.services && Array.isArray(pro.services) && pro.services.some(s => s.toLowerCase().includes(cat)));
+                    (pro.services && Array.isArray(pro.services) && pro.services.some((s: any) => s.toLowerCase().includes(cat)));
                 
                 const matchesLoc = !loc || 
                     (pro.location && pro.location.toLowerCase().includes(loc));
