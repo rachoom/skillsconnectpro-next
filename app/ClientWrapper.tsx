@@ -821,7 +821,7 @@ useEffect(() => {
             const matchesCat = !rawCat || inCat || inServ || inName;
             
             // Location matching
-            const matchesLoc = !loc || (pro.location && pro.location.toLowerCase().includes(loc));
+            const matchesLoc = !(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : '') || (pro.location && pro.location.toLowerCase().includes(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : ''));
                 
             return matchesCat && matchesLoc;
           });
@@ -873,8 +873,8 @@ useEffect(() => {
                     (pro.category && pro.category.toLowerCase().includes(cat)) || 
                     (pro.services && Array.isArray(pro.services) && pro.services.some((s: any) => s.toLowerCase().includes(cat)));
                 
-                const matchesLoc = !loc || 
-                    (pro.location && pro.location.toLowerCase().includes(loc));
+                const matchesLoc = !(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : '') || 
+                    (pro.location && pro.location.toLowerCase().includes(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : ''));
                     
                 return matchesCat && matchesLoc;
               });
