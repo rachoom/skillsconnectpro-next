@@ -237,3 +237,11 @@ export const getConstructionEstimate = async (
     clearTimeout(timeoutId);
   }
 };
+export const getGeminiResponse = async (userMsg: any): Promise<string> => {
+  try {
+    const estimate = await getConstructionEstimate(userMsg);
+    return JSON.stringify(estimate);
+  } catch (error) {
+    return "I'm sorry, I couldn't process your request. Please try again.";
+  }
+};
