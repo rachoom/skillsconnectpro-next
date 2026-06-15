@@ -809,26 +809,36 @@ useEffect(() => {
           
           
           
-          const filtered = data.filter(pro => {
-            // Check category and services for the singularized term
-            const inCat = pro.category && pro.category.toLowerCase().includes(searchCat);
-            const inServ = pro.services && Array.isArray(pro.services) && pro.services.some((s: any) => s.toLowerCase().includes(searchCat));
-            
-            // Allow searching directly by business name!
-            const combinedName = `${pro.first_name || ''} ${pro.last_name || ''}`.toLowerCase();
-            const inName = combinedName.includes(rawCat);
-            
-            const matchesCat = !rawCat || inCat || inServ || inName;
-            
-            // Location matching
-            const matchesLoc = !(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : '') || (pro.location && pro.location.toLowerCase().includes(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : ''));
-                
-            return matchesCat && matchesLoc;
+          const _rawCat = executedSearch?.category ? String(executedSearch.category).toLowerCase().trim() : '';
+          const _searchCat = _rawCat.endsWith('s') && !_rawCat.endsWith('ss') ? _rawCat.slice(0, -1) : _rawCat;
+          const _locStr = executedSearch?.location ? String(executedSearch.location).toLowerCase().trim() : '';
+
+          const eastRandCities = ['brakpan', 'springs', 'benoni', 'nigel', 'kwa thema', 'tsakane', 'daveyton', 'vosloorus', 'katlehong', 'boksburg', 'kempton park', 'tembisa', 'germiston', 'alberton', 'bedfordview', 'edenvale', 'heidelberg'];
+
+          const filtered = data.filter((pro: any) => {
+              if (!pro) return false;
+              
+              // Stringify the entire row to bypass all Supabase array/string formatting issues
+              const proText = JSON.stringify(pro).toLowerCase();
+
+              const matchesCat = !_searchCat || proText.includes(_searchCat);
+
+              // Smart Location Check: Forgives truncated DB data
+              let matchesLoc = !_locStr || proText.includes(_locStr);
+              if (!matchesLoc && _locStr !== '') {
+                  const isProEastRand = eastRandCities.some(city => proText.includes(city));
+                  const isSearchEastRand = eastRandCities.includes(_locStr);
+                  if (isProEastRand && isSearchEastRand) {
+                      matchesLoc = true;
+                  }
+              }
+
+              return matchesCat && matchesLoc;
           });
-          
-          // Shuffle the matched pros and limit to 5
-          const randomizedPros = filtered.sort(() => 0.5 - Math.random()).slice(0, 5);
-          setLiveFilteredPros(randomizedPros);
+
+          // Shuffle and limit to 5
+          const finalPros = filtered.sort(() => 0.5 - Math.random()).slice(0, 5);
+          setLiveFilteredPros(finalPros);
             }
   };
 
@@ -839,57 +849,7 @@ useEffect(() => {
 }, [executedSearch.category, executedSearch.location]);
 
   // 2. Fetch from Supabase whenever the search changes
-useEffect(() => {
-  const fetchFromDatabase = async () => {
-    try {
-      let query = supabase.from('artisans').select('*');
-
-      // 1. Fix the Plural Bug (e.g., changes "Plumbers" to "Plumber")
-      let cat = executedSearch.category ? executedSearch.category.trim() : '';
-      if (cat.toLowerCase().endsWith('s')) {
-         cat = cat.slice(0, -1);
-      }
-
-      if (cat) {
-         // Server-side filter neutralized
-      }
-
-      
-
-      const { data, error } = await query;
-
-      if (error) {
-        // 2. Force the error to pop up on your screen!
-        alert("SUPABASE ERROR: " + JSON.stringify(error));
-        console.error("🔥 SUPABASE ERROR:", error);
-      }
-
-      if (data) {
-              const cat = executedSearch.category ? executedSearch.category.toLowerCase().trim() : '';
-              
-              
-              const filtered = data.filter(pro => {
-                const matchesCat = !cat || 
-                    (pro.category && pro.category.toLowerCase().includes(cat)) || 
-                    (pro.services && Array.isArray(pro.services) && pro.services.some((s: any) => s.toLowerCase().includes(cat)));
-                
-                const matchesLoc = !(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : '') || 
-                    (pro.location && pro.location.toLowerCase().includes(executedSearch?.location ? executedSearch.location.toLowerCase().trim() : ''));
-                    
-                return matchesCat && matchesLoc;
-              });
-              
-              setLiveFilteredPros(filtered);
-            }
-    } catch (err: any) {
-      alert("NETWORK CATCH ERROR: " + err.message);
-    }
-  };
-
-  if (executedSearch.category || executedSearch.location) {
-     fetchFromDatabase();
-  }
-}, [executedSearch.category, executedSearch.location]);
+/* DELETED DUPLICATE STRICT FILTER */
 
 
     // Removed stray top-level search navigation block that executed during SSR.
