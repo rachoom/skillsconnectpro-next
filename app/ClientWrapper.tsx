@@ -1562,7 +1562,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                     <ImageWithSkeleton src={selectedArtisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={selectedArtisan.name} className="w-full h-full" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 z-20" />
                     <div className="absolute bottom-8 left-8 z-30">
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 leading-tight mb-4 line-clamp-2" title={(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}>{(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}</h2>
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 leading-tight mb-4 line-clamp-2" title={(selectedArtisan.name || `${selectedArtisan.first_name || ''} ${selectedArtisan.last_name || ''}`.trim())}>{(selectedArtisan.name || `${selectedArtisan.first_name || ''} ${selectedArtisan.last_name || ''}`.trim())}</h2>
                   <p className="text-brand-yellow font-bold tracking-widest uppercase text-sm">{selectedArtisan.category} • {selectedArtisan.location}</p>
                   
                 {selectedArtisan.verified && !['Creche', 'Creches', 
