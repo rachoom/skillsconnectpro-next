@@ -29,7 +29,7 @@ export const AIChatAssistant: React.FC = () => {
 
     try {
       const aiResponse = await getGeminiResponse(userMsg);
-      setMessages(prev => [...prev, { role: 'model', text: aiResponse }]);
+      setMessages(prev => [...prev, { role: 'model', text: aiResponse ?? 'Sorry, I could not generate a response.' }]);
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: 'model', 

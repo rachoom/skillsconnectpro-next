@@ -90,7 +90,7 @@ export const ARTISANS: Artisan[] = [
   }
 ];
 
-export const EAST_RAND_LOCATIONS = [
+export const SUPPORTED_LOCATIONS = [
   'Tsakane',
   'KwaThema',
   'Kwate', 
@@ -115,5 +115,19 @@ export const EAST_RAND_LOCATIONS = [
   'Alberton',
   'Edenvale',
   'Bedfordview',
-  'Heidelberg'
+  'Heidelberg',
+  // Gauteng main cities and metros
+  'Johannesburg',
+  'Pretoria',
+  'Soweto',
+  'Midrand',
+  'Sandton',
+  'Centurion',
+  'Randburg',
+  'Roodepoort',
+  'Krugersdorp',
+  'Vereeniging',
+  'Vanderbijlpark',
+  // Requested non-Gauteng city
+  'Cape Town'
 ];

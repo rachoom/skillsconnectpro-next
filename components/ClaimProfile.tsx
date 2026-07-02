@@ -19,11 +19,11 @@ export const ClaimProfile: React.FC = () => {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const claimId = urlParams.get('claim');
+    const inviteId = urlParams.get('invite');
 
-    if (!claimId) {
-      setError("Invalid claim link. Please check your WhatsApp message and try again.");
+    if (!inviteId) {
       setLoading(false);
+      // No error needed if it's not an invite link, just don't render this component.
       return;
     }
 
@@ -31,8 +31,8 @@ export const ClaimProfile: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('artisans')
-          .select('*')
-          .eq('id', claimId)
+          .select('*') // You can specify columns to be more efficient
+          .eq('id', inviteId)
           .single();
 
         if (error) throw error;

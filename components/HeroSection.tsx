@@ -1,4 +1,34 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { DownloadIcon } from './Icons';
+
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 export default function HeroSection() {
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = () => {
+    installPrompt?.prompt();
+  };
+
   return (
     <section className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black">
       
@@ -31,6 +61,15 @@ export default function HeroSection() {
             {/* Search inputs go here */}
         </div>
 
+        {installPrompt && (
+          <button
+            onClick={handleInstallClick}
+            className="fixed bottom-20 right-6 z-[90] h-16 w-16 bg-brand-yellow text-black rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform group animate-fade-in"
+            title="Install App"
+          >
+            <DownloadIcon />
+          </button>
+        )}
       </div>
     </section>
   );

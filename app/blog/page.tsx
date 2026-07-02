@@ -30,7 +30,7 @@ export default function BlogIndex() {
       <div 
         className="fixed inset-0 z-0 opacity-10 mix-blend-luminosity pointer-events-none"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop')",
+          backgroundImage: "url('https://images.unsplash.com/photo-1455849318743-b2233052fcff?q=80&w=2069&auto=format&fit=crop')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -41,55 +41,66 @@ export default function BlogIndex() {
       <div className="fixed top-1/4 -left-20 w-[500px] h-[500px] bg-brand-yellow/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
 
       {/* --- MAIN CONTENT --- */}
-      <div className="relative z-10 w-full max-w-4xl mx-auto py-20 px-6">
+      <div className="relative z-10 w-full max-w-4xl mx-auto py-20 px-4 sm:px-6">
+        <div className="relative isolate overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 shadow-[0_35px_80px_-20px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-20 scale-110 blur-[2px]"
+            style={{
+              backgroundImage: "url('https://images.unsplash.com/photo-1455849318743-b2233052fcff?q=80&w=2069&auto=format&fit=crop')",
+              backgroundPosition: 'center',
+            }}
+          ></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.16),transparent_42%),linear-gradient(135deg,rgba(7,5,3,0.88),rgba(7,5,3,0.62))]"></div>
 
-        {/* FROSTED GLASS BACK BUTTON */}
-        <Link 
-          href="/" 
-          className="inline-flex items-center mb-12 text-xs font-black text-gray-400 hover:text-brand-yellow uppercase tracking-widest transition-colors group bg-black/40 backdrop-blur-md px-5 py-3 rounded-full border border-white/10 shadow-lg w-fit"
-        >
-          <span className="mr-3 transition-transform group-hover:-translate-x-1">&larr;</span>
-          Back to Home
-        </Link>
-
-        {/* HEADER */}
-        <div className="mb-14 text-center md:text-left">
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-4 drop-shadow-lg">
-            Skills<span className="text-brand-yellow italic">Connect</span> Blog
-          </h1>
-          <p className="text-gray-400 font-medium text-lg md:text-xl max-w-2xl">
-            Expert advice, safety guides, and tips for finding the best local talent nationwide.
-          </p>
-        </div>
-
-        {/* FROSTED GLASS CARDS */}
-        <div className="grid gap-8">
-          {posts.map((post: any) => (
+          <div className="relative z-10 p-6 sm:p-8 md:p-10">
+            {/* FROSTED GLASS BACK BUTTON */}
             <Link 
-              href={`/blog/${post.slug}`} 
-              key={post.slug} 
-              className="group block p-8 md:p-10 rounded-[2.5rem] border border-white/10 transition-all duration-500 hover:border-brand-yellow/50 relative overflow-hidden bg-white/5 backdrop-blur-2xl shadow-[0_30px_60px_-12px_rgba(0,0,0,0.8)]"
+              href="/" 
+              className="inline-flex items-center mb-12 text-xs font-black text-gray-400 hover:text-brand-yellow uppercase tracking-widest transition-colors group bg-black/40 backdrop-blur-md px-5 py-3 rounded-full border border-white/10 shadow-lg w-fit"
             >
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
-
-              <div className="relative z-10">
-                 <div className="text-brand-yellow text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                   Published • {post.date}
-                 </div>
-                 <h2 className="text-2xl md:text-4xl font-black text-white mb-4 group-hover:text-brand-yellow transition-colors leading-tight">
-                   {post.title}
-                 </h2>
-                 <p className="text-gray-400 mb-8 leading-relaxed text-sm md:text-base line-clamp-2">
-                   {post.excerpt}
-                 </p>
-                 <span className="inline-flex items-center text-emerald-500 text-xs font-black uppercase tracking-widest group-hover:translate-x-2 transition-transform">
-                   Read Article &rarr;
-                 </span>
-              </div>
+              <span className="mr-3 transition-transform group-hover:-translate-x-1">&larr;</span>
+              Back to Home
             </Link>
-          ))}
-        </div>
 
+            {/* HEADER */}
+            <div className="mb-14 text-center md:text-left">
+              <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-4 drop-shadow-lg">
+                Skills<span className="text-brand-yellow italic">Connect</span> Blog
+              </h1>
+              <p className="text-gray-400 font-medium text-lg md:text-xl max-w-2xl">
+                Expert advice, safety guides, and tips for finding the best local talent nationwide.
+              </p>
+            </div>
+
+            {/* FROSTED GLASS CARDS */}
+            <div className="grid gap-8">
+              {posts.map((post: any) => (
+                <Link 
+                  href={`/blog/${post.slug}`} 
+                  key={post.slug} 
+                  className="group block p-8 md:p-10 rounded-[2.5rem] border border-white/10 transition-all duration-500 hover:border-brand-yellow/50 relative overflow-hidden bg-white/5 backdrop-blur-2xl shadow-[0_30px_60px_-12px_rgba(0,0,0,0.8)]"
+                >
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
+
+                  <div className="relative z-10">
+                     <div className="text-brand-yellow text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+                       Published • {post.date}
+                     </div>
+                     <h2 className="text-2xl md:text-4xl font-black text-white mb-4 group-hover:text-brand-yellow transition-colors leading-tight">
+                       {post.title}
+                     </h2>
+                     <p className="text-gray-400 mb-8 leading-relaxed text-sm md:text-base line-clamp-2">
+                       {post.excerpt}
+                     </p>
+                     <span className="inline-flex items-center text-emerald-500 text-xs font-black uppercase tracking-widest group-hover:translate-x-2 transition-transform">
+                       Read Article &rarr;
+                     </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -5,9 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 import { supabase } from '../services/supabase';
-import { MarketingProfileCard } from '../components/MarketingProfileCard'; 
+import { MarketingProfileCard } from '../components/MarketingProfileCard';
+import { ClaimProfile } from '../components/ClaimProfile';
 import { Artisan, AppState } from '../types';
-import { EAST_RAND_LOCATIONS } from '../services/mockData';
+import { SUPPORTED_LOCATIONS } from '../services/mockData';
 import { SearchIcon, LocationIcon, VerifiedIcon } from '../components/Icons';
 import { AIChatAssistant } from '../components/AIChatAssistant';
 import { AdminDashboard } from '../components/AdminDashboard';
@@ -23,6 +24,11 @@ import {
   Shirt, Utensils, Baby, Trees, Sparkles 
 } from 'lucide-react';
 import Link from 'next/link';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 // --- DYNAMIC COMPONENTS ---
 const MapView = dynamic(() => import('../components/MapView').then((mod) => mod.MapView), { 
@@ -44,24 +50,48 @@ const QUICK_CATEGORIES = [
 ];
 
 const MORE_SERVICES = [
-  { id: 'fashion', label: 'Fashion', icon: <Shirt className="w-5 h-5" />, image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2574&auto=format&fit=crop' },
-  { id: 'landscaping', label: 'Landscaping', icon: <Trees className="w-5 h-5" />, image: 'https://images.unsplash.com/photo-1557429287-b2e26467fc2b?q=80&w=2535&auto=format&fit=crop' },
-  { id: 'transport', label: 'Transport', icon: <Truck className="w-5 h-5" />, image: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=2675&auto=format&fit=crop' },
-  { id: 'catering', label: 'Catering', icon: <Utensils className="w-5 h-5" />, image: 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=2670&auto=format&fit=crop' },
-  { id: 'daycare', label: 'Day Care', icon: <Baby className="w-5 h-5" />, image: '/artisans/Cards/daycare.png' },
-  { id: 'beauty', label: 'Beauty', icon: <Sparkles className="w-5 h-5" />, image: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=2670&auto=format&fit=crop' },
+  { id: 'fashion', label: 'Fashion', icon: <Shirt className="w-5 h-5" />, image: '/fashion.png' },
+  { id: 'landscaping', label: 'Landscaping', icon: <Trees className="w-5 h-5" />, image: '/landscaping.png' },
+  { id: 'hairdresser', label: 'Hairdresser', icon: <Scissors className="w-5 h-5" />, image: '/hairdresser.png' },
+  { id: 'catering', label: 'Catering', icon: <Utensils className="w-5 h-5" />, image: '/catering.png' },
+  { id: 'daycare', label: 'Day Care', icon: <Baby className="w-5 h-5" />, image: '/daycare.png' },
+  { id: 'beauty', label: 'Beauty', icon: <Sparkles className="w-5 h-5" />, image: '/beauty.png' },
 ];
 
 const CATEGORIES = [
   'Builders', 'Plumbers', 'Electricians', 'Painters', 'Carpenters',
-  'Cleaners', 'Landscapers', 'Mechanics', 'Hairdressers', 'Dressmakers', 'Tailors', 'Welders', 'Tilers', 'Fashion', 'Creches', 'General Contractors'
+  'Cleaners', 'Landscapers', 'Mechanics', 'Hairdressers', 'Dressmakers', 'Tailors', 'Welders', 'Tilers',
+  'Fashion', 'Creches', 'General Contractors',
+  // Additional services (autocomplete labels)
+  'Landscaping', 'Hairdresser', 'Catering', 'Day Care', 'Beauty'
 ];
 
+const CATEGORY_ALIASES: Record<string, string[]> = {
+  landscaping: ['landscaping', 'landscaper', 'landscapers', 'garden', 'gardening'],
+  hairdresser: ['hairdresser', 'hairdressers', 'salon', 'hairstylist'],
+  catering: ['catering', 'caterer', 'caterers'],
+  'day care': ['day care', 'daycare', 'creche', 'creches', 'child care', 'childcare'],
+  beauty: ['beauty', 'beautician', 'makeup', 'spa', 'nails'],
+  fashion: ['fashion', 'dressmaker', 'dressmakers', 'tailor', 'tailors'],
+};
+
 const EXTENDED_LOCATIONS = [
-  ...EAST_RAND_LOCATIONS,
+  ...SUPPORTED_LOCATIONS,
   // CBD / shorthand aliases users might type
   'East Rand', 'Far East Rand', 'Ekurhuleni',
 ].filter((item, index, self) => self.indexOf(item) === index);
+
+const POPULAR_LOCATION_PICKS = [
+  'Johannesburg',
+  'Pretoria',
+  'Soweto',
+  'Midrand',
+  'Sandton',
+  'Centurion',
+  'Randburg',
+  'Roodepoort',
+  'Cape Town',
+];
 
 interface FeaturedAd {
   id: number;
@@ -208,7 +238,7 @@ const ReviewCard: React.FC<{ review: Review, isDarkMode: boolean }> = ({ review,
 // 🟢 COMPONENT: APP-LIKE WELCOME SPLASH
 const WelcomeSplash: React.FC<{ onEnter: () => void, isDarkMode: boolean }> = ({ onEnter, isDarkMode }) => {
     return (
-        <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center">
+        <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center" onClick={(e) => { e.stopPropagation(); onEnter(); }} style={{cursor: "pointer"}}>
             {/* Cinematic Background */}
             <div className="absolute inset-0 z-0 bg-[#0c0906]">
                 {/* 1. Looping Base Video */}
@@ -253,7 +283,7 @@ const WelcomeSplash: React.FC<{ onEnter: () => void, isDarkMode: boolean }> = ({
 
                 {/* The "Enter App" Button */}
                 <button 
-                    onClick={onEnter}
+                    onClick={(e) => { e.stopPropagation(); onEnter(); }}
                     className="group relative w-full bg-brand-yellow text-black py-6 rounded-3xl font-black uppercase tracking-widest text-lg hover:bg-white transition-all duration-300 shadow-[0_20px_40px_rgba(250,204,21,0.3)] hover:shadow-[0_20px_60px_rgba(250,204,21,0.5)] hover:-translate-y-2 flex items-center justify-center gap-4 overflow-hidden"
                 >
                     <div className="absolute inset-0 w-full h-full bg-white/20 translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] skew-x-12"></div>
@@ -567,9 +597,39 @@ const App: React.FC<AppProps> = ({ deepLinkProfileId }) => { // <--- Receive pro
   const [showSuggestionForm, setShowSuggestionForm] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
   const showToast = (message: string, type: 'success' | 'error' = 'success') => setToast({ message, type });
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event as BeforeInstallPromptEvent);
+      setIsInstallable(true);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+      setIsInstalled(true);
+    };
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+    if (isStandalone) {
+      setIsInstalled(true);
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
 
  // 🚀 Deep Link Listener
   useEffect(() => {
@@ -603,6 +663,25 @@ const App: React.FC<AppProps> = ({ deepLinkProfileId }) => { // <--- Receive pro
 
   const handleSupport = () => {
     window.open(`https://wa.me/27697026088?text=${encodeURIComponent("Hi Skills Connect Support, I need assistance.")}`, '_blank');
+  };
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        showToast('On iPhone or iPad, tap Share and choose Add to Home Screen.', 'success');
+      } else {
+        showToast('This browser does not support one-tap installation right now.', 'error');
+      }
+      return;
+    }
+
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if (choice.outcome === 'accepted') {
+      setIsInstallable(false);
+      setIsInstalled(true);
+    }
+    setDeferredPrompt(null);
   };
 
   useEffect(() => {
@@ -646,6 +725,13 @@ const locationAliases: Record<string, string> = {
   'negel': 'Nigel',
   'dave': 'Daveyton',
   'heidel': 'Heidelberg',
+  'jozi': 'Johannesburg',
+  'joburg': 'Johannesburg',
+  'jhb': 'Johannesburg',
+  'pta': 'Pretoria',
+  'pret': 'Pretoria',
+  'cpt': 'Cape Town',
+  'capetown': 'Cape Town',
 };
     if (locationAliases[normalized]) return locationAliases[normalized];
     for (const location of EXTENDED_LOCATIONS) {
@@ -776,13 +862,54 @@ const locationAliases: Record<string, string> = {
     return CATEGORIES.filter(cat => cat.toLowerCase().includes(categoryInput.toLowerCase())).slice(0, 5);
   }, [categoryInput]);
 
+  const categorySynonymHint = useMemo(() => {
+    const raw = categoryInput.toLowerCase().trim();
+    if (!raw) return '';
+
+    const singular = raw.endsWith('s') && !raw.endsWith('ss') ? raw.slice(0, -1) : raw;
+    const aliases = CATEGORY_ALIASES[raw] || CATEGORY_ALIASES[singular] || [];
+
+    if (!aliases.length) return '';
+
+    const hint = aliases.slice(0, 3).join(', ');
+    return `Also matches: ${hint}`;
+  }, [categoryInput]);
+
+  useEffect(() => {
+    if (appState !== AppState.SEARCH_RESULTS) return;
+
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    // Run multiple times to avoid race conditions with render/layout shifts.
+    scrollToTop();
+    const raf = requestAnimationFrame(scrollToTop);
+    const timer = window.setTimeout(scrollToTop, 120);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [appState, executedSearch.category, executedSearch.location]);
+
 
     // 1. Create a state to hold the live database results
 const [liveFilteredPros, setLiveFilteredPros] = useState<Artisan[]>([]);
+const [isSearchingResults, setIsSearchingResults] = useState(false);
 
 // 2. Fetch from Supabase whenever the search changes
 useEffect(() => {
+  let isCancelled = false;
+
   const fetchFromDatabase = async () => {
+    if (!isCancelled) {
+      setIsSearchingResults(true);
+      setLiveFilteredPros([]);
+    }
+
     // Start the base query
     let query = supabase.from('artisans').select('*');
 
@@ -792,36 +919,35 @@ useEffect(() => {
     // If they typed a location, match that too
     
 
-    // Execute the query
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error("Supabase fetch error:", error.message, error.details);
-    }
-    
-    if (data) {
-              const cat = executedSearch.category ? executedSearch.category.toLowerCase().trim() : '';
-              const loc = executedSearch.location ? executedSearch.location.toLowerCase().trim() : '';
-              
-              // Smart plural handling (e.g., "plumbers" -> "plumber")
-          const rawCat = executedSearch.category ? executedSearch.category.toLowerCase().trim() : '';
-          const searchCat = rawCat.endsWith('s') && !rawCat.endsWith('ss') ? rawCat.slice(0, -1) : rawCat;
-          
-          
-          
+    try {
+      // Execute the query
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Supabase fetch error:", error.message, error.details);
+      }
+
+      if (data) {
           const _rawCat = executedSearch?.category ? String(executedSearch.category).toLowerCase().trim() : '';
           const _searchCat = _rawCat.endsWith('s') && !_rawCat.endsWith('ss') ? _rawCat.slice(0, -1) : _rawCat;
           const _locStr = executedSearch?.location ? String(executedSearch.location).toLowerCase().trim() : '';
 
+          const categoryTerms = Array.from(new Set([
+            _rawCat,
+            _searchCat,
+            ...(CATEGORY_ALIASES[_rawCat] || []),
+            ...(CATEGORY_ALIASES[_searchCat] || []),
+          ])).filter(Boolean);
+
           const eastRandCities = ['brakpan', 'springs', 'benoni', 'nigel', 'kwa thema', 'tsakane', 'daveyton', 'vosloorus', 'katlehong', 'boksburg', 'kempton park', 'tembisa', 'germiston', 'alberton', 'bedfordview', 'edenvale', 'heidelberg'];
 
-          const filtered = data.filter((pro: any) => {
+            const filtered = data.filter((pro: any) => {
               if (!pro) return false;
               
               // Stringify the entire row to bypass all Supabase array/string formatting issues
               const proText = JSON.stringify(pro).toLowerCase();
 
-              const matchesCat = !_searchCat || proText.includes(_searchCat);
+              const matchesCat = categoryTerms.length === 0 || categoryTerms.some((term) => proText.includes(term));
 
               // Smart Location Check: Forgives truncated DB data
               let matchesLoc = !_locStr || proText.includes(_locStr);
@@ -836,16 +962,49 @@ useEffect(() => {
               return matchesCat && matchesLoc;
           });
 
+          // Prefer first/last name from DB; fallback to legacy name only if needed.
+          const normalizedFiltered = filtered.map((pro: any) => {
+            const firstName = String(pro.first_name || '').trim();
+            const lastName = String(pro.last_name || '').trim();
+            const fullName = `${firstName} ${lastName}`.trim();
+
+            return {
+              ...pro,
+              name: fullName || String(pro.name || '').trim() || 'Unnamed Pro',
+            };
+          });
+
           // Shuffle and limit to 5
-          const finalPros = filtered.sort(() => 0.5 - Math.random()).slice(0, 5);
-          setLiveFilteredPros(finalPros);
-            }
+          const finalPros = normalizedFiltered.sort(() => 0.5 - Math.random()).slice(0, 5);
+          if (!isCancelled) {
+            setLiveFilteredPros(finalPros);
+          }
+      } else if (!isCancelled) {
+        setLiveFilteredPros([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch search results:', err);
+      if (!isCancelled) {
+        setLiveFilteredPros([]);
+      }
+    } finally {
+      if (!isCancelled) {
+        setIsSearchingResults(false);
+      }
+    }
   };
 
   // Trigger the fetch if a search exists
   if (executedSearch.category || executedSearch.location) {
      fetchFromDatabase();
+  } else {
+    setLiveFilteredPros([]);
+    setIsSearchingResults(false);
   }
+
+  return () => {
+    isCancelled = true;
+  };
 }, [executedSearch.category, executedSearch.location]);
 
   // 2. Fetch from Supabase whenever the search changes
@@ -952,7 +1111,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                 {searchStep === 'category' ? (
                   <div className="w-full relative flex-1">
                     <input 
-                      autoFocus 
+                      
                       type="text"
                       value={categoryInput}
                       onFocus={() => setShowSkillSuggestions(true)}
@@ -964,6 +1123,12 @@ const { error } = await supabase.from('artisan_applications').insert([
                       placeholder="e.g. Plumber, Electrician..."
                       className="w-full bg-transparent p-4 md:p-6 text-2xl md:text-4xl text-white font-bold outline-none placeholder:text-zinc-600"
                     />
+
+                    {categorySynonymHint && (
+                      <p className="mt-3 ml-4 md:ml-6 text-[10px] md:text-xs font-bold uppercase tracking-widest text-zinc-500 animate-fade-in-up">
+                        {categorySynonymHint}
+                      </p>
+                    )}
                     
                     {showSkillSuggestions && (
                       <div className="absolute top-[115%] left-0 right-0 z-50">
@@ -995,7 +1160,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                 ) : (
                   <div className="w-full relative flex-1">
                     <input 
-                      autoFocus 
+                      
                       type="text"
                       value={locationInput}
                       onFocus={() => setShowLocationSuggestions(true)}
@@ -1068,6 +1233,32 @@ const { error } = await supabase.from('artisan_applications').insert([
             <p className="text-center text-zinc-500 font-bold uppercase tracking-widest text-xs mt-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               Press Enter to continue
             </p>
+
+            {searchStep === 'location' && (
+              <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
+                <p className="text-center text-zinc-500 font-bold uppercase tracking-[0.2em] text-[10px] mb-4">
+                  Popular Gauteng + Cape Town
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2">
+                  {POPULAR_LOCATION_PICKS.map((loc) => (
+                    <button
+                      key={loc}
+                      onClick={() => {
+                        setLocationInput(loc);
+                        setShowLocationSuggestions(false);
+                        setIsSearchActive(false);
+                        setExecutedSearch({ category: categoryInput, location: loc });
+                        setAppState(AppState.SEARCH_RESULTS);
+                        setSearchStep('category');
+                      }}
+                      className="px-3 py-2 md:px-4 md:py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-wider border border-brand-yellow/30 text-brand-yellow bg-brand-yellow/10 hover:bg-brand-yellow hover:text-black hover:border-brand-yellow transition-colors"
+                    >
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1128,6 +1319,14 @@ const { error } = await supabase.from('artisan_applications').insert([
         </div>
             
            {/* 🛠️ FIX: Added shrink-0 to button so it doesn't get crushed */}
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="border border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700] hover:text-black px-4 py-2 rounded-full font-semibold transition-colors whitespace-nowrap shrink-0"
+              >
+                Install App
+              </button>
+            )}
             <button 
               onClick={goToQuickJoin} 
               className="liquid-glass glass-btn-join text-emerald-500 hover:text-white px-3 py-1.5 md:px-5 md:py-2.5 text-[9px] md:text-sm rounded-full transition-all shadow-[0_0_20px_rgba(16,185,129,0.15)] font-black uppercase tracking-wider whitespace-nowrap shrink-0"
@@ -1412,8 +1611,18 @@ const { error } = await supabase.from('artisan_applications').insert([
                     <span className="text-sm font-bold uppercase tracking-widest">Back to Search</span>
                   </button>
                   <div>
-                    <h2 className={`text-4xl font-black uppercase tracking-tighter mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Found <span className="text-brand-yellow">{liveFilteredPros.length}</span> Pros</h2>
-                    <p className="text-gray-400 text-sm">Top-rated artisans ready to help in {executedSearch.location || "East Rand"}</p>
+                    <h2 className={`text-4xl font-black uppercase tracking-tighter mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {isSearchingResults ? (
+                        <>Searching<span className="text-brand-yellow">...</span></>
+                      ) : (
+                        <>Found <span className="text-brand-yellow">{liveFilteredPros.length}</span> Pros</>
+                      )}
+                    </h2>
+                    <p className="text-gray-400 text-sm">
+                      {isSearchingResults
+                        ? `Looking for top-rated artisans in ${executedSearch.location || 'East Rand'}`
+                        : `Top-rated artisans ready to help in ${executedSearch.location || 'East Rand'}`}
+                    </p>
                   </div>
                 </div>
                 <div className={`flex p-1.5 rounded-xl border self-end md:self-center ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
@@ -1421,7 +1630,66 @@ const { error } = await supabase.from('artisan_applications').insert([
                   <button onClick={() => setViewMode('map')} className={`px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${viewMode === 'map' ? 'bg-brand-yellow text-black shadow-lg' : 'text-gray-400 hover:text-gray-500'}`}>Map</button>
                 </div>
               </div>
-              {viewMode === 'map' ? ( <div className="mb-12 animate-fade-in"><MapView artisans={liveFilteredPros} /></div> ) : (
+              {viewMode === 'map' ? (
+                isSearchingResults ? (
+                  <div className={`relative text-center py-24 px-6 rounded-[3rem] border overflow-hidden transition-all duration-500 ${isDarkMode ? 'bg-[#111] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-yellow/5 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+                    <div className="relative z-10 flex flex-col items-center">
+                      <div className="relative mb-10">
+                        <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-20 duration-1000"></div>
+                        <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-10 animation-delay-500 duration-1000"></div>
+                        <div className={`relative w-24 h-24 rounded-full flex items-center justify-center border-2 backdrop-blur-md shadow-2xl ${isDarkMode ? 'bg-black/40 border-brand-yellow text-white' : 'bg-white border-brand-yellow text-black'}`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-brand-yellow animate-pulse">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className={`text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Searching<span className="text-brand-yellow">...</span>
+                      </h3>
+                      <div className="max-w-lg mx-auto mb-10 space-y-2">
+                        <p className={`text-sm md:text-base font-medium leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          We are searching trusted <span className="text-brand-yellow font-bold uppercase">{executedSearch.category || 'specialists'}</span> for you.
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-widest">Please wait while we check the network</p>
+                      </div>
+                      <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                        <button onClick={goHome} className="px-8 py-4 bg-brand-yellow text-black font-black uppercase text-xs tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-yellow/20">Browse Other Services</button>
+                      </div>
+                    </div>
+                  </div>
+                ) : liveFilteredPros.length > 0 ? (
+                  <div className="mb-12 animate-fade-in"><MapView artisans={liveFilteredPros} /></div>
+                ) : (
+                  <div className={`relative text-center py-24 px-6 rounded-[3rem] border overflow-hidden transition-all duration-500 ${isDarkMode ? 'bg-[#111] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-yellow/5 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+                    <div className="relative z-10 flex flex-col items-center">
+                      <div className="relative mb-10">
+                        <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-20 duration-1000"></div>
+                        <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-10 animation-delay-500 duration-1000"></div>
+                        <div className={`relative w-24 h-24 rounded-full flex items-center justify-center border-2 backdrop-blur-md shadow-2xl ${isDarkMode ? 'bg-black/40 border-brand-yellow text-white' : 'bg-white border-brand-yellow text-black'}`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-brand-yellow animate-pulse">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className={`text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        0 <span className="text-brand-yellow">Results Found</span>
+                      </h3>
+                      <div className="max-w-lg mx-auto mb-10 space-y-2">
+                        <p className={`text-sm md:text-base font-medium leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          No matching <span className="text-brand-yellow font-bold uppercase">{executedSearch.category || 'specialists'}</span> found in {executedSearch.location || 'your area'}.
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-widest">Try another location or suggest a trusted pro</p>
+                      </div>
+                      <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                        <button onClick={goHome} className="px-8 py-4 bg-brand-yellow text-black font-black uppercase text-xs tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-yellow/20">Browse Other Services</button>
+                        <button onClick={() => setShowSuggestionForm(true)} className={`px-8 py-4 border font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-white/5 transition-colors ${isDarkMode ? 'border-white/20 text-white' : 'border-gray-300 text-gray-700'}`}>Suggest a Pro</button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              ) : (
                 <>
                 {liveFilteredPros.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up">
@@ -1471,17 +1739,29 @@ const { error } = await supabase.from('artisan_applications').insert([
                         </div>
                       </div>
                       <h3 className={`text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        Professionals <span className="text-brand-yellow">Loading...</span>
+                        {isSearchingResults ? (
+                          <>Searching<span className="text-brand-yellow">...</span></>
+                        ) : (
+                          <>0 <span className="text-brand-yellow">Results Found</span></>
+                        )}
                       </h3>
                       <div className="max-w-lg mx-auto mb-10 space-y-2">
                         <p className={`text-sm md:text-base font-medium leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                          We are hard at work sourcing trusted <span className="text-brand-yellow font-bold uppercase">{executedSearch.category || 'specialists'}</span> for you.
+                          {isSearchingResults ? (
+                            <>We are searching trusted <span className="text-brand-yellow font-bold uppercase">{executedSearch.category || 'specialists'}</span> for you.</>
+                          ) : (
+                            <>No matching <span className="text-brand-yellow font-bold uppercase">{executedSearch.category || 'specialists'}</span> found in {executedSearch.location || 'your area'}.</>
+                          )}
                         </p>
-                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-widest">Stay Connected • Quality takes time</p>
+                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-widest">
+                          {isSearchingResults ? 'Please wait while we check the network' : 'Try another location or suggest a trusted pro'}
+                        </p>
                       </div>
                       <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                         <button onClick={goHome} className="px-8 py-4 bg-brand-yellow text-black font-black uppercase text-xs tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-yellow/20">Browse Other Services</button>
-                        <button onClick={() => setShowSuggestionForm(true)} className={`px-8 py-4 border font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-white/5 transition-colors ${isDarkMode ? 'border-white/20 text-white' : 'border-gray-300 text-gray-700'}`}>Suggest a Pro</button>
+                        {!isSearchingResults && (
+                          <button onClick={() => setShowSuggestionForm(true)} className={`px-8 py-4 border font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-white/5 transition-colors ${isDarkMode ? 'border-white/20 text-white' : 'border-gray-300 text-gray-700'}`}>Suggest a Pro</button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1930,16 +2210,21 @@ const { error } = await supabase.from('artisan_applications').insert([
 // <--- Updated Wrapper Content routing logic
 const AppWrapperContent = () => {
   const searchParams = useSearchParams();
-  const claimId = searchParams.get('claim'); 
+  const claimId = searchParams.get('claim');
+  const inviteId = searchParams.get('invite');
   const profileId = searchParams.get('profile'); 
 
-  // 1. If ?claim=ID is in the URL, show the beautiful Marketing Profile Card!
-  if (claimId) {
+  // 1. If ?claim=ID is in the URL, show the marketing card.
+  if (claimId && !inviteId) {
     return <MarketingProfileCard artisanId={claimId} />;
   }
 
-  // 2. If ?profile=ID is in the URL (or no parameters), load the main app. 
-  // The deep link listener inside <App /> will catch the profileId and auto-open it.
+  // 2. If ?invite=ID is in the URL, show the profile claiming component.
+  if (inviteId) {
+    return <ClaimProfile />;
+  }
+
+  // 3. For ?profile=ID or no parameters, load the main app.
   return <App deepLinkProfileId={profileId} />;
 };
 

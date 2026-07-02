@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.skillsconnectpro.co.za'), // 👈 ADD THIS LINE
+  metadataBase: new URL('https://www.skillsconnectpro.co.za'),
+  manifest: '/manifest.json',
   title: 'Skills Connect Pro | Free Directory for Kasi Artisans',
   description: 'Looking for skilled plumbers, builders, electricians, or mechanics? Skills Connect Pro is the free online directory connecting you with local kasi talent.',
   openGraph: {

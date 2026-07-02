@@ -1,42 +1,30 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "Gemini API key is not configured on the server." }, { status: 501 });
-    }
-
-    const { image, rate, details, taskType } = await req.json();
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) return NextResponse.json({ error: "Missing API Key" }, { status: 500 });
     
-    // Initialize the official modern Google Gen AI SDK
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: apiKey as string });
+    const body = await req.json();
     
-    let prompt = "Analyze this image for a local service marketplace.";
-    if (taskType === 'estimate' || rate) {
-      prompt = `You are an expert local trade estimator. Analyze this work site or job photo. 
-      The artisan's hourly rate is R${rate || '0'}. Provide a professional, concise breakdown including:
-      1. Estimated hours required
-      2. Material considerations
-      3. Total estimated cost breakdown in South African Rand (ZAR).
-      Additional context: ${details || 'None provided'}`;
-    }
+    const prompt = body.prompt || body.details || "Analyze this image.";
+    const imageStr = body.image || body.base64Image || "";
 
-    // Clean up base64 data prefix if present
-    const cleanBase64 = image.replace(/^data:image\/\w+;base64,/, "");
+    const contents: any[] = [prompt];
+
+    if (imageStr) {
+      const cleanBase64 = imageStr.includes(',') ? imageStr.split(',')[1] : imageStr;
+      contents.push({ inlineData: { mimeType: 'image/jpeg', data: cleanBase64 } });
+    }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: [
-        prompt,
-        {
-          inlineData: {
-            mimeType: 'image/jpeg',
-            data: cleanBase64
-          }
-        }
-      ]
+      model: 'gemini-flash-latest', // Upgraded model!
+      contents: contents,
+      config: { responseMimeType: "application/json" }
     });
 
     return NextResponse.json({ result: response.text });

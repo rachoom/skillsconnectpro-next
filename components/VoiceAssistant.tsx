@@ -38,7 +38,12 @@ const extractCleanData = (text: string) => {
     let foundTrade = "";
     let foundLoc = "";
 
-    const locations = ['tsakane', 'springs', 'brakpan', 'kwathema', 'duduza', 'nigel', 'daveyton', 'benoni', 'boksburg', 'east rand'];
+    const locations = [
+      'tsakane', 'springs', 'brakpan', 'kwathema', 'duduza', 'nigel', 'daveyton', 'benoni', 'boksburg',
+      'vosloorus', 'katlehong', 'tembisa', 'germiston', 'kempton park', 'alberton', 'edenvale', 'bedfordview', 'heidelberg',
+      'johannesburg', 'pretoria', 'soweto', 'midrand', 'sandton', 'centurion', 'randburg', 'roodepoort', 'krugersdorp',
+      'vereeniging', 'vanderbijlpark', 'cape town', 'east rand'
+    ];
     for (const loc of locations) {
         if (lower.includes(loc)) foundLoc = loc.charAt(0).toUpperCase() + loc.slice(1);
     }

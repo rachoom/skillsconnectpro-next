@@ -1,115 +1,37 @@
+import { GoogleGenAI } from '@google/genai';
 
+const b = String.fromCharCode(96, 96, 96);
 
-// ==========================================
-// 1. TEXT/VOICE INTENT ANALYZER
-// ==========================================
-export const analyzeIntent = async (userText: string) => {
-  const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  if (!API_KEY) {
-    console.error("🚨 CRITICAL: API Key is undefined! Check your .env.local file.");
-    return smartFallback(userText);
-  }
-
+export async function analyzeImageIntent(base64Image: string, mimeType = 'image/jpeg') {
   try {
-   // 🛑 FIX 1: Changed to the correct 'gemini-1.5-flash' model
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        // 🛑 FIX 2: Force Gemini to return perfect JSON so your app never crashes
-        generationConfig: { responseMimeType: "application/json" },
-        contents: [{
-          parts: [{
-            text: `
-              You are a search assistant. Map the user's problem to a TRADE and LOCATION.
-              Trades: Plumber, Electrician, Builder, Mechanic, Welder, Painter, Tiler, Carpenter, Locksmith.
-              Examples: "Geyser burst in Tsakane" -> { "trade": "Plumber", "location": "Tsakane" }
-              Return ONLY JSON.
-              User: "${userText}"
-            `
-          }]
-        }]
-      })
+    const key = process.env.NEXT_PUBLIC_GEMINI_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const ai = new GoogleGenAI({ apiKey: key });
+    const cleanBase64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+
+    const res = await ai.models.generateContent({
+      model: 'gemini-flash-latest', // Upgraded model!
+      contents: [
+        { inlineData: { mimeType, data: cleanBase64 } },
+        "Identify the trade (Electrician, Plumber, etc). Return ONLY JSON: { \"category\": \"Name\" }"
+      ],
+      config: { responseMimeType: "application/json" }
     });
+    
+    const responseText = res.text ?? '{}';
+    return JSON.parse(responseText.replace(new RegExp(b + 'json|' + b, 'gi'), '').trim());
+  } catch (error) { return { category: "Unknown" }; }
+}
 
-    if (!response.ok) throw new Error("API Error");
-
-    const data = await response.json();
-    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!aiText) throw new Error("Empty AI response");
-
-    return JSON.parse(aiText);
-  } catch (error) {
-    console.warn("⚠️ AI Failed. Switching to Smart Fallback.", error);
-    return smartFallback(userText);
-  }
-};
-
-// ==========================================
-// 2. VISUAL QUOTING (IMAGE) ANALYZER
-// ==========================================
-export const analyzeImageIntent = async (base64Image: string, mimeType: string) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000); 
-
+export async function analyzeIntent(transcript: string) {
   try {
-    const response = await fetch('/api/ai', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal, 
-      body: JSON.stringify({
-        type: 'vision',
-        base64Image,
-        mimeType,
-      })
+    const key = process.env.NEXT_PUBLIC_GEMINI_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const ai = new GoogleGenAI({ apiKey: key });
+    const res = await ai.models.generateContent({
+      model: 'gemini-flash-latest', // Upgraded model!
+      contents: `Parse: "${transcript}". Return ONLY JSON { "intent": "search", "category": "Name" }`,
+      config: { responseMimeType: "application/json" }
     });
-
-    clearTimeout(timeoutId); 
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("🛑 Gemini Camera API Error:", errorText);
-      if (errorText.includes('GEMINI_API_KEY')) {
-        throw new Error('Missing API Key');
-      }
-      throw new Error("Failed to process image with AI.");
-    }
-
-    const data = await response.json();
-    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!aiText) throw new Error("Empty AI response");
-
-    return JSON.parse(aiText);
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.error("Camera AI: 3G Network Timeout.");
-      throw new Error("Network timeout. Image took too long to upload."); 
-    }
-    console.error("Camera AI Failed:", error);
-    throw new Error(error.message || "Something went wrong.");
-  }
-};
-
-// ==========================================
-// 3. SMART FALLBACK
-// ==========================================
-const smartFallback = (text: string) => {
-  const lower = text.toLowerCase();
-  const locations = ['tsakane', 'springs', 'brakpan', 'kwathema', 'duduza', 'nigel', 'daveyton', 'benoni', 'boksburg', 'east rand'];
-  let foundLocation = "";
-  locations.forEach(l => { if (lower.includes(l)) foundLocation = l; });
-
-  const mappings: Record<string, string> = {
-      'plumber': 'Plumber', 'geyser': 'Plumber', 'leak': 'Plumber', 'burst': 'Plumber', 'pipe': 'Plumber',
-      'electrician': 'Electrician', 'light': 'Electrician', 'power': 'Electrician', 'plug': 'Electrician', 'tripping': 'Electrician',
-      'builder': 'Builder', 'roof': 'Builder', 'wall': 'Builder', 'cement': 'Builder',
-      'mechanic': 'Mechanic', 'car': 'Mechanic', 'engine': 'Mechanic', 'brakes': 'Mechanic',
-  };
-
-  let foundTrade = "";
-  for (const [key, value] of Object.entries(mappings)) {
-      if (lower.includes(key)) { foundTrade = value; break; }
-  }
-
-  return { trade: foundTrade, location: foundLocation ? foundLocation.charAt(0).toUpperCase() + foundLocation.slice(1) : "" };
-};
+    const responseText = res.text ?? '{}';
+    return JSON.parse(responseText.replace(new RegExp(b + 'json|' + b, 'gi'), '').trim());
+  } catch (error) { return { intent: "search", category: "Unknown" }; }
+}

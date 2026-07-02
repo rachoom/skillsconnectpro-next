@@ -145,7 +145,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
     // Automatically grab your website's URL
     const baseUrl = window.location.origin;
-    const claimLink = `${baseUrl}/?claim=${artisanId}`;
+    const claimLink = `${baseUrl}/?invite=${artisanId}`;
 
     const message = `Hi ${firstName}! We've pre-built a VIP profile for your business on SkillsConnectPro to help you get more clients in the East Rand. Click here to claim your free profile and upload your photos: ${claimLink}`;
         

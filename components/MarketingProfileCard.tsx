@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../services/supabase'; 
+import { supabase } from '../services/supabase';
 import { VerifiedIcon } from './Icons'; 
-import { ExternalLink, MessageCircle, Zap } from 'lucide-react'; 
+import { ExternalLink, MessageCircle, Zap, Phone } from 'lucide-react';
 
 // --- SMART IMAGE COMPONENT ---
 const ImageWithSkeleton: React.FC<{ src: string; alt: string; className?: string; onClick?: () => void }> = ({ src, alt, className, onClick }) => {
@@ -139,6 +139,25 @@ export const MarketingProfileCard: React.FC<{ artisanId: string }> = ({ artisanI
             {/* Shimmer sweep inside card */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:animate-[shimmer_2.5s_infinite] skew-x-12 pointer-events-none"></div>
 
+            {/* NEW: Hexagonal Beehive Pattern */}
+            <div className="absolute right-0 bottom-0 h-full w-1/2 pointer-events-none z-0" aria-hidden="true">
+              <svg width="100%" height="100%" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" className="opacity-20">
+                <defs>
+                  <linearGradient id="beehive-fade" x1="0%" y1="50%" x2="100%" y2="50%">
+                    <stop offset="0%" stopColor="rgba(250, 204, 21, 0)" />
+                    <stop offset="40%" stopColor="rgba(250, 204, 21, 0.5)" />
+                    <stop offset="100%" stopColor="rgba(250, 204, 21, 1)" />
+                  </linearGradient>
+                  <pattern id="beehive" patternUnits="userSpaceOnUse" width="40" height="69.28" x="0" y="0">
+                    <g>
+                      <path d="M20 0 L40 17.32 L40 51.96 L20 69.28 L0 51.96 L0 17.32 Z" fill="none" stroke="url(#beehive-fade)" strokeWidth="2"/>
+                    </g>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#beehive)" />
+              </svg>
+            </div>
+
             <div className="flex-1 space-y-4 relative z-10">
               <div className="flex items-center gap-3 justify-center md:justify-start">
                 <p className="text-sm font-black uppercase tracking-[0.3em] text-brand-yellow drop-shadow-md">Verified Professional Profile</p>
@@ -149,7 +168,8 @@ export const MarketingProfileCard: React.FC<{ artisanId: string }> = ({ artisanI
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16 relative z-10">
-              <div className="relative w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden border-[6px] border-white/20 shadow-[0_0_40px_rgba(250,204,21,0.2)] transform group-hover:scale-105 group-hover:border-brand-yellow/50 transition-all duration-500">
+              {/* NEW: Added subtle glow effect to the border */}
+              <div className="relative w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden border-[6px] border-white/20 shadow-[0_0_40px_rgba(250,204,21,0.2)] transform group-hover:scale-105 group-hover:border-brand-yellow/50 transition-all duration-500 ring-1 ring-brand-yellow/20 group-hover:ring-brand-yellow/50">
                 <ImageWithSkeleton src={artisan.profile_image} alt={artisan.name} className="w-full h-full object-cover" />
               </div>
             </div>
@@ -158,7 +178,6 @@ export const MarketingProfileCard: React.FC<{ artisanId: string }> = ({ artisanI
 
         {/* ── PREMIUM STYLED BUTTONS ── */}
         <div className="flex flex-col md:flex-row justify-center gap-6 mt-16 w-full max-w-2xl mx-auto px-4 relative z-10">
-          
           {/* WhatsApp Button - Vibrant Gradient */}
           <a
             href={whatsappShareUrl} 
