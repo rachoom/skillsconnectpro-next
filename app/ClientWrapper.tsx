@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 import { supabase } from '../services/supabase';
-import { MarketingProfileCard } from '../components/MarketingProfileCard';
 import { ClaimProfile } from '../components/ClaimProfile';
 import { Artisan, AppState } from '../types';
 import { SUPPORTED_LOCATIONS } from '../services/mockData';
@@ -112,12 +111,16 @@ interface Review {
   status: 'pending' | 'approved';
 }
 
+type DbRow = Record<string, unknown>;
+
+const pickString = (value: unknown, fallback = ''): string => (typeof value === 'string' ? value : fallback);
+const pickNumber = (value: unknown, fallback = 0): number => (typeof value === 'number' ? value : fallback);
+const pickBoolean = (value: unknown): boolean => value === true;
+
 // 🟢 COMPONENT: HERO TYPER
 const HeroTyper: React.FC = () => {
-    const words = ["Artisans", "Plumbers", "Electricians", "Builders", "Mechanics"];
+  const words = useMemo(() => ["Artisans", "Plumbers", "Electricians", "Builders", "Mechanics"], []);
     const [index, setIndex] = useState(0);
-    const [subIndex, setSubIndex] = useState(0);
-    const [reverse, setReverse] = useState(false);
     const [blink, setBlink] = useState(true);
 
     useEffect(() => {
@@ -126,27 +129,16 @@ const HeroTyper: React.FC = () => {
     }, [blink]);
 
     useEffect(() => {
-        if (subIndex === words[index].length + 1 && !reverse) {
-            setReverse(true);
-            return;
-        }
+    const interval = window.setInterval(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, 2200);
 
-        if (subIndex === 0 && reverse) {
-            setReverse(false);
-            setIndex((prev) => (prev + 1) % words.length);
-            return;
-        }
-
-        const timeout = setTimeout(() => {
-            setSubIndex((prev) => prev + (reverse ? -1 : 1));
-        }, Math.max(reverse ? 75 : subIndex === words[index].length ? 1000 : 150, parseInt(Math.random() * 350 + "")));
-
-        return () => clearTimeout(timeout);
-    }, [subIndex, index, reverse, words]);
+    return () => window.clearInterval(interval);
+  }, [words]);
 
     return (
         <span className="text-brand-yellow">
-            {`${words[index].substring(0, subIndex)}${blink ? "|" : " "}`}
+      {`${words[index]}${blink ? "|" : " "}`}
         </span>
     );
 };
@@ -209,7 +201,7 @@ const ReviewCard: React.FC<{ review: Review, isDarkMode: boolean }> = ({ review,
             </div>
             
             <p className={`text-sm italic ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                "{translatedText || review.comment}"
+              &ldquo;{translatedText || review.comment}&rdquo;
             </p>
             
             <div className="flex justify-between items-center mt-4">
@@ -236,7 +228,7 @@ const ReviewCard: React.FC<{ review: Review, isDarkMode: boolean }> = ({ review,
 };
 
 // 🟢 COMPONENT: APP-LIKE WELCOME SPLASH
-const WelcomeSplash: React.FC<{ onEnter: () => void, isDarkMode: boolean }> = ({ onEnter, isDarkMode }) => {
+const WelcomeSplash: React.FC<{ onEnter: () => void }> = ({ onEnter }) => {
     return (
         <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center" onClick={(e) => { e.stopPropagation(); onEnter(); }} style={{cursor: "pointer"}}>
             {/* Cinematic Background */}
@@ -335,15 +327,15 @@ const VERIFICATION_PROCESS = (
 );
 
 const InfoModal: React.FC<{ title: string; content: React.ReactNode; onClose: () => void }> = ({ title, content, onClose }) => (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+  <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
     <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 w-full max-w-lg rounded-3xl p-8 shadow-2xl relative" onClick={e => e.stopPropagation()}>
-      <button onClick={onClose} className="absolute top-6 right-6 text-gray-500 hover:text-black dark:hover:text-white transition-colors">
+      <button onClick={onClose} className="absolute top-6 right-6 text-gray-500 hover:text-black dark:hover:text-white transition-colors" aria-label="Close modal">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
       </button>
       <h2 className="text-2xl font-black text-brand-yellow uppercase tracking-tight mb-6">{title}</h2>
       <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">{content}</div>
       <div className="mt-8 pt-4 border-t border-gray-100 dark:border-white/10 flex justify-end">
-        <button onClick={onClose} className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-bold uppercase text-xs rounded-xl hover:bg-brand-yellow transition-colors">Close</button>
+        <button onClick={onClose} className="scp-btn scp-btn-primary !text-[10px] !py-2.5">Close</button>
       </div>
     </div>
   </div>
@@ -395,32 +387,32 @@ const ReviewModal: React.FC<{ artisanId: number; artisanName: string; onClose: (
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-label={`Review ${artisanName}`}>
             <div className={`w-full max-w-md rounded-3xl p-8 shadow-2xl relative ${isDarkMode ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border-gray-200'}`} onClick={e => e.stopPropagation()}>
                 <h2 className={`text-2xl font-black uppercase tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Rate {artisanName}</h2>
                 <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Share your experience to help the community.</p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-500">Your Name</label>
-                        <input value={name} onChange={e => setName(e.target.value)} className={`w-full rounded-xl p-3 font-bold outline-none border ${isDarkMode ? 'bg-black/40 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-black'}`} required />
+                <label htmlFor="reviewer-name" className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-500">Your Name</label>
+                <input id="reviewer-name" value={name} onChange={e => setName(e.target.value)} className={`scp-input ${isDarkMode ? 'bg-black/40 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-black'}`} required />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-500">Rating</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-500">Rating</label>
                         <div className="flex gap-2">
                             {[1, 2, 3, 4, 5].map((star) => (
-                                <button type="button" key={star} onClick={() => setRating(star)} className={`text-2xl transition-transform hover:scale-110 ${rating >= star ? 'text-brand-yellow' : 'text-gray-600'}`}>★</button>
+                    <button type="button" key={star} onClick={() => setRating(star)} className={`text-2xl transition-transform hover:scale-110 ${rating >= star ? 'text-brand-yellow' : 'text-gray-600'}`} aria-label={`Rate ${star} stars`}>★</button>
                             ))}
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-500">Comment</label>
-                        <textarea value={comment} onChange={e => setComment(e.target.value)} className={`w-full h-24 rounded-xl p-3 font-bold outline-none border resize-none ${isDarkMode ? 'bg-black/40 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-black'}`} required />
+                <label htmlFor="review-comment" className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-500">Comment</label>
+                <textarea id="review-comment" value={comment} onChange={e => setComment(e.target.value)} className={`scp-input h-24 resize-none ${isDarkMode ? 'bg-black/40 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-black'}`} required />
                     </div>
                     <div className="opacity-0 absolute top-0 left-0 h-0 w-0 overflow-hidden"><input type="text" value={honeypot} onChange={e => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" /></div>
                     
                     <div className="flex justify-end gap-3 pt-2">
-                         <button type="button" onClick={onClose} className="px-6 py-3 text-gray-500 font-bold uppercase text-xs hover:text-white transition-colors">Cancel</button>
-                        <button type="submit" disabled={isSubmitting} className="px-6 py-3 bg-brand-yellow text-black font-black uppercase text-xs rounded-xl hover:bg-white transition-all shadow-lg">{isSubmitting ? '...' : 'Submit Review'}</button>
+                 <button type="button" onClick={onClose} className="scp-btn scp-btn-secondary !text-[10px] !py-2.5">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="scp-btn scp-btn-primary !text-[10px] !py-2.5">{isSubmitting ? '...' : 'Submit Review'}</button>
                     </div>
                 </form>
             </div>
@@ -457,34 +449,36 @@ const SuggestionModal: React.FC<{ onClose: () => void; isDarkMode: boolean; show
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-label="Suggest a service">
             <div className={`w-full max-w-md rounded-3xl p-8 shadow-2xl relative ${isDarkMode ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border-gray-200'}`} onClick={e => e.stopPropagation()}>
                 <h2 className={`text-2xl font-black uppercase tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Suggest a Service</h2>
-                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Let us know what's missing. We'll add it to the Admin Dashboard.</p>
+                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Let us know what&apos;s missing. We&apos;ll add it to the Admin Dashboard.</p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className={`block text-xs font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Your Suggestion</label>
+                <label htmlFor="service-suggestion" className={`block text-xs font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Your Suggestion</label>
                         <textarea
+                  id="service-suggestion"
                             value={suggestion}
                             onChange={(e) => setSuggestion(e.target.value)}
-                            className={`w-full h-24 rounded-xl p-4 font-bold outline-none border resize-none ${isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-brand-yellow' : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-brand-yellow'}`}
+                  className={`scp-input h-24 p-4 resize-none ${isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-brand-yellow' : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-brand-yellow'}`}
                             placeholder="e.g., I need a graphic designer..."
                             required
                         />
                     </div>
                     <div>
-                        <label className={`block text-xs font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Contact Number (Optional)</label>
+                <label htmlFor="service-contact" className={`block text-xs font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Contact Number (Optional)</label>
                         <input 
+                  id="service-contact"
                             type="tel"
                             value={contact}
                             onChange={(e) => setContact(e.target.value)}
-                            className={`w-full rounded-xl p-4 font-bold outline-none border ${isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-brand-yellow' : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-brand-yellow'}`}
+                  className={`scp-input p-4 ${isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-brand-yellow' : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-brand-yellow'}`}
                             placeholder="082 123 4567"
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
-                         <button type="button" onClick={onClose} className={`px-6 py-3 font-bold uppercase text-xs rounded-xl transition-colors ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'}`}>Cancel</button>
-                        <button type="submit" disabled={isSubmitting} className="px-6 py-3 bg-brand-yellow text-black font-black uppercase text-xs rounded-xl hover:bg-white transition-all shadow-lg disabled:opacity-50">{isSubmitting ? 'Sending...' : 'Send Suggestion'}</button>
+                 <button type="button" onClick={onClose} className="scp-btn scp-btn-secondary !text-[10px] !py-2.5">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="scp-btn scp-btn-primary !text-[10px] !py-2.5 disabled:opacity-50">{isSubmitting ? 'Sending...' : 'Send Suggestion'}</button>
                     </div>
                 </form>
             </div>
@@ -532,6 +526,44 @@ const ScrollIndicator: React.FC = () => {
         <span className="text-brand-yellow text-[7px] md:text-[9px] font-black uppercase tracking-widest mt-1 md:mt-2 drop-shadow-md">
           Scroll
         </span>
+      </div>
+    </div>
+  );
+};
+
+const ArtisanCardSkeleton: React.FC = () => {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-[#0f0f0f] p-6 md:p-7 lg:p-8">
+      <div className="flex items-start justify-between gap-2 mb-4">
+        <div className="scp-skeleton h-4 w-28" />
+        <div className="flex gap-2">
+          <div className="scp-skeleton h-6 w-20 rounded-full" />
+          <div className="scp-skeleton h-6 w-14 rounded-full" />
+        </div>
+      </div>
+
+      <div className="flex gap-4 md:gap-5 items-start">
+        <div className="scp-skeleton h-24 w-24 md:h-28 md:w-28 rounded-full shrink-0" />
+        <div className="grid grid-cols-2 gap-2.5 flex-1 max-w-[14rem] md:max-w-none">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="scp-skeleton aspect-square rounded-md" />
+          ))}
+        </div>
+      </div>
+
+      <div className="h-px bg-white/10 my-5" />
+      <div className="scp-skeleton h-8 w-4/5 mb-4" />
+      <div className="scp-skeleton h-3 w-28 mb-2" />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-5 gap-y-2 mb-5">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <div key={idx} className="scp-skeleton h-3 w-full" />
+        ))}
+      </div>
+
+      <div className="h-px bg-white/10 my-5" />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="scp-skeleton h-11 rounded-full" />
+        <div className="scp-skeleton h-11 rounded-full" />
       </div>
     </div>
   );
@@ -804,22 +836,22 @@ const locationAliases: Record<string, string> = {
         const { data, error } = await supabase.from('artisans').select('id, first_name, last_name, category, location, phone, email, bio, verified, rating, image_url, portfolio_images, proof_of_work, website_url');
         if (data) {
           console.log("RAW SUPABASE DATA:", data);
-          const formattedData: Artisan[] = data.map((item: any) => ({
-            id: item.id,
-            name: `${item.first_name} ${item.last_name || ''}`,
-            website: item.website_url || null,
-            category: item.category || 'General',
-            location: item.location || 'Far East Rand',
-            phone: item.phone,
-            email: item.email || '',
-            verified: item.verified === true,
-            isVerified: item.verified === true,
-            rating: item.rating || 4.8,
-            bio: item.bio || "Professional artisan verified by Skills Connect.",
-            image_url: item.image_url,
-            portfolio_images: Array.isArray(item.proof_of_work) 
-  ? item.proof_of_work 
-  : (item.proof_of_work ? [item.proof_of_work] : []),
+          const formattedData: Artisan[] = data.map((item: DbRow) => ({
+            id: pickNumber(item.id),
+            name: `${pickString(item.first_name)} ${pickString(item.last_name)}`.trim(),
+            website: pickString(item.website_url) || null,
+            category: pickString(item.category, 'General'),
+            location: pickString(item.location, 'Far East Rand'),
+            phone: pickString(item.phone),
+            email: pickString(item.email),
+            verified: pickBoolean(item.verified),
+            isVerified: pickBoolean(item.verified),
+            rating: pickNumber(item.rating, 4.8),
+            bio: pickString(item.bio, "Professional artisan verified by Skills Connect."),
+            image_url: pickString(item.image_url),
+            portfolio_images: Array.isArray(item.proof_of_work)
+  ? item.proof_of_work as string[]
+  : (item.proof_of_work ? [pickString(item.proof_of_work)] : []),
             services: ["Consultation", "Installation", "Maintenance"],
             reviews: []
           }));
@@ -836,14 +868,14 @@ const locationAliases: Record<string, string> = {
         setLoadingAds(true);
         const { data } = await supabase.from('advertisements').select('*').eq('is_active', true);
         if (data) {
-          const formattedAds: FeaturedAd[] = data.map((ad: any) => ({
-            id: ad.id,
-            brand_name: ad.brand_name || ad.title,
-            title: ad.title,
-            subtitle: ad.subtitle || ad.description,
-            category: ad.category,
-            image_url: ad.image_url,
-            link_url: ad.link_url
+          const formattedAds: FeaturedAd[] = data.map((ad: DbRow) => ({
+            id: pickNumber(ad.id),
+            brand_name: pickString(ad.brand_name) || pickString(ad.title),
+            title: pickString(ad.title),
+            subtitle: pickString(ad.subtitle) || pickString(ad.description),
+            category: pickString(ad.category),
+            image_url: pickString(ad.image_url),
+            link_url: pickString(ad.link_url) || undefined
           }));
           setFeaturedAds(formattedAds);
         }
@@ -911,7 +943,7 @@ useEffect(() => {
     }
 
     // Start the base query
-    let query = supabase.from('artisans').select('*');
+    const query = supabase.from('artisans').select('*');
 
     // If they typed a category, use ilike for flexible case-insensitive matching
     
@@ -941,7 +973,7 @@ useEffect(() => {
 
           const eastRandCities = ['brakpan', 'springs', 'benoni', 'nigel', 'kwa thema', 'tsakane', 'daveyton', 'vosloorus', 'katlehong', 'boksburg', 'kempton park', 'tembisa', 'germiston', 'alberton', 'bedfordview', 'edenvale', 'heidelberg'];
 
-            const filtered = data.filter((pro: any) => {
+            const filtered = data.filter((pro: DbRow) => {
               if (!pro) return false;
               
               // Stringify the entire row to bypass all Supabase array/string formatting issues
@@ -963,14 +995,22 @@ useEffect(() => {
           });
 
           // Prefer first/last name from DB; fallback to legacy name only if needed.
-          const normalizedFiltered = filtered.map((pro: any) => {
-            const firstName = String(pro.first_name || '').trim();
-            const lastName = String(pro.last_name || '').trim();
+          const normalizedFiltered: Artisan[] = filtered.map((pro: DbRow, index: number) => {
+            const firstName = pickString(pro.first_name).trim();
+            const lastName = pickString(pro.last_name).trim();
             const fullName = `${firstName} ${lastName}`.trim();
+            const rawId = pro.id;
+            const artisanId = typeof rawId === 'string' || typeof rawId === 'number'
+              ? rawId
+              : `search-result-${index}`;
 
             return {
               ...pro,
-              name: fullName || String(pro.name || '').trim() || 'Unnamed Pro',
+              id: artisanId,
+              name: fullName || pickString(pro.name).trim() || 'Unnamed Pro',
+              category: pickString(pro.category).trim() || 'General',
+              location: pickString(pro.location).trim() || 'Unknown',
+              phone: pickString(pro.phone).trim() || 'N/A',
             };
           });
 
@@ -1091,6 +1131,7 @@ const { error } = await supabase.from('artisan_applications').insert([
               setShowLocationSuggestions(false); 
             }} 
             className="absolute top-6 right-6 md:top-10 md:right-10 text-gray-500 hover:text-brand-yellow transition-colors p-3 bg-white/5 rounded-full hover:bg-white/10 z-50"
+            aria-label="Close search overlay"
           >
             <X size={28} strokeWidth={2.5} />
           </button>
@@ -1122,6 +1163,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                       onKeyDown={(e) => e.key === 'Enter' && setSearchStep('location')}
                       placeholder="e.g. Plumber, Electrician..."
                       className="w-full bg-transparent p-4 md:p-6 text-2xl md:text-4xl text-white font-bold outline-none placeholder:text-zinc-600"
+                      aria-label="Search category"
                     />
 
                     {categorySynonymHint && (
@@ -1135,7 +1177,8 @@ const { error } = await supabase.from('artisan_applications').insert([
                         {filteredSkills && filteredSkills.length > 0 ? (
                           <div className="bg-zinc-900 border border-brand-yellow/30 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-fade-in-up">
                             {filteredSkills.slice(0, 5).map((skill: string) => (
-                              <div 
+                              <button
+                                type="button"
                                 key={skill}
                                 onClick={() => {
                                   setCategoryInput(skill);
@@ -1146,7 +1189,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                               >
                                 <SearchIcon className="w-6 h-6 opacity-40 group-hover:opacity-100" />
                                 {skill}
-                              </div>
+                              </button>
                             ))}
                           </div>
                         ) : categoryInput.length > 0 ? (
@@ -1178,6 +1221,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                       }}
                       placeholder="e.g. Tsakane, Springs..."
                       className="w-full bg-transparent p-4 md:p-6 text-2xl md:text-4xl text-white font-bold outline-none placeholder:text-zinc-600"
+                      aria-label="Search location"
                     />
 
                     {showLocationSuggestions && (
@@ -1185,7 +1229,8 @@ const { error } = await supabase.from('artisan_applications').insert([
                         {filteredLocations && filteredLocations.length > 0 ? (
                           <div className="bg-zinc-900 border border-brand-yellow/30 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-fade-in-up">
                             {filteredLocations.slice(0, 5).map((loc: string) => (
-                              <div 
+                              <button
+                                type="button"
                                 key={loc}
                                 onClick={() => {
                                   setLocationInput(loc);
@@ -1199,7 +1244,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 opacity-40 group-hover:opacity-100"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
                                 {loc}
-                              </div>
+                              </button>
                             ))}
                           </div>
                         ) : locationInput.length > 0 ? (
@@ -1224,6 +1269,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                     }
                   }}
                   className="bg-brand-yellow text-black px-8 md:px-12 py-4 md:py-6 rounded-[2.5rem] font-black uppercase tracking-widest text-sm md:text-xl hover:bg-white hover:scale-[1.02] transition-all shadow-xl shrink-0 mr-1 md:mr-2"
+                  aria-label={searchStep === 'category' ? 'Proceed to location step' : 'Execute search'}
                 >
                   {searchStep === 'category' ? "Next →" : "Search"}
                 </button>
@@ -1271,7 +1317,7 @@ const { error } = await supabase.from('artisan_applications').insert([
       
       {showReviewModal && selectedArtisan && (
         <ReviewModal 
-            artisanId={selectedArtisan.id as any}
+            artisanId={Number(selectedArtisan.id)}
             artisanName={selectedArtisan.name} 
             onClose={() => setShowReviewModal(false)} 
             isDarkMode={isDarkMode} 
@@ -1292,20 +1338,18 @@ const { error } = await supabase.from('artisan_applications').insert([
       {/* --- WELCOME SPLASH SCREEN --- */}
       {appState === AppState.WELCOME && (
         <WelcomeSplash 
-          isDarkMode={isDarkMode} 
           onEnter={() => { setAppState(AppState.HOME); }} 
         />
       )}
 
      {/* NAVBAR */}
       {appState !== AppState.WELCOME && (
-      <nav className={`border-b sticky top-0 z-50 py-4 transition-colors duration-300 backdrop-blur-md ${isDarkMode ? 'bg-[#150f0a]/80 border-white/5' : 'bg-white/80 border-gray-200'}`}>
+      <nav className={`border-b sticky top-0 z-50 py-4 transition-colors duration-300 backdrop-blur-md ${isDarkMode ? 'bg-[#150f0a]/80 border-white/5' : 'bg-white/80 border-gray-200'}`} aria-label="Primary navigation">
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center relative">
           
-          {/* 🛠️ FIX: Added shrink-0 and made logo scale down on smaller screens to prevent pushing links off-screen */}
-          <div className="flex items-center cursor-pointer group shrink-0" onClick={goHome}>
+          <button type="button" className="flex items-center cursor-pointer group shrink-0" onClick={goHome} aria-label="Go to home">
             <img src="/logo-new.svg" alt="SkillsConnectPro" className="w-36 sm:w-48 lg:w-56 h-auto transition-transform group-hover:scale-105 origin-left" />
-          </div>
+          </button>
           
           <div className="flex items-center gap-3 md:gap-6 shrink-0">
             {/* 🛠️ FIX: Desktop Menu - added whitespace-nowrap so links don't break/wrap */}
@@ -1335,14 +1379,14 @@ const { error } = await supabase.from('artisan_applications').insert([
             </button>
             
             {/* 🛠️ FIX: Added shrink-0 to mobile hamburger */}
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-gray-400 hover:text-brand-yellow transition-colors shrink-0 md:!hidden">
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-gray-400 hover:text-brand-yellow transition-colors shrink-0 md:!hidden" aria-label="Toggle mobile menu" aria-expanded={isMobileMenuOpen} aria-controls="mobile-nav-menu">
               {isMobileMenuOpen ? '✕' : '☰'}
             </button>
           </div>
         </div>
 
      {isMobileMenuOpen && (
-          <div className={`md:hidden absolute top-full left-0 right-0 border-b shadow-2xl animate-fade-in z-40 ${isDarkMode ? 'bg-[#150f0a] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div id="mobile-nav-menu" className={`md:hidden absolute top-full left-0 right-0 border-b shadow-2xl animate-fade-in z-40 ${isDarkMode ? 'bg-[#150f0a] border-white/10' : 'bg-white border-gray-200'}`}>
             <div className="flex flex-col p-6 space-y-6 text-center text-sm font-black uppercase tracking-widest">
               <button onClick={handleFindService} className={`py-3 ${isDarkMode ? 'text-white hover:text-brand-yellow' : 'text-gray-900 hover:text-brand-yellow'}`}>Find Artisans</button>
               <button onClick={() => { goToRegistration(); setIsMobileMenuOpen(false); }} className={`py-3 ${isDarkMode ? 'text-white hover:text-brand-yellow' : 'text-gray-900 hover:text-brand-yellow'}`}>Standard Form</button>
@@ -1421,6 +1465,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                         setShowLocationSuggestions(false);
                       }}
                       className="relative w-full flex items-center justify-between gap-2 md:gap-4 bg-zinc-900/95 backdrop-blur-xl border border-brand-yellow/60 hover:border-brand-yellow rounded-[3rem] px-4 py-3 md:px-8 md:py-5 shadow-[0_0_20px_rgba(250,204,21,0.3)] md:shadow-2xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] overflow-hidden"
+                      aria-label="Open smart service search"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:animate-[shimmer_2s_infinite] skew-x-12 pointer-events-none"></div>
 
@@ -1691,39 +1736,134 @@ const { error } = await supabase.from('artisan_applications').insert([
                 )
               ) : (
                 <>
-                {liveFilteredPros.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up">
-                    {liveFilteredPros.map((artisan) => (
-                      <div key={artisan.id} onClick={() => { setSelectedArtisan(artisan); setAppState(AppState.PROFILE); window.scrollTo({ top: 0, behavior: 'auto' }); }} className={`group relative rounded-3xl overflow-hidden cursor-pointer border transition-all card-3d ${isDarkMode ? 'bg-[#111] border-white/5 hover:border-brand-yellow/30' : 'bg-white border-gray-200 hover:border-brand-yellow/50'}`}>
-                        <div className="h-64 bg-gray-200 relative overflow-hidden">
-{/* Frosted Glass Overlay */}
-<div className="absolute bottom-0 w-full h-[45%] bg-black/40 backdrop-blur-md z-10 pointer-events-none border-t border-white/10"></div>
-                          <ImageWithSkeleton src={artisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())} className="w-full h-full" />
-                          <div className={`absolute inset-0 bg-gradient-to-t opacity-90 z-20 ${isDarkMode ? 'from-[#111] via-transparent to-transparent' : 'from-white via-transparent to-transparent'}`} />
-                          <div className="absolute top-4 right-4 flex gap-2 z-30 text-flat">
-                            {artisan.verified && <span className="bg-green-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">Verified Pro</span>}
-                            <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/10">★ 4.9</span>
-                          </div>
-                        </div>
-                        <div className="p-6 relative -mt-12 z-30 text-flat">
-                          <div className="mb-2">
-                            <span className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest line-clamp-1 mb-1 block">
-  {artisan.category}
-</span>
-                          </div>
-                          <div className="mb-4">
-                            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 leading-tight mb-4 line-clamp-2" title={(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}>
-  {(artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim())}
-</h2>
-                            <p className="text-gray-400 text-sm flex items-center gap-1 mt-1">📍 {artisan.location}</p>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3 mt-6">
-                            <button onClick={(e) => { e.stopPropagation(); handleContact('call', artisan.phone); }} className="py-3 rounded-xl bg-brand-yellow text-black hover:bg-black hover:text-white text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-yellow/20">Call Now</button>
-                            <button className={`py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${isDarkMode ? 'bg-[#111] border-white/20 text-white hover:bg-white hover:text-black' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-100'}`}>Profile</button>
-                          </div>
-                        </div>
+                {isSearchingResults ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up" aria-label="Loading artisan results" aria-busy="true">
+                    {Array.from({ length: 6 }).map((_, idx) => (
+                      <div key={`skeleton-${idx}`} className="scp-fade-up" style={{ animationDelay: `${idx * 70}ms` }}>
+                        <ArtisanCardSkeleton />
                       </div>
                     ))}
+                  </div>
+                ) : liveFilteredPros.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up">
+                    {liveFilteredPros.map((artisan, idx) => {
+                      const profileName = (artisan.name || `${artisan.first_name || ''} ${artisan.last_name || ''}`.trim()).trim();
+                      const parsedRating = Number.parseFloat(String(artisan.rating ?? '').trim());
+                      const displayRating = Number.isFinite(parsedRating) ? parsedRating : 4.9;
+                      const locationItems = String(artisan.location || 'East Rand')
+                        .split(/[,|;/]/)
+                        .map((loc) => loc.trim())
+                        .filter(Boolean);
+
+                      const galleryPool = [
+                        ...(Array.isArray(artisan.portfolio_images) ? artisan.portfolio_images : []),
+                        ...(Array.isArray(artisan.proof_of_work) ? artisan.proof_of_work : []),
+                      ].filter(Boolean);
+
+                      const galleryImages = (galleryPool.length > 0 ? galleryPool : [
+                        artisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop',
+                      ]).slice(0, 4);
+
+                      return (
+                        <div
+                          key={artisan.id}
+                          onClick={() => {
+                            setSelectedArtisan(artisan);
+                            setAppState(AppState.PROFILE);
+                            window.scrollTo({ top: 0, behavior: 'auto' });
+                          }}
+                          className={`group relative rounded-3xl overflow-hidden cursor-pointer border transition-all duration-300 hover:-translate-y-0.5 ${
+                            isDarkMode ? 'bg-[#0f0f0f] border-white/10 hover:border-brand-yellow/45 hover:shadow-[0_28px_55px_-26px_rgba(250,204,21,0.4)]' : 'bg-white border-gray-200 hover:border-brand-yellow/50'
+                          } scp-fade-up`}
+                          style={{ animationDelay: `${idx * 70}ms` }}
+                        >
+                          <div className="p-6 md:p-7 lg:p-8">
+                            <div className="flex items-start justify-between gap-2 mb-4">
+                              <span className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest line-clamp-1 block">
+                                {artisan.category}
+                              </span>
+                              <div className="flex gap-2">
+                                {artisan.verified && (
+                                  <span className="bg-green-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">
+                                    Verified Pro
+                                  </span>
+                                )}
+                                <span className="bg-black text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/10">
+                                  ★ {displayRating.toFixed(1)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-4 md:gap-5 items-start">
+                              <div className="relative h-24 w-24 md:h-28 md:w-28 rounded-full border-[5px] border-brand-yellow overflow-hidden shrink-0 shadow-[0_0_0_3px_rgba(250,204,21,0.15)]">
+                                <ImageWithSkeleton
+                                  src={artisan.image_url || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
+                                  alt={profileName}
+                                  className="h-full w-full"
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2.5 flex-1 max-w-[14rem] md:max-w-none">
+                                {galleryImages.map((img, index) => (
+                                  <div key={`${artisan.id}-gallery-${index}`} className="aspect-square rounded-md overflow-hidden border border-white/15 bg-black/30">
+                                    <ImageWithSkeleton src={img} alt={`${profileName} sample ${index + 1}`} className="h-full w-full" />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="h-px bg-white/10 my-5"></div>
+
+                            <h2
+                              className="text-2xl md:text-[1.85rem] font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 leading-tight mb-4 line-clamp-2"
+                              title={profileName}
+                            >
+                              {profileName}
+                            </h2>
+
+                            <div className="mb-5">
+                              <p className="text-gray-300 text-xs font-black uppercase tracking-[0.2em] mb-2">📍 Service Areas</p>
+                              <ul className="columns-2 md:columns-3 gap-x-5 list-disc list-inside text-[11px] md:text-xs font-bold text-gray-300 leading-6">
+                                {(locationItems.length > 0 ? locationItems : ['East Rand']).map((loc, idx) => (
+                                  <li key={`${artisan.id}-loc-${idx}`} className="break-inside-avoid line-clamp-1">{loc}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div className="h-px bg-white/10 my-5"></div>
+
+                            <div className="grid grid-cols-2 gap-3.5">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedArtisan(artisan);
+                                  setAppState(AppState.PROFILE);
+                                  window.scrollTo({ top: 0, behavior: 'auto' });
+                                }}
+                                className="py-3.5 rounded-full bg-brand-yellow text-black text-[11px] font-black uppercase tracking-[0.14em] transition-all duration-300 hover:brightness-110"
+                                aria-label={`Open profile for ${profileName}`}
+                              >
+                                View Profile
+                              </button>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleContact('call', artisan.phone);
+                                }}
+                                className="py-3.5 rounded-full bg-black border border-white/15 text-brand-yellow text-[11px] font-black uppercase tracking-[0.14em] transition-all duration-300 hover:border-brand-yellow/55 hover:text-white flex items-center justify-center gap-2"
+                                aria-label={`Call ${profileName}`}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.3} stroke="currentColor" className="w-4 h-4">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                </svg>
+                                Call Now
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className={`relative text-center py-24 px-6 rounded-[3rem] border overflow-hidden transition-all duration-500 ${isDarkMode ? 'bg-[#111] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
@@ -2214,17 +2354,12 @@ const AppWrapperContent = () => {
   const inviteId = searchParams.get('invite');
   const profileId = searchParams.get('profile'); 
 
-  // 1. If ?claim=ID is in the URL, show the marketing card.
-  if (claimId && !inviteId) {
-    return <MarketingProfileCard artisanId={claimId} />;
-  }
-
-  // 2. If ?invite=ID is in the URL, show the profile claiming component.
-  if (inviteId) {
+  // 1. VIP claim links should always land in the acceptance flow.
+  if (inviteId || claimId) {
     return <ClaimProfile />;
   }
 
-  // 3. For ?profile=ID or no parameters, load the main app.
+  // 2. For ?profile=ID or no parameters, load the main app.
   return <App deepLinkProfileId={profileId} />;
 };
 

@@ -10,6 +10,257 @@
   --color-brand-green: #16a34a;  /* The verified badge green */
 }
 
+:root {
+    --scp-transition-fast: 220ms;
+    --scp-transition-base: 300ms;
+    --scp-radius-lg: 1rem;
+    --scp-radius-xl: 1.5rem;
+    --scp-radius-2xl: 2rem;
+}
+
+html,
+body {
+    background-color: #070503;
+    color: #f7f7f7;
+    font-family: "Space Grotesk", sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+a,
+button,
+[role="button"],
+input,
+textarea,
+select {
+    transition: all 300ms ease-in-out;
+}
+
+.scp-shell {
+    position: relative;
+    min-height: 100vh;
+    background: radial-gradient(circle at 10% 0%, rgba(250, 204, 21, 0.09), transparent 32%),
+                            radial-gradient(circle at 90% 20%, rgba(255, 255, 255, 0.04), transparent 35%),
+                            #070503;
+}
+
+.scp-container {
+    width: 100%;
+    max-width: 80rem;
+    margin: 0 auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    .scp-container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+.scp-section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+    .scp-section {
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+    }
+}
+
+.scp-kicker {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(250, 204, 21, 0.9);
+}
+
+.scp-heading-xl {
+    font-size: clamp(2rem, 6vw, 4.25rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+}
+
+.scp-heading-lg {
+    font-size: clamp(1.65rem, 4.6vw, 3rem);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    font-weight: 800;
+}
+
+.scp-text-lg {
+    font-size: clamp(1rem, 2.4vw, 1.2rem);
+    line-height: 1.68;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.scp-text-body {
+    font-size: 0.95rem;
+    line-height: 1.72;
+    color: rgba(255, 255, 255, 0.76);
+}
+
+.scp-card {
+    border-radius: var(--scp-radius-xl);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 22px 48px -14px rgba(0, 0, 0, 0.7);
+    transition: transform var(--scp-transition-base) ease, box-shadow var(--scp-transition-base) ease, border-color var(--scp-transition-base) ease;
+}
+
+.scp-card-hover:hover {
+    transform: translateY(-4px) scale(1.01);
+    border-color: rgba(250, 204, 21, 0.45);
+    box-shadow: 0 28px 58px -18px rgba(0, 0, 0, 0.84);
+}
+
+.scp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border-radius: 0.95rem;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.77rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all var(--scp-transition-base) ease;
+}
+
+.scp-btn:focus-visible,
+.scp-input:focus-visible,
+.scp-chip:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(7, 5, 3, 0.9), 0 0 0 4px rgba(250, 204, 21, 0.75);
+}
+
+.scp-btn-primary {
+    color: #111;
+    border: 1px solid rgba(250, 204, 21, 0.95);
+    background: linear-gradient(135deg, rgba(250, 204, 21, 1), rgba(245, 195, 20, 0.95));
+    box-shadow: 0 16px 35px -16px rgba(250, 204, 21, 0.7);
+}
+
+.scp-btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.scp-btn-secondary {
+    color: #f3f4f6;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.scp-btn-secondary:hover {
+    opacity: 0.92;
+    transform: translateY(-2px);
+    border-color: rgba(250, 204, 21, 0.45);
+}
+
+.scp-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 0.8rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    transition: all var(--scp-transition-base) ease;
+}
+
+.scp-chip:hover {
+    border-color: rgba(250, 204, 21, 0.45);
+    color: rgba(250, 204, 21, 0.95);
+}
+
+.scp-input {
+    width: 100%;
+    border-radius: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.3);
+    color: #f9fafb;
+    padding: 0.8rem 0.95rem;
+    transition: border-color var(--scp-transition-fast) ease, box-shadow var(--scp-transition-fast) ease;
+}
+
+.scp-soft-divider {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+@keyframes scp-shimmer {
+    0% {
+        background-position: -300px 0;
+    }
+    100% {
+        background-position: 300px 0;
+    }
+}
+
+@keyframes scp-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.scp-skeleton {
+    border-radius: 0.75rem;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.12) 37%, rgba(255, 255, 255, 0.06) 63%);
+    background-size: 600px 100%;
+    animation: scp-shimmer 1.25s linear infinite;
+}
+
+.scp-fade-up {
+    opacity: 0;
+    animation: scp-fade-up 500ms cubic-bezier(0.2, 0.65, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    a,
+    button,
+    [role="button"],
+    input,
+    textarea,
+    select {
+        transition: none;
+    }
+
+    .scp-skeleton {
+        animation: none;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .scp-fade-up {
+        opacity: 1;
+        animation: none;
+    }
+}
+
 /* ... your other custom CSS like .premium-gold-border stays down here ... */
 
 .premium-gold-border {
@@ -148,5 +399,55 @@
 @keyframes orb-float {
     0% { transform: translate(0, 0) scale(0.8); }
     100% { transform: translate(30px, -50px) scale(1.2); }
+}
+
+.bg-hex-pattern-dark {
+    background-color: transparent;
+    background-size: 34px 60px;
+    background-position: 0 0, 17px 30px;
+    background-image:
+        linear-gradient(30deg, rgba(255, 255, 255, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.05) 87.5%, rgba(255, 255, 255, 0.05)),
+        linear-gradient(150deg, rgba(255, 255, 255, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.05) 87.5%, rgba(255, 255, 255, 0.05)),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 2%, transparent 2.5%, transparent 97%, rgba(255, 255, 255, 0.035) 97.5%, rgba(255, 255, 255, 0.035));
+}
+
+@keyframes blog-grid-fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@keyframes blog-card-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.blog-grid-out {
+    animation: blog-grid-fade-out 170ms ease-out forwards;
+}
+
+.blog-card-in {
+    opacity: 0;
+    animation: blog-card-rise-in 460ms cubic-bezier(0.2, 0.65, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .blog-grid-out,
+    .blog-card-in {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
 }
       

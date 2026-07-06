@@ -1,15 +1,47 @@
-import React, { useEffect, useState } from 'react';
+"use client";
+
+import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../services/supabase';
-import { ShieldCheck, Briefcase, MapPin, Phone, CheckCircle, AlertCircle, Loader2, UploadCloud, Image as ImageIcon, ExternalLink, X } from 'lucide-react';
+import {
+  ShieldCheck,
+  Briefcase,
+  MapPin,
+  Phone,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  UploadCloud,
+  Image as ImageIcon,
+  ExternalLink,
+  X,
+  MessageCircle,
+  Zap,
+} from 'lucide-react';
+import { VerifiedIcon } from './Icons';
 import { Artisan } from '../types'; 
 
 export const ClaimProfile: React.FC = () => {
+  const MAX_UPLOAD_BYTES = 6 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+  ]);
+
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [error, setError] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [inviteToken, setInviteToken] = useState<string>('');
+  const [claimError, setClaimError] = useState('');
+  const [claimSuccessMessage, setClaimSuccessMessage] = useState('');
+  const [origin, setOrigin] = useState('');
 
   // --- NEW: Image Upload States ---
   const [profilePic, setProfilePic] = useState<File | null>(null);
@@ -20,19 +52,23 @@ export const ClaimProfile: React.FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const inviteId = urlParams.get('invite');
+    const claimId = urlParams.get('claim');
+    const targetId = inviteId || claimId;
 
-    if (!inviteId) {
+    if (!targetId) {
       setLoading(false);
-      // No error needed if it's not an invite link, just don't render this component.
+      setError('This VIP link is missing a valid profile ID.');
       return;
     }
+
+    setInviteToken(targetId);
 
     const fetchProfile = async () => {
       try {
         const { data, error } = await supabase
           .from('artisans')
           .select('*') // You can specify columns to be more efficient
-          .eq('id', inviteId)
+          .eq('id', targetId)
           .single();
 
         if (error) throw error;
@@ -40,7 +76,7 @@ export const ClaimProfile: React.FC = () => {
         if (data.is_claimed) setSuccess(true);
 
         setArtisan(data as Artisan);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
         setError("We couldn't find this profile. It may have been removed.");
       } finally {
@@ -51,10 +87,62 @@ export const ClaimProfile: React.FC = () => {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const profilePageUrl = useMemo(() => {
+    if (!artisan?.id) return '/';
+    return `/?profile=${artisan.id}`;
+  }, [artisan?.id]);
+
+  const claimLinkUrl = useMemo(() => {
+    if (!inviteToken) return '/';
+    if (!origin) return `/?claim=${inviteToken}`;
+    return `${origin}/?claim=${inviteToken}`;
+  }, [inviteToken, origin]);
+
+  const whatsappShareUrl = useMemo(() => {
+    const personName = `${artisan?.first_name || ''} ${artisan?.last_name || ''}`.trim() || 'my business';
+    const message = `Hi! View ${personName}'s professional profile card on Skills ConnectPro: ${claimLinkUrl}`;
+    return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  }, [artisan?.first_name, artisan?.last_name, claimLinkUrl]);
+
+  const redirectToProfile = (id: string | number) => {
+    const destination = `/?profile=${id}`;
+    window.setTimeout(() => {
+      router.replace(destination);
+    }, 350);
+
+    // Fallback hard navigation guarantees redirect even if client state is stale.
+    window.setTimeout(() => {
+      window.location.assign(destination);
+    }, 1200);
+  };
+
+  const validateImageFile = (file: File): string | null => {
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      return `Unsupported file format for ${file.name}. Please upload JPG, PNG, WEBP, or HEIC images.`;
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return `${file.name} is too large. Maximum size is 6MB per image.`;
+    }
+
+    return null;
+  };
+
   // --- IMAGE HANDLERS ---
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const validationError = validateImageFile(file);
+      if (validationError) {
+        setClaimError(validationError);
+        return;
+      }
+
+      setClaimError('');
       setProfilePic(file);
       setProfilePreview(URL.createObjectURL(file));
     }
@@ -63,10 +151,17 @@ export const ClaimProfile: React.FC = () => {
   const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      if (portfolio.length + newFiles.length > 5) {
-        alert("You can only upload a maximum of 5 portfolio images.");
+      const firstInvalid = newFiles.map(validateImageFile).find(Boolean);
+      if (firstInvalid) {
+        setClaimError(firstInvalid);
         return;
       }
+
+      if (portfolio.length + newFiles.length > 5) {
+        setClaimError('You can only upload a maximum of 5 portfolio images.');
+        return;
+      }
+      setClaimError('');
       setPortfolio([...portfolio, ...newFiles]);
       
       const newPreviews = newFiles.map(file => URL.createObjectURL(file));
@@ -87,11 +182,12 @@ export const ClaimProfile: React.FC = () => {
   // --- UPLOAD & CLAIM LOGIC ---
   const handleClaim = async () => {
     if (!artisan || !agreed) return;
+    setClaimError('');
     setIsClaiming(true);
 
     try {
       let finalProfileUrl = artisan.image_url;
-      let finalPortfolioUrls: string[] = [];
+      const finalPortfolioUrls: string[] = [];
 
       // 1. Upload Profile Picture if selected
       if (profilePic) {
@@ -129,10 +225,12 @@ export const ClaimProfile: React.FC = () => {
         .eq('id', artisan.id);
 
       if (error) throw error;
+      setClaimSuccessMessage('Profile accepted. Redirecting you to your live page...');
       setSuccess(true);
+      redirectToProfile(artisan.id);
     } catch (err) {
       console.error(err);
-      alert("Something went wrong saving your profile. Please try again.");
+      setClaimError('Something went wrong saving your profile. Please try again.');
     } finally {
       setIsClaiming(false);
     }
@@ -167,127 +265,185 @@ export const ClaimProfile: React.FC = () => {
         <p className="text-gray-400 max-w-md mx-auto mb-8 leading-relaxed">
           Welcome to the SkillsConnect network! Your profile is now officially verified and live for customers in the East Rand.
         </p>
-        <button onClick={() => window.location.href = '/'} className="px-8 py-4 bg-brand-yellow text-black font-black uppercase tracking-widest text-sm rounded-xl hover:scale-105 transition-transform">
-          View Live Directory
-        </button>
+        <p className="text-sm text-gray-500">{claimSuccessMessage || 'Redirecting you to your live profile...'}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 md:p-6 relative overflow-hidden py-12">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-yellow/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="min-h-screen bg-[#150f0a] text-white pt-20 pb-16 px-4 md:px-8 relative overflow-hidden">
+      <div className="fixed inset-0 z-0 bg-[#0c0906]">
+        <img src="/artisans/hero-welder.jpg" className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity opacity-40" alt="" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/70 to-[#150f0a]"></div>
+      </div>
 
-      <div className="w-full max-w-2xl bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-10 relative z-10 shadow-2xl animate-fade-in-up my-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
-        
-        {/* LOGO & BRANDING */}
-        <div className="flex flex-col items-center justify-center mb-8 border-b border-white/10 pb-8">
-           <img src="/logo-new.svg" alt="SkillsConnectPro" className="h-16 md:h-20 w-auto mb-6" />
-           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight text-center">Exclusive <span className="text-brand-yellow">Invitation</span></h1>
-           <p className="text-gray-400 mt-3 text-sm md:text-base text-center max-w-md">We've pre-built a VIP profile for your business to help you get more clients in the East Rand.</p>
-           
-           {/* VIEW PLATFORM CONTEXT BUTTON */}
-           <a href="/" target="_blank" rel="noopener noreferrer" className="mt-6 flex items-center gap-2 text-brand-yellow bg-brand-yellow/10 hover:bg-brand-yellow/20 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-colors border border-brand-yellow/30">
-              <ExternalLink size={14} /> See How The Platform Works
-           </a>
+      <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col gap-10">
+        {claimSuccessMessage && (
+          <div className="mx-auto w-full max-w-2xl rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100 text-center">
+            {claimSuccessMessage}
+          </div>
+        )}
+
+        <div className="flex flex-col items-center text-center gap-6">
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 text-brand-yellow px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(250,204,21,0.15)] flex items-center gap-2">
+            <Zap className="w-4 h-4" /> Limited VIP Access
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white max-w-4xl leading-[1.05]">
+            Get Discovered. Get Verified. Grow Your Business with <span className="text-brand-yellow">Skills ConnectPro.</span>
+          </h1>
+
+          <p className="text-base md:text-lg font-medium max-w-3xl leading-relaxed text-gray-300">
+            We pre-built your professional profile so clients can find and trust your business faster. Confirm your ownership, upload your proof of work, and go live.
+          </p>
         </div>
 
-        {/* ARTISAN DATA PREVIEW */}
-        <div className="bg-zinc-900/80 border border-white/5 rounded-2xl p-6 mb-8 shadow-inner">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            
-            {/* PROFILE PICTURE UPLOAD */}
-            <div className="relative group shrink-0">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-zinc-800 overflow-hidden bg-zinc-900 flex items-center justify-center">
-                {profilePreview ? (
-                  <img src={profilePreview} alt="Profile Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <ImageIcon className="w-8 h-8 text-zinc-600" />
+        <div className="relative group w-full max-w-5xl mx-auto">
+          <div className="absolute -inset-2 bg-gradient-to-r from-brand-yellow/40 via-yellow-500/20 to-brand-yellow/40 rounded-[2rem] blur-2xl opacity-40 transition-opacity duration-700 pointer-events-none"></div>
+
+          <div className="relative bg-white/5 backdrop-blur-2xl border border-white/20 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left rounded-[2rem] shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] overflow-hidden">
+            <div className="flex-1 space-y-4 z-10">
+              <div className="flex items-center gap-3 justify-center md:justify-start">
+                <p className="text-sm font-black uppercase tracking-[0.3em] text-brand-yellow">Verified Professional Profile</p>
+                {artisan?.verified && (
+                  <span className="bg-green-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+                    <VerifiedIcon /> Verified Pro
+                  </span>
                 )}
               </div>
-              <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full backdrop-blur-sm">
-                <UploadCloud className="text-brand-yellow w-6 h-6 mb-1" />
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider text-center px-2">Upload<br/>Photo</span>
+
+              <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-[0.95]">
+                {artisan?.first_name} {artisan?.last_name}
+              </h2>
+
+              <div className="space-y-2">
+                <p className="text-xl font-bold tracking-widest uppercase text-brand-yellow">
+                  {artisan?.category} {artisan?.location ? `• ${artisan.location}` : ''}
+                </p>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 text-gray-300 text-sm">
+                  <span className="inline-flex items-center gap-2 justify-center md:justify-start"><Briefcase size={15} className="text-brand-yellow" /> {artisan?.category || 'Specialist'}</span>
+                  <span className="inline-flex items-center gap-2 justify-center md:justify-start"><MapPin size={15} className="text-brand-yellow" /> {artisan?.location || 'East Rand Network'}</span>
+                  {artisan?.phone && <span className="inline-flex items-center gap-2 justify-center md:justify-start"><Phone size={15} className="text-brand-yellow" /> {artisan.phone}</span>}
+                </div>
+              </div>
+            </div>
+
+            <div className="relative w-52 h-52 md:w-60 md:h-60 rounded-full overflow-hidden border-[6px] border-white/20 shadow-[0_0_40px_rgba(250,204,21,0.2)] ring-1 ring-brand-yellow/20">
+              {profilePreview ? (
+                <img src={profilePreview} alt="Profile Preview" className="w-full h-full object-cover" />
+              ) : artisan?.image_url ? (
+                <img src={artisan.image_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-black/50 flex items-center justify-center">
+                  <ImageIcon className="w-14 h-14 text-zinc-500" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-6 w-full max-w-2xl mx-auto">
+          <a
+            href={whatsappShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-emerald-700 border border-emerald-400/50 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs md:text-sm shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all duration-300 hover:scale-[1.02]"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span>WhatsApp Profile Card</span>
+          </a>
+
+          <a
+            href={profilePageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-3 bg-white/5 backdrop-blur-xl border border-white/20 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs md:text-sm shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300 hover:bg-brand-yellow hover:text-black hover:border-brand-yellow hover:scale-[1.02]"
+          >
+            <span>Visit Full Profile</span>
+            <ExternalLink className="w-5 h-5" />
+          </a>
+        </div>
+
+        <div className="w-full max-w-5xl mx-auto bg-black/35 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+          <h3 className="text-xl md:text-2xl font-black text-white mb-2">Complete Your VIP Claim</h3>
+          <p className="text-sm text-gray-400 mb-6">Optional uploads improve conversion, but terms acceptance is required to activate your verified listing.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-brand-yellow mb-3">Profile Photo</p>
+              <label className="w-full min-h-32 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-yellow/60 transition-colors p-3">
+                <UploadCloud className="w-6 h-6 text-brand-yellow" />
+                <span className="text-xs text-gray-300 text-center">Upload a clear headshot or business logo</span>
                 <input type="file" accept="image/*" onChange={handleProfileChange} className="hidden" />
               </label>
             </div>
 
-            <div className="text-center md:text-left flex-1">
-              <h2 className="text-2xl font-black text-white mb-4">{artisan?.first_name} {artisan?.last_name}</h2>
-              <div className="space-y-3">
-                <div className="flex items-center justify-center md:justify-start gap-3 text-gray-300">
-                  <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center border border-white/10"><Briefcase size={14} className="text-brand-yellow"/></div>
-                  <span className="font-bold uppercase tracking-wider text-sm">{artisan?.category}</span>
-                </div>
-                <div className="flex items-center justify-center md:justify-start gap-3 text-gray-300">
-                  <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center border border-white/10"><MapPin size={14} className="text-brand-yellow"/></div>
-                  <span className="font-medium text-sm">{artisan?.location}</span>
-                </div>
-                <div className="flex items-center justify-center md:justify-start gap-3 text-gray-300">
-                  <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center border border-white/10"><Phone size={14} className="text-brand-yellow"/></div>
-                  <span className="font-medium text-sm">{artisan?.phone}</span>
-                </div>
+            <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-brand-yellow">Proof of Work</p>
+                {portfolioPreviews.length < 5 && (
+                  <label className="text-[11px] text-gray-200 font-bold uppercase tracking-wider cursor-pointer inline-flex items-center gap-1 hover:text-brand-yellow transition-colors">
+                    <UploadCloud size={14} /> Add
+                    <input type="file" accept="image/*" multiple onChange={handlePortfolioChange} className="hidden" />
+                  </label>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* PORTFOLIO UPLOAD GRID */}
-        <div className="mb-8">
-           <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-bold uppercase tracking-widest text-sm">Proof of Work <span className="text-gray-500 normal-case font-normal text-xs">(Optional, max 5)</span></h3>
-              {portfolioPreviews.length < 5 && (
-                <label className="text-brand-yellow hover:text-white text-xs font-bold uppercase tracking-widest cursor-pointer flex items-center gap-1 transition-colors">
-                  <UploadCloud size={14} /> Add Images
-                  <input type="file" accept="image/*" multiple onChange={handlePortfolioChange} className="hidden" />
-                </label>
+              {portfolioPreviews.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {portfolioPreviews.map((src, index) => (
+                    <div key={index} className="aspect-square rounded-lg border border-white/10 overflow-hidden relative group">
+                      <img src={src} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
+                      <button onClick={() => removePortfolioImage(index)} className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Remove image">
+                        <X size={12} strokeWidth={3} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full min-h-32 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center text-gray-500">
+                  <ImageIcon className="w-6 h-6 mb-1" />
+                  <p className="text-xs">No images uploaded yet.</p>
+                </div>
               )}
-           </div>
-           
-           {portfolioPreviews.length > 0 ? (
-             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-                {portfolioPreviews.map((src, index) => (
-                  <div key={index} className="aspect-square rounded-xl border border-white/10 overflow-hidden relative group">
-                    <img src={src} alt={`Portfolio ${index}`} className="w-full h-full object-cover" />
-                    <button onClick={() => removePortfolioImage(index)} className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                      <X size={12} strokeWidth={3} />
-                    </button>
-                  </div>
-                ))}
-             </div>
-           ) : (
-             <div className="w-full py-8 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center bg-black/20 text-gray-500">
-                <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-                <p className="text-xs">No images uploaded yet.</p>
-             </div>
-           )}
-        </div>
-
-        {/* THE LEGAL CHECKBOX */}
-        <div className="mb-8 p-4 md:p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl cursor-pointer hover:bg-emerald-500/20 transition-colors" onClick={() => setAgreed(!agreed)}>
-          <div className="flex items-start gap-3">
-            <div className={`mt-0.5 shrink-0 w-6 h-6 rounded flex items-center justify-center border-2 transition-colors ${agreed ? 'bg-emerald-500 border-emerald-500' : 'border-gray-500'}`}>
-              {agreed && <CheckCircle size={16} className="text-black" strokeWidth={3} />}
             </div>
-            <p className="text-xs md:text-sm text-gray-300 leading-relaxed">
-              <strong>Yes, this is my business.</strong> I claim this profile, agree to the SkillsConnect Terms of Service, and consent to my business information being displayed publicly.
-            </p>
           </div>
+
+          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl cursor-pointer hover:bg-emerald-500/20 transition-colors" onClick={() => setAgreed(!agreed)}>
+            <div className="flex items-start gap-3">
+              <div className={`mt-0.5 shrink-0 w-6 h-6 rounded flex items-center justify-center border-2 transition-colors ${agreed ? 'bg-emerald-500 border-emerald-500' : 'border-gray-500'}`}>
+                {agreed && <CheckCircle size={16} className="text-black" strokeWidth={3} />}
+              </div>
+              <p className="text-xs md:text-sm text-gray-300 leading-relaxed">
+                <strong>Yes, this is my business.</strong> I claim this profile, agree to the SkillsConnect Terms of Service, and consent to my business information being displayed publicly.
+              </p>
+            </div>
+          </div>
+
+          {claimError && (
+            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {claimError}
+            </div>
+          )}
+
+          <button
+            onClick={handleClaim}
+            disabled={!agreed || isClaiming}
+            className={`w-full h-14 rounded-xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-xs md:text-sm transition-all duration-300 ${
+              agreed && !isClaiming
+                ? 'bg-brand-yellow text-black hover:scale-[1.01] shadow-[0_0_30px_rgba(250,204,21,0.3)]'
+                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+            }`}
+          >
+            {isClaiming ? (
+              <>
+                <Loader2 className="animate-spin" size={20} /> SAVING PROFILE AND REDIRECTING...
+              </>
+            ) : (
+              'Accept and Go Live'
+            )}
+          </button>
         </div>
-
-        {/* ACTION BUTTON */}
-        <button 
-          onClick={handleClaim}
-          disabled={!agreed || isClaiming}
-          className={`w-full h-16 rounded-xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-sm transition-all duration-300 ${
-            agreed && !isClaiming 
-              ? 'bg-brand-yellow text-black hover:scale-[1.02] shadow-[0_0_30px_rgba(250,204,21,0.3)]' 
-              : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-          }`}
-        >
-          {isClaiming ? <><Loader2 className="animate-spin" size={20} /> SAVING PROFILE & UPLOADS...</> : 'Claim My Profile Now'}
-        </button>
-
       </div>
     </div>
   );

@@ -2,9 +2,66 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import Link from 'next/link';
+import BlogListingClient from './BlogListingClient';
 
-export default function BlogIndex() {
+type BlogFrontmatter = {
+  title?: string;
+  date?: string;
+  excerpt?: string;
+  tags?: string[];
+  image?: string;
+  coverImage?: string;
+};
+
+type BlogPost = {
+  slug: string;
+  title: string;
+  date: string;
+  excerpt?: string;
+  trade: TradeFilter;
+  image?: string;
+};
+
+type SearchParams = {
+  trade?: string | string[];
+};
+
+const TRADE_FILTERS = ['All', 'Plumbing', 'Roofing', 'Electrical', 'General'] as const;
+type TradeFilter = (typeof TRADE_FILTERS)[number];
+const PAGE_BACKGROUND_IMAGE = '/og-image.jpg';
+const PAGE_TEXTURE_IMAGE = '/texture.jpg';
+
+function normalizeTrade(value?: string): TradeFilter {
+  if (!value) return 'All';
+  const match = TRADE_FILTERS.find((filter) => filter.toLowerCase() === value.toLowerCase());
+  return match ?? 'All';
+}
+
+function inferTradeFromTags(tags: string[]): TradeFilter {
+  const normalized = tags.map((tag) => tag.toLowerCase());
+  if (normalized.some((tag) => tag.includes('plumb') || tag.includes('drain') || tag.includes('geyser'))) {
+    return 'Plumbing';
+  }
+  if (normalized.some((tag) => tag.includes('roof') || tag.includes('waterproof'))) {
+    return 'Roofing';
+  }
+  if (normalized.some((tag) => tag.includes('electric') || tag.includes('db board'))) {
+    return 'Electrical';
+  }
+  return 'General';
+}
+
+export default async function BlogIndex({
+  searchParams,
+}: {
+  searchParams?: Promise<SearchParams>;
+}) {
   const postsDirectory = path.join(process.cwd(), 'posts');
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const selectedTradeRaw = Array.isArray(resolvedSearchParams.trade)
+    ? resolvedSearchParams.trade[0]
+    : resolvedSearchParams.trade;
+  const selectedTrade = normalizeTrade(selectedTradeRaw);
   
   // 1. Read everything in the folder
   const allItems = fs.readdirSync(postsDirectory);
@@ -12,16 +69,27 @@ export default function BlogIndex() {
   // 2. THE FIX: Only keep actual Markdown files, ignore folders!
   const fileNames = allItems.filter(item => item.endsWith('.md'));
 
-  const posts = fileNames.map((fileName) => {
+  const posts: BlogPost[] = fileNames.map((fileName) => {
     const slug = fileName.replace(/\.md$/, '');
     const fullPath = path.join(postsDirectory, fileName);
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data } = matter(fileContents);
-    return { slug, ...data };
+    const frontmatter = data as BlogFrontmatter;
+    const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags : [];
+    const trade = inferTradeFromTags(tags);
+
+    return {
+      slug,
+      title: frontmatter.title ?? 'Untitled Post',
+      date: frontmatter.date ?? 'Unknown date',
+      excerpt: frontmatter.excerpt,
+      trade,
+      image: frontmatter.coverImage ?? frontmatter.image,
+    };
   });
 
   // Automatically sort posts by date (Newest first!)
-  posts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col items-center bg-[#070503]">
@@ -30,9 +98,19 @@ export default function BlogIndex() {
       <div 
         className="fixed inset-0 z-0 opacity-10 mix-blend-luminosity pointer-events-none"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1455849318743-b2233052fcff?q=80&w=2069&auto=format&fit=crop')",
+          backgroundImage: `url('${PAGE_BACKGROUND_IMAGE}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+        }}
+      ></div>
+      <div
+        className="fixed inset-0 z-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: `url('${PAGE_TEXTURE_IMAGE}')`,
+          backgroundSize: '420px',
+          backgroundRepeat: 'repeat',
+          backgroundPosition: 'top left',
+          mixBlendMode: 'soft-light',
         }}
       ></div>
       <div className="fixed inset-0 z-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/80 to-[#150f0a] pointer-events-none"></div>
@@ -43,10 +121,11 @@ export default function BlogIndex() {
       {/* --- MAIN CONTENT --- */}
       <div className="relative z-10 w-full max-w-4xl mx-auto py-20 px-4 sm:px-6">
         <div className="relative isolate overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 shadow-[0_35px_80px_-20px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+          <div className="absolute inset-0 bg-hex-pattern-dark opacity-50"></div>
           <div
             className="absolute inset-0 bg-cover bg-center opacity-20 scale-110 blur-[2px]"
             style={{
-              backgroundImage: "url('https://images.unsplash.com/photo-1455849318743-b2233052fcff?q=80&w=2069&auto=format&fit=crop')",
+              backgroundImage: `url('${PAGE_BACKGROUND_IMAGE}')`,
               backgroundPosition: 'center',
             }}
           ></div>
@@ -63,42 +142,7 @@ export default function BlogIndex() {
             </Link>
 
             {/* HEADER */}
-            <div className="mb-14 text-center md:text-left">
-              <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-4 drop-shadow-lg">
-                Skills<span className="text-brand-yellow italic">Connect</span> Blog
-              </h1>
-              <p className="text-gray-400 font-medium text-lg md:text-xl max-w-2xl">
-                Expert advice, safety guides, and tips for finding the best local talent nationwide.
-              </p>
-            </div>
-
-            {/* FROSTED GLASS CARDS */}
-            <div className="grid gap-8">
-              {posts.map((post: any) => (
-                <Link 
-                  href={`/blog/${post.slug}`} 
-                  key={post.slug} 
-                  className="group block p-8 md:p-10 rounded-[2.5rem] border border-white/10 transition-all duration-500 hover:border-brand-yellow/50 relative overflow-hidden bg-white/5 backdrop-blur-2xl shadow-[0_30px_60px_-12px_rgba(0,0,0,0.8)]"
-                >
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
-
-                  <div className="relative z-10">
-                     <div className="text-brand-yellow text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                       Published • {post.date}
-                     </div>
-                     <h2 className="text-2xl md:text-4xl font-black text-white mb-4 group-hover:text-brand-yellow transition-colors leading-tight">
-                       {post.title}
-                     </h2>
-                     <p className="text-gray-400 mb-8 leading-relaxed text-sm md:text-base line-clamp-2">
-                       {post.excerpt}
-                     </p>
-                     <span className="inline-flex items-center text-emerald-500 text-xs font-black uppercase tracking-widest group-hover:translate-x-2 transition-transform">
-                       Read Article &rarr;
-                     </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <BlogListingClient posts={posts} initialTrade={selectedTrade} />
           </div>
         </div>
       </div>
