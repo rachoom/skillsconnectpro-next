@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { supabase } from '../services/supabase';
 import {
   ShieldCheck,
@@ -273,7 +274,7 @@ export const ClaimProfile: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#150f0a] text-white pt-20 pb-16 px-4 md:px-8 relative overflow-hidden">
       <div className="fixed inset-0 z-0 bg-[#0c0906]">
-        <img src="/artisans/hero-welder.jpg" className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity opacity-40" alt="" />
+        <Image src="/artisans/hero-welder.jpg" alt="" fill priority sizes="100vw" className="object-cover mix-blend-luminosity opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/70 to-[#150f0a]"></div>
       </div>
 
@@ -332,7 +333,7 @@ export const ClaimProfile: React.FC = () => {
               {profilePreview ? (
                 <img src={profilePreview} alt="Profile Preview" className="w-full h-full object-cover" />
               ) : artisan?.image_url ? (
-                <img src={artisan.image_url} alt="Profile" className="w-full h-full object-cover" />
+                <Image src={artisan.image_url} alt="Profile" fill sizes="(max-width: 768px) 208px, 240px" className="object-cover" />
               ) : (
                 <div className="w-full h-full bg-black/50 flex items-center justify-center">
                   <ImageIcon className="w-14 h-14 text-zinc-500" />

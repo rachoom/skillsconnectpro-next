@@ -38,6 +38,21 @@ select {
     transition: all 300ms ease-in-out;
 }
 
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(7, 5, 3, 0.9), 0 0 0 4px rgba(250, 204, 21, 0.75);
+}
+
+.tap-target {
+    min-width: 44px;
+    min-height: 44px;
+}
+
 .scp-shell {
     position: relative;
     min-height: 100vh;
