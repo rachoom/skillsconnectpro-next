@@ -289,10 +289,10 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onExecuteSearch,
         @keyframes float { 0%, 100% { transform: translateY(0px) translateX(0px); } 50% { transform: translateY(-20px) translateX(10px); } }
       `}</style>
 
-      {/* Floating Button */}
+      {/* Unified Yellow Outlined Mic Button */}
       {!isOpen && (
-        <button onClick={() => setIsOpen(true)} className="fixed bottom-6 right-6 z-[90] h-16 w-16 liquid-glass glass-mic rounded-full flex items-center justify-center hover:scale-110 transition-all group">
-          <Mic className="text-[#0c0906] w-7 h-7 group-hover:animate-pulse" strokeWidth={2.5} />
+        <button onClick={() => setIsOpen(true)} className="fixed bottom-6 right-6 z-[90] h-16 w-16 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group">
+          <Mic className="w-7 h-7 group-hover:animate-pulse" strokeWidth={2.5} />
         </button>
       )}
 

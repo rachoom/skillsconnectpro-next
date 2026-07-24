@@ -23,6 +23,8 @@ import {
   Shirt, Utensils, Baby, Trees, Sparkles 
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { motion, type Variants } from 'framer-motion';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -33,6 +35,24 @@ interface BeforeInstallPromptEvent extends Event {
 const MapView = dynamic(() => import('../components/MapView').then((mod) => mod.MapView), { 
   ssr: false 
 });
+
+const directoryCardMotion: Variants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.96,
+    y: 18,
+  },
+  visible: (index: number) => ({
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      delay: index * 0.05,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  }),
+};
 
 // --- ASSETS & CONFIG ---
 const QUICK_CATEGORIES = [
@@ -159,17 +179,18 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 };
 
 // 🟢 COMPONENT: SMART IMAGE
-const ImageWithSkeleton: React.FC<{ src: string; alt: string; className?: string; onClick?: () => void }> = ({ src, alt, className, onClick }) => {
+const ImageWithSkeleton: React.FC<{ src: string; alt: string; className?: string; onClick?: () => void; sizes?: string }> = ({ src, alt, className, onClick, sizes = '(max-width: 768px) 100vw, 33vw' }) => {
   const [loaded, setLoaded] = useState(false);
   return (
     <div className={`relative overflow-hidden bg-gray-200 dark:bg-white/5 ${className}`} onClick={onClick}>
       {!loaded && <div className="absolute inset-0 animate-pulse bg-gray-300 dark:bg-white/10 z-10" />}
-      <img
+      <Image
         src={src}
         alt={alt}
-        loading="lazy"
+        fill
+        sizes={sizes}
         onLoad={() => setLoaded(true)}
-        className={`w-full h-full object-cover transition-all duration-700 ${loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
+        className={`object-cover transition-all duration-700 ${loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
       />
     </div>
   );
@@ -257,7 +278,7 @@ const WelcomeSplash: React.FC<{ onEnter: () => void }> = ({ onEnter }) => {
                 <div className="w-32 h-32 mb-8 relative">
                     <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-20 duration-1000"></div>
                     <div className="relative w-full h-full bg-black/50 backdrop-blur-xl border border-brand-yellow/30 rounded-[2.5rem] shadow-[0_0_50px_rgba(250,204,21,0.2)] flex items-center justify-center transform rotate-3 hover:rotate-0 transition-all duration-500">
-                         <img src="/logo-new.svg" alt="Logo" className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                         <Image src="/logo-new.svg" alt="Logo" width={80} height={80} unoptimized className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
                     </div>
                 </div>
 
@@ -598,6 +619,8 @@ const App: React.FC<AppProps> = ({ deepLinkProfileId }) => { // <--- Receive pro
   const [executedSearch, setExecutedSearch] = useState({ category: '', location: '' });
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
+  const [activeSkillIndex, setActiveSkillIndex] = useState(-1);
+  const [activeLocationIndex, setActiveLocationIndex] = useState(-1);
   const [selectedArtisan, setSelectedArtisan] = useState<Artisan | null>(null);
 
   const [artisanReviews, setArtisanReviews] = useState<Review[]>([]);
@@ -908,6 +931,104 @@ const locationAliases: Record<string, string> = {
   }, [categoryInput]);
 
   useEffect(() => {
+    if (!isSearchActive) return;
+
+    if (searchStep === 'category') {
+      categoryInputRef.current?.focus();
+    } else {
+      locationInputRef.current?.focus();
+    }
+  }, [isSearchActive, searchStep]);
+
+  useEffect(() => {
+    setActiveSkillIndex(-1);
+  }, [categoryInput, showSkillSuggestions]);
+
+  useEffect(() => {
+    setActiveLocationIndex(-1);
+  }, [locationInput, showLocationSuggestions]);
+
+  const executeSearch = (nextLocation: string) => {
+    setIsSearchActive(false);
+    setExecutedSearch({ category: categoryInput, location: nextLocation });
+    setAppState(AppState.SEARCH_RESULTS);
+    setSearchStep('category');
+    setShowSkillSuggestions(false);
+    setShowLocationSuggestions(false);
+    setActiveSkillIndex(-1);
+    setActiveLocationIndex(-1);
+  };
+
+  const handleCategoryInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const optionCount = filteredSkills.length;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (optionCount === 0) return;
+      setShowSkillSuggestions(true);
+      setActiveSkillIndex((prev) => (prev + 1) % optionCount);
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (optionCount === 0) return;
+      setShowSkillSuggestions(true);
+      setActiveSkillIndex((prev) => (prev <= 0 ? optionCount - 1 : prev - 1));
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      setShowSkillSuggestions(false);
+      setActiveSkillIndex(-1);
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (showSkillSuggestions && activeSkillIndex >= 0 && filteredSkills[activeSkillIndex]) {
+        setCategoryInput(filteredSkills[activeSkillIndex]);
+        setShowSkillSuggestions(false);
+      }
+      setSearchStep('location');
+    }
+  };
+
+  const handleLocationInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const optionCount = filteredLocations.length;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (optionCount === 0) return;
+      setShowLocationSuggestions(true);
+      setActiveLocationIndex((prev) => (prev + 1) % optionCount);
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (optionCount === 0) return;
+      setShowLocationSuggestions(true);
+      setActiveLocationIndex((prev) => (prev <= 0 ? optionCount - 1 : prev - 1));
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      setShowLocationSuggestions(false);
+      setActiveLocationIndex(-1);
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const selectedLocation = showLocationSuggestions && activeLocationIndex >= 0 && filteredLocations[activeLocationIndex]
+        ? filteredLocations[activeLocationIndex]
+        : locationInput;
+      executeSearch(selectedLocation);
+    }
+  };
+
+  useEffect(() => {
     if (appState !== AppState.SEARCH_RESULTS) return;
 
     const scrollToTop = () => {
@@ -1152,6 +1273,8 @@ const { error } = await supabase.from('artisan_applications').insert([
                 {searchStep === 'category' ? (
                   <div className="w-full relative flex-1">
                     <input 
+                      id="category-search-input"
+                      ref={categoryInputRef}
                       
                       type="text"
                       value={categoryInput}
@@ -1160,10 +1283,15 @@ const { error } = await supabase.from('artisan_applications').insert([
                          setCategoryInput(e.target.value);
                          setShowSkillSuggestions(true);
                       }}
-                      onKeyDown={(e) => e.key === 'Enter' && setSearchStep('location')}
+                      onKeyDown={handleCategoryInputKeyDown}
                       placeholder="e.g. Plumber, Electrician..."
                       className="w-full bg-transparent p-4 md:p-6 text-2xl md:text-4xl text-white font-bold outline-none placeholder:text-zinc-600"
                       aria-label="Search category"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded={showSkillSuggestions}
+                      aria-controls="category-suggestions-list"
+                      aria-activedescendant={activeSkillIndex >= 0 ? `category-option-${activeSkillIndex}` : undefined}
                     />
 
                     {categorySynonymHint && (
@@ -1175,17 +1303,21 @@ const { error } = await supabase.from('artisan_applications').insert([
                     {showSkillSuggestions && (
                       <div className="absolute top-[115%] left-0 right-0 z-50">
                         {filteredSkills && filteredSkills.length > 0 ? (
-                          <div className="bg-zinc-900 border border-brand-yellow/30 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-fade-in-up">
-                            {filteredSkills.slice(0, 5).map((skill: string) => (
+                          <div id="category-suggestions-list" role="listbox" aria-label="Category suggestions" className="bg-zinc-900 border border-brand-yellow/30 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-fade-in-up">
+                            {filteredSkills.slice(0, 5).map((skill: string, idx: number) => (
                               <button
                                 type="button"
                                 key={skill}
+                                id={`category-option-${idx}`}
+                                role="option"
+                                aria-selected={activeSkillIndex === idx}
                                 onClick={() => {
                                   setCategoryInput(skill);
                                   setShowSkillSuggestions(false);
+                                  setActiveSkillIndex(-1);
                                   setSearchStep('location');
                                 }}
-                                className="px-8 py-5 text-xl md:text-2xl text-white hover:bg-brand-yellow hover:text-black cursor-pointer font-bold transition-colors border-b border-white/5 last:border-0 flex items-center gap-4 group"
+                                className={`px-8 py-5 text-xl md:text-2xl cursor-pointer font-bold transition-colors border-b border-white/5 last:border-0 flex items-center gap-4 group ${activeSkillIndex === idx ? 'bg-brand-yellow text-black' : 'text-white hover:bg-brand-yellow hover:text-black'}`}
                               >
                                 <SearchIcon className="w-6 h-6 opacity-40 group-hover:opacity-100" />
                                 {skill}
@@ -1203,6 +1335,8 @@ const { error } = await supabase.from('artisan_applications').insert([
                 ) : (
                   <div className="w-full relative flex-1">
                     <input 
+                      id="location-search-input"
+                      ref={locationInputRef}
                       
                       type="text"
                       value={locationInput}
@@ -1211,36 +1345,35 @@ const { error } = await supabase.from('artisan_applications').insert([
                          setLocationInput(e.target.value);
                          setShowLocationSuggestions(true);
                       }}
-                      onKeyDown={(e) => {
-                         if (e.key === 'Enter') {
-                            setIsSearchActive(false);
-                            setExecutedSearch({ category: categoryInput, location: locationInput });
-                            setAppState(AppState.SEARCH_RESULTS);
-                            setSearchStep('category');
-                         }
-                      }}
+                       onKeyDown={handleLocationInputKeyDown}
                       placeholder="e.g. Tsakane, Springs..."
                       className="w-full bg-transparent p-4 md:p-6 text-2xl md:text-4xl text-white font-bold outline-none placeholder:text-zinc-600"
                       aria-label="Search location"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded={showLocationSuggestions}
+                      aria-controls="location-suggestions-list"
+                       aria-activedescendant={activeLocationIndex >= 0 ? `location-option-${activeLocationIndex}` : undefined}
                     />
 
                     {showLocationSuggestions && (
                       <div className="absolute top-[115%] left-0 right-0 z-50">
                         {filteredLocations && filteredLocations.length > 0 ? (
-                          <div className="bg-zinc-900 border border-brand-yellow/30 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-fade-in-up">
-                            {filteredLocations.slice(0, 5).map((loc: string) => (
+                          <div id="location-suggestions-list" role="listbox" aria-label="Location suggestions" className="bg-zinc-900 border border-brand-yellow/30 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-fade-in-up">
+                            {filteredLocations.slice(0, 5).map((loc: string, idx: number) => (
                               <button
                                 type="button"
                                 key={loc}
+                                id={`location-option-${idx}`}
+                                role="option"
+                                aria-selected={activeLocationIndex === idx}
                                 onClick={() => {
                                   setLocationInput(loc);
                                   setShowLocationSuggestions(false);
-                                  setIsSearchActive(false);
-                                  setExecutedSearch({ category: categoryInput, location: loc });
-                                  setAppState(AppState.SEARCH_RESULTS);
-                                  setSearchStep('category');
+                                  setActiveLocationIndex(-1);
+                                  executeSearch(loc);
                                 }}
-                                className="px-8 py-5 text-xl md:text-2xl text-white hover:bg-brand-yellow hover:text-black cursor-pointer font-bold transition-colors border-b border-white/5 last:border-0 flex items-center gap-4 group"
+                                className={`px-8 py-5 text-xl md:text-2xl cursor-pointer font-bold transition-colors border-b border-white/5 last:border-0 flex items-center gap-4 group ${activeLocationIndex === idx ? 'bg-brand-yellow text-black' : 'text-white hover:bg-brand-yellow hover:text-black'}`}
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 opacity-40 group-hover:opacity-100"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
                                 {loc}
@@ -1262,10 +1395,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                     if (searchStep === 'category') {
                       setSearchStep('location');
                     } else {
-                      setIsSearchActive(false);
-                      setExecutedSearch({ category: categoryInput, location: locationInput });
-                      setAppState(AppState.SEARCH_RESULTS);
-                      setSearchStep('category'); 
+                      executeSearch(locationInput);
                     }
                   }}
                   className="bg-brand-yellow text-black px-8 md:px-12 py-4 md:py-6 rounded-[2.5rem] font-black uppercase tracking-widest text-sm md:text-xl hover:bg-white hover:scale-[1.02] transition-all shadow-xl shrink-0 mr-1 md:mr-2"
@@ -1297,7 +1427,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                         setAppState(AppState.SEARCH_RESULTS);
                         setSearchStep('category');
                       }}
-                      className="px-3 py-2 md:px-4 md:py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-wider border border-brand-yellow/30 text-brand-yellow bg-brand-yellow/10 hover:bg-brand-yellow hover:text-black hover:border-brand-yellow transition-colors"
+                      className="px-4 min-h-11 md:px-4 md:py-2.5 rounded-full text-xs font-black uppercase tracking-wider border border-brand-yellow/30 text-brand-yellow bg-brand-yellow/10 hover:bg-brand-yellow hover:text-black hover:border-brand-yellow transition-colors"
                     >
                       {loc}
                     </button>
@@ -1328,9 +1458,11 @@ const { error } = await supabase.from('artisan_applications').insert([
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {enlargedImage && (
         <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in cursor-pointer" onClick={() => setEnlargedImage(null)}>
-          <div className="relative max-w-5xl w-full h-full flex items-center justify-center">
-             <img src={enlargedImage} alt="Enlarged View" className="max-h-[90vh] max-w-full object-contain rounded-lg shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()} />
-             <button onClick={() => setEnlargedImage(null)} className="absolute top-4 right-4 bg-black/50 hover:bg-brand-yellow hover:text-black text-white p-2 rounded-full transition-colors border border-white/20">X</button>
+          <div className="relative max-w-5xl w-full h-full max-h-[90vh] flex items-center justify-center">
+             <div className="relative w-full h-full">
+               <Image src={enlargedImage} alt="Enlarged portfolio view" fill sizes="100vw" className="object-contain rounded-lg shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()} />
+             </div>
+             <button onClick={() => setEnlargedImage(null)} className="absolute top-4 right-4 tap-target bg-black/50 hover:bg-brand-yellow hover:text-black text-white p-2 rounded-full transition-colors border border-white/20" aria-label="Close enlarged image view">X</button>
           </div>
         </div>
       )}
@@ -1348,10 +1480,10 @@ const { error } = await supabase.from('artisan_applications').insert([
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center relative">
           
           <button type="button" className="flex items-center cursor-pointer group shrink-0" onClick={goHome} aria-label="Go to home">
-            <img src="/logo-new.svg" alt="SkillsConnectPro" className="w-36 sm:w-48 lg:w-56 h-auto transition-transform group-hover:scale-105 origin-left" />
+            <Image src="/logo-new.svg" alt="SkillsConnectPro" width={224} height={56} unoptimized className="w-36 sm:w-48 lg:w-56 h-auto transition-transform group-hover:scale-105 origin-left" />
           </button>
           
-          <div className="flex items-center gap-3 md:gap-6 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
             {/* 🛠️ FIX: Desktop Menu - added whitespace-nowrap so links don't break/wrap */}
        {/* 🛠️ FIX: Added md:!flex to force override the stubborn global hidden rule, plus shrink-0 to prevent flexbox crushing */}
         <div className={`hidden md:!flex items-center space-x-6 text-xs font-black uppercase tracking-widest mr-4 shrink-0 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -1362,25 +1494,38 @@ const { error } = await supabase.from('artisan_applications').insert([
           <Link href="/blog" className="hover:text-brand-yellow transition-colors whitespace-nowrap text-brand-yellow">Blog</Link>
         </div>
             
-           {/* 🛠️ FIX: Added shrink-0 to button so it doesn't get crushed */}
+            {/* Unified tactile outlined CTA: always visible on mobile when app is not installed */}
             {!isInstalled && (
               <button
                 onClick={handleInstallClick}
-                className="border border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700] hover:text-black px-4 py-2 rounded-full font-semibold transition-colors whitespace-nowrap shrink-0"
+                className="h-10 px-3 sm:px-4 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow text-[10px] sm:text-xs font-black uppercase tracking-[0.14em] shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all whitespace-nowrap shrink-0"
               >
                 Install App
               </button>
             )}
             <button 
               onClick={goToQuickJoin} 
-              className="liquid-glass glass-btn-join text-emerald-500 hover:text-white px-3 py-1.5 md:px-5 md:py-2.5 text-[9px] md:text-sm rounded-full transition-all shadow-[0_0_20px_rgba(16,185,129,0.15)] font-black uppercase tracking-wider whitespace-nowrap shrink-0"
+              className="h-10 px-3 sm:px-4 md:px-5 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-[0.14em] shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all whitespace-nowrap shrink-0"
             >
-              ⚡ 1-Click Join
+              <span className="inline-flex items-center gap-1.5">
+                <span aria-hidden="true" className="text-sm leading-none">⚡</span>
+                <span>1-Click Join</span>
+              </span>
             </button>
             
-            {/* 🛠️ FIX: Added shrink-0 to mobile hamburger */}
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-gray-400 hover:text-brand-yellow transition-colors shrink-0 md:!hidden" aria-label="Toggle mobile menu" aria-expanded={isMobileMenuOpen} aria-controls="mobile-nav-menu">
-              {isMobileMenuOpen ? '✕' : '☰'}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="h-10 w-10 md:!hidden rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all shrink-0 flex items-center justify-center"
+              aria-label="Toggle mobile menu"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-nav-menu"
+            >
+              <span className="sr-only">Menu</span>
+              <span className="relative block w-4 h-4" aria-hidden="true">
+                <span className={`absolute left-0 top-[2px] block h-[2px] w-4 rounded-full bg-current transition-all duration-200 ${isMobileMenuOpen ? 'translate-y-[5px] rotate-45' : ''}`}></span>
+                <span className={`absolute left-0 top-[7px] block h-[2px] w-4 rounded-full bg-current transition-all duration-200 ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+                <span className={`absolute left-0 top-[12px] block h-[2px] w-4 rounded-full bg-current transition-all duration-200 ${isMobileMenuOpen ? '-translate-y-[5px] -rotate-45' : ''}`}></span>
+              </span>
             </button>
           </div>
         </div>
@@ -1478,7 +1623,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                       </div>
 
                       {/* Right: CTA button */}
-                      <div className="bg-brand-yellow text-black px-4 py-2.5 md:px-8 md:py-3.5 rounded-[2rem] font-black uppercase tracking-widest text-[9px] md:text-sm shadow-lg shrink-0 transition-all group-hover:shadow-[0_0_25px_rgba(250,204,21,0.4)]">
+                      <div className="border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow px-4 py-2.5 md:px-8 md:py-3.5 rounded-[2rem] font-black uppercase tracking-[0.14em] text-[9px] md:text-sm shadow-[0_8px_20px_rgba(250,204,21,0.22)] shrink-0 transition-all group-hover:bg-brand-yellow group-hover:text-black group-hover:ring-2 group-hover:ring-brand-yellow/40 group-hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] group-active:translate-y-[1px]">
                         Search
                       </div>
                     </button>
@@ -1495,7 +1640,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                           setIsSearchActive(true);
                           setSearchStep('location');
                         }}
-                        className={`px-3 py-1.5 md:px-4 md:py-1.5 rounded-full text-[9px] md:text-xs font-bold uppercase tracking-wider border transition-all hover:border-brand-yellow hover:text-brand-yellow active:scale-95 ${isDarkMode ? 'border-white/10 text-gray-500 bg-white/5' : 'border-gray-300 text-gray-500 bg-white'}`}
+                        className={`px-4 min-h-11 md:px-4 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider border transition-all hover:border-brand-yellow hover:text-brand-yellow active:scale-95 ${isDarkMode ? 'border-white/10 text-gray-500 bg-white/5' : 'border-gray-300 text-gray-500 bg-white'}`}
                       >
                         {cat}
                       </button>
@@ -1505,8 +1650,8 @@ const { error } = await supabase.from('artisan_applications').insert([
                   {/* AI ESTIMATOR BUTTON IN HERO */}
                   <div className="mt-8 md:mt-10 w-full max-w-md mx-auto px-2">
                     <Link 
-                        href="/estimator" 
-                        className="flex items-center justify-center w-full px-6 py-4 md:py-5 text-white text-xs md:text-sm font-black uppercase tracking-widest rounded-full backdrop-blur-md bg-white/10 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:bg-white/20 hover:border-brand-yellow/50 hover:text-brand-yellow hover:-translate-y-1 transition-all duration-300 text-center"
+                      href="/estimator" 
+                      className="flex items-center justify-center w-full h-14 px-6 text-brand-yellow text-xs md:text-sm font-black uppercase tracking-[0.14em] rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 shadow-[0_8px_24px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:ring-2 hover:ring-brand-yellow/40 hover:shadow-[0_12px_32px_rgba(250,204,21,0.35)] hover:scale-[1.02] active:translate-y-[2px] active:shadow-[0_4px_12px_rgba(250,204,21,0.2)] transition-all duration-200 text-center"
                     >
                         Calculate Project Costs (AI)
                     </Link>
@@ -1530,10 +1675,15 @@ const { error } = await supabase.from('artisan_applications').insert([
                   {QUICK_CATEGORIES.map((cat, index) => {
                     const isRoving = rovingIndex === index;
                     return (
-                    <button 
+                    <motion.button 
                         key={cat.id} 
                         onClick={() => handleCardSelect(cat.id, cat.label)} 
-                        className={`group relative h-[220px] md:h-[320px] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d text-left transition-all duration-700 ${isDarkMode ? 'border-brand-yellow/20' : 'border-gray-200 shadow-xl'} ${isRoving ? 'ring-2 ring-brand-yellow shadow-[0_0_30px_rgba(250,204,21,0.5)] -translate-y-2' : 'hover:ring-2 hover:ring-brand-yellow hover:shadow-[0_0_30px_rgba(250,204,21,0.5)]'}`}
+                      variants={directoryCardMotion}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, amount: 0.2 }}
+                      custom={index}
+                        className={`group relative h-[220px] md:h-[320px] rounded-3xl md:rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d text-left transition-all duration-700 ${isDarkMode ? 'border-brand-yellow/20 bg-gradient-to-br from-white/5 to-transparent shadow-[0_8px_32px_rgba(250,204,21,0.15)]' : 'border-gray-200 bg-gradient-to-br from-white/20 to-white/5 shadow-xl'} ${isRoving ? 'ring-2 ring-brand-yellow shadow-[0_0_30px_rgba(250,204,21,0.5)] -translate-y-2' : 'hover:ring-2 hover:ring-brand-yellow hover:shadow-[0_12px_40px_rgba(250,204,21,0.35)]'}`}
                         style={{ transitionDelay: `${index * 20}ms` }}
                       >
                         <div className="absolute inset-0 w-full h-full overflow-hidden">
@@ -1550,12 +1700,12 @@ const { error } = await supabase.from('artisan_applications').insert([
                             {cat.label}
                           </h3>
                           
-                          {/* Transparent Bottom Button */}
-                          <div className={`w-full h-12 border backdrop-blur-md rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${isRoving ? 'bg-brand-yellow text-black border-brand-yellow' : 'bg-white/10 border-white/20 text-white group-hover:bg-brand-yellow group-hover:text-black group-hover:border-brand-yellow'}`}>
+                          {/* Unified Yellow Outlined Button */}
+                          <div className={`w-full h-12 border-2 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.12em] transition-all duration-300 shadow-[0_6px_16px_rgba(250,204,21,0.2)] ${isRoving ? 'bg-brand-yellow text-black border-brand-yellow ring-2 ring-brand-yellow/40 shadow-[0_8px_20px_rgba(250,204,21,0.35)]' : 'bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 border-brand-yellow text-brand-yellow group-hover:bg-brand-yellow group-hover:text-black group-hover:ring-2 group-hover:ring-brand-yellow/40 group-hover:shadow-[0_8px_20px_rgba(250,204,21,0.35)] group-active:translate-y-[1px]'}`}>
                             Find {cat.label}
                           </div>
                         </div>
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -1571,12 +1721,17 @@ const { error } = await supabase.from('artisan_applications').insert([
                   {/* 4. NEW ADDITIONAL SERVICES CARDS */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-2">
                     {MORE_SERVICES.map((service, idx) => (
-                     <button 
+                    <motion.button 
                         key={service.id} 
                         onClick={() => handleCardSelect(service.id, service.label)} 
-                        className={`group relative h-[200px] md:h-[320px] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d text-left transition-all duration-500 ${isDarkMode ? 'border-brand-yellow/20' : 'border-gray-200 shadow-xl'}`}
+                      variants={directoryCardMotion}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, amount: 0.2 }}
+                      custom={idx + QUICK_CATEGORIES.length}
+                        className={`group relative h-[200px] md:h-[320px] rounded-3xl md:rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d text-left transition-all duration-500 ${isDarkMode ? 'border-brand-yellow/20 bg-gradient-to-br from-white/5 to-transparent shadow-[0_8px_32px_rgba(250,204,21,0.15)]' : 'border-gray-200 bg-gradient-to-br from-white/20 to-white/5 shadow-xl'} hover:ring-2 hover:ring-brand-yellow hover:shadow-[0_12px_40px_rgba(250,204,21,0.35)]`}
                       >
-                        <img src={service.image} alt={service.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        <Image src={service.image} alt={service.label} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-110" />
                         <div className={`absolute inset-0 bg-gradient-to-t transition-opacity duration-300 ${isDarkMode ? 'from-black/95 via-black/40 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`}></div>
                         
                         <div className="absolute inset-0 p-8 flex flex-col justify-end z-30 text-flat">
@@ -1592,12 +1747,12 @@ const { error } = await supabase.from('artisan_applications').insert([
                             {service.label}
                           </h3>
                           
-                          {/* Transparent Bottom Button */}
-                          <div className="w-full h-12 bg-white/10 border border-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-yellow group-hover:text-black group-hover:border-brand-yellow transition-all text-white">
+                          {/* Unified Yellow Outlined Button */}
+                          <div className="w-full h-12 bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 border-2 border-brand-yellow rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.12em] text-brand-yellow transition-all shadow-[0_6px_16px_rgba(250,204,21,0.2)] group-hover:bg-brand-yellow group-hover:text-black group-hover:ring-2 group-hover:ring-brand-yellow/40 group-hover:shadow-[0_8px_20px_rgba(250,204,21,0.35)] group-active:translate-y-[1px]">
                             Explore Services
                           </div>
                         </div>
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -1623,7 +1778,17 @@ const { error } = await supabase.from('artisan_applications').insert([
                   ) : featuredAds && featuredAds.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 reveal">
                       {featuredAds.map((ad, index) => (
-                        <div key={ad.id} style={{ transitionDelay: `${index * 100}ms` }} onClick={() => { setSelectedBusinessId(ad.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`group relative h-[340px] md:h-[450px] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d ${isDarkMode ? 'border-brand-yellow/20' : 'border-gray-200'}`}>
+                        <motion.div
+                          key={ad.id}
+                          variants={directoryCardMotion}
+                          initial="hidden"
+                          whileInView="visible"
+                          viewport={{ once: true, amount: 0.2 }}
+                          custom={index}
+                          style={{ transitionDelay: `${index * 100}ms` }}
+                          onClick={() => { setSelectedBusinessId(ad.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          className={`group relative h-[340px] md:h-[450px] rounded-3xl md:rounded-[2.5rem] overflow-hidden border cursor-pointer card-3d ${isDarkMode ? 'border-brand-yellow/20 bg-gradient-to-br from-white/5 to-transparent shadow-[0_8px_32px_rgba(250,204,21,0.15)]' : 'border-gray-200 bg-gradient-to-br from-white/20 to-white/5 shadow-xl'} hover:ring-2 hover:ring-brand-yellow hover:shadow-[0_12px_40px_rgba(250,204,21,0.35)]`}
+                        >
                           <ImageWithSkeleton src={ad.image_url} alt={ad.brand_name} className="absolute inset-0 w-full h-full" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-opacity duration-500"></div>
                           <div className="absolute inset-0 p-8 flex flex-col justify-end z-30 text-flat">
@@ -1631,9 +1796,9 @@ const { error } = await supabase.from('artisan_applications').insert([
                             <h4 className="text-xs font-black uppercase text-brand-yellow tracking-[0.2em] mb-1">{ad.brand_name}</h4>
                             <h3 className="text-2xl font-black mb-2 leading-tight text-white group-hover:text-brand-yellow transition-colors">{ad.title}</h3>
                             <p className="text-gray-300 text-sm font-medium mb-6 line-clamp-2">{ad.subtitle}</p>
-                            <div className="w-full h-12 bg-white/10 border border-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-yellow group-hover:text-black transition-all text-white">Contact Business</div>
+                            <div className="w-full h-12 bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 border-2 border-brand-yellow rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.12em] text-brand-yellow transition-all shadow-[0_6px_16px_rgba(250,204,21,0.2)] group-hover:bg-brand-yellow group-hover:text-black group-hover:ring-2 group-hover:ring-brand-yellow/40 group-hover:shadow-[0_8px_20px_rgba(250,204,21,0.35)] group-active:translate-y-[1px]">Contact Business</div>
                           </div>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                   ) : (
@@ -1663,7 +1828,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                         <>Found <span className="text-brand-yellow">{liveFilteredPros.length}</span> Pros</>
                       )}
                     </h2>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-300 text-sm" aria-live="polite">
                       {isSearchingResults
                         ? `Looking for top-rated artisans in ${executedSearch.location || 'East Rand'}`
                         : `Top-rated artisans ready to help in ${executedSearch.location || 'East Rand'}`}
@@ -2055,10 +2220,12 @@ const { error } = await supabase.from('artisan_applications').insert([
                                 className={`aspect-square rounded-2xl overflow-hidden border group cursor-pointer hover:border-brand-yellow shadow-lg transition-all ${isDarkMode ? 'border-white/10 bg-black' : 'border-gray-200 bg-gray-100'}`} 
                                 onClick={() => typeof setEnlargedImage === 'function' && setEnlargedImage(imgUrl)}
                               >
-                               <img 
-                                 src={imgUrl} 
-                                 alt={`${selectedArtisan.name}'s Work ${index + 1}`} 
-                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
+                               <Image
+                                 src={imgUrl}
+                                 alt={`${selectedArtisan.name}'s Work ${index + 1}`}
+                                 fill
+                                 sizes="(max-width: 768px) 50vw, 25vw"
+                                 className="object-cover group-hover:scale-110 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                                />
                              </div>
                            ))}
@@ -2122,7 +2289,7 @@ const { error } = await supabase.from('artisan_applications').insert([
             </div>
             <div>
               <h2 className={`text-3xl md:text-4xl font-black tracking-tighter uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Artisan Registry</h2>
-              <p className="text-brand-yellow text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mt-1">Secure Network Onboarding</p>
+              <p className="text-brand-yellow text-xs font-black uppercase tracking-[0.2em] mt-1">Secure Network Onboarding</p>
             </div>
           </div>
 
@@ -2131,22 +2298,22 @@ const { error } = await supabase.from('artisan_applications').insert([
             {/* Input Styles: Glassy, translucent with inner shadow */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">First Name</label>
-                <input required type="text" value={regForm.firstName} onChange={(e) => setRegForm({...regForm, firstName: e.target.value})} 
+                <label htmlFor="reg-first-name" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">First Name</label>
+                <input id="reg-first-name" required type="text" value={regForm.firstName} onChange={(e) => setRegForm({...regForm, firstName: e.target.value})} 
                   className="w-full bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-5 py-4 text-white font-bold placeholder-gray-600 outline-none focus:bg-brand-yellow/5 focus:border-brand-yellow/50 focus:ring-1 focus:ring-brand-yellow/50 transition-all duration-300 shadow-inner" 
                   placeholder="e.g. Khauhelo" />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Last Name</label>
-                <input required type="text" value={regForm.lastName} onChange={(e) => setRegForm({...regForm, lastName: e.target.value})} 
+                <label htmlFor="reg-last-name" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">Last Name</label>
+                <input id="reg-last-name" required type="text" value={regForm.lastName} onChange={(e) => setRegForm({...regForm, lastName: e.target.value})} 
                   className="w-full bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-5 py-4 text-white font-bold placeholder-gray-600 outline-none focus:bg-brand-yellow/5 focus:border-brand-yellow/50 focus:ring-1 focus:ring-brand-yellow/50 transition-all duration-300 shadow-inner" 
                   placeholder="e.g. Mokoena" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Primary Discipline</label>
-              <select required value={regForm.trade} onChange={(e) => setRegForm({...regForm, trade: e.target.value})} 
+              <label htmlFor="reg-trade" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">Primary Discipline</label>
+              <select id="reg-trade" required value={regForm.trade} onChange={(e) => setRegForm({...regForm, trade: e.target.value})} 
                 className="w-full bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-5 py-4 text-white font-bold appearance-none outline-none focus:bg-brand-yellow/5 focus:border-brand-yellow/50 transition-all duration-300 shadow-inner">
                 <option value="" className="text-gray-500 bg-[#150f0a]">Select Trade...</option>
                 {CATEGORIES.map(cat => <option key={cat} value={cat} className="text-white bg-[#150f0a]">{cat}</option>)}
@@ -2154,8 +2321,8 @@ const { error } = await supabase.from('artisan_applications').insert([
             </div>
 
             <div className="mt-6">
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Training Institution (Optional)</label>
-              <select value={regForm.institution} onChange={(e) => setRegForm({...regForm, institution: e.target.value})} 
+              <label htmlFor="reg-institution" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">Training Institution (Optional)</label>
+              <select id="reg-institution" value={regForm.institution} onChange={(e) => setRegForm({...regForm, institution: e.target.value})} 
                 className="w-full bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-5 py-4 text-white font-bold appearance-none outline-none focus:bg-brand-yellow/5 focus:border-brand-yellow/50 transition-all duration-300 shadow-inner">
                 <option value="" className="text-gray-500 bg-[#150f0a]">Select Institution...</option>
                 <option value="Ekurhuleni East College" className="text-white bg-[#150f0a]">Ekurhuleni East College</option>
@@ -2166,22 +2333,22 @@ const { error } = await supabase.from('artisan_applications').insert([
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Professional Bio</label>
-              <textarea required value={regForm.bio} onChange={(e) => setRegForm({...regForm, bio: e.target.value})} 
+              <label htmlFor="reg-bio" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">Professional Bio</label>
+              <textarea id="reg-bio" required value={regForm.bio} onChange={(e) => setRegForm({...regForm, bio: e.target.value})} 
                 className="w-full bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-5 py-4 text-white font-bold placeholder-gray-600 min-h-[120px] outline-none focus:bg-brand-yellow/5 focus:border-brand-yellow/50 focus:ring-1 focus:ring-brand-yellow/50 transition-all duration-300 shadow-inner resize-y" 
                 placeholder="Briefly describe your expertise..." />
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Phone Number</label>
-              <input required type="tel" value={regForm.phone} onChange={(e) => setRegForm({...regForm, phone: e.target.value})} 
+              <label htmlFor="reg-phone" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">Phone Number</label>
+              <input id="reg-phone" required type="tel" value={regForm.phone} onChange={(e) => setRegForm({...regForm, phone: e.target.value})} 
                 className="w-full bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-5 py-4 text-white font-bold placeholder-gray-600 outline-none focus:bg-brand-yellow/5 focus:border-brand-yellow/50 focus:ring-1 focus:ring-brand-yellow/50 transition-all duration-300 shadow-inner" 
                 placeholder="e.g. 082 123 4567" />
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">How did you hear about us?</label>
-              <select required value={regForm.referralSource} onChange={(e) => setRegForm({...regForm, referralSource: e.target.value})} 
+              <label htmlFor="reg-referral-source" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">How did you hear about us?</label>
+              <select id="reg-referral-source" required value={regForm.referralSource} onChange={(e) => setRegForm({...regForm, referralSource: e.target.value})} 
                 className="w-full bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-5 py-4 text-white font-bold appearance-none outline-none focus:bg-brand-yellow/5 focus:border-brand-yellow/50 transition-all duration-300 shadow-inner">
                 <option value="" className="text-gray-500 bg-[#150f0a]">Select...</option>
                 <option value="Facebook" className="text-white bg-[#150f0a]">Facebook</option>
@@ -2192,10 +2359,10 @@ const { error } = await supabase.from('artisan_applications').insert([
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Portfolio (Max 4 Images)</label>
+              <label htmlFor="reg-portfolio-upload" className="block text-xs font-black uppercase tracking-widest text-gray-300 mb-2 ml-1">Portfolio (Max 4 Images)</label>
               {selectedImages.length < 4 && (
                 <div className="relative border-2 border-dashed border-white/20 bg-black/20 hover:bg-white/5 rounded-xl hover:border-brand-yellow/50 transition-colors p-8 flex flex-col items-center justify-center text-center cursor-pointer backdrop-blur-sm shadow-inner">
-                  <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                  <input id="reg-portfolio-upload" type="file" accept="image/*" multiple onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" aria-label="Upload portfolio images" />
                   <div className="w-12 h-12 rounded-full bg-brand-yellow/10 flex items-center justify-center mb-3">
                     <span className="text-brand-yellow text-xl">📷</span>
                   </div>
@@ -2215,12 +2382,12 @@ const { error } = await supabase.from('artisan_applications').insert([
             </div>
 
             <div className="pt-6 mt-4 border-t border-white/10">
-              <label className="flex items-center gap-4 cursor-pointer group">
+              <label htmlFor="reg-human-check" className="flex items-center gap-4 cursor-pointer group">
                 <div className={`w-6 h-6 rounded border flex items-center justify-center transition-colors shadow-inner ${captchaVerified ? 'bg-brand-yellow border-brand-yellow' : 'bg-black/40 border-gray-500 group-hover:border-brand-yellow'}`}>
                   {captchaVerified && (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-black"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" /></svg>)}
                 </div>
-                <input type="checkbox" className="hidden" checked={captchaVerified} onChange={(e) => setCaptchaVerified(e.target.checked)} />
-                <span className="text-gray-400 text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors">I am human (Security Check)</span>
+                <input id="reg-human-check" type="checkbox" className="hidden" checked={captchaVerified} onChange={(e) => setCaptchaVerified(e.target.checked)} />
+                <span className="text-gray-300 text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors">I am human (Security Check)</span>
               </label>
             </div>
 

@@ -113,28 +113,30 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
         capture="environment" 
         ref={fileInputRef} 
         onChange={handleFileChange} 
-        className="hidden" 
+        className="hidden"
+        aria-label="Capture a photo for AI service detection"
       />
 
-      {/* 3D EMERALD CAMERA BUTTON */}
+      {/* Unified Yellow Outlined Camera Button */}
       {!showResult && (
         <button 
           onClick={handleCameraClick}
-          className="fixed bottom-6 left-6 z-[90] h-16 w-16 liquid-glass glass-camera rounded-full flex items-center justify-center hover:scale-110 transition-all group"
+          className="fixed bottom-6 left-6 z-[90] h-16 w-16 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group"
+          aria-label="Open camera assistant"
         >
-          <Camera className="text-[#0c0906] w-7 h-7 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+          <Camera className="w-7 h-7 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
         </button>
       )}
 
       {/* AI VISION MODAL */}
       {showResult && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6 animate-fade-in">
-          <button onClick={closePanel} className="absolute top-6 right-6 p-4 text-white hover:text-brand-yellow">
+        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="camera-assistant-title">
+          <button onClick={closePanel} className="absolute top-6 right-6 p-4 text-white hover:text-brand-yellow" aria-label="Close camera assistant">
             <X size={32} />
           </button>
 
           <div className="w-full max-w-sm flex flex-col items-center gap-6">
-            <h2 className="text-brand-yellow font-black text-2xl uppercase tracking-widest text-center flex items-center gap-2">
+            <h2 id="camera-assistant-title" className="text-brand-yellow font-black text-2xl uppercase tracking-widest text-center flex items-center gap-2">
               <Camera size={24}/> AI Vision
             </h2>
 
@@ -168,6 +170,7 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
     value={userLocation}
     onChange={(e) => setUserLocation(e.target.value)}
     className="w-full bg-black/50 border border-zinc-700 rounded-xl py-3 pl-10 pr-10 text-white focus:outline-none focus:border-brand-yellow transition-colors font-medium appearance-none cursor-pointer"
+    aria-label="Select your location"
   >
     <option value="" disabled>Select your area...</option>
     <option value="Brakpan">Brakpan</option>
@@ -196,7 +199,8 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
                           key={loc}
                           type="button"
                           onClick={() => setUserLocation(loc)}
-                          className="px-3 py-1.5 bg-zinc-800/80 border border-zinc-700 rounded-full text-xs text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors font-bold tracking-wider"
+                          className="px-3 py-1.5 min-h-11 bg-zinc-800/80 border border-zinc-700 rounded-full text-xs text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors font-bold tracking-wider"
+                          aria-label={`Use ${loc} as location`}
                         >
                           {loc}
                         </button>
