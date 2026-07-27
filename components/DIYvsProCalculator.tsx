@@ -2,13 +2,52 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Camera, X, Loader2, Hammer, Image as ImageIcon } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+
+type QaPair = {
+  question: string;
+  answer: string;
+};
+
+type MaterialItem = {
+  name: string;
+  quantity: string;
+  unitCost: number;
+  total: number;
+};
+
+type EstimateResult = {
+  materials: number;
+  tools: number;
+  laborHours: number;
+  laborTotal: number;
+  trueCost: number;
+  materialsList: MaterialItem[];
+  laborNotes?: string;
+  recommendedService: string;
+  estimateType: 'standardized' | 'refined';
+  clarifyingQuestions: string[];
+};
+
+const inferServiceFromText = (text: string): string => {
+  const lower = text.toLowerCase();
+  if (/(leak|pipe|geyser|drain|toilet|plumb)/.test(lower)) return 'Plumber';
+  if (/(socket|db|wiring|electric|power|light)/.test(lower)) return 'Electrician';
+  if (/(paint|wall coat|primer)/.test(lower)) return 'Painter';
+  if (/(tile|grout)/.test(lower)) return 'Tiler';
+  if (/(clean|stain|mold|mould)/.test(lower)) return 'Cleaner';
+  if (/(roof|brick|cement|plaster|build|door|window)/.test(lower)) return 'Builder';
+  return 'General Contractor';
+};
 
 export default function DIYvsProCalculator() {
   const [input, setInput] = useState('');
-  const [timeValue, setTimeValue] = useState('150');
+  const [timeValue, setTimeValue] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<EstimateResult | null>(null);
+  const [clarifyingAnswers, setClarifyingAnswers] = useState<Record<number, string>>({});
+  const [showAdvancedRate, setShowAdvancedRate] = useState(false);
   
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -47,16 +86,14 @@ export default function DIYvsProCalculator() {
     }
   };
 
-  const handleCalculate = async () => {
-    if (!input) return alert("Please describe your project first!");
+  const fetchEstimate = async (promptText: string, qaHistory: QaPair[] = []) => {
     setLoading(true);
-    setResult(null);
     
     try {
       const res = await fetch('/api/estimate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input, image: image, hourlyRate: timeValue })
+        body: JSON.stringify({ prompt: promptText, image: image, hourlyRate: timeValue, qaHistory })
       });
       
       const textData = await res.text();
@@ -66,7 +103,16 @@ export default function DIYvsProCalculator() {
 
       if (!res.ok) throw new Error(data.error || "Failed to connect to the API.");
       
-      let parsedObj = { materialsTotal: 0, toolsNeeded: 0, laborHours: 4 };
+      let parsedObj: any = {
+        materials: [],
+        materialsTotal: 0,
+        toolsNeeded: 0,
+        laborHours: 4,
+        laborNotes: '',
+        recommendedService: '',
+        estimateType: 'standardized',
+        clarifyingQuestions: []
+      };
       if (data.estimate) {
         try {
           const b = String.fromCharCode(96, 96, 96);
@@ -76,18 +122,147 @@ export default function DIYvsProCalculator() {
         } catch(e) {}
       }
 
+      const normalizedMaterials: MaterialItem[] = Array.isArray(parsedObj.materials)
+        ? parsedObj.materials
+            .map((item: any) => ({
+              name: String(item?.name || '').trim(),
+              quantity: String(item?.quantity || '1').trim(),
+              unitCost: Number(item?.unitCost) || 0,
+              total: Number(item?.total) || 0
+            }))
+            .filter((item: MaterialItem) => item.name)
+        : [];
+
       const rate = parseInt(timeValue) || 150;
       const laborTotal = (parsedObj.laborHours || 4) * rate;
-      const materials = parsedObj.materialsTotal || 0;
+      const listTotal = normalizedMaterials.reduce((sum, item) => sum + item.total, 0);
+      const materials = parsedObj.materialsTotal || listTotal || 0;
       const tools = parsedObj.toolsNeeded || 0;
+
+      const fallbackMaterials = materials > 0
+        ? [{ name: 'Estimated materials (general)', quantity: '1 lot', unitCost: materials, total: materials }]
+        : [];
+      const materialsList = normalizedMaterials.length > 0 ? normalizedMaterials : fallbackMaterials;
+
+      const clarifyingQuestions = Array.isArray(parsedObj.clarifyingQuestions)
+        ? parsedObj.clarifyingQuestions
+            .map((q: any) => String(q || '').trim())
+            .filter((q: string) => q.length > 0)
+            .slice(0, 4)
+        : [];
+
+      const recommendedService = String(parsedObj.recommendedService || '').trim() || inferServiceFromText(promptText);
+      const estimateType = parsedObj.estimateType === 'refined' ? 'refined' : 'standardized';
       
-      setResult({ materials, tools, laborHours: parsedObj.laborHours || 4, laborTotal, trueCost: materials + tools + laborTotal });
+      setResult({
+        materials,
+        tools,
+        laborHours: parsedObj.laborHours || 4,
+        laborTotal,
+        trueCost: materials + tools + laborTotal,
+        materialsList,
+        laborNotes: typeof parsedObj.laborNotes === 'string' ? parsedObj.laborNotes : '',
+        recommendedService,
+        estimateType,
+        clarifyingQuestions
+      });
+      setClarifyingAnswers({});
     } catch (error: any) {
       console.error(error);
       alert(`Error: ${error.message || "Something went wrong"}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCalculate = async () => {
+    if (!input.trim()) return alert('Please describe your project first!');
+    setResult(null);
+    await fetchEstimate(input.trim());
+  };
+
+  const handleRefineEstimate = async () => {
+    if (!result || result.clarifyingQuestions.length === 0) return;
+
+    const qaHistory: QaPair[] = result.clarifyingQuestions
+      .map((question, idx) => ({ question, answer: (clarifyingAnswers[idx] || '').trim() }))
+      .filter((pair) => pair.answer.length > 0);
+
+    if (qaHistory.length === 0) {
+      alert('Please answer at least one clarifying question.');
+      return;
+    }
+
+    const extraContext = qaHistory.map((pair) => `${pair.question} ${pair.answer}`).join('. ');
+    const promptText = `${input.trim()}. Additional details: ${extraContext}`;
+    await fetchEstimate(promptText, qaHistory);
+  };
+
+  const handleDownloadPdf = () => {
+    if (!result) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 14;
+    let y = 18;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Skills Connect Pro - Project Estimate', margin, y);
+    y += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, margin, y);
+    y += 6;
+
+    const promptLines = doc.splitTextToSize(`Project: ${input}`, pageWidth - margin * 2);
+    doc.text(promptLines, margin, y);
+    y += promptLines.length * 5 + 3;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Itemized Materials', margin, y);
+    y += 7;
+
+    doc.setFont('helvetica', 'normal');
+    result.materialsList.forEach((item, idx) => {
+      const line = `${idx + 1}. ${item.name} (${item.quantity}) - R ${item.unitCost.toLocaleString()} each`; 
+      const lineTotal = `R ${item.total.toLocaleString()}`;
+      const wrapped = doc.splitTextToSize(line, pageWidth - margin * 2 - 35);
+      doc.text(wrapped, margin, y);
+      doc.text(lineTotal, pageWidth - margin, y, { align: 'right' });
+      y += wrapped.length * 5 + 2;
+
+      if (y > 268) {
+        doc.addPage();
+        y = 18;
+      }
+    });
+
+    y += 4;
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Materials Total: R ${result.materials.toLocaleString()}`, margin, y);
+    y += 7;
+    doc.text(`Tools Needed: R ${result.tools.toLocaleString()}`, margin, y);
+    y += 7;
+    doc.text(`Labor: ${result.laborHours}h @ R${timeValue}/hr = R ${result.laborTotal.toLocaleString()}`, margin, y);
+    y += 9;
+    doc.setFontSize(12);
+    doc.text(`True Project Cost: R ${result.trueCost.toLocaleString()}`, margin, y);
+
+    if (result.laborNotes) {
+      y += 9;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const notes = doc.splitTextToSize(`Labor note: ${result.laborNotes}`, pageWidth - margin * 2);
+      doc.text(notes, margin, y);
+    }
+
+    doc.save('skills-connect-project-estimate.pdf');
   };
 
   return (
@@ -98,7 +273,8 @@ export default function DIYvsProCalculator() {
       <div className="relative z-10 p-8 bg-[#0c0906]/60 backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-[0_8px_32px_0_rgba(0,0,0,0.5)]">
         <div className="text-center mb-8">
           <span className="text-brand-yellow text-xs font-bold tracking-[0.2em] uppercase drop-shadow-md">Skills Connect Pro</span>
-          <h2 className="text-3xl font-black text-white mt-2">Home Improvement <span className="text-brand-yellow">Estimator</span></h2>
+          <p className="text-[11px] text-gray-400 uppercase tracking-[0.22em] mt-3">Home Improvement</p>
+          <h2 className="text-3xl font-black text-white mt-1">AI Project <span className="text-brand-yellow">Calculator</span></h2>
         </div>
 
         <div className="bg-white/5 border border-brand-yellow/20 p-4 rounded-xl mb-6 text-sm text-gray-200 shadow-inner">
@@ -130,9 +306,32 @@ export default function DIYvsProCalculator() {
               </div>
             )}
           </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Your Time Value (R/hr)</label>
-            <input type="number" value={timeValue} onChange={(e) => setTimeValue(e.target.value)} className="w-full p-4 bg-black/40 text-white rounded-xl border border-white/10 focus:border-brand-yellow/50 focus:ring-1 focus:ring-brand-yellow outline-none backdrop-blur-sm transition-all shadow-inner" />
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedRate((prev) => !prev)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Optional: Labor Rate</span>
+              <span className="text-[10px] text-brand-yellow font-black uppercase tracking-wider">{showAdvancedRate ? 'Hide' : 'Set'}</span>
+            </button>
+
+            {showAdvancedRate && (
+              <div className="mt-3">
+                <label className="block text-[11px] text-gray-400 mb-2">Choose an optional hourly labor rate (R/hr)</label>
+                <select
+                  value={timeValue}
+                  onChange={(e) => setTimeValue(e.target.value)}
+                  className="w-full p-3 bg-black/40 text-white rounded-xl border border-white/10 focus:border-brand-yellow/50 focus:ring-1 focus:ring-brand-yellow outline-none backdrop-blur-sm transition-all shadow-inner"
+                >
+                  <option value="">Use standard rate</option>
+                  <option value="120">R120/hr</option>
+                  <option value="150">R150/hr</option>
+                  <option value="200">R200/hr</option>
+                  <option value="300">R300/hr</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
@@ -150,14 +349,75 @@ export default function DIYvsProCalculator() {
               <h3 className="text-xl font-bold text-white tracking-wide">Project Estimate</h3>
             </div>
             <div className="space-y-4 text-sm text-gray-300">
-              <div className="flex justify-between items-center"><span>Materials Total</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.materials}</span></div>
-              <div className="flex justify-between items-center"><span>Tools Needed</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.tools}</span></div>
-              <div className="flex justify-between items-center"><span>Labor ({result.laborHours}h @ R{timeValue}/hr)</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.laborTotal}</span></div>
+              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs">
+                <span className="text-brand-yellow font-semibold">Estimate mode:</span>{' '}
+                {result.estimateType === 'refined' ? 'Refined with project details' : 'Standardized baseline estimate'}
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-brand-yellow mb-3">Itemized Materials</p>
+                <div className="space-y-2">
+                  {result.materialsList.map((item, idx) => (
+                    <div key={`${item.name}-${idx}`} className="grid grid-cols-[1fr_auto] gap-3 items-start border-b border-white/5 pb-2 last:border-b-0 last:pb-0">
+                      <div>
+                        <p className="text-white font-semibold leading-tight">{item.name}</p>
+                        <p className="text-[11px] text-gray-400">{item.quantity} • R {item.unitCost.toLocaleString()} each</p>
+                      </div>
+                      <span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {item.total.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between items-center"><span>Materials Total</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.materials.toLocaleString()}</span></div>
+              <div className="flex justify-between items-center"><span>Tools Needed</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.tools.toLocaleString()}</span></div>
+              <div className="flex justify-between items-center"><span>Labor ({result.laborHours}h {timeValue ? `@ R${timeValue}/hr` : '@ standard rate'})</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.laborTotal.toLocaleString()}</span></div>
+              {result.laborNotes && (
+                <div className="rounded-lg border border-brand-yellow/20 bg-brand-yellow/5 px-3 py-2 text-xs text-gray-200">
+                  <span className="text-brand-yellow font-semibold">Labor note:</span> {result.laborNotes}
+                </div>
+              )}
+
+              {result.clarifyingQuestions.length > 0 && (
+                <div className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-3">
+                  <p className="text-xs font-bold uppercase tracking-widest text-brand-yellow">Improve Accuracy</p>
+                  <p className="text-xs text-gray-300">Answer these to refine the estimate:</p>
+                  {result.clarifyingQuestions.map((question, idx) => (
+                    <div key={`${question}-${idx}`} className="space-y-1.5">
+                      <label className="block text-[11px] text-gray-200 font-semibold">{question}</label>
+                      <input
+                        type="text"
+                        value={clarifyingAnswers[idx] || ''}
+                        onChange={(e) => setClarifyingAnswers((prev) => ({ ...prev, [idx]: e.target.value }))}
+                        placeholder="Type your answer..."
+                        className="w-full p-3 bg-black/40 text-white rounded-lg border border-white/10 focus:border-brand-yellow/50 focus:ring-1 focus:ring-brand-yellow outline-none"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleRefineEstimate}
+                    disabled={loading}
+                    className="w-full py-3 bg-brand-yellow/90 text-black font-black uppercase tracking-[0.11em] rounded-xl hover:bg-brand-yellow transition-all disabled:opacity-60"
+                  >
+                    {loading ? 'Refining...' : 'Refine Estimate'}
+                  </button>
+                </div>
+              )}
             </div>
             <div className="mt-6 pt-6 border-t border-white/10 flex justify-between items-center">
               <span className="text-lg font-bold text-white">True Project Cost</span>
-              <span className="text-4xl font-black text-brand-yellow tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">R {result.trueCost}</span>
+              <span className="text-4xl font-black text-brand-yellow tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">R {result.trueCost.toLocaleString()}</span>
             </div>
+            <Link
+              href={`/?openSearch=1&service=${encodeURIComponent(result.recommendedService || inferServiceFromText(input))}`}
+              className="mt-4 w-full py-3 bg-brand-yellow text-black font-black uppercase tracking-[0.12em] rounded-xl hover:bg-white transition-all text-center block"
+            >
+              Connect a Pro
+            </Link>
+            <button
+              onClick={handleDownloadPdf}
+              className="mt-6 w-full py-3 bg-white/5 text-brand-yellow font-black uppercase tracking-[0.12em] rounded-xl hover:bg-brand-yellow hover:text-black border border-brand-yellow/40 transition-all"
+            >
+              Download Estimate (PDF)
+            </button>
           </div>
         )}
       </div>

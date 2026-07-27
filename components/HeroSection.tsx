@@ -130,7 +130,7 @@ export default function HeroSection() {
       {installPrompt && (
         <button
           onClick={handleInstallClick}
-          className="scp-btn scp-btn-primary fixed bottom-6 right-6 z-[90] h-14 w-14 !p-0 !rounded-full shadow-2xl"
+          className="scp-btn scp-btn-primary fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[90] h-12 w-12 sm:h-14 sm:w-14 !p-0 !rounded-full shadow-2xl"
           title="Install Skills Connect Pro"
           aria-label="Install Skills Connect Pro"
         >

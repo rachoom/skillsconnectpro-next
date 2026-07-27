@@ -121,10 +121,10 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
       {!showResult && (
         <button 
           onClick={handleCameraClick}
-          className="fixed bottom-6 left-6 z-[90] h-16 w-16 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group"
+          className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-[90] h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group"
           aria-label="Open camera assistant"
         >
-          <Camera className="w-7 h-7 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+          <Camera className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
         </button>
       )}
 

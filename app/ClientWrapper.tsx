@@ -592,9 +592,11 @@ const ArtisanCardSkeleton: React.FC = () => {
 // <--- Part A.2: APP COMPONENT Updates for deep-linking
 interface AppProps {
   deepLinkProfileId?: string | null;
+  autoOpenSearch?: boolean;
+  prefillService?: string | null;
 }
 
-const App: React.FC<AppProps> = ({ deepLinkProfileId }) => { // <--- Receive prop
+const App: React.FC<AppProps> = ({ deepLinkProfileId, autoOpenSearch = false, prefillService = null }) => { // <--- Receive prop
 
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchStep, setSearchStep] = useState<'category' | 'location'>('category');
@@ -630,6 +632,7 @@ const App: React.FC<AppProps> = ({ deepLinkProfileId }) => { // <--- Receive pro
   const locationInputRef = useRef<HTMLInputElement>(null);
   const suggestionRef = useRef<HTMLDivElement>(null);
   const skillSuggestionRef = useRef<HTMLDivElement>(null);
+  const hasAppliedSearchPrefillRef = useRef(false);
 
   const [regForm, setRegForm] = useState({ 
     firstName: '', 
@@ -701,6 +704,22 @@ const App: React.FC<AppProps> = ({ deepLinkProfileId }) => { // <--- Receive pro
         }
     }
   }, [deepLinkProfileId, artisans]);
+
+  useEffect(() => {
+    if (hasAppliedSearchPrefillRef.current) return;
+    if (!autoOpenSearch) return;
+    if (deepLinkProfileId) return;
+
+    const normalizedService = (prefillService || '').trim();
+    setAppState(AppState.HOME);
+    setIsSearchActive(true);
+    setCategoryInput(normalizedService);
+    setLocationInput('');
+    setSearchStep(normalizedService ? 'location' : 'category');
+    setShowSkillSuggestions(false);
+    setShowLocationSuggestions(false);
+    hasAppliedSearchPrefillRef.current = true;
+  }, [autoOpenSearch, prefillService, deepLinkProfileId]);
 
 
   const handleContact = (type: 'call' | 'whatsapp', phone: string) => {
@@ -1476,17 +1495,17 @@ const { error } = await supabase.from('artisan_applications').insert([
 
      {/* NAVBAR */}
       {appState !== AppState.WELCOME && (
-      <nav className={`border-b sticky top-0 z-50 py-4 transition-colors duration-300 backdrop-blur-md ${isDarkMode ? 'bg-[#150f0a]/80 border-white/5' : 'bg-white/80 border-gray-200'}`} aria-label="Primary navigation">
+      <nav className={`border-b sticky top-0 z-50 py-2.5 sm:py-3 transition-colors duration-300 backdrop-blur-md ${isDarkMode ? 'bg-[#150f0a]/80 border-white/5' : 'bg-white/80 border-gray-200'}`} aria-label="Primary navigation">
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center relative">
           
           <button type="button" className="flex items-center cursor-pointer group shrink-0" onClick={goHome} aria-label="Go to home">
-            <Image src="/logo-new.svg" alt="SkillsConnectPro" width={224} height={56} unoptimized className="w-36 sm:w-48 lg:w-56 h-auto transition-transform group-hover:scale-105 origin-left" />
+            <Image src="/logo-new.svg" alt="SkillsConnectPro" width={224} height={56} unoptimized className="w-32 sm:w-40 lg:w-48 h-auto transition-transform group-hover:scale-105 origin-left" />
           </button>
           
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-4 shrink-0">
             {/* 🛠️ FIX: Desktop Menu - added whitespace-nowrap so links don't break/wrap */}
        {/* 🛠️ FIX: Added md:!flex to force override the stubborn global hidden rule, plus shrink-0 to prevent flexbox crushing */}
-        <div className={`hidden md:!flex items-center space-x-6 text-xs font-black uppercase tracking-widest mr-4 shrink-0 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        <div className={`hidden md:!flex items-center space-x-5 text-[11px] font-black uppercase tracking-[0.12em] mr-3 shrink-0 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           <button onClick={handleFindService} className="hover:text-brand-yellow transition-colors whitespace-nowrap">Find Artisans</button>
           <button onClick={goToRegistration} className="hover:text-brand-yellow transition-colors whitespace-nowrap">Standard Form</button>
           <button onClick={handleSupport} className="hover:text-brand-yellow transition-colors whitespace-nowrap">Support</button>
@@ -1498,24 +1517,28 @@ const { error } = await supabase.from('artisan_applications').insert([
             {!isInstalled && (
               <button
                 onClick={handleInstallClick}
-                className="h-10 px-3 sm:px-4 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow text-[10px] sm:text-xs font-black uppercase tracking-[0.14em] shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all whitespace-nowrap shrink-0"
+                className="h-8 sm:h-9 px-2 sm:px-3 md:px-3.5 sm:min-w-[104px] md:min-w-[118px] rounded-xl sm:rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow text-[8px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.11em] shadow-[0_7px_16px_rgba(250,204,21,0.2)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_9px_20px_rgba(250,204,21,0.32)] active:translate-y-[1px] transition-all whitespace-nowrap shrink-0"
+                aria-label="Install app"
               >
-                Install App
+                <span className="hidden sm:inline">Install App</span>
+                <span className="sm:hidden">App</span>
               </button>
             )}
             <button 
               onClick={goToQuickJoin} 
-              className="h-10 px-3 sm:px-4 md:px-5 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-[0.14em] shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all whitespace-nowrap shrink-0"
+              className="h-8 sm:h-9 px-2 sm:px-3 md:px-3.5 sm:min-w-[104px] md:min-w-[118px] rounded-xl sm:rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow text-[8px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.11em] shadow-[0_7px_16px_rgba(250,204,21,0.2)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_9px_20px_rgba(250,204,21,0.32)] active:translate-y-[1px] transition-all whitespace-nowrap shrink-0"
+              aria-label="Open 1-click join"
             >
-              <span className="inline-flex items-center gap-1.5">
-                <span aria-hidden="true" className="text-sm leading-none">⚡</span>
-                <span>1-Click Join</span>
+              <span className="inline-flex items-center gap-1 sm:gap-1.5">
+                <span aria-hidden="true" className="text-[10px] sm:text-xs leading-none">⚡</span>
+                <span className="hidden sm:inline">1-Click Join</span>
+                <span className="sm:hidden">Join</span>
               </span>
             </button>
             
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="h-10 w-10 md:!hidden rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all shrink-0 flex items-center justify-center"
+              className="h-9 w-9 md:!hidden rounded-xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_7px_16px_rgba(250,204,21,0.2)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_9px_20px_rgba(250,204,21,0.32)] active:translate-y-[1px] transition-all shrink-0 flex items-center justify-center"
               aria-label="Toggle mobile menu"
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-nav-menu"
@@ -1544,7 +1567,7 @@ const { error } = await supabase.from('artisan_applications').insert([
       </nav>
       )}
 
-      <main className="flex-1">
+      <main className="flex-1 pb-24 sm:pb-28 md:pb-16">
         {selectedBusinessId ? (
           <BusinessDetail id={selectedBusinessId} onBack={() => setSelectedBusinessId(null)} />
         ) : (
@@ -1640,7 +1663,7 @@ const { error } = await supabase.from('artisan_applications').insert([
                           setIsSearchActive(true);
                           setSearchStep('location');
                         }}
-                        className={`px-4 min-h-11 md:px-4 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider border transition-all hover:border-brand-yellow hover:text-brand-yellow active:scale-95 ${isDarkMode ? 'border-white/10 text-gray-500 bg-white/5' : 'border-gray-300 text-gray-500 bg-white'}`}
+                        className={`px-4 min-h-11 md:px-4 md:py-2 rounded-full text-xs font-black uppercase tracking-[0.12em] border transition-all hover:border-brand-yellow hover:text-brand-yellow hover:bg-black/75 active:scale-95 backdrop-blur-sm ${isDarkMode ? 'border-brand-yellow/35 text-amber-100 bg-black/55 shadow-[0_8px_18px_rgba(0,0,0,0.35)]' : 'border-amber-300 text-amber-900 bg-amber-50/90 shadow-[0_6px_14px_rgba(120,53,15,0.12)]'}`}
                       >
                         {cat}
                       </button>
@@ -2520,6 +2543,9 @@ const AppWrapperContent = () => {
   const claimId = searchParams.get('claim');
   const inviteId = searchParams.get('invite');
   const profileId = searchParams.get('profile'); 
+  const openSearchParam = searchParams.get('openSearch');
+  const serviceParam = searchParams.get('service');
+  const autoOpenSearch = openSearchParam === '1' || openSearchParam === 'true' || openSearchParam === 'yes';
 
   // 1. VIP claim links should always land in the acceptance flow.
   if (inviteId || claimId) {
@@ -2527,7 +2553,7 @@ const AppWrapperContent = () => {
   }
 
   // 2. For ?profile=ID or no parameters, load the main app.
-  return <App deepLinkProfileId={profileId} />;
+  return <App deepLinkProfileId={profileId} autoOpenSearch={autoOpenSearch} prefillService={serviceParam} />;
 };
 
 export default function ClientWrapper() {

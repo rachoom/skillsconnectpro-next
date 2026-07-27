@@ -291,8 +291,8 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onExecuteSearch,
 
       {/* Unified Yellow Outlined Mic Button */}
       {!isOpen && (
-        <button onClick={() => setIsOpen(true)} className="fixed bottom-6 right-6 z-[90] h-16 w-16 rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group">
-          <Mic className="w-7 h-7 group-hover:animate-pulse" strokeWidth={2.5} />
+        <button onClick={() => setIsOpen(true)} className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[90] h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group">
+          <Mic className="w-5 h-5 sm:w-6 sm:h-6 group-hover:animate-pulse" strokeWidth={2.5} />
         </button>
       )}
 

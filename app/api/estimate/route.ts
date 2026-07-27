@@ -12,9 +12,19 @@ export async function POST(req: Request) {
     const body = await req.json();
     const prompt = body.prompt || "General project";
     const imageStr = body.image || "";
+    const qaHistory = Array.isArray(body.qaHistory) ? body.qaHistory : [];
+    const qaContext = qaHistory
+      .map((item: any) => {
+        const question = String(item?.question || '').trim();
+        const answer = String(item?.answer || '').trim();
+        if (!question || !answer) return null;
+        return `- ${question}: ${answer}`;
+      })
+      .filter(Boolean)
+      .join('\n');
 
     const contents: any[] = [
-      `Act as an expert construction estimator. Analyze this project: "${prompt}". Return ONLY a valid JSON object with realistic estimated costs in South African Rand (ZAR). Format EXACTLY like this: {"materialsTotal": 1500, "toolsNeeded": 300, "laborHours": 8}.`
+      `Act as an expert construction estimator in South Africa. Analyze this project: "${prompt}".${qaContext ? ` Additional confirmed details:\n${qaContext}` : ''} Return ONLY valid JSON with realistic costs in ZAR and actionable follow-up guidance. Use this exact structure and keys: {"materials":[{"name":"Cement 42.5N","quantity":"4 bags","unitCost":120,"total":480}],"materialsTotal":1500,"toolsNeeded":300,"laborHours":8,"laborNotes":"Optional short note","recommendedService":"Plumber","estimateType":"standardized","clarifyingQuestions":["What is the room size in square meters?","Is the surface already plastered?"]}. Rules: (1) materials must be an array with at least 3 items when enough context exists, (2) each material must include name, quantity, unitCost, total, (3) numbers only for costs/hours, no currency symbols, (4) materialsTotal must equal the sum of material totals, (5) estimateType must be "standardized" if details are incomplete, otherwise "refined", (6) add 2-4 clarifyingQuestions when details are incomplete, (7) if details are sufficient return clarifyingQuestions as an empty array, (8) recommendedService must be a practical artisan trade label such as Plumber, Electrician, Builder, Painter, Cleaner, Tiler.`
     ];
 
     if (imageStr) {
@@ -32,7 +42,7 @@ export async function POST(req: Request) {
       config: { responseMimeType: "application/json" }
     });
 
-    const responseText = response.text || '{"materialsTotal": 0, "toolsNeeded": 0, "laborHours": 4}';
+    const responseText = response.text || '{"materials":[],"materialsTotal":0,"toolsNeeded":0,"laborHours":4,"laborNotes":"","recommendedService":"General Contractor","estimateType":"standardized","clarifyingQuestions":[]}';
     return NextResponse.json({ estimate: responseText });
 
   } catch (error: any) {
