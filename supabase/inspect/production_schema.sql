@@ -48,14 +48,17 @@ where tc.table_schema = 'public'
 order by tc.table_name, tc.constraint_type, tc.constraint_name, kcu.ordinal_position;
 
 -- 3. Row-level security status
+-- pg_tables exposes rowsecurity but not FORCE ROW LEVEL SECURITY, so read both flags from pg_class.
 select
-  schemaname,
-  tablename,
-  rowsecurity,
-  forcerowsecurity
-from pg_tables
-where schemaname = 'public'
-order by tablename;
+  n.nspname as schemaname,
+  c.relname as tablename,
+  c.relrowsecurity as rowsecurity,
+  c.relforcerowsecurity as force_row_security
+from pg_catalog.pg_class c
+join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public'
+  and c.relkind in ('r', 'p')
+order by c.relname;
 
 -- 4. Existing RLS policies
 select
