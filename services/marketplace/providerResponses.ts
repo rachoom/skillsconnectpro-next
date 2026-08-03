@@ -4,7 +4,7 @@ import { hashOpaqueToken } from './tokens';
 
 export interface ProviderOpportunity {
   invitationId: string;
-  providerId: string;
+  providerId: number;
   status: string;
   responseDeadline: string | null;
   project: {
@@ -43,7 +43,7 @@ export interface SubmitProviderResponseInput {
 type InvitationTokenRow = {
   id: string;
   project_id: string;
-  provider_id: string;
+  provider_id: number;
   status: string;
   response_deadline: string | null;
   response_token_expires_at: string | null;
@@ -219,7 +219,7 @@ export async function submitProviderResponse(
     project_id: invitation.project_id,
     event_type: declined ? 'provider_declined' : 'provider_response_received',
     actor_type: 'provider',
-    actor_id: invitation.provider_id,
+    actor_id: String(invitation.provider_id),
     message: declined
       ? 'A provider declined the opportunity.'
       : 'A provider submitted an availability or estimate response.',
