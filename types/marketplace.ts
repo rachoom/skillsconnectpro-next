@@ -129,7 +129,7 @@ export type ProviderAvailabilityStatus =
   | 'unknown';
 
 export interface ProviderAvailability {
-  providerId: string;
+  providerId: number;
   availabilityStatus: ProviderAvailabilityStatus;
   availableFrom: string | null;
   availableUntil: string | null;
@@ -161,7 +161,7 @@ export type DeliveryChannel = 'web' | 'whatsapp' | 'sms' | 'email' | 'phone' | '
 export interface LeadInvitation {
   id: string;
   projectId: string;
-  providerId: string;
+  providerId: number;
   waveNumber: number;
   status: LeadInvitationStatus;
   deliveryChannel: DeliveryChannel;
@@ -189,7 +189,7 @@ export interface ProviderResponse {
   id: string;
   leadInvitationId: string;
   projectId: string;
-  providerId: string;
+  providerId: number;
   responseType: ProviderResponseType;
   arrivalWindowStart: string | null;
   arrivalWindowEnd: string | null;
@@ -215,7 +215,7 @@ export type ProjectMatchStatus =
 export interface ProjectMatch {
   id: string;
   projectId: string;
-  providerId: string;
+  providerId: number;
   providerResponseId: string | null;
   status: ProjectMatchStatus;
   selectedAt: string;
