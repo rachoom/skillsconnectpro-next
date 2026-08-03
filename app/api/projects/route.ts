@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     }
 
     const input = parseCreateProjectInput(await request.json());
-    const project = await createProject(input);
+    const { project, accessToken } = await createProject(input);
 
     return NextResponse.json(
       {
@@ -130,6 +130,7 @@ export async function POST(request: Request) {
           guestPhone: undefined,
           guestEmail: undefined,
         },
+        accessToken,
       },
       { status: 201 },
     );
