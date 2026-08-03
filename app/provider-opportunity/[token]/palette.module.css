@@ -1,0 +1,117 @@
+.shell {
+  min-height: 100vh;
+  background: #66725c;
+}
+
+.shell :global(main) {
+  background: #66725c !important;
+  color: #20261f !important;
+}
+
+.shell :global(header),
+.shell :global(article),
+.shell :global(form),
+.shell :global(main > section) {
+  background: #f1ede2 !important;
+  border-color: #4f5a49 !important;
+  color: #20261f !important;
+}
+
+.shell :global(header),
+.shell :global(article),
+.shell :global(form) {
+  box-shadow: 0 12px 28px rgba(32, 38, 31, 0.18) !important;
+}
+
+.shell :global([class*="bg-[#FFF6D8]"]),
+.shell :global([class*="bg-[#FFF0A8]"]),
+.shell :global([class*="bg-[#FFF9E8]"]),
+.shell :global([class*="bg-[#FFF2C7]"]),
+.shell :global([class*="bg-[#FFF0B8]"]),
+.shell :global([class*="bg-[#FFFDF5]"]),
+.shell :global([class*="bg-[#F7FAF2]"]),
+.shell :global([class*="bg-[#E6F8DF]"]),
+.shell :global([class*="bg-[#FFDDE2]"]),
+.shell :global([class*="bg-[#EAF3DE]"]),
+.shell :global([class*="bg-[#F3F8ED]"]),
+.shell :global([class*="bg-[#FFD166]"]),
+.shell :global([class*="bg-[#FFE58A]"]),
+.shell :global([class*="bg-[#BDE0FE]"]),
+.shell :global([class*="bg-[#CDECCF]"]),
+.shell :global([class*="bg-[#DCCBFF]"]),
+.shell :global([class*="bg-[#E2D6FF]"]),
+.shell :global([class*="bg-[#C8F0D2]"]),
+.shell :global([class*="bg-[#FFC8D8]"]),
+.shell :global([class*="bg-[#FFE5E9]"]),
+.shell :global([class*="bg-[#FFC8D2]"]) {
+  background-color: #f1ede2 !important;
+}
+
+.shell :global([class*="bg-[#FFE067]"]),
+.shell :global([class*="bg-[#FFD45C]"]),
+.shell :global([class*="bg-[#FFD75F]"]),
+.shell :global([class*="bg-[#FFC21A]"]) {
+  background-color: #d5a62d !important;
+}
+
+.shell :global(form button) {
+  background-color: #f1ede2 !important;
+  border-color: #66725c !important;
+  color: #20261f !important;
+}
+
+.shell :global(form button[class*="ring-[#203020]/20"]),
+.shell :global(form button[class*="ring-[#6E2430]/15"]),
+.shell :global(form button[class*="bg-[#FFD75F]"]),
+.shell :global(form > button:last-child) {
+  background-color: #d5a62d !important;
+  border-color: #8c6a12 !important;
+  color: #20261f !important;
+}
+
+.shell :global(input),
+.shell :global(textarea) {
+  background: #f1ede2 !important;
+  border-color: #66725c !important;
+  color: #20261f !important;
+}
+
+.shell :global(input::placeholder),
+.shell :global(textarea::placeholder) {
+  color: #6b7168 !important;
+}
+
+.shell :global([class*="text-[#A6323B]"]),
+.shell :global([class*="text-[#6E3439]"]),
+.shell :global([class*="text-[#8E3039]"]),
+.shell :global([class*="text-[#6E2430]"]),
+.shell :global([class*="text-[#74404A]"]),
+.shell :global([class*="text-[#64212C]"]) {
+  color: #20261f !important;
+}
+
+.shell :global([class*="border-[#C95D65]"]),
+.shell :global([class*="border-[#B95C69]"]),
+.shell :global([class*="border-[#D7A5AD]"]),
+.shell :global([class*="border-[#96515C]"]),
+.shell :global([class*="border-[#79ADD0]"]),
+.shell :global([class*="border-[#8EB98B]"]),
+.shell :global([class*="border-[#A996D1]"]),
+.shell :global([class*="border-[#79B695]"]),
+.shell :global([class*="border-[#D798AA]"]) {
+  border-color: #66725c !important;
+}
+
+.shell :global([class*="text-[#B07800]"]),
+.shell :global([class*="text-[#B67B00]"]),
+.shell :global([class*="text-[#5B4300]"]),
+.shell :global([class*="text-[#4A3600]"]),
+.shell :global([class*="text-[#4A3500]"]),
+.shell :global([class*="text-[#5F4300]"]),
+.shell :global([class*="text-[#6F5414]"]) {
+  color: #6f5311 !important;
+}
+
+.shell :global([class*="shadow-[#355332]"]) {
+  --tw-shadow-color: rgba(32, 38, 31, 0.2) !important;
+}
