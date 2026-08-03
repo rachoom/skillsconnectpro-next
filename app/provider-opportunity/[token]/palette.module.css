@@ -1,26 +1,116 @@
 .shell {
+  --page: #596451;
+  --surface: #e7e2d7;
+  --surface-muted: #d8ddd0;
+  --field: #f0ece3;
+  --accent: #c99b2e;
+  --accent-border: #876817;
+  --text: #1d231e;
+  --muted: #626a61;
+  --border: #4d594b;
+  --shadow: rgba(28, 36, 29, 0.22);
+
   min-height: 100vh;
-  background: #66725c;
+  background: var(--page);
+  color: var(--text);
+  color-scheme: light;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.dark {
+  --page: #182019;
+  --surface: #252d26;
+  --surface-muted: #303930;
+  --field: #1f261f;
+  --accent: #d1a236;
+  --accent-border: #8f6d19;
+  --text: #f0ece2;
+  --muted: #b7bdb4;
+  --border: #5a6658;
+  --shadow: rgba(0, 0, 0, 0.38);
+  color-scheme: dark;
+}
+
+.light {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  .shell:not(.light) {
+    --page: #182019;
+    --surface: #252d26;
+    --surface-muted: #303930;
+    --field: #1f261f;
+    --accent: #d1a236;
+    --accent-border: #8f6d19;
+    --text: #f0ece2;
+    --muted: #b7bdb4;
+    --border: #5a6658;
+    --shadow: rgba(0, 0, 0, 0.38);
+    color-scheme: dark;
+  }
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.75rem;
+  padding: 0.65rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.topbarTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 5.25rem;
+  min-height: 2.45rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.themeToggle:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .shell :global(main) {
-  background: #66725c !important;
-  color: #20261f !important;
+  background: var(--page) !important;
+  color: var(--text) !important;
 }
 
 .shell :global(header),
 .shell :global(article),
 .shell :global(form),
 .shell :global(main > section) {
-  background: #f1ede2 !important;
-  border-color: #4f5a49 !important;
-  color: #20261f !important;
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
 }
 
 .shell :global(header),
 .shell :global(article),
 .shell :global(form) {
-  box-shadow: 0 12px 28px rgba(32, 38, 31, 0.18) !important;
+  box-shadow: 0 12px 28px var(--shadow) !important;
 }
 
 .shell :global([class*="bg-[#FFF6D8]"]),
@@ -32,8 +122,6 @@
 .shell :global([class*="bg-[#F7FAF2]"]),
 .shell :global([class*="bg-[#E6F8DF]"]),
 .shell :global([class*="bg-[#FFDDE2]"]),
-.shell :global([class*="bg-[#EAF3DE]"]),
-.shell :global([class*="bg-[#F3F8ED]"]),
 .shell :global([class*="bg-[#FFD166]"]),
 .shell :global([class*="bg-[#FFE58A]"]),
 .shell :global([class*="bg-[#BDE0FE]"]),
@@ -44,50 +132,84 @@
 .shell :global([class*="bg-[#FFC8D8]"]),
 .shell :global([class*="bg-[#FFE5E9]"]),
 .shell :global([class*="bg-[#FFC8D2]"]) {
-  background-color: #f1ede2 !important;
+  background-color: var(--surface) !important;
+}
+
+.shell :global([class*="bg-[#EAF3DE]"]),
+.shell :global([class*="bg-[#F3F8ED]"]),
+.shell :global([class*="bg-[#FFFFFF]"]) {
+  background-color: var(--surface-muted) !important;
 }
 
 .shell :global([class*="bg-[#FFE067]"]),
 .shell :global([class*="bg-[#FFD45C]"]),
 .shell :global([class*="bg-[#FFD75F]"]),
 .shell :global([class*="bg-[#FFC21A]"]) {
-  background-color: #d5a62d !important;
+  background-color: var(--accent) !important;
 }
 
 .shell :global(form button) {
-  background-color: #f1ede2 !important;
-  border-color: #66725c !important;
-  color: #20261f !important;
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
 }
 
 .shell :global(form button[class*="ring-[#203020]/20"]),
 .shell :global(form button[class*="ring-[#6E2430]/15"]),
 .shell :global(form button[class*="bg-[#FFD75F]"]),
 .shell :global(form > button:last-child) {
-  background-color: #d5a62d !important;
-  border-color: #8c6a12 !important;
-  color: #20261f !important;
+  background-color: var(--accent) !important;
+  border-color: var(--accent-border) !important;
+  color: var(--text) !important;
 }
 
 .shell :global(input),
 .shell :global(textarea) {
-  background: #f1ede2 !important;
-  border-color: #66725c !important;
-  color: #20261f !important;
+  background: var(--field) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
 }
 
 .shell :global(input::placeholder),
 .shell :global(textarea::placeholder) {
-  color: #6b7168 !important;
+  color: var(--muted) !important;
 }
 
+.shell :global([class*="text-[#203020]"]),
+.shell :global([class*="text-[#2D1F1F]"]),
+.shell :global([class*="text-[#173B28]"]),
+.shell :global([class*="text-[#3E493A]"]),
+.shell :global([class*="text-[#293829]"]),
 .shell :global([class*="text-[#A6323B]"]),
 .shell :global([class*="text-[#6E3439]"]),
 .shell :global([class*="text-[#8E3039]"]),
 .shell :global([class*="text-[#6E2430]"]),
 .shell :global([class*="text-[#74404A]"]),
 .shell :global([class*="text-[#64212C]"]) {
-  color: #20261f !important;
+  color: var(--text) !important;
+}
+
+.shell :global([class*="text-[#4F5D4A]"]),
+.shell :global([class*="text-[#60705A]"]),
+.shell :global([class*="text-[#52644E]"]),
+.shell :global([class*="text-[#65735E]"]),
+.shell :global([class*="text-[#6E765F]"]),
+.shell :global([class*="text-[#4D5949]"]),
+.shell :global([class*="text-[#53644D]"]),
+.shell :global([class*="text-[#66725F]"]),
+.shell :global([class*="text-[#355D43]"]) {
+  color: var(--muted) !important;
+}
+
+.shell :global([class*="text-[#B07800]"]),
+.shell :global([class*="text-[#B67B00]"]),
+.shell :global([class*="text-[#5B4300]"]),
+.shell :global([class*="text-[#4A3600]"]),
+.shell :global([class*="text-[#4A3500]"]),
+.shell :global([class*="text-[#5F4300]"]),
+.shell :global([class*="text-[#6F5414]"]),
+.shell :global([class*="text-[#21885A]"]) {
+  color: var(--accent-border) !important;
 }
 
 .shell :global([class*="border-[#C95D65]"]),
@@ -98,20 +220,33 @@
 .shell :global([class*="border-[#8EB98B]"]),
 .shell :global([class*="border-[#A996D1]"]),
 .shell :global([class*="border-[#79B695]"]),
-.shell :global([class*="border-[#D798AA]"]) {
-  border-color: #66725c !important;
-}
-
-.shell :global([class*="text-[#B07800]"]),
-.shell :global([class*="text-[#B67B00]"]),
-.shell :global([class*="text-[#5B4300]"]),
-.shell :global([class*="text-[#4A3600]"]),
-.shell :global([class*="text-[#4A3500]"]),
-.shell :global([class*="text-[#5F4300]"]),
-.shell :global([class*="text-[#6F5414]"]) {
-  color: #6f5311 !important;
+.shell :global([class*="border-[#D798AA]"]),
+.shell :global([class*="border-[#7CAD6E]"]),
+.shell :global([class*="border-[#D1A93C]"]),
+.shell :global([class*="border-[#D3A826]"]),
+.shell :global([class*="border-[#B7CBAE]"]),
+.shell :global([class*="border-[#BDD0B5]"]),
+.shell :global([class*="border-[#9DBA8F]"]) {
+  border-color: var(--border) !important;
 }
 
 .shell :global([class*="shadow-[#355332]"]) {
-  --tw-shadow-color: rgba(32, 38, 31, 0.2) !important;
+  --tw-shadow-color: var(--shadow) !important;
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    min-height: 3.4rem;
+    padding-inline: 0.8rem;
+  }
+
+  .topbarTitle {
+    font-size: 0.7rem;
+  }
+
+  .themeToggle {
+    min-width: 4.75rem;
+    min-height: 2.25rem;
+    padding: 0.45rem 0.7rem;
+  }
 }
