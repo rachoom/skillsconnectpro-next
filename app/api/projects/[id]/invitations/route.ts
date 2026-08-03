@@ -34,8 +34,8 @@ function parseTargets(body: unknown): { targets: ProviderInvitationTarget[]; wav
     }
 
     const item = target as Record<string, unknown>;
-    if (typeof item.providerId !== 'string' || !item.providerId.trim()) {
-      throw new Error(`targets[${index}].providerId is required.`);
+    if (!Number.isInteger(item.providerId) || (item.providerId as number) < 1) {
+      throw new Error(`targets[${index}].providerId must be a positive integer.`);
     }
 
     const deliveryChannel = item.deliveryChannel ?? 'web';
@@ -56,7 +56,7 @@ function parseTargets(body: unknown): { targets: ProviderInvitationTarget[]; wav
     }
 
     return {
-      providerId: item.providerId,
+      providerId: item.providerId as number,
       deliveryChannel: deliveryChannel as DeliveryChannel,
       deliveryAddress: typeof item.deliveryAddress === 'string' ? item.deliveryAddress : null,
       providerSnapshot: (item.providerSnapshot as Record<string, unknown> | undefined) ?? {},
