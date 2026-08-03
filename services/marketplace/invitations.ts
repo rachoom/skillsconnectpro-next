@@ -4,7 +4,7 @@ import { getInvitationResponseDeadline } from './routing';
 import { createTokenPair } from './tokens';
 
 export interface ProviderInvitationTarget {
-  providerId: string;
+  providerId: number;
   deliveryChannel?: DeliveryChannel;
   deliveryAddress?: string | null;
   providerSnapshot?: Record<string, unknown>;
@@ -12,7 +12,7 @@ export interface ProviderInvitationTarget {
 
 export interface CreatedProviderInvitation {
   invitationId: string;
-  providerId: string;
+  providerId: number;
   responseToken: string;
   responseDeadline: string;
   deliveryChannel: DeliveryChannel;
@@ -39,9 +39,11 @@ export async function createProviderInvitations(input: {
     throw new Error('A maximum of 10 providers may be invited in one wave.');
   }
 
-  const uniqueProviderIds = new Set<string>();
+  const uniqueProviderIds = new Set<number>();
   for (const target of input.targets) {
-    if (!target.providerId?.trim()) throw new Error('Every provider target needs a providerId.');
+    if (!Number.isInteger(target.providerId) || target.providerId < 1) {
+      throw new Error('Every provider target needs a positive integer providerId.');
+    }
     if (uniqueProviderIds.has(target.providerId)) {
       throw new Error(`Provider ${target.providerId} appears more than once.`);
     }
@@ -78,7 +80,7 @@ export async function createProviderInvitations(input: {
       token: tokenPair.token,
       row: {
         project_id: input.projectId,
-        provider_id: target.providerId.trim(),
+        provider_id: target.providerId,
         wave_number: waveNumber,
         status: 'queued',
         delivery_channel: deliveryChannel,
