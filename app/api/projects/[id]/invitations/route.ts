@@ -95,7 +95,7 @@ export async function POST(
       {
         invitations: invitations.map((invitation) => ({
           ...invitation,
-          responseUrl: `${origin}/api/provider-opportunities/${invitation.responseToken}`,
+          responseUrl: `${origin}/provider-opportunity/${invitation.responseToken}`,
         })),
       },
       { status: 201 },
