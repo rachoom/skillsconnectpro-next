@@ -6,10 +6,12 @@ import type {
   ProjectStatusEvent,
 } from '../../types/marketplace';
 import { getProjectResponseTarget } from './routing';
+import { createTokenPair, hashOpaqueToken } from './tokens';
 
 type ProjectRow = {
   id: string;
   customer_id: string | null;
+  customer_access_token_hash: string | null;
   guest_name: string | null;
   guest_phone: string | null;
   guest_email: string | null;
@@ -42,6 +44,11 @@ type ProjectRow = {
   created_at: string;
   updated_at: string;
 };
+
+export interface CreatedProject {
+  project: Project;
+  accessToken: string;
+}
 
 function cleanOptionalText(value: string | null | undefined): string | null {
   if (typeof value !== 'string') return null;
@@ -120,15 +127,17 @@ export function mapProjectRow(row: ProjectRow): Project {
   };
 }
 
-export async function createProject(input: CreateProjectInput): Promise<Project> {
+export async function createProject(input: CreateProjectInput): Promise<CreatedProject> {
   validateCreateProjectInput(input);
 
   const supabase = getSupabaseAdmin();
   const urgency = input.urgency ?? 'planned';
   const responseTargetAt = getProjectResponseTarget(urgency).toISOString();
+  const access = createTokenPair();
 
   const row = {
     customer_id: input.customerId ?? null,
+    customer_access_token_hash: access.hash,
     guest_name: cleanOptionalText(input.guestName),
     guest_phone: cleanOptionalText(input.guestPhone),
     guest_email: cleanOptionalText(input.guestEmail),
@@ -164,12 +173,15 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
     .from('projects')
     .insert(row)
     .select('*')
-    .single<ProjectRow>();
+    .single();
 
   if (error) throw new Error(`Unable to create project: ${error.message}`);
+  if (!data) throw new Error('Unable to create project: no row returned.');
+
+  const projectRow = data as ProjectRow;
 
   const { error: eventError } = await supabase.from('project_status_events').insert({
-    project_id: data.id,
+    project_id: projectRow.id,
     event_type: 'assessment_completed',
     actor_type: input.customerId ? 'customer' : 'system',
     actor_id: input.customerId ?? null,
@@ -185,7 +197,25 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
     console.error('Project created but timeline event failed:', eventError.message);
   }
 
-  return mapProjectRow(data);
+  return { project: mapProjectRow(projectRow), accessToken: access.token };
+}
+
+export async function getProjectByAccessToken(
+  projectId: string,
+  accessToken: string,
+): Promise<Project | null> {
+  const supabase = getSupabaseAdmin();
+  const accessTokenHash = hashOpaqueToken(accessToken);
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', projectId)
+    .eq('customer_access_token_hash', accessTokenHash)
+    .maybeSingle();
+
+  if (error) throw new Error(`Unable to load project: ${error.message}`);
+  return data ? mapProjectRow(data as ProjectRow) : null;
 }
 
 export async function getProjectTimeline(projectId: string): Promise<ProjectStatusEvent[]> {
