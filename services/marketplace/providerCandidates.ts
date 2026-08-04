@@ -24,9 +24,16 @@ type ProjectCandidateRow = {
   id: string;
   category: string;
   urgency: ProjectUrgency;
+  status: string;
   location_text: string;
   suburb: string | null;
   city: string | null;
+};
+
+type ProjectMatchRow = {
+  provider_id: number;
+  status: string;
+  contact_released_at: string | null;
 };
 
 type ArtisanRow = {
@@ -58,6 +65,23 @@ type InvitationHistoryRow = {
   project_id: string;
   created_at: string;
 };
+
+const ROUTING_CLOSED_PROJECT_STATUSES = new Set([
+  'provider_selected',
+  'contact_released',
+  'in_progress',
+  'completed',
+  'cancelled',
+  'unfulfilled',
+]);
+
+const ROUTING_CLOSED_MATCH_STATUSES = new Set([
+  'selected',
+  'contact_released',
+  'accepted',
+  'in_progress',
+  'completed',
+]);
 
 const CATEGORY_GROUPS: Record<string, string[]> = {
   plumbing: ['plumbing', 'plumber', 'plumbers'],
@@ -200,19 +224,54 @@ function scoreCandidate(input: {
 export async function getProviderCandidates(projectId: string): Promise<{
   project: ProjectCandidateRow;
   candidates: ProviderCandidate[];
+  routingClosed: boolean;
+  routingReason: string | null;
+  selectedProviderId: number | null;
 }> {
   const supabase = getSupabaseAdmin();
 
-  const { data: projectData, error: projectError } = await supabase
-    .from('projects')
-    .select('id, category, urgency, location_text, suburb, city')
-    .eq('id', projectId)
-    .single();
+  const [projectResult, matchResult] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('id, category, urgency, status, location_text, suburb, city')
+      .eq('id', projectId)
+      .single(),
+    supabase
+      .from('project_matches')
+      .select('provider_id, status, contact_released_at')
+      .eq('project_id', projectId)
+      .maybeSingle(),
+  ]);
 
-  if (projectError) throw new Error(`Unable to load project: ${projectError.message}`);
-  if (!projectData) throw new Error('Project not found.');
+  if (projectResult.error) {
+    throw new Error(`Unable to load project: ${projectResult.error.message}`);
+  }
+  if (!projectResult.data) throw new Error('Project not found.');
+  if (matchResult.error) {
+    throw new Error(`Unable to check current provider selection: ${matchResult.error.message}`);
+  }
 
-  const project = projectData as ProjectCandidateRow;
+  const project = projectResult.data as ProjectCandidateRow;
+  const match = (matchResult.data as ProjectMatchRow | null) ?? null;
+  const routingClosed =
+    ROUTING_CLOSED_PROJECT_STATUSES.has(project.status) ||
+    Boolean(
+      match &&
+      (match.contact_released_at !== null || ROUTING_CLOSED_MATCH_STATUSES.has(match.status)),
+    );
+
+  if (routingClosed) {
+    return {
+      project,
+      candidates: [],
+      routingClosed: true,
+      routingReason: match?.contact_released_at
+        ? 'Contact details have been released to the selected provider.'
+        : 'Provider routing is closed because a provider has already been selected.',
+      selectedProviderId: match?.provider_id ?? null,
+    };
+  }
+
   const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
   const [artisanResult, availabilityResult, invitationResult] = await Promise.all([
@@ -292,5 +351,11 @@ export async function getProviderCandidates(projectId: string): Promise<{
     .sort((left, right) => right.score - left.score)
     .slice(0, 30);
 
-  return { project, candidates };
+  return {
+    project,
+    candidates,
+    routingClosed: false,
+    routingReason: null,
+    selectedProviderId: null,
+  };
 }
