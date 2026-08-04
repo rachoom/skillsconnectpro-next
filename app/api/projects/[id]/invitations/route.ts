@@ -104,12 +104,19 @@ export async function POST(
     const message = error instanceof Error ? error.message : 'Unable to invite providers.';
     const unauthorised = error instanceof Error && error.name === 'UnauthorisedError';
     const configurationError = message.includes('MARKETPLACE_ADMIN_API_KEY') || message.includes('SUPABASE_');
+    const routingClosed = message.toLowerCase().includes('invitations are closed');
 
     console.error('POST project invitations failed:', error);
 
     return NextResponse.json(
-      { error: unauthorised ? 'Unauthorised.' : configurationError ? 'Marketplace service is not configured.' : message },
-      { status: unauthorised ? 401 : configurationError ? 503 : 400 },
+      {
+        error: unauthorised
+          ? 'Unauthorised.'
+          : configurationError
+            ? 'Marketplace service is not configured.'
+            : message,
+      },
+      { status: unauthorised ? 401 : configurationError ? 503 : routingClosed ? 409 : 400 },
     );
   }
 }
