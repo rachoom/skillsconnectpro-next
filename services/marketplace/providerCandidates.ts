@@ -22,6 +22,10 @@ export interface ProviderCandidate {
 
 type ProjectCandidateRow = {
   id: string;
+  title: string;
+  customer_description: string | null;
+  ai_summary: string | null;
+  likely_issue: string | null;
   category: string;
   urgency: ProjectUrgency;
   status: string;
@@ -83,51 +87,105 @@ const ROUTING_CLOSED_MATCH_STATUSES = new Set([
   'completed',
 ]);
 
-const CATEGORY_GROUPS: Record<string, string[]> = {
-  plumbing: ['plumbing', 'plumber', 'plumbers'],
-  electrical: ['electrical', 'electrician', 'electricians'],
-  building: ['builder', 'builders', 'building', 'construction', 'general contractor', 'general contractors'],
-  general: ['general', 'handyman', 'handymen', 'general contractor', 'general contractors'],
-  painting: ['painting', 'painter', 'painters'],
-  roofing: ['roofing', 'roofer', 'roofers'],
-  carpentry: ['carpentry', 'carpenter', 'carpenters'],
-  tiling: ['tiling', 'tiler', 'tilers'],
-  welding: ['welding', 'welder', 'welders'],
+const TRADE_ALIASES: Record<string, string[]> = {
+  plumbing: ['plumb', 'plumber', 'plumbers', 'plumbing'],
+  electrical: ['electric', 'electrician', 'electricians', 'electrical'],
+  building: ['build', 'builder', 'builders', 'building', 'construction'],
+  roofing: ['roof', 'roofer', 'roofers', 'roofing'],
+  ceiling: ['ceiling', 'ceilings', 'ceiling installer', 'ceiling installation'],
+  painting: ['paint', 'painter', 'painters', 'painting'],
+  carpentry: ['carpent', 'carpenter', 'carpenters', 'carpentry'],
+  tiling: ['tile', 'tiler', 'tilers', 'tiling'],
+  welding: ['weld', 'welder', 'welders', 'welding'],
+  cleaning: ['clean', 'cleaner', 'cleaners', 'cleaning'],
+  automotive: ['auto mechanic', 'automotive', 'mechanic', 'mechanics', 'car repair'],
 };
+
+const GENERAL_CONSTRUCTION_ALIASES = [
+  'general contractor',
+  'general contractors',
+  'construction',
+  'builder',
+  'builders',
+  'building contractor',
+  'renovation',
+  'home improvement',
+];
+
+const CONSTRUCTION_FALLBACK_TRADES = new Set([
+  'building',
+  'roofing',
+  'ceiling',
+  'painting',
+  'carpentry',
+  'tiling',
+  'welding',
+]);
+
+const LOCATION_STOP_WORDS = new Set([
+  'street',
+  'road',
+  'avenue',
+  'drive',
+  'lane',
+  'close',
+  'place',
+  'unit',
+  'house',
+  'south',
+  'africa',
+]);
 
 function normalise(value: string | null | undefined): string {
   return (value ?? '')
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\s+/g, ' ');
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
-function categoryAliases(value: string): Set<string> {
-  const cleaned = normalise(value);
-  const aliases = new Set<string>([cleaned]);
+function findTradeSignals(value: string): Set<string> {
+  const text = normalise(value);
+  const signals = new Set<string>();
 
-  for (const group of Object.values(CATEGORY_GROUPS)) {
-    if (group.some((item) => cleaned.includes(item) || item.includes(cleaned))) {
-      for (const item of group) aliases.add(item);
-    }
+  for (const [trade, aliases] of Object.entries(TRADE_ALIASES)) {
+    if (aliases.some((alias) => text.includes(alias))) signals.add(trade);
   }
 
-  return aliases;
+  return signals;
 }
 
-function categoryMatches(projectCategory: string, providerCategory: string, extraCategories: string[]): boolean {
-  const projectAliases = categoryAliases(projectCategory);
-  const providerValues = [providerCategory, ...extraCategories].map(normalise).filter(Boolean);
+function providerMatchesTrade(providerValues: string[], projectSignals: Set<string>): boolean {
+  const values = providerValues.map(normalise).filter(Boolean);
 
-  return providerValues.some((providerValue) =>
-    [...projectAliases].some(
-      (projectValue) =>
-        providerValue === projectValue ||
-        providerValue.includes(projectValue) ||
-        projectValue.includes(providerValue),
+  return [...projectSignals].some((trade) =>
+    (TRADE_ALIASES[trade] ?? [trade]).some((alias) =>
+      values.some((value) => value.includes(alias)),
     ),
   );
+}
+
+function isGeneralConstructionProvider(providerValues: string[]): boolean {
+  const values = providerValues.map(normalise).filter(Boolean);
+  return GENERAL_CONSTRUCTION_ALIASES.some((alias) =>
+    values.some((value) => value.includes(alias)),
+  );
+}
+
+function allowsConstructionFallback(projectSignals: Set<string>): boolean {
+  return [...projectSignals].some((trade) => CONSTRUCTION_FALLBACK_TRADES.has(trade));
+}
+
+function locationTokens(value: string | null | undefined): string[] {
+  return normalise(value)
+    .split(' ')
+    .filter(
+      (token) =>
+        token.length >= 4 &&
+        !/^\d+$/.test(token) &&
+        !LOCATION_STOP_WORDS.has(token),
+    );
 }
 
 function locationMatches(project: ProjectCandidateRow, providerLocation: string, serviceAreas: string[]): boolean {
@@ -136,41 +194,58 @@ function locationMatches(project: ProjectCandidateRow, providerLocation: string,
     .filter(Boolean);
   const providerValues = [providerLocation, ...serviceAreas].map(normalise).filter(Boolean);
 
-  return providerValues.some((providerValue) =>
-    targets.some(
-      (target) =>
-        providerValue === target ||
-        providerValue.includes(target) ||
-        target.includes(providerValue),
-    ),
-  );
+  if (
+    providerValues.some((providerValue) =>
+      targets.some(
+        (target) => providerValue.includes(target) || target.includes(providerValue),
+      ),
+    )
+  ) {
+    return true;
+  }
+
+  const targetTokens = new Set(targets.flatMap(locationTokens));
+  return providerValues
+    .flatMap(locationTokens)
+    .some((token) => targetTokens.has(token));
 }
 
 function scoreCandidate(input: {
   project: ProjectCandidateRow;
+  projectSignals: Set<string>;
   artisan: ArtisanRow;
   availability?: AvailabilityRow;
   recentHistory: InvitationHistoryRow[];
   alreadyInvited: boolean;
-}): { score: number; reasons: string[] } {
-  const { project, artisan, availability, recentHistory, alreadyInvited } = input;
+}): { eligible: boolean; score: number; reasons: string[] } {
+  const { project, projectSignals, artisan, availability, recentHistory, alreadyInvited } = input;
   let score = 0;
   const reasons: string[] = [];
 
-  const extraCategories = availability?.categories ?? [];
-  if (categoryMatches(project.category, artisan.category ?? '', extraCategories)) {
+  const providerValues = [artisan.category ?? '', ...(availability?.categories ?? [])];
+  const exactTradeMatch = providerMatchesTrade(providerValues, projectSignals);
+  const generalConstructionMatch =
+    !exactTradeMatch &&
+    allowsConstructionFallback(projectSignals) &&
+    isGeneralConstructionProvider(providerValues);
+
+  if (!exactTradeMatch && !generalConstructionMatch && !alreadyInvited) {
+    return { eligible: false, score: -1000, reasons: ['Unrelated trade'] };
+  }
+
+  if (exactTradeMatch) {
+    score += 60;
+    reasons.push('Exact trade match');
+  } else if (generalConstructionMatch) {
     score += 35;
-    reasons.push('Strong trade match');
-  } else if (categoryMatches(project.category, 'general contractor', extraCategories)) {
-    score += 12;
-    reasons.push('Possible multi-trade fit');
+    reasons.push('General construction fallback');
   } else {
-    score -= 25;
-    reasons.push('Weak trade match');
+    score -= 60;
+    reasons.push('Previously invited before trade filtering');
   }
 
   if (locationMatches(project, artisan.location ?? '', availability?.service_areas ?? [])) {
-    score += 25;
+    score += 30;
     reasons.push('Local or declared service-area match');
   }
 
@@ -194,13 +269,22 @@ function scoreCandidate(input: {
     reasons.push('Does not accept emergency work');
   }
 
+  if (
+    ['planned', 'large_project'].includes(project.urgency) &&
+    availability &&
+    !availability.accepts_planned_work
+  ) {
+    score -= 20;
+    reasons.push('Does not accept planned work');
+  }
+
   if (artisan.verified) {
     score += 10;
     reasons.push('Verified profile');
   }
 
   if (typeof artisan.rating === 'number' && Number.isFinite(artisan.rating)) {
-    score += Math.max(0, Math.min(5, artisan.rating));
+    score += Math.max(0, Math.min(10, artisan.rating * 2));
     if (artisan.rating >= 4) reasons.push('Strong customer rating');
   }
 
@@ -218,7 +302,7 @@ function scoreCandidate(input: {
     reasons.push('Already invited to this project');
   }
 
-  return { score, reasons };
+  return { eligible: true, score, reasons };
 }
 
 export async function getProviderCandidates(projectId: string): Promise<{
@@ -233,7 +317,7 @@ export async function getProviderCandidates(projectId: string): Promise<{
   const [projectResult, matchResult] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, category, urgency, status, location_text, suburb, city')
+      .select('id, title, customer_description, ai_summary, likely_issue, category, urgency, status, location_text, suburb, city')
       .eq('id', projectId)
       .single(),
     supabase
@@ -312,13 +396,27 @@ export async function getProviderCandidates(projectId: string): Promise<{
     historyByProvider.set(row.provider_id, list);
   }
 
+  const projectSignals = findTradeSignals([
+    project.category,
+    project.title,
+    project.customer_description,
+    project.ai_summary,
+    project.likely_issue,
+  ].filter(Boolean).join(' '));
+
+  if (projectSignals.size === 0) {
+    const fallbackCategory = normalise(project.category);
+    if (fallbackCategory) projectSignals.add(fallbackCategory);
+  }
+
   const candidates = artisans
-    .map((artisan): ProviderCandidate => {
+    .map((artisan): (ProviderCandidate & { eligible: boolean }) => {
       const providerHistory = historyByProvider.get(artisan.id) ?? [];
       const alreadyInvited = providerHistory.some((item) => item.project_id === projectId);
       const providerAvailability = availabilityByProvider.get(artisan.id);
-      const { score, reasons } = scoreCandidate({
+      const { eligible, score, reasons } = scoreCandidate({
         project,
+        projectSignals,
         artisan,
         availability: providerAvailability,
         recentHistory: providerHistory.filter((item) => item.project_id !== projectId),
@@ -345,11 +443,13 @@ export async function getProviderCandidates(projectId: string): Promise<{
         score,
         scoreReasons: reasons,
         alreadyInvited,
+        eligible,
       };
     })
-    .filter((candidate) => candidate.score > -20 || candidate.alreadyInvited)
-    .sort((left, right) => right.score - left.score)
-    .slice(0, 30);
+    .filter((candidate) => candidate.eligible)
+    .sort((left, right) => right.score - left.score || left.displayName.localeCompare(right.displayName))
+    .slice(0, 20)
+    .map(({ eligible: _eligible, ...candidate }) => candidate);
 
   return {
     project,
