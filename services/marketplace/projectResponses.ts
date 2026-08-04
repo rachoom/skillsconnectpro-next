@@ -96,6 +96,12 @@ export async function getCustomerProjectResponseFeed(
     };
   });
 
+  // A declined response is operationally useful for admin reporting and the
+  // activity timeline, but it is not an option the customer can select.
+  const actionableProviderResponses = providerResponses.filter(
+    (response) => response.responseType !== 'declined',
+  );
+
   const invitationCounts = invitations.reduce<Record<string, number>>((counts, invitation) => {
     counts[invitation.status] = (counts[invitation.status] ?? 0) + 1;
     return counts;
@@ -110,12 +116,10 @@ export async function getCustomerProjectResponseFeed(
     matching: {
       invitationsSent: invitations.length,
       invitationCounts,
-      validResponsesReceived: providerResponses.filter(
-        (response) => response.responseType !== 'declined',
-      ).length,
+      validResponsesReceived: actionableProviderResponses.length,
       providersReviewing: invitations.filter((invitation) => invitation.status === 'viewed').length,
     },
-    responses: providerResponses,
+    responses: actionableProviderResponses,
     match: matchResult.data
       ? {
           id: matchResult.data.id,
