@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
+const ROUTING_BATCH_LIMIT = 25;
 const OPEN_PROJECT_STATUSES = [
   'assessment_complete',
   'matching',
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
       .eq('consent_to_share', true)
       .in('status', OPEN_PROJECT_STATUSES)
       .order('response_target_at', { ascending: true, nullsFirst: false })
-      .limit(25);
+      .limit(ROUTING_BATCH_LIMIT);
 
     if (error) {
       throw new Error(`Unable to load projects for scheduled routing: ${error.message}`);
