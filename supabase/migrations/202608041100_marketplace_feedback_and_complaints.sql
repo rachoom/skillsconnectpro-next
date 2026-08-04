@@ -113,7 +113,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public
-as $$;
+as $$
 declare
   v_count integer;
 begin
