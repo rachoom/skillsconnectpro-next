@@ -160,10 +160,20 @@ export default function MarketplaceAdminPage() {
     [projects, selectedProjectId],
   );
 
-  const loadProjects = useCallback(async () => {
+  const resetRoutingWorkspace = useCallback((message?: string) => {
+    setSelectedProjectId(null);
+    setCandidates([]);
+    setSelectedProviderIds([]);
+    setInvitationResults([]);
+    if (message) setNotice(message);
+  }, []);
+
+  const loadProjects = useCallback(async (options: { silent?: boolean } = {}) => {
     if (!adminKey) return;
-    setLoadingProjects(true);
-    setError(null);
+    if (!options.silent) {
+      setLoadingProjects(true);
+      setError(null);
+    }
 
     try {
       const payload = await readJson(
@@ -172,16 +182,46 @@ export default function MarketplaceAdminPage() {
           cache: 'no-store',
         }),
       );
-      setProjects(payload.projects ?? []);
+      const nextProjects: AdminProject[] = payload.projects ?? [];
+      setProjects(nextProjects);
+
+      if (
+        selectedProjectId &&
+        !nextProjects.some((project) => project.id === selectedProjectId)
+      ) {
+        resetRoutingWorkspace(
+          'Provider selected. The completed project was removed from the open routing queue and the matching workspace was reset.',
+        );
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to load projects.');
     } finally {
-      setLoadingProjects(false);
+      if (!options.silent) setLoadingProjects(false);
     }
-  }, [adminKey]);
+  }, [adminKey, resetRoutingWorkspace, selectedProjectId]);
 
   useEffect(() => {
     if (adminKey) void loadProjects();
+  }, [adminKey, loadProjects]);
+
+  useEffect(() => {
+    if (!adminKey) return;
+
+    const refreshOpenQueue = () => {
+      if (document.visibilityState === 'visible') {
+        void loadProjects({ silent: true });
+      }
+    };
+
+    window.addEventListener('focus', refreshOpenQueue);
+    document.addEventListener('visibilitychange', refreshOpenQueue);
+    const timer = window.setInterval(refreshOpenQueue, 15000);
+
+    return () => {
+      window.removeEventListener('focus', refreshOpenQueue);
+      document.removeEventListener('visibilitychange', refreshOpenQueue);
+      window.clearInterval(timer);
+    };
   }, [adminKey, loadProjects]);
 
   const unlock = () => {
@@ -200,8 +240,7 @@ export default function MarketplaceAdminPage() {
     setAdminKey('');
     setKeyDraft('');
     setProjects([]);
-    setCandidates([]);
-    setSelectedProjectId(null);
+    resetRoutingWorkspace();
   };
 
   const createProject = async (event: React.FormEvent) => {
@@ -254,6 +293,17 @@ export default function MarketplaceAdminPage() {
           cache: 'no-store',
         }),
       );
+
+      if (payload.routingClosed) {
+        setProjects((current) => current.filter((project) => project.id !== projectId));
+        resetRoutingWorkspace(
+          payload.routingReason
+            ? `Routing complete. ${payload.routingReason} The matching workspace was reset.`
+            : 'Routing complete. The project was removed from the open queue and the matching workspace was reset.',
+        );
+        return;
+      }
+
       setCandidates(payload.candidates ?? []);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to load candidates.');
