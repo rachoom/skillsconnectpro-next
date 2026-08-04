@@ -1,13 +1,13 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
 
+// Only projects that still require provider routing belong in the active queue.
+// Once a customer selects a provider, the project remains available through its
+// project/customer record, but it no longer occupies the matching workspace.
 const OPEN_PROJECT_STATUSES = [
   'draft',
   'assessment_complete',
   'matching',
   'responses_received',
-  'provider_selected',
-  'contact_released',
-  'in_progress',
 ] as const;
 
 export interface AdminProjectSummary {
