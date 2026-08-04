@@ -198,6 +198,7 @@ revoke all on public.marketplace_complaints from public, anon;
 grant select, insert, update, delete on public.marketplace_reviews to authenticated;
 grant select, insert, update, delete on public.marketplace_complaints to authenticated;
 
+drop policy if exists marketplace_reviews_admin_all on public.marketplace_reviews;
 create policy marketplace_reviews_admin_all
 on public.marketplace_reviews
 for all
@@ -205,6 +206,7 @@ to authenticated
 using (public.is_marketplace_admin())
 with check (public.is_marketplace_admin());
 
+drop policy if exists marketplace_complaints_admin_all on public.marketplace_complaints;
 create policy marketplace_complaints_admin_all
 on public.marketplace_complaints
 for all
