@@ -7,13 +7,17 @@ import {
   CheckCircle2,
   Clock3,
   Loader2,
+  LockKeyhole,
   MapPin,
+  MessageCircle,
+  Phone,
   RefreshCw,
   ShieldCheck,
   Star,
   UserRoundCheck,
   Users,
   Wrench,
+  X,
 } from 'lucide-react';
 
 type ProviderResponse = {
@@ -32,9 +36,18 @@ type ProviderResponse = {
   createdAt: string;
 };
 
+type ReleasedProviderContact = {
+  id: number;
+  name: string;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+};
+
 type ProjectFeed = {
   project: {
     id: string;
+    guestName: string | null;
     title: string;
     customerDescription: string;
     category: string;
@@ -65,6 +78,9 @@ type ProjectFeed = {
     status: string;
     selectedAt: string;
     contactReleasedAt: string | null;
+  } | null;
+  releasedContact: {
+    provider: ReleasedProviderContact;
   } | null;
   timeline: Array<{
     id: number;
@@ -110,7 +126,16 @@ function providerString(provider: Record<string, unknown>, field: string): strin
 }
 
 function providerNumber(provider: Record<string, unknown>, field: string): number | null {
-  return typeof provider[field] === 'number' ? (provider[field] as number) : null;
+  const value = provider[field];
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string' && value.trim() && Number.isFinite(Number(value))) return Number(value);
+  return null;
+}
+
+function whatsappNumber(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (digits.startsWith('0')) return `27${digits.slice(1)}`;
+  return digits;
 }
 
 export default function CustomerProjectPage() {
@@ -120,6 +145,8 @@ export default function CustomerProjectPage() {
   const [feed, setFeed] = useState<ProjectFeed | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectingResponseId, setSelectingResponseId] = useState<string | null>(null);
+  const [releasingContact, setReleasingContact] = useState(false);
+  const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -165,6 +192,7 @@ export default function CustomerProjectPage() {
     () => feed?.responses.find((response) => response.id === selectedResponseId) ?? null,
     [feed, selectedResponseId],
   );
+  const contactsReleased = Boolean(feed?.match?.contactReleasedAt && feed?.releasedContact?.provider);
 
   const selectProvider = async (responseId: string) => {
     setSelectingResponseId(responseId);
@@ -186,6 +214,30 @@ export default function CustomerProjectPage() {
       setError(requestError instanceof Error ? requestError.message : 'Unable to select provider.');
     } finally {
       setSelectingResponseId(null);
+    }
+  };
+
+  const releaseContact = async () => {
+    setReleasingContact(true);
+    setError(null);
+
+    try {
+      await readJson(
+        await fetch(`/api/projects/${projectId}/release-contact`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-project-access-token': accessToken,
+          },
+          body: JSON.stringify({ confirmShare: true }),
+        }),
+      );
+      setShowReleaseConfirm(false);
+      await loadFeed(true);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to release contact details.');
+    } finally {
+      setReleasingContact(false);
     }
   };
 
@@ -214,6 +266,13 @@ export default function CustomerProjectPage() {
 
   if (!feed) return null;
   const project = feed.project;
+  const releasedProvider = feed.releasedContact?.provider ?? null;
+  const selectedName = selectedResponse ? providerName(selectedResponse.provider) : 'the selected provider';
+  const whatsappHref = releasedProvider?.whatsapp
+    ? `https://wa.me/${whatsappNumber(releasedProvider.whatsapp)}?text=${encodeURIComponent(
+        `Hi ${releasedProvider.name}, I selected you through Skills Connect Pro for my project: ${project.title}.`,
+      )}`
+    : null;
 
   return (
     <main className="min-h-screen bg-[#080d0b] px-4 py-8 text-white md:px-8">
@@ -267,16 +326,50 @@ export default function CustomerProjectPage() {
           </div>
         </section>
 
-        {selectedResponse && (
-          <section className="mt-6 rounded-3xl border border-emerald-400/30 bg-emerald-500/10 p-6">
+        {selectedResponse && !contactsReleased && (
+          <section className="mt-6 rounded-3xl border border-amber-300/30 bg-amber-400/10 p-6">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <UserRoundCheck className="mt-1 shrink-0 text-amber-300" size={28} />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider text-amber-300">Provider selected</p>
+                  <h2 className="mt-2 text-2xl font-black">{selectedName}</h2>
+                  <p className="mt-2 max-w-xl text-sm text-zinc-400">
+                    Confirm this provider to share your contact details and receive theirs. You can still change your selection before confirming.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowReleaseConfirm(true)}
+                className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-xs font-black uppercase tracking-wider text-black"
+              >
+                <LockKeyhole size={16} /> Confirm & connect
+              </button>
+            </div>
+          </section>
+        )}
+
+        {contactsReleased && releasedProvider && (
+          <section className="mt-6 rounded-3xl border border-emerald-400/35 bg-emerald-500/10 p-6">
             <div className="flex items-start gap-4">
-              <UserRoundCheck className="mt-1 shrink-0 text-emerald-300" size={28} />
-              <div>
-                <p className="text-xs font-black uppercase tracking-wider text-emerald-300">Provider selected</p>
-                <h2 className="mt-2 text-2xl font-black">{providerName(selectedResponse.provider)}</h2>
-                <p className="mt-2 text-sm text-emerald-50/70">
-                  Your selection is recorded. Contact details remain controlled until the project&apos;s contact-release step is completed.
-                </p>
+              <CheckCircle2 className="mt-1 shrink-0 text-emerald-300" size={30} />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black uppercase tracking-wider text-emerald-300">You are connected</p>
+                <h2 className="mt-2 text-2xl font-black">{releasedProvider.name}</h2>
+                <p className="mt-2 text-sm text-emerald-50/70">Contact details have been released only to you and the selected provider.</p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {releasedProvider.phone && (
+                    <a href={`tel:${releasedProvider.phone}`} className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-[#102018]">
+                      <Phone size={17} /> Call {releasedProvider.phone}
+                    </a>
+                  )}
+                  {whatsappHref && (
+                    <a href={whatsappHref} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-black text-[#071d10]">
+                      <MessageCircle size={17} /> WhatsApp provider
+                    </a>
+                  )}
+                </div>
+                {releasedProvider.email && <p className="mt-4 text-xs text-zinc-400">Email: {releasedProvider.email}</p>}
               </div>
             </div>
           </section>
@@ -356,12 +449,12 @@ export default function CustomerProjectPage() {
                     {response.providerMessage && <p className="mt-4 rounded-2xl border border-white/5 bg-black/20 p-4 text-sm leading-6 text-zinc-300">“{response.providerMessage}”</p>}
 
                     <button
-                      disabled={selected || selectingResponseId !== null}
+                      disabled={contactsReleased || selected || selectingResponseId !== null}
                       onClick={() => void selectProvider(response.id)}
                       className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-xs font-black uppercase tracking-wider text-black disabled:opacity-45"
                     >
                       {selectingResponseId === response.id ? <Loader2 className="animate-spin" size={16} /> : selected ? <CheckCircle2 size={16} /> : <UserRoundCheck size={16} />}
-                      {selected ? 'Selected' : 'Select provider'}
+                      {selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
                     </button>
                   </article>
                 );
@@ -385,6 +478,32 @@ export default function CustomerProjectPage() {
           </div>
         </section>
       </div>
+
+      {showReleaseConfirm && selectedResponse && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-4 backdrop-blur-sm sm:items-center">
+          <section className="w-full max-w-lg rounded-3xl border border-amber-300/30 bg-[#111713] p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">Final confirmation</p>
+                <h2 className="mt-2 text-2xl font-black">Connect with {selectedName}?</h2>
+              </div>
+              <button onClick={() => setShowReleaseConfirm(false)} className="rounded-xl border border-white/10 p-2 text-zinc-400" aria-label="Close confirmation">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="mt-5 rounded-2xl bg-white/[0.04] p-4 text-sm leading-6 text-zinc-300">
+              Skills Connect Pro will share your name, phone number and project location only with this provider. Their phone and WhatsApp details will then appear on this page. Other provider invitations will be closed.
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <button onClick={() => setShowReleaseConfirm(false)} className="rounded-xl border border-white/15 px-4 py-3 text-sm font-bold text-zinc-200">Not yet</button>
+              <button disabled={releasingContact} onClick={() => void releaseContact()} className="flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-sm font-black text-black disabled:opacity-50">
+                {releasingContact ? <Loader2 className="animate-spin" size={17} /> : <LockKeyhole size={17} />}
+                Share & connect
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
