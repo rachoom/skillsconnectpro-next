@@ -1,5 +1,25 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
 import { getProjectByAccessToken } from './projects';
+import { hashOpaqueToken } from './tokens';
+
+export interface ReleasedPartyContact {
+  name: string;
+  phone: string | null;
+  whatsapp?: string | null;
+  email: string | null;
+  location?: string | null;
+  suburb?: string | null;
+  city?: string | null;
+}
+
+export interface ReleasedMarketplaceContacts {
+  projectId: string;
+  matchId: string;
+  status: 'contact_released';
+  contactReleasedAt: string;
+  provider: ReleasedPartyContact & { id: number };
+  customer: ReleasedPartyContact;
+}
 
 export async function selectProviderForProject(input: {
   projectId: string;
@@ -97,4 +117,27 @@ export async function selectProviderForProject(input: {
     selectedAt: matchData.selected_at,
     contactReleasedAt: matchData.contact_released_at,
   };
+}
+
+export async function releaseContactsForProject(input: {
+  projectId: string;
+  projectAccessToken: string;
+  confirmShare: boolean;
+}): Promise<ReleasedMarketplaceContacts> {
+  if (!input.confirmShare) {
+    throw new Error('Confirm contact sharing before continuing.');
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase.rpc('release_marketplace_contacts', {
+    p_project_id: input.projectId,
+    p_customer_access_token_hash: hashOpaqueToken(input.projectAccessToken),
+  });
+
+  if (error) throw new Error(`Unable to release contact details: ${error.message}`);
+  if (!data || typeof data !== 'object') {
+    throw new Error('Unable to release contact details: no result returned.');
+  }
+
+  return data as ReleasedMarketplaceContacts;
 }
