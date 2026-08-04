@@ -7,6 +7,7 @@ import {
   type ProjectUrgency,
 } from '../../../types/marketplace';
 import { createProject } from '../../../services/marketplace/projects';
+import { processAutomaticRouting } from '../../../services/marketplace/automaticRouting';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -123,6 +124,32 @@ export async function POST(request: Request) {
     const input = parseCreateProjectInput(await request.json());
     const { project, accessToken } = await createProject(input);
 
+    let routing: {
+      action: string;
+      waveNumber: number | null;
+      providersQueued: number;
+      totalInvitations: number;
+      reason: string;
+    } | null = null;
+
+    const automaticRoutingEnabled =
+      process.env.MARKETPLACE_AUTOROUTING_ENABLED !== 'false';
+
+    if (automaticRoutingEnabled && project.consentToShare) {
+      try {
+        const routingResult = await processAutomaticRouting({ projectId: project.id });
+        routing = {
+          action: routingResult.action,
+          waveNumber: routingResult.waveNumber,
+          providersQueued: routingResult.invitationsQueued,
+          totalInvitations: routingResult.totalInvitations,
+          reason: routingResult.reason,
+        };
+      } catch (routingError) {
+        console.error('Project created but automatic routing failed:', routingError);
+      }
+    }
+
     return NextResponse.json(
       {
         project: {
@@ -131,6 +158,7 @@ export async function POST(request: Request) {
           guestEmail: undefined,
         },
         accessToken,
+        routing,
       },
       { status: 201 },
     );
