@@ -28,7 +28,7 @@ The existing admin workflow can regenerate a queued provider's secure link, send
 5. the current response deadline has elapsed; and
 6. the project remains below its invitation cap.
 
-The route requires `CRON_SECRET`. Vercel Cron is configured in `vercel.json` to check every five minutes on production deployments.
+The route requires `CRON_SECRET`. The pilot repository uses a plan-compatible daily production cron. Urgent pilot projects can be expanded immediately through the protected admin routing endpoint. When the deployment plan or an external scheduler supports a shorter cadence, the same route can be called every five minutes without changing the routing engine.
 
 ## Admin override
 
