@@ -1,9 +1,13 @@
 import { GoogleGenAI } from '@google/genai';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
+
+const QUESTION_COUNT_COOKIE = 'scp_intake_question_count';
+const NORMAL_QUESTION_TARGET = 7;
+const HARD_QUESTION_LIMIT = 9;
 
 type IntakeAnswer = {
   question: string;
@@ -73,7 +77,7 @@ function cleanAnswers(value: unknown): IntakeAnswer[] {
       return question && answer ? { question, answer } : null;
     })
     .filter((item): item is IntakeAnswer => Boolean(item))
-    .slice(0, 8);
+    .slice(0, 9);
 }
 
 function safeNumber(value: unknown): number | null {
@@ -249,7 +253,79 @@ function parseModelJson(text: string): unknown {
   return JSON.parse(cleaned);
 }
 
-export async function POST(request: Request) {
+function readQuestionCount(request: NextRequest, hasAnswers: boolean): number {
+  if (!hasAnswers) return 0;
+  const value = Number(request.cookies.get(QUESTION_COUNT_COOKIE)?.value ?? 0);
+  return Number.isFinite(value)
+    ? Math.max(0, Math.min(HARD_QUESTION_LIMIT, Math.floor(value)))
+    : 0;
+}
+
+function limitQuestions(
+  assessment: IntakeAssessment,
+  questionsAlreadyAsked: number,
+): IntakeAssessment {
+  const normalRemaining = Math.max(0, NORMAL_QUESTION_TARGET - questionsAlreadyAsked);
+  const hardRemaining = Math.max(0, HARD_QUESTION_LIMIT - questionsAlreadyAsked);
+
+  let allowed = Math.min(3, normalRemaining);
+
+  // Only extend beyond the normal seven-question target when the model remains
+  // genuinely uncertain. The absolute limit can never exceed nine questions.
+  if (assessment.confidence < 0.55 && hardRemaining > normalRemaining) {
+    allowed = Math.min(3, hardRemaining);
+  }
+
+  if (hardRemaining === 0) allowed = 0;
+
+  return {
+    ...assessment,
+    clarifyingQuestions: assessment.clarifyingQuestions.slice(0, allowed),
+  };
+}
+
+function intakeResponse(
+  assessment: IntakeAssessment,
+  usedFallback: boolean,
+  questionsAlreadyAsked: number,
+): NextResponse {
+  const limited = limitQuestions(assessment, questionsAlreadyAsked);
+  const nextCount = Math.min(
+    HARD_QUESTION_LIMIT,
+    questionsAlreadyAsked + limited.clarifyingQuestions.length,
+  );
+
+  const response = NextResponse.json({
+    assessment: limited,
+    usedFallback,
+    questionProgress: {
+      asked: nextCount,
+      normalTarget: NORMAL_QUESTION_TARGET,
+      hardLimit: HARD_QUESTION_LIMIT,
+    },
+  });
+
+  if (limited.clarifyingQuestions.length === 0) {
+    response.cookies.delete(QUESTION_COUNT_COOKIE);
+  } else {
+    response.cookies.set(QUESTION_COUNT_COOKIE, String(nextCount), {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/get-help',
+      maxAge: 30 * 60,
+    });
+  }
+
+  return response;
+}
+
+export async function POST(request: NextRequest) {
+  let description = '';
+  let answers: IntakeAnswer[] = [];
+  let image = '';
+  let questionsAlreadyAsked = 0;
+
   try {
     const contentLength = Number(request.headers.get('content-length') ?? 0);
     if (contentLength > 4_000_000) {
@@ -257,9 +333,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json() as Record<string, unknown>;
-    const description = cleanText(body.description);
-    const image = cleanText(body.image, 3_000_000);
-    const answers = cleanAnswers(body.answers);
+    description = cleanText(body.description);
+    image = cleanText(body.image, 3_000_000);
+    answers = cleanAnswers(body.answers);
+    questionsAlreadyAsked = readQuestionCount(request, answers.length > 0);
 
     if (description.length < 10) {
       return NextResponse.json(
@@ -273,15 +350,20 @@ export async function POST(request: Request) {
       || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({
-        assessment: fallbackAssessment(description, answers),
-        usedFallback: true,
-      });
+      return intakeResponse(
+        fallbackAssessment(description, answers),
+        true,
+        questionsAlreadyAsked,
+      );
     }
 
     const answerContext = answers.length > 0
       ? `\nCustomer answers:\n${answers.map((item) => `- ${item.question}: ${item.answer}`).join('\n')}`
       : '';
+
+    const hardRemaining = Math.max(0, HARD_QUESTION_LIMIT - questionsAlreadyAsked);
+    const normalRemaining = Math.max(0, NORMAL_QUESTION_TARGET - questionsAlreadyAsked);
+    const suggestedMaximum = Math.min(3, hardRemaining);
 
     const prompt = `You are the structured intake assistant for Skills Connect Pro, a South African home-services marketplace.
 
@@ -289,6 +371,13 @@ Customer description:
 ${description}${answerContext}
 
 Create a cautious preliminary project brief. Never claim a final diagnosis or guaranteed price. A professional may need to inspect the site. Detect immediate safety risks and use South African Rand estimates suitable for a broad preliminary range.
+
+Question progress:
+- Questions already shown: ${questionsAlreadyAsked}
+- Normal total target: ${NORMAL_QUESTION_TARGET}
+- Absolute total maximum: ${HARD_QUESTION_LIMIT}
+- Normal questions remaining: ${normalRemaining}
+- Absolute questions remaining: ${hardRemaining}
 
 Return ONLY valid JSON with this exact shape:
 {
@@ -308,13 +397,16 @@ Return ONLY valid JSON with this exact shape:
 }
 
 Rules:
-1. Ask no more than 3 clarifying questions.
-2. If customer answers are already supplied, provide a refined brief and ask questions only when essential information is still missing.
-3. For emergency hazards such as fire, gas, live electricity, major flooding or structural collapse, set urgency to emergency and provide immediate safety guidance.
-4. Do not recommend DIY work for dangerous electrical, gas, structural or major plumbing hazards.
-5. Return null for estimatedMin and estimatedMax when a meaningful range cannot be given.
-6. Materials are preliminary possibilities, not a shopping instruction. Return an empty array when uncertain.
-7. Keep language simple and suitable for customers with varied literacy levels.`;
+1. Ask no more than ${suggestedMaximum} new clarifying questions in this response.
+2. Aim to finish after no more than ${NORMAL_QUESTION_TARGET} total questions. Ask questions eight or nine only when essential information remains missing and confidence is below 0.55.
+3. Never repeat a question the customer has already answered.
+4. If the question budget is exhausted, return an empty clarifyingQuestions array and produce the best cautious brief possible.
+5. If customer answers are already supplied, provide a refined brief and ask questions only when essential information is still missing.
+6. For emergency hazards such as fire, gas, live electricity, major flooding or structural collapse, set urgency to emergency and provide immediate safety guidance.
+7. Do not recommend DIY work for dangerous electrical, gas, structural or major plumbing hazards.
+8. Return null for estimatedMin and estimatedMax when a meaningful range cannot be given.
+9. Materials are preliminary possibilities, not a shopping instruction. Return an empty array when uncertain.
+10. Keep language simple and suitable for customers with varied literacy levels.`;
 
     const contents: Array<string | { inlineData: { mimeType: string; data: string } }> = [prompt];
     if (image) {
@@ -330,26 +422,22 @@ Rules:
     });
 
     const parsed = parseModelJson(response.text ?? '{}');
-    return NextResponse.json({
-      assessment: normaliseAssessment(parsed, 'gemini-flash-latest'),
-      usedFallback: false,
-    });
+    return intakeResponse(
+      normaliseAssessment(parsed, 'gemini-flash-latest'),
+      false,
+      questionsAlreadyAsked,
+    );
   } catch (error) {
     console.error('POST /api/project-intake/assess failed:', error);
 
-    try {
-      const cloned = request.clone();
-      const body = await cloned.json() as Record<string, unknown>;
-      const description = cleanText(body.description);
-      const answers = cleanAnswers(body.answers);
-      if (description) {
-        return NextResponse.json({
-          assessment: fallbackAssessment(description, answers),
-          usedFallback: true,
-        });
-      }
-    } catch {
-      // The original request body may already have been consumed.
+    // The request body has already been parsed above, so use the captured values
+    // rather than attempting to clone and reread a consumed request stream.
+    if (description) {
+      return intakeResponse(
+        fallbackAssessment(description, answers),
+        true,
+        questionsAlreadyAsked,
+      );
     }
 
     return NextResponse.json(
