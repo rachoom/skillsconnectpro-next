@@ -30,6 +30,8 @@ The existing admin workflow can regenerate a queued provider's secure link, send
 
 The route requires `CRON_SECRET`. The pilot repository uses a plan-compatible daily production cron. Urgent pilot projects can be expanded immediately through the protected admin routing endpoint. When the deployment plan or an external scheduler supports a shorter cadence, the same route can be called every five minutes without changing the routing engine.
 
+Vercel Cron runs only on production deployments. The branch preview therefore tests automatic first-wave creation, scoring, caps and manual dispatch; scheduled expansion becomes active after production deployment and `CRON_SECRET` configuration.
+
 ## Admin override
 
 `POST /api/admin/projects/:id/routing` processes one project. Send `{ "force": true }` to bypass the response-window wait while still respecting consent, closed-project checks, duplicate prevention and the invitation cap.
