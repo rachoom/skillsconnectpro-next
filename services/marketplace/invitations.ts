@@ -26,6 +26,44 @@ type ProjectRoutingRow = {
   consent_to_share: boolean;
 };
 
+type ProjectMatchRow = {
+  provider_id: number;
+  status: string;
+  contact_released_at: string | null;
+};
+
+const ROUTING_CLOSED_PROJECT_STATUSES = new Set([
+  'provider_selected',
+  'contact_released',
+  'in_progress',
+  'completed',
+  'cancelled',
+  'unfulfilled',
+]);
+
+const ROUTING_CLOSED_MATCH_STATUSES = new Set([
+  'selected',
+  'contact_released',
+  'accepted',
+  'in_progress',
+  'completed',
+]);
+
+function assertRoutingOpen(project: ProjectRoutingRow, match: ProjectMatchRow | null): void {
+  if (ROUTING_CLOSED_PROJECT_STATUSES.has(project.status)) {
+    throw new Error(
+      `New provider invitations are closed because this project is ${project.status.replaceAll('_', ' ')}.`,
+    );
+  }
+
+  if (
+    match &&
+    (match.contact_released_at !== null || ROUTING_CLOSED_MATCH_STATUSES.has(match.status))
+  ) {
+    throw new Error('New provider invitations are closed because a provider has already been selected.');
+  }
+}
+
 export async function createProviderInvitations(input: {
   projectId: string;
   targets: ProviderInvitationTarget[];
@@ -51,23 +89,35 @@ export async function createProviderInvitations(input: {
   }
 
   const supabase = getSupabaseAdmin();
-  const { data: projectData, error: projectError } = await supabase
-    .from('projects')
-    .select('id, urgency, status, consent_to_share')
-    .eq('id', input.projectId)
-    .single();
+  const [projectResult, matchResult] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('id, urgency, status, consent_to_share')
+      .eq('id', input.projectId)
+      .single(),
+    supabase
+      .from('project_matches')
+      .select('provider_id, status, contact_released_at')
+      .eq('project_id', input.projectId)
+      .maybeSingle(),
+  ]);
 
-  if (projectError) throw new Error(`Unable to load project: ${projectError.message}`);
-  if (!projectData) throw new Error('Project not found.');
+  if (projectResult.error) {
+    throw new Error(`Unable to load project: ${projectResult.error.message}`);
+  }
+  if (!projectResult.data) throw new Error('Project not found.');
+  if (matchResult.error) {
+    throw new Error(`Unable to check current provider selection: ${matchResult.error.message}`);
+  }
 
-  const project = projectData as ProjectRoutingRow;
+  const project = projectResult.data as ProjectRoutingRow;
+  const match = (matchResult.data as ProjectMatchRow | null) ?? null;
+
   if (!project.consent_to_share) {
     throw new Error('Customer consent is required before the project can be shared with providers.');
   }
 
-  if (['completed', 'cancelled', 'unfulfilled'].includes(project.status)) {
-    throw new Error(`Providers cannot be invited while the project is ${project.status}.`);
-  }
+  assertRoutingOpen(project, match);
 
   const deadline = getInvitationResponseDeadline(project.urgency).toISOString();
   const waveNumber = input.waveNumber ?? 1;
@@ -85,17 +135,25 @@ export async function createProviderInvitations(input: {
         status: 'queued',
         delivery_channel: deliveryChannel,
         delivery_address: target.deliveryAddress?.trim() || null,
+        sent_at: null,
+        delivered_at: null,
+        viewed_at: null,
         response_deadline: deadline,
         response_token_hash: tokenPair.hash,
         response_token_expires_at: deadline,
         provider_snapshot: target.providerSnapshot ?? {},
+        failure_reason: null,
       },
     };
   });
 
+  // Upsert deliberately supports secure link regeneration while routing is open.
+  // The newly generated token replaces the previous token hash, so an older URL
+  // stops working immediately. Once a provider is selected, assertRoutingOpen
+  // blocks this operation and preserves the selected provider's active link.
   const { data: invitationData, error: invitationError } = await supabase
     .from('lead_invitations')
-    .insert(prepared.map((item) => item.row))
+    .upsert(prepared.map((item) => item.row), { onConflict: 'project_id,provider_id' })
     .select('id, provider_id, response_deadline, delivery_channel, delivery_address');
 
   if (invitationError) {
@@ -108,7 +166,8 @@ export async function createProviderInvitations(input: {
   const { error: projectUpdateError } = await supabase
     .from('projects')
     .update({ status: 'matching' })
-    .eq('id', input.projectId);
+    .eq('id', input.projectId)
+    .in('status', ['draft', 'assessment_complete', 'matching', 'responses_received']);
 
   if (projectUpdateError) {
     console.error('Invitations created but project status update failed:', projectUpdateError.message);
@@ -118,7 +177,7 @@ export async function createProviderInvitations(input: {
     project_id: input.projectId,
     event_type: 'providers_invited',
     actor_type: 'admin',
-    message: `${invitationRows.length} provider invitation(s) created in wave ${waveNumber}.`,
+    message: `${invitationRows.length} provider invitation(s) created or refreshed in wave ${waveNumber}.`,
     event_data: {
       waveNumber,
       providerIds: invitationRows.map((row) => row.provider_id),
