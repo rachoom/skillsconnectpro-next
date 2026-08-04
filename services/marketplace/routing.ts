@@ -53,10 +53,11 @@ export function getInitialWaveSize(
   urgency: ProjectUrgency,
   serviceLevel: ProjectServiceLevel,
 ): number {
-  if (urgency === 'emergency') return serviceLevel === 'priority' ? 4 : 3;
-  if (serviceLevel === 'managed') return 3;
-  if (serviceLevel === 'priority') return 3;
-  return 2;
+  if (urgency === 'emergency') return 5;
+  if (urgency === 'urgent') return 4;
+  if (urgency === 'large_project') return serviceLevel === 'managed' ? 4 : 3;
+  if (serviceLevel === 'priority' || serviceLevel === 'managed') return 4;
+  return 3;
 }
 
 export function getMaximumResponseCount(
