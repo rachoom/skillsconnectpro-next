@@ -29,6 +29,7 @@ type ProjectRow = {
 };
 
 type StatusEventRow = {
+  event_type: string;
   actor_type: string;
   actor_id: string | null;
   message: string | null;
@@ -49,6 +50,8 @@ export type MarketplaceLifecycleState = {
   completionReportedAt: string | null;
   completionReportedBy: string | null;
   completionNote: string | null;
+  completionConfirmedAt: string | null;
+  completionConfirmedByCustomer: boolean;
   issueReportedAt: string | null;
   issueReportedBy: string | null;
   issueNote: string | null;
@@ -95,7 +98,7 @@ async function latestEvent(projectId: string, eventTypes: string[]): Promise<Sta
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('project_status_events')
-    .select('actor_type, actor_id, message, event_data, created_at')
+    .select('event_type, actor_type, actor_id, message, event_data, created_at')
     .eq('project_id', projectId)
     .in('event_type', eventTypes)
     .order('created_at', { ascending: false })
@@ -104,6 +107,24 @@ async function latestEvent(projectId: string, eventTypes: string[]): Promise<Sta
 
   if (error) throw new Error(`Unable to load project activity: ${error.message}`);
   return (data as StatusEventRow | null) ?? null;
+}
+
+function isProviderCompletionReport(event: StatusEventRow | null): boolean {
+  return Boolean(
+    event &&
+      event.event_type === 'completion_reported' &&
+      event.actor_type === 'provider' &&
+      event.event_data?.action === 'report_completion',
+  );
+}
+
+function isCustomerCompletionConfirmation(event: StatusEventRow | null): boolean {
+  return Boolean(
+    event &&
+      event.event_type === 'project_completed' &&
+      event.actor_type === 'customer' &&
+      event.event_data?.action === 'confirm_completion',
+  );
 }
 
 async function buildLifecycleState(input: {
@@ -126,10 +147,14 @@ async function buildLifecycleState(input: {
     providerName = displayProviderName(data);
   }
 
-  const [completionEvent, issueEvent] = await Promise.all([
-    latestEvent(input.project.id, ['completion_reported', 'project_completed']),
+  const [completionReportEvent, completionConfirmationEvent, issueEvent] = await Promise.all([
+    latestEvent(input.project.id, ['completion_reported']),
+    latestEvent(input.project.id, ['project_completed']),
     latestEvent(input.project.id, ['customer_issue_reported', 'provider_issue_reported']),
   ]);
+
+  const providerReportedCompletion = isProviderCompletionReport(completionReportEvent);
+  const customerConfirmedCompletion = isCustomerCompletionConfirmation(completionConfirmationEvent);
 
   return {
     projectId: input.project.id,
@@ -141,12 +166,20 @@ async function buildLifecycleState(input: {
     providerName,
     customerName: input.project.guest_name?.trim() || 'Customer',
     contactReleased: Boolean(input.match.contact_released_at),
-    completionReportedAt: input.match.completion_reported_at,
-    completionReportedBy: completionEvent?.actor_type ?? null,
+    completionReportedAt: providerReportedCompletion
+      ? input.match.completion_reported_at ?? completionReportEvent?.created_at ?? null
+      : null,
+    completionReportedBy: providerReportedCompletion ? 'provider' : null,
     completionNote:
-      typeof completionEvent?.event_data?.note === 'string'
-        ? completionEvent.event_data.note
-        : completionEvent?.message ?? null,
+      providerReportedCompletion && typeof completionReportEvent?.event_data?.note === 'string'
+        ? completionReportEvent.event_data.note
+        : providerReportedCompletion
+          ? completionReportEvent?.message ?? null
+          : null,
+    completionConfirmedAt: customerConfirmedCompletion
+      ? completionConfirmationEvent?.created_at ?? null
+      : null,
+    completionConfirmedByCustomer: customerConfirmedCompletion,
     issueReportedAt: issueEvent?.created_at ?? null,
     issueReportedBy: issueEvent?.actor_type ?? null,
     issueNote:
@@ -315,7 +348,7 @@ async function applyLifecycleAction(input: {
     const { error } = await supabase
       .from('project_matches')
       .update({
-        status: project.status === 'contact_released' ? 'in_progress' : match.status,
+        status: 'in_progress',
         completion_reported_at: now,
         final_price: finalPrice ?? match.final_price,
       })
@@ -323,7 +356,13 @@ async function applyLifecycleAction(input: {
     if (error) throw new Error(`Unable to report completion: ${error.message}`);
 
     if (project.status === 'contact_released') {
-      await supabase.from('projects').update({ status: 'in_progress' }).eq('id', input.projectId);
+      const { error: projectUpdateError } = await supabase
+        .from('projects')
+        .update({ status: 'in_progress' })
+        .eq('id', input.projectId);
+      if (projectUpdateError) {
+        throw new Error(`Completion was recorded but the project status could not be updated: ${projectUpdateError.message}`);
+      }
     }
 
     await insertEvent({
@@ -343,15 +382,27 @@ async function applyLifecycleAction(input: {
     if (input.actorType !== 'customer') {
       throw new Error('The customer must confirm final completion.');
     }
-    if (!['contact_released', 'in_progress', 'completed'].includes(project.status)) {
-      throw new Error('This job cannot be completed from its current status.');
+
+    const providerCompletionEvent = await latestEvent(input.projectId, ['completion_reported']);
+    if (!match.completion_reported_at || !isProviderCompletionReport(providerCompletionEvent)) {
+      throw new Error('The provider must report that the work is complete before you can confirm completion.');
+    }
+
+    if (project.status === 'completed') {
+      const existingConfirmation = await latestEvent(input.projectId, ['project_completed']);
+      if (isCustomerCompletionConfirmation(existingConfirmation)) return;
+      throw new Error('This project was closed without a verified customer confirmation. Please contact support.');
+    }
+
+    if (project.status !== 'in_progress') {
+      throw new Error('This job cannot be confirmed from its current status.');
     }
 
     const { error: matchUpdateError } = await supabase
       .from('project_matches')
       .update({
         status: 'completed',
-        completion_reported_at: match.completion_reported_at ?? now,
+        completion_reported_at: match.completion_reported_at,
         final_price: finalPrice ?? match.final_price,
       })
       .eq('id', match.id);
@@ -368,7 +419,7 @@ async function applyLifecycleAction(input: {
       eventType: 'project_completed',
       actorType: input.actorType,
       actorId: input.actorId,
-      message: 'The customer confirmed that the job was completed.',
+      message: 'The customer confirmed that the provider completed the job.',
       action: input.action,
       note,
       finalPrice,
