@@ -32,6 +32,11 @@ type ProjectMatchRow = {
   contact_released_at: string | null;
 };
 
+type ExistingInvitationRow = {
+  provider_id: number;
+  status: string;
+};
+
 const ROUTING_CLOSED_PROJECT_STATUSES = new Set([
   'provider_selected',
   'contact_released',
@@ -48,6 +53,8 @@ const ROUTING_CLOSED_MATCH_STATUSES = new Set([
   'in_progress',
   'completed',
 ]);
+
+const RESPONSE_FINAL_INVITATION_STATUSES = new Set(['accepted', 'declined']);
 
 function assertRoutingOpen(project: ProjectRoutingRow, match: ProjectMatchRow | null): void {
   if (ROUTING_CLOSED_PROJECT_STATUSES.has(project.status)) {
@@ -88,8 +95,9 @@ export async function createProviderInvitations(input: {
     uniqueProviderIds.add(target.providerId);
   }
 
+  const providerIds = [...uniqueProviderIds];
   const supabase = getSupabaseAdmin();
-  const [projectResult, matchResult] = await Promise.all([
+  const [projectResult, matchResult, existingInvitationResult] = await Promise.all([
     supabase
       .from('projects')
       .select('id, urgency, status, consent_to_share')
@@ -100,6 +108,11 @@ export async function createProviderInvitations(input: {
       .select('provider_id, status, contact_released_at')
       .eq('project_id', input.projectId)
       .maybeSingle(),
+    supabase
+      .from('lead_invitations')
+      .select('provider_id, status')
+      .eq('project_id', input.projectId)
+      .in('provider_id', providerIds),
   ]);
 
   if (projectResult.error) {
@@ -109,15 +122,28 @@ export async function createProviderInvitations(input: {
   if (matchResult.error) {
     throw new Error(`Unable to check current provider selection: ${matchResult.error.message}`);
   }
+  if (existingInvitationResult.error) {
+    throw new Error(`Unable to check existing invitations: ${existingInvitationResult.error.message}`);
+  }
 
   const project = projectResult.data as ProjectRoutingRow;
   const match = (matchResult.data as ProjectMatchRow | null) ?? null;
+  const existingInvitations = (existingInvitationResult.data ?? []) as ExistingInvitationRow[];
 
   if (!project.consent_to_share) {
     throw new Error('Customer consent is required before the project can be shared with providers.');
   }
 
   assertRoutingOpen(project, match);
+
+  const finalInvitation = existingInvitations.find((invitation) =>
+    RESPONSE_FINAL_INVITATION_STATUSES.has(invitation.status),
+  );
+  if (finalInvitation) {
+    throw new Error(
+      `Provider ${finalInvitation.provider_id} has already responded. Their secure link cannot be regenerated.`,
+    );
+  }
 
   const deadline = getInvitationResponseDeadline(project.urgency).toISOString();
   const waveNumber = input.waveNumber ?? 1;
@@ -147,10 +173,10 @@ export async function createProviderInvitations(input: {
     };
   });
 
-  // Upsert deliberately supports secure link regeneration while routing is open.
-  // The newly generated token replaces the previous token hash, so an older URL
-  // stops working immediately. Once a provider is selected, assertRoutingOpen
-  // blocks this operation and preserves the selected provider's active link.
+  // Upsert deliberately supports secure link regeneration only while a provider
+  // has not yet responded. A refreshed token replaces the previous token hash,
+  // so the older URL stops working immediately. Once a response exists or a
+  // provider is selected, the active provider link is preserved.
   const { data: invitationData, error: invitationError } = await supabase
     .from('lead_invitations')
     .upsert(prepared.map((item) => item.row), { onConflict: 'project_id,provider_id' })
