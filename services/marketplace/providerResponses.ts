@@ -26,6 +26,14 @@ export interface ProviderOpportunity {
     professionalInspectionRequired: boolean;
   };
   providerSnapshot: Record<string, unknown>;
+  customerContact: {
+    name: string;
+    phone: string;
+    email: string | null;
+    location: string;
+    suburb: string | null;
+    city: string | null;
+  } | null;
 }
 
 export interface SubmitProviderResponseInput {
@@ -81,13 +89,28 @@ async function findInvitationByToken(token: string): Promise<InvitationTokenRow 
 export async function getProviderOpportunity(token: string): Promise<ProviderOpportunity | null> {
   const invitation = await findInvitationByToken(token);
   if (!invitation) return null;
-  ensureTokenActive(invitation);
 
   const supabase = getSupabaseAdmin();
+  const { data: matchData, error: matchError } = await supabase
+    .from('project_matches')
+    .select('provider_id, status, contact_released_at')
+    .eq('project_id', invitation.project_id)
+    .maybeSingle();
+
+  if (matchError) throw new Error(`Unable to load provider selection: ${matchError.message}`);
+
+  const selectedAndReleased = Boolean(
+    matchData?.contact_released_at && matchData.provider_id === invitation.provider_id,
+  );
+
+  // The selected provider keeps controlled access to this link after contact
+  // release. Every other provider remains subject to cancellation and expiry.
+  if (!selectedAndReleased) ensureTokenActive(invitation);
+
   const { data: projectData, error: projectError } = await supabase
     .from('projects')
     .select(
-      'id, title, customer_description, ai_summary, likely_issue, category, urgency, service_level, location_text, suburb, city, preferred_date, estimated_min, estimated_max, estimate_currency, safety_notes, materials, professional_inspection_required',
+      'id, guest_name, guest_phone, guest_email, title, customer_description, ai_summary, likely_issue, category, urgency, service_level, location_text, suburb, city, preferred_date, estimated_min, estimated_max, estimate_currency, safety_notes, materials, professional_inspection_required',
     )
     .eq('id', invitation.project_id)
     .single();
@@ -95,7 +118,7 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
   if (projectError) throw new Error(`Unable to load project brief: ${projectError.message}`);
   if (!projectData) return null;
 
-  if (['queued', 'sent', 'delivered'].includes(invitation.status)) {
+  if (!selectedAndReleased && ['queued', 'sent', 'delivered'].includes(invitation.status)) {
     const { error: viewedError } = await supabase
       .from('lead_invitations')
       .update({ status: 'viewed', viewed_at: new Date().toISOString() })
@@ -107,13 +130,24 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
   }
 
   const serviceArea = projectData.suburb || projectData.city || projectData.location_text;
+  const customerPhone = projectData.guest_phone?.trim() || '';
 
   return {
     invitationId: invitation.id,
     providerId: invitation.provider_id,
-    status: invitation.status,
+    status: selectedAndReleased ? 'contact_released' : invitation.status,
     responseDeadline: invitation.response_deadline,
     providerSnapshot: invitation.provider_snapshot ?? {},
+    customerContact: selectedAndReleased && customerPhone
+      ? {
+          name: projectData.guest_name?.trim() || 'Customer',
+          phone: customerPhone,
+          email: projectData.guest_email?.trim() || null,
+          location: projectData.location_text,
+          suburb: projectData.suburb,
+          city: projectData.city,
+        }
+      : null,
     project: {
       id: projectData.id,
       title: projectData.title,
