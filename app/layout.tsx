@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
+import { MarketplaceLifecyclePanel } from '../components/MarketplaceLifecyclePanel';
 import { ProjectRequestLauncher } from '../components/ProjectRequestLauncher';
 import './globals.css';
 
@@ -41,6 +42,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
         {children}
+        <MarketplaceLifecyclePanel />
         <ProjectRequestLauncher />
         <MarketplaceFeedbackLauncher />
       </body>
