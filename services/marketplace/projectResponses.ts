@@ -29,6 +29,17 @@ function sanitiseProviderSnapshot(
   return safe;
 }
 
+function providerDisplayName(provider: {
+  name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+}): string {
+  const businessName = provider.name?.trim();
+  if (businessName) return businessName;
+  const personalName = `${provider.first_name ?? ''} ${provider.last_name ?? ''}`.trim();
+  return personalName || 'Service provider';
+}
+
 export async function getCustomerProjectResponseFeed(
   projectId: string,
   accessToken: string,
@@ -96,8 +107,8 @@ export async function getCustomerProjectResponseFeed(
     };
   });
 
-  // A declined response is operationally useful for admin reporting and the
-  // activity timeline, but it is not an option the customer can select.
+  // A declined response remains available to admin reporting and the activity
+  // timeline, but it is never presented as a customer-selectable option.
   const actionableProviderResponses = providerResponses.filter(
     (response) => response.responseType !== 'declined',
   );
@@ -106,6 +117,34 @@ export async function getCustomerProjectResponseFeed(
     counts[invitation.status] = (counts[invitation.status] ?? 0) + 1;
     return counts;
   }, {});
+
+  let releasedProviderContact: {
+    id: number;
+    name: string;
+    phone: string | null;
+    whatsapp: string | null;
+    email: string | null;
+  } | null = null;
+
+  if (matchResult.data?.contact_released_at) {
+    const { data: providerData, error: providerError } = await supabase
+      .from('artisans')
+      .select('id, name, first_name, last_name, phone, whatsapp, email')
+      .eq('id', matchResult.data.provider_id)
+      .single();
+
+    if (providerError) {
+      throw new Error(`Unable to load released provider contact: ${providerError.message}`);
+    }
+
+    releasedProviderContact = {
+      id: providerData.id,
+      name: providerDisplayName(providerData),
+      phone: providerData.phone?.trim() || null,
+      whatsapp: providerData.whatsapp?.trim() || providerData.phone?.trim() || null,
+      email: providerData.email?.trim() || null,
+    };
+  }
 
   return {
     project: {
@@ -131,6 +170,11 @@ export async function getCustomerProjectResponseFeed(
           completionReportedAt: matchResult.data.completion_reported_at,
           finalPrice: matchResult.data.final_price,
           finalPriceCurrency: matchResult.data.final_price_currency,
+        }
+      : null,
+    releasedContact: releasedProviderContact
+      ? {
+          provider: releasedProviderContact,
         }
       : null,
     timeline,
