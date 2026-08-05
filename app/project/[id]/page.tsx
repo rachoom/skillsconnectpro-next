@@ -113,6 +113,21 @@ function formatDate(value: string | null): string {
   });
 }
 
+function responseTypeLabel(value: string): string {
+  const labels: Record<string, string> = {
+    available_now: 'Available now',
+    available_today: 'Available later today',
+    available_tomorrow: 'Available tomorrow',
+    available_this_week: 'Available later this week',
+    available_next_week: 'Available next week',
+    site_visit: 'Wants to inspect the job first',
+    estimate: 'Provided a preliminary estimate',
+    need_information: 'Needs more information',
+    declined: 'Cannot assist with this job',
+  };
+  return labels[value] ?? value.replaceAll('_', ' ');
+}
+
 function providerName(provider: Record<string, unknown>): string {
   if (typeof provider.name === 'string' && provider.name.trim()) return provider.name;
   if (typeof provider.business_name === 'string' && provider.business_name.trim()) return provider.business_name;
@@ -241,6 +256,12 @@ export default function CustomerProjectPage() {
     }
   };
 
+  const openJobControls = () => {
+    const controls = document.getElementById('job-status-controls');
+    if (controls) controls.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#080d0b] text-white">
@@ -312,12 +333,12 @@ export default function CustomerProjectPage() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
             <Users className="text-amber-300" size={20} />
             <p className="mt-3 text-3xl font-black">{feed.matching.invitationsSent}</p>
-            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">Providers contacted</p>
+            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">Providers invited</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
             <Clock3 className="text-amber-300" size={20} />
             <p className="mt-3 text-3xl font-black">{feed.matching.providersReviewing}</p>
-            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">Reviewing request</p>
+            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">Currently reviewing</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
             <CheckCircle2 className="text-emerald-400" size={20} />
@@ -334,8 +355,8 @@ export default function CustomerProjectPage() {
                 <div>
                   <p className="text-xs font-black uppercase tracking-wider text-amber-300">Provider selected</p>
                   <h2 className="mt-2 text-2xl font-black">{selectedName}</h2>
-                  <p className="mt-2 max-w-xl text-sm text-zinc-400">
-                    Confirm this provider to share your contact details and receive theirs. You can still change your selection before confirming.
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-400">
+                    Confirm this provider to exchange contact details. Your controls for starting, completing or cancelling the job will become available immediately after you connect.
                   </p>
                 </div>
               </div>
@@ -350,29 +371,50 @@ export default function CustomerProjectPage() {
         )}
 
         {contactsReleased && releasedProvider && (
-          <section className="mt-6 rounded-3xl border border-emerald-400/35 bg-emerald-500/10 p-6">
-            <div className="flex items-start gap-4">
-              <CheckCircle2 className="mt-1 shrink-0 text-emerald-300" size={30} />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-black uppercase tracking-wider text-emerald-300">You are connected</p>
-                <h2 className="mt-2 text-2xl font-black">{releasedProvider.name}</h2>
-                <p className="mt-2 text-sm text-emerald-50/70">Contact details have been released only to you and the selected provider.</p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {releasedProvider.phone && (
-                    <a href={`tel:${releasedProvider.phone}`} className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-[#102018]">
-                      <Phone size={17} /> Call {releasedProvider.phone}
-                    </a>
-                  )}
-                  {whatsappHref && (
-                    <a href={whatsappHref} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-black text-[#071d10]">
-                      <MessageCircle size={17} /> WhatsApp provider
-                    </a>
-                  )}
+          <>
+            <section className="mt-6 rounded-3xl border border-emerald-400/35 bg-emerald-500/10 p-6">
+              <div className="flex items-start gap-4">
+                <CheckCircle2 className="mt-1 shrink-0 text-emerald-300" size={30} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black uppercase tracking-wider text-emerald-300">You are connected</p>
+                  <h2 className="mt-2 text-2xl font-black">{releasedProvider.name}</h2>
+                  <p className="mt-2 text-sm text-emerald-50/70">Contact details have been released only to you and the selected provider.</p>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {releasedProvider.phone && (
+                      <a href={`tel:${releasedProvider.phone}`} className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-[#102018]">
+                        <Phone size={17} /> Call {releasedProvider.phone}
+                      </a>
+                    )}
+                    {whatsappHref && (
+                      <a href={whatsappHref} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-black text-[#071d10]">
+                        <MessageCircle size={17} /> WhatsApp provider
+                      </a>
+                    )}
+                  </div>
+                  {releasedProvider.email && <p className="mt-4 text-xs text-zinc-400">Email: {releasedProvider.email}</p>}
                 </div>
-                {releasedProvider.email && <p className="mt-4 text-xs text-zinc-400">Email: {releasedProvider.email}</p>}
               </div>
-            </div>
-          </section>
+            </section>
+
+            <section className="mt-4 rounded-3xl border border-amber-300/30 bg-white/[0.035] p-5 md:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider text-amber-300">Manage job status</p>
+                  <h2 className="mt-2 text-xl font-black">Keep the project record up to date</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                    Mark when work starts, confirm the provider’s completion report, cancel the project or report a problem.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openJobControls}
+                  className="flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 text-sm font-black text-black"
+                >
+                  <Wrench size={17} /> Open job controls
+                </button>
+              </div>
+            </section>
+          </>
         )}
 
         <section className="mt-8">
@@ -401,6 +443,8 @@ export default function CustomerProjectPage() {
                 const verified = response.provider.verified === true;
                 const rating = providerNumber(response.provider, 'rating');
                 const selected = response.id === selectedResponseId;
+                const showSiteVisitFee = response.responseType === 'site_visit' || response.siteVisitFee !== null;
+                const hasEstimate = response.estimateMin !== null || response.estimateMax !== null;
 
                 return (
                   <article
@@ -416,37 +460,61 @@ export default function CustomerProjectPage() {
                         <p className="mt-1 text-xs font-bold uppercase tracking-wider text-amber-300">{category || 'Service provider'}</p>
                         {location && <p className="mt-2 flex items-center gap-1 text-xs text-zinc-500"><MapPin size={12} /> {location}</p>}
                       </div>
-                      {rating !== null && (
+                      {rating !== null && rating > 0 ? (
                         <span className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold">
                           <Star size={12} className="fill-current text-amber-300" /> {rating.toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="rounded-lg bg-white/10 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                          New provider
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                    <div className={`mt-5 grid gap-3 text-sm ${showSiteVisitFee ? 'grid-cols-2' : 'grid-cols-1'}`}>
                       <div className="rounded-2xl bg-black/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Availability</p>
-                        <p className="mt-1 font-bold capitalize">{response.responseType.replaceAll('_', ' ')}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Provider response</p>
+                        <p className="mt-1 font-bold">{responseTypeLabel(response.responseType)}</p>
                       </div>
-                      <div className="rounded-2xl bg-black/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Site visit</p>
-                        <p className="mt-1 font-bold">{formatMoney(response.siteVisitFee, response.estimateCurrency)}</p>
-                      </div>
+                      {showSiteVisitFee && (
+                        <div className="rounded-2xl bg-black/20 p-3">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Site visit fee</p>
+                          <p className="mt-1 font-bold">
+                            {response.siteVisitFee === null
+                              ? 'No fee supplied'
+                              : formatMoney(response.siteVisitFee, response.estimateCurrency)}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
-                    {(response.estimateMin !== null || response.estimateMax !== null) && (
+                    {hasEstimate && (
                       <div className="mt-3 rounded-2xl bg-black/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Preliminary estimate</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Estimated job price</p>
                         <p className="mt-1 font-bold">
                           {formatMoney(response.estimateMin, response.estimateCurrency)} – {formatMoney(response.estimateMax, response.estimateCurrency)}
+                        </p>
+                        <p className="mt-2 text-[10px] leading-4 text-zinc-500">
+                          Preliminary estimate only. The final price may change after inspection and agreement with you.
                         </p>
                       </div>
                     )}
 
                     {response.arrivalWindowStart && (
-                      <p className="mt-4 text-xs text-zinc-500">Possible arrival: {formatDate(response.arrivalWindowStart)}{response.arrivalWindowEnd ? ` – ${formatDate(response.arrivalWindowEnd)}` : ''}</p>
+                      <div className="mt-3 rounded-2xl bg-black/20 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Available to arrive</p>
+                        <p className="mt-1 text-sm font-bold">
+                          {formatDate(response.arrivalWindowStart)}
+                          {response.arrivalWindowEnd ? ` – ${formatDate(response.arrivalWindowEnd)}` : ''}
+                        </p>
+                      </div>
                     )}
-                    {response.providerMessage && <p className="mt-4 rounded-2xl border border-white/5 bg-black/20 p-4 text-sm leading-6 text-zinc-300">“{response.providerMessage}”</p>}
+                    {response.providerMessage && (
+                      <div className="mt-4 rounded-2xl border border-white/5 bg-black/20 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Message from provider</p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-300">“{response.providerMessage}”</p>
+                      </div>
+                    )}
 
                     <button
                       disabled={contactsReleased || selected || selectingResponseId !== null}
@@ -492,7 +560,7 @@ export default function CustomerProjectPage() {
               </button>
             </div>
             <div className="mt-5 rounded-2xl bg-white/[0.04] p-4 text-sm leading-6 text-zinc-300">
-              Skills Connect Pro will share your name, phone number and project location only with this provider. Their phone and WhatsApp details will then appear on this page. Other provider invitations will be closed.
+              Skills Connect Pro will share your name, phone number and project location only with this provider. Their phone and WhatsApp details will then appear on this page. Other provider invitations will be closed, and your job-status controls will become available.
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <button onClick={() => setShowReleaseConfirm(false)} className="rounded-xl border border-white/15 px-4 py-3 text-sm font-bold text-zinc-200">Not yet</button>
