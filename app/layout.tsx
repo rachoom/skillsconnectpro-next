@@ -4,7 +4,7 @@ import { CustomerCompletionAction } from '../components/CustomerCompletionAction
 import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
-import { MarketplaceLifecyclePanel } from '../components/MarketplaceLifecyclePanel';
+import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { ProjectRequestLauncher } from '../components/ProjectRequestLauncher';
 import './globals.css';
 
@@ -47,7 +47,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         {children}
         <CompletedProjectSummary />
-        <MarketplaceLifecyclePanel />
+        <MarketplaceLifecycleHost />
         <CustomerCompletionAction />
         <CustomerDashboardAutoScroll />
         <FeedbackSubmissionAutoClose />
