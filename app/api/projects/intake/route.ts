@@ -4,7 +4,9 @@ import {
   isLikelyStreetAddress,
   phoneValidationMessage,
 } from '@/services/marketplace/intakePolicy.js';
+import { createProviderInvitations } from '@/services/marketplace/invitations';
 import { createProject } from '@/services/marketplace/projects';
+import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import type { CreateProjectInput } from '@/types/marketplace';
 
 export const runtime = 'nodejs';
@@ -23,6 +25,11 @@ function optionalNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? value
     : null;
+}
+
+function positiveInteger(value: unknown): number | null {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
 function validEmail(value: string): boolean {
@@ -94,11 +101,103 @@ function parsePublicIntake(body: unknown): CreateProjectInput {
     assessmentPayload: value.assessmentPayload
       && typeof value.assessmentPayload === 'object'
       && !Array.isArray(value.assessmentPayload)
-      ? value.assessmentPayload as Record<string, unknown>
-      : {},
-    sourceChannel: 'web',
+      ? {
+          ...value.assessmentPayload as Record<string, unknown>,
+          preferredProviderId: positiveInteger(value.preferredProviderId),
+          preferredProviderName: optionalText(value.preferredProviderName, 160),
+        }
+      : {
+          preferredProviderId: positiveInteger(value.preferredProviderId),
+          preferredProviderName: optionalText(value.preferredProviderName, 160),
+        },
+    sourceChannel: positiveInteger(value.preferredProviderId)
+      ? 'controlled_provider_browse'
+      : 'web',
     consentToShare: true,
   };
+}
+
+async function queuePreferredProvider(input: {
+  projectId: string;
+  providerId: number | null;
+}) {
+  if (!input.providerId) {
+    return { requested: false, queued: false, reason: 'No preferred provider selected.' };
+  }
+
+  const supabase = getSupabaseAdmin();
+  const [providerResult, invitationResult] = await Promise.all([
+    supabase
+      .from('artisans')
+      .select('id, name, first_name, last_name, category, location, phone, image_url, verified, rating, status')
+      .eq('id', input.providerId)
+      .maybeSingle(),
+    supabase
+      .from('lead_invitations')
+      .select('id')
+      .eq('project_id', input.projectId)
+      .eq('provider_id', input.providerId)
+      .maybeSingle(),
+  ]);
+
+  if (providerResult.error) {
+    throw new Error(`Unable to load the selected provider: ${providerResult.error.message}`);
+  }
+  if (invitationResult.error) {
+    throw new Error(`Unable to check the selected provider invitation: ${invitationResult.error.message}`);
+  }
+  if (!providerResult.data) {
+    return { requested: true, queued: false, reason: 'The selected provider profile is no longer available.' };
+  }
+  if (String(providerResult.data.status || '').toLowerCase() === 'inactive') {
+    return { requested: true, queued: false, reason: 'The selected provider is currently inactive.' };
+  }
+  if (invitationResult.data) {
+    return { requested: true, queued: false, reason: 'The selected provider was already included in the first wave.' };
+  }
+
+  const provider = providerResult.data;
+  const displayName = provider.name?.trim()
+    || `${provider.first_name || ''} ${provider.last_name || ''}`.trim()
+    || `Provider ${provider.id}`;
+
+  await createProviderInvitations({
+    projectId: input.projectId,
+    waveNumber: 1,
+    targets: [{
+      providerId: provider.id,
+      deliveryChannel: 'admin',
+      deliveryAddress: provider.phone,
+      providerSnapshot: {
+        displayName,
+        category: provider.category,
+        location: provider.location,
+        phone: provider.phone,
+        imageUrl: provider.image_url,
+        verified: Boolean(provider.verified),
+        rating: Number(provider.rating || 0),
+        customerPreferred: true,
+      },
+    }],
+  });
+
+  const { error: eventError } = await supabase.from('project_status_events').insert({
+    project_id: input.projectId,
+    event_type: 'customer_preferred_provider_queued',
+    actor_type: 'customer',
+    message: `${displayName} was added to the first invitation wave at the customer's request.`,
+    event_data: {
+      providerId: provider.id,
+      providerName: displayName,
+      waveNumber: 1,
+    },
+  });
+
+  if (eventError) {
+    console.error('Preferred provider queued but timeline event failed:', eventError.message);
+  }
+
+  return { requested: true, queued: true, reason: 'The customer-selected provider was added to the first invitation wave.' };
 }
 
 export async function POST(request: Request) {
@@ -108,7 +207,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Project information is too large.' }, { status: 413 });
     }
 
-    const input = parsePublicIntake(await request.json());
+    const body = await request.json();
+    const preferredProviderId = body && typeof body === 'object' && !Array.isArray(body)
+      ? positiveInteger((body as Record<string, unknown>).preferredProviderId)
+      : null;
+    const input = parsePublicIntake(body);
     const { project, accessToken } = await createProject(input);
 
     let routing: {
@@ -134,6 +237,31 @@ export async function POST(request: Request) {
       }
     }
 
+    let preferredProvider = {
+      requested: Boolean(preferredProviderId),
+      queued: false,
+      reason: preferredProviderId
+        ? 'The selected provider could not yet be added.'
+        : 'No preferred provider selected.',
+    };
+
+    if (preferredProviderId) {
+      try {
+        preferredProvider = await queuePreferredProvider({
+          projectId: project.id,
+          providerId: preferredProviderId,
+        });
+        if (preferredProvider.queued && routing) {
+          routing.providersQueued += 1;
+          routing.totalInvitations += 1;
+          routing.reason = `${routing.reason} The customer-selected provider was also included.`;
+        }
+      } catch (preferredError) {
+        console.error('Project created but preferred provider could not be queued:', preferredError);
+        preferredProvider.reason = 'The project was created, but the preferred provider requires administrator review.';
+      }
+    }
+
     return NextResponse.json(
       {
         project: {
@@ -143,6 +271,7 @@ export async function POST(request: Request) {
         },
         accessToken,
         routing,
+        preferredProvider,
       },
       { status: 201 },
     );
