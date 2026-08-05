@@ -27,8 +27,11 @@ export default async function Page({ searchParams }: Props) {
   // instead of exposing direct provider contact details.
   if (profileId) redirect(`/browse-providers?provider=${encodeURIComponent(profileId)}`);
 
-  // Provider claim/onboarding deep links remain available while the dedicated
-  // provider portal is prepared for the launch shell.
+  // The new public provider CTA uses the focused, mobile-first join experience.
+  if (claimId === 'join') redirect('/join');
+
+  // Preserve existing individual claim links while the dedicated provider
+  // account portal is prepared for launch.
   if (claimId) return <ClientWrapper />;
 
   return <MarketplaceLandingPage />;
