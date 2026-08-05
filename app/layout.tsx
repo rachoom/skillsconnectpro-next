@@ -6,7 +6,22 @@ import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAut
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
+import { ThemeModeToggle } from '../components/ThemeModeToggle';
 import './globals.css';
+
+const themeInitialiser = `
+  (function () {
+    try {
+      var saved = window.localStorage.getItem('scp-theme');
+      var theme = saved === 'light' || saved === 'dark' ? saved : 'dark';
+      document.documentElement.dataset.scpTheme = theme;
+      document.documentElement.style.colorScheme = theme;
+    } catch (error) {
+      document.documentElement.dataset.scpTheme = 'dark';
+      document.documentElement.style.colorScheme = 'dark';
+    }
+  })();
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.skillsconnectpro.co.za'),
@@ -44,6 +59,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitialiser }} />
+      </head>
       <body suppressHydrationWarning>
         {children}
         <MarketplaceVisualConsistency />
@@ -53,6 +71,7 @@ export default function RootLayout({
         <CustomerDashboardAutoScroll />
         <FeedbackSubmissionAutoClose />
         <MarketplaceFeedbackLauncher />
+        <ThemeModeToggle />
       </body>
     </html>
   );
