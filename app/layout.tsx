@@ -8,6 +8,7 @@ import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
 import { ThemeDetailOverrides } from '../components/ThemeDetailOverrides';
 import { ThemeModeToggle } from '../components/ThemeModeToggle';
+import { ThemeSurfacePolish } from '../components/ThemeSurfacePolish';
 import './globals.css';
 
 const themeInitialiser = `
@@ -90,6 +91,7 @@ export default function RootLayout({
         {children}
         <MarketplaceVisualConsistency />
         <ThemeDetailOverrides />
+        <ThemeSurfacePolish />
         <CompletedProjectSummary />
         <MarketplaceLifecycleHost />
         <CustomerCompletionAction />
