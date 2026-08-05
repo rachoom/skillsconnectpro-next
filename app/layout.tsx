@@ -6,7 +6,6 @@ import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAut
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
-import { ProjectRequestLauncher } from '../components/ProjectRequestLauncher';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -53,7 +52,6 @@ export default function RootLayout({
         <CustomerCompletionAction />
         <CustomerDashboardAutoScroll />
         <FeedbackSubmissionAutoClose />
-        <ProjectRequestLauncher />
         <MarketplaceFeedbackLauncher />
       </body>
     </html>
