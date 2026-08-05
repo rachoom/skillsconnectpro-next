@@ -6,6 +6,7 @@ import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAut
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
+import { ThemeDetailOverrides } from '../components/ThemeDetailOverrides';
 import { ThemeModeToggle } from '../components/ThemeModeToggle';
 import './globals.css';
 
@@ -20,6 +21,28 @@ const themeInitialiser = `
       document.documentElement.dataset.scpTheme = 'dark';
       document.documentElement.style.colorScheme = 'dark';
     }
+  })();
+`;
+
+const surfaceInitialiser = `
+  (function () {
+    var path = window.location.pathname;
+    var surface = path.indexOf('/provider-opportunity/') === 0
+      ? 'provider'
+      : path === '/get-help'
+        ? 'intake'
+        : path.indexOf('/project/') === 0
+          ? 'customer'
+          : path === '/'
+            ? 'home'
+            : path.indexOf('/browse-providers') === 0
+              ? 'directory'
+              : path === '/join'
+                ? 'join'
+                : path === '/estimator'
+                  ? 'estimator'
+                  : '';
+    if (surface) document.body.dataset.scpSurface = surface;
   })();
 `;
 
@@ -63,8 +86,10 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitialiser }} />
       </head>
       <body suppressHydrationWarning>
+        <script dangerouslySetInnerHTML={{ __html: surfaceInitialiser }} />
         {children}
         <MarketplaceVisualConsistency />
+        <ThemeDetailOverrides />
         <CompletedProjectSummary />
         <MarketplaceLifecycleHost />
         <CustomerCompletionAction />
