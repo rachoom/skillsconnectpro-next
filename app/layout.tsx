@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecyclePanel } from '../components/MarketplaceLifecyclePanel';
 import { ProjectRequestLauncher } from '../components/ProjectRequestLauncher';
@@ -43,6 +44,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         {children}
         <MarketplaceLifecyclePanel />
+        <CustomerDashboardAutoScroll />
         <ProjectRequestLauncher />
         <MarketplaceFeedbackLauncher />
       </body>
