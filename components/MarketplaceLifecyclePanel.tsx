@@ -11,6 +11,7 @@ import {
   Play,
   RefreshCw,
   ShieldCheck,
+  TimerReset,
   Wrench,
   XCircle,
 } from 'lucide-react';
@@ -36,8 +37,11 @@ type LifecycleState = {
   completionReportedAt: string | null;
   completionReportedBy: string | null;
   completionNote: string | null;
+  completionConfirmationDueAt: string | null;
+  completionGraceHours: number;
   completionConfirmedAt: string | null;
   completionConfirmedByCustomer: boolean;
+  autoClosedAt: string | null;
   issueReportedAt: string | null;
   issueReportedBy: string | null;
   issueNote: string | null;
@@ -178,7 +182,7 @@ export const MarketplaceLifecyclePanel = () => {
         action === 'start_work'
           ? 'The job has been updated to work in progress.'
           : action === 'report_completion'
-            ? 'Your completion report was sent to the customer. The job remains open until the customer confirms it.'
+            ? 'Your completion report was sent to the customer. The job remains open during the confirmation period.'
             : action === 'confirm_completion'
               ? 'You confirmed that the job was completed. Verified feedback is now available.'
               : action === 'cancel_project'
@@ -200,8 +204,14 @@ export const MarketplaceLifecyclePanel = () => {
   const customerMode = route.mode === 'customer';
   const customerConfirmedCompletion =
     lifecycle.projectStatus === 'completed' && lifecycle.completionConfirmedByCustomer;
+  const autoClosedWithoutCustomer =
+    lifecycle.projectStatus === 'completed' &&
+    Boolean(lifecycle.autoClosedAt) &&
+    !lifecycle.completionConfirmedByCustomer;
   const closedWithoutCustomerConfirmation =
-    lifecycle.projectStatus === 'completed' && !lifecycle.completionConfirmedByCustomer;
+    lifecycle.projectStatus === 'completed' &&
+    !lifecycle.completionConfirmedByCustomer &&
+    !lifecycle.autoClosedAt;
   const cancelled = lifecycle.projectStatus === 'cancelled';
   const disputed = lifecycle.matchStatus === 'disputed';
   const inProgress = lifecycle.projectStatus === 'in_progress';
@@ -219,7 +229,7 @@ export const MarketplaceLifecyclePanel = () => {
   const mutedClass = customerMode ? 'text-zinc-400' : 'text-[#65735E]';
 
   return (
-    <section className={wrapperClass}>
+    <section id="job-status-controls" className={`${wrapperClass} scroll-mt-24`}>
       <div className={`mx-auto max-w-5xl rounded-[2rem] border-2 p-5 md:p-7 ${cardClass}`}>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="flex items-start gap-4">
@@ -233,8 +243,8 @@ export const MarketplaceLifecyclePanel = () => {
               <h2 className="mt-2 text-2xl font-black">What is happening now?</h2>
               <p className={`mt-2 max-w-2xl text-sm leading-6 ${mutedClass}`}>
                 {customerMode
-                  ? `Keep ${lifecycle.providerName} and Skills Connect Pro informed. Final completion remains under your control.`
-                  : `Keep ${lifecycle.customerName} and Skills Connect Pro informed. You may report completion, but only the customer can confirm it.`}
+                  ? `Keep ${lifecycle.providerName} and Skills Connect Pro informed. Final completion remains under your control during the confirmation period.`
+                  : `Keep ${lifecycle.customerName} and Skills Connect Pro informed. You report completion; the customer confirms it or the system closes the record after the confirmation period.`}
               </p>
             </div>
           </div>
@@ -248,16 +258,18 @@ export const MarketplaceLifecyclePanel = () => {
         </div>
 
         <div className={`mt-6 flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-wider ${mutedClass}`}>
-          <span className={`rounded-full px-3 py-2 ${customerConfirmedCompletion ? 'bg-emerald-500/20 text-emerald-300' : cancelled || disputed || closedWithoutCustomerConfirmation ? 'bg-red-500/15 text-red-300' : customerMode ? 'bg-white/5' : 'bg-[#EAF3DE]'}`}>
+          <span className={`rounded-full px-3 py-2 ${customerConfirmedCompletion ? 'bg-emerald-500/20 text-emerald-300' : cancelled || disputed || closedWithoutCustomerConfirmation ? 'bg-red-500/15 text-red-300' : autoClosedWithoutCustomer ? 'bg-sky-500/15 text-sky-300' : customerMode ? 'bg-white/5' : 'bg-[#EAF3DE]'}`}>
             {disputed
               ? 'Problem reported'
               : customerConfirmedCompletion
                 ? 'Customer confirmed complete'
-                : closedWithoutCustomerConfirmation
-                  ? 'Admin review required'
-                  : titleCase(lifecycle.projectStatus)}
+                : autoClosedWithoutCustomer
+                  ? 'Automatically closed'
+                  : closedWithoutCustomerConfirmation
+                    ? 'Admin review required'
+                    : titleCase(lifecycle.projectStatus)}
           </span>
-          {providerReportedCompletion && (
+          {providerReportedCompletion && !autoClosedWithoutCustomer && (
             <span className={customerMode ? 'rounded-full bg-amber-400/15 px-3 py-2 text-amber-300' : 'rounded-full bg-[#FFE067] px-3 py-2 text-[#5B4300]'}>
               Provider report received {formatDate(lifecycle.completionReportedAt)}
             </span>
@@ -295,6 +307,33 @@ export const MarketplaceLifecyclePanel = () => {
               </div>
             </div>
           </div>
+        ) : autoClosedWithoutCustomer ? (
+          <div className={`mt-6 rounded-3xl border-2 p-6 ${customerMode ? 'border-sky-400/30 bg-sky-500/10' : 'border-[#79ADD0] bg-[#E5F4FF]'}`}>
+            <div className="flex items-start gap-4">
+              <TimerReset className={customerMode ? 'shrink-0 text-sky-300' : 'shrink-0 text-[#39789B]'} size={31} />
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xl font-black">Project automatically closed</h3>
+                <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
+                  {customerMode
+                    ? `No confirmation or support case was received within ${lifecycle.completionGraceHours} hours of the provider’s completion report. The operational record has been closed, but you may still confirm the completed work below.`
+                    : `No customer response or support case was received within ${lifecycle.completionGraceHours} hours. The project record was closed automatically.`}
+                </p>
+                {lifecycle.autoClosedAt && (
+                  <p className={`mt-2 text-xs ${mutedClass}`}>Closed {formatDate(lifecycle.autoClosedAt)}</p>
+                )}
+                {customerMode && (
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => setDraftAction('complete')}
+                    className="mt-5 flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 font-black text-[#052015] disabled:opacity-45"
+                  >
+                    <CheckCircle2 size={20} /> Confirm completed work now
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         ) : closedWithoutCustomerConfirmation ? (
           <div className={`mt-6 rounded-3xl border-2 p-6 ${customerMode ? 'border-red-400/30 bg-red-500/10' : 'border-[#C95D65] bg-[#FFDDE2]'}`}>
             <div className="flex items-start gap-4">
@@ -302,7 +341,7 @@ export const MarketplaceLifecyclePanel = () => {
               <div>
                 <h3 className="text-xl font-black">Customer confirmation is missing</h3>
                 <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
-                  This older project was closed without a verified customer confirmation. Rating remains locked and the record should be reviewed by Skills Connect Pro.
+                  This older project was closed without a verified customer confirmation or a recorded timeout. Rating remains locked and the record should be reviewed by Skills Connect Pro.
                 </p>
               </div>
             </div>
@@ -337,8 +376,16 @@ export const MarketplaceLifecyclePanel = () => {
                     <p className="text-xs font-black uppercase tracking-wider text-amber-300">Your confirmation is required</p>
                     <h3 className="mt-2 text-xl font-black">{lifecycle.providerName} says the work is finished</h3>
                     <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
-                      The provider’s update has not closed the job. Check the work first, then choose one of the options below.
+                      The provider’s update has not closed the job. Check the work first, then confirm completion or report a problem.
                     </p>
+                    {lifecycle.completionConfirmationDueAt && (
+                      <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-300/20 bg-black/15 p-4">
+                        <TimerReset className="mt-0.5 shrink-0 text-amber-300" size={19} />
+                        <p className="text-xs leading-5 text-zinc-300">
+                          Please respond by <strong>{formatDate(lifecycle.completionConfirmationDueAt)}</strong>. If no response or support case is received, the operational record will close automatically after {lifecycle.completionGraceHours} hours. You may still confirm later.
+                        </p>
+                      </div>
+                    )}
                     {lifecycle.completionNote && (
                       <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6">
                         “{lifecycle.completionNote}”
@@ -374,8 +421,13 @@ export const MarketplaceLifecyclePanel = () => {
                   <div>
                     <h3 className="text-xl font-black">Waiting for customer confirmation</h3>
                     <p className="mt-2 text-sm leading-6 text-[#65735E]">
-                      Your report has been sent, but the job remains open. Only the customer can confirm completion and unlock the verified rating.
+                      Your report has been sent, but the customer still controls immediate confirmation. If no response or support case is received within {lifecycle.completionGraceHours} hours, the operational record will close automatically.
                     </p>
+                    {lifecycle.completionConfirmationDueAt && (
+                      <p className="mt-3 text-xs font-black text-[#6B5A16]">
+                        Confirmation period ends {formatDate(lifecycle.completionConfirmationDueAt)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -405,7 +457,7 @@ export const MarketplaceLifecyclePanel = () => {
                   >
                     <CheckCircle2 size={21} className="text-[#21885A]" />
                     <span className="mt-3 block text-base font-black">Report work finished</span>
-                    <span className="mt-1 block text-xs text-[#65735E]">Ask the customer to confirm</span>
+                    <span className="mt-1 block text-xs text-[#65735E]">Start the customer confirmation period</span>
                   </button>
                 )}
 
@@ -455,7 +507,7 @@ export const MarketplaceLifecyclePanel = () => {
                 </h3>
                 {draftAction === 'complete' && customerMode && (
                   <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
-                    This is the final confirmation. It will close the job and unlock the verified rating form.
+                    This confirmation closes the job as customer-verified and unlocks the verified rating form.
                   </p>
                 )}
               </div>
@@ -528,7 +580,7 @@ export const MarketplaceLifecyclePanel = () => {
 
         {customerMode && !customerConfirmedCompletion && !cancelled && (
           <p className={`mt-5 text-xs leading-5 ${mutedClass}`}>
-            A provider completion report never closes the project by itself. For complaints about quality, conduct, payment or a no-show, use the <strong>Feedback &amp; support</strong> control. A complaint does not automatically change a provider&apos;s rating.
+            A provider completion report does not immediately close the project. You may confirm it, report a problem, or allow the operational record to close after the stated confirmation period. Verified ratings remain locked until you personally confirm completion.
           </p>
         )}
       </div>
