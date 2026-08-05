@@ -5,25 +5,26 @@ import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAuto
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
+import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
 import { ProjectRequestLauncher } from '../components/ProjectRequestLauncher';
 import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.skillsconnectpro.co.za'),
   manifest: '/manifest.json',
-  title: 'Skills Connect Pro | Free Directory for Kasi Artisans',
-  description: 'Looking for skilled plumbers, builders, electricians, or mechanics? Skills Connect Pro is the free online directory connecting you with local kasi talent.',
+  title: 'Skills Connect Pro | Your Local Home-Services Assistant',
+  description: 'Describe, photograph or speak about a home-service job. Skills Connect Pro prepares a clear request, invites suitable local providers and helps you manage the job from start to finish.',
   openGraph: {
-    title: 'Skills Connect Pro | Free Kasi Artisan Directory',
-    description: 'Find and book skilled plumbers, electricians, builders, and mechanics in your area. Fast, local, and reliable.',
+    title: 'Skills Connect Pro | Your Local Home-Services Assistant',
+    description: 'Show us the job, compare suitable provider responses and manage the work through one guided local marketplace.',
     url: 'https://www.skillsconnectpro.co.za',
     siteName: 'Skills Connect Pro',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/artisans/hero-welder.jpg',
         width: 1200,
         height: 630,
-        alt: 'Skills Connect Pro - Kasi Artisan Directory',
+        alt: 'Skills Connect Pro guided local home-services marketplace',
       },
     ],
     locale: 'en_ZA',
@@ -31,9 +32,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Skills Connect Pro | Free Kasi Artisan Directory',
-    description: 'Find and book local kasi artisans instantly.',
-    images: ['/og-image.jpg'],
+    title: 'Skills Connect Pro | Your Local Home-Services Assistant',
+    description: 'Describe the job, compare provider responses and manage the work through one guided service.',
+    images: ['/artisans/hero-welder.jpg'],
   },
 };
 
@@ -46,6 +47,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
         {children}
+        <MarketplaceVisualConsistency />
         <CompletedProjectSummary />
         <MarketplaceLifecycleHost />
         <CustomerCompletionAction />
