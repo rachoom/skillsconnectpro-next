@@ -1,0 +1,143 @@
+.shell {
+  position: relative;
+  min-height: 100svh;
+  isolation: isolate;
+  overflow: hidden;
+  background: #102117;
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.background img {
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.04);
+  filter: saturate(0.78) contrast(1.08) brightness(0.78);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 19, 13, 0.72), rgba(20, 12, 7, 0.84)),
+    radial-gradient(circle at 18% 5%, rgba(245, 197, 24, 0.18), transparent 30rem),
+    radial-gradient(circle at 86% 45%, rgba(58, 124, 84, 0.34), transparent 32rem);
+}
+
+.texture {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.shell :global(main) {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+.shell :global(main > div) {
+  position: relative;
+  z-index: 2;
+}
+
+.shell :global(main > div > section) {
+  border: 1px solid rgba(255, 255, 255, 0.46) !important;
+  background: rgba(245, 240, 228, 0.82) !important;
+  box-shadow:
+    0 30px 80px -34px rgba(0, 0, 0, 0.86),
+    inset 0 1px 0 rgba(255, 255, 255, 0.66) !important;
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+}
+
+.shell :global(main > div > section[class~='space-y-5']) {
+  padding: clamp(0.9rem, 3vw, 1.45rem);
+}
+
+.shell :global(main > div > div[class~='grid-cols-3']) {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 1.25rem;
+  background: rgba(8, 24, 16, 0.54);
+  padding: 0.45rem;
+  box-shadow: 0 18px 46px -28px rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+}
+
+.shell :global(textarea),
+.shell :global(input),
+.shell :global(select) {
+  box-shadow: inset 0 1px 2px rgba(18, 32, 22, 0.08);
+}
+
+.shell :global(button),
+.shell :global(a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:global(html[data-scp-theme='light']) .shell {
+  background: #e9efe7;
+}
+
+:global(html[data-scp-theme='light']) .background img {
+  filter: saturate(0.74) contrast(1.03) brightness(1.02);
+}
+
+:global(html[data-scp-theme='light']) .overlay {
+  background:
+    linear-gradient(180deg, rgba(239, 245, 239, 0.52), rgba(242, 235, 222, 0.7)),
+    radial-gradient(circle at 18% 5%, rgba(245, 197, 24, 0.16), transparent 30rem),
+    radial-gradient(circle at 86% 45%, rgba(58, 124, 84, 0.2), transparent 32rem);
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section) {
+  border-color: rgba(255, 255, 255, 0.78) !important;
+  background: rgba(255, 253, 247, 0.88) !important;
+  box-shadow:
+    0 28px 70px -38px rgba(40, 62, 45, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > div[class~='grid-cols-3']) {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 253, 247, 0.78);
+}
+
+@media (max-width: 640px) {
+  .background img {
+    object-position: 58% center;
+  }
+
+  .shell :global(main > div) {
+    padding-top: 1rem;
+  }
+
+  .shell :global(main > div > section) {
+    border-radius: 1.55rem !important;
+    backdrop-filter: blur(22px) saturate(135%);
+    -webkit-backdrop-filter: blur(22px) saturate(135%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background img {
+    transform: none;
+  }
+}
