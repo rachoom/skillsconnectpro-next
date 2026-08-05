@@ -67,6 +67,72 @@
   -webkit-backdrop-filter: blur(28px) saturate(145%);
 }
 
+/* The first intake screen is the visual centrepiece: a lifestyle image sits beneath the glass form. */
+.shell :global(main > div > section[class~='overflow-hidden']) {
+  background:
+    linear-gradient(145deg, rgba(247, 243, 232, 0.48), rgba(222, 236, 224, 0.4)),
+    url('/og-image.jpg') center 42% / cover no-repeat !important;
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:first-child) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 222, 94, 0.4), transparent 15rem),
+    radial-gradient(circle at 8% 110%, rgba(111, 174, 125, 0.32), transparent 18rem),
+    linear-gradient(125deg, #102f20 0%, #286044 48%, #72551b 82%, #c89417 128%) !important;
+  color: #fffdf4 !important;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:first-child h1) {
+  color: #fffdf4 !important;
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.28);
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:first-child p) {
+  color: rgba(255, 253, 244, 0.78) !important;
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:first-child svg) {
+  color: #ffe069;
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.28));
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2)) {
+  position: relative;
+  background:
+    linear-gradient(145deg, rgba(255, 253, 247, 0.82), rgba(229, 239, 229, 0.7)) !important;
+  backdrop-filter: blur(15px) saturate(125%);
+  -webkit-backdrop-filter: blur(15px) saturate(125%);
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > *) {
+  position: relative;
+  z-index: 1;
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] textarea) {
+  border-color: rgba(76, 105, 79, 0.42) !important;
+  background: rgba(255, 255, 252, 0.94) !important;
+  box-shadow:
+    0 18px 44px -32px rgba(24, 54, 34, 0.58),
+    inset 0 1px 2px rgba(18, 32, 22, 0.06) !important;
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] button:not(:last-child)) {
+  box-shadow: 0 16px 38px -30px rgba(21, 55, 34, 0.55);
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > button:last-child) {
+  background: linear-gradient(135deg, #ffe05a, #f5c518 58%, #d9a409) !important;
+  box-shadow:
+    0 9px 0 #8d6911,
+    0 22px 46px -28px rgba(119, 83, 5, 0.82) !important;
+}
+
 .shell :global(main > div > section[class~='space-y-5']) {
   padding: clamp(0.9rem, 3vw, 1.45rem);
 }
@@ -115,6 +181,16 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
 }
 
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden']) {
+  background:
+    linear-gradient(145deg, rgba(255, 253, 247, 0.42), rgba(229, 239, 229, 0.34)),
+    url('/og-image.jpg') center 42% / cover no-repeat !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2)) {
+  background: linear-gradient(145deg, rgba(255, 253, 247, 0.88), rgba(236, 244, 236, 0.78)) !important;
+}
+
 :global(html[data-scp-theme='light']) .shell :global(main > div > div[class~='grid-cols-3']) {
   border-color: rgba(255, 255, 255, 0.72);
   background: rgba(255, 253, 247, 0.78);
@@ -133,6 +209,14 @@
     border-radius: 1.55rem !important;
     backdrop-filter: blur(22px) saturate(135%);
     -webkit-backdrop-filter: blur(22px) saturate(135%);
+  }
+
+  .shell :global(main > div > section[class~='overflow-hidden']) {
+    background-position: 58% center !important;
+  }
+
+  .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2)) {
+    background: linear-gradient(145deg, rgba(255, 253, 247, 0.9), rgba(231, 240, 232, 0.82)) !important;
   }
 }
 
