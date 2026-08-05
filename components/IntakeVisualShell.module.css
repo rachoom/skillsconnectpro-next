@@ -1,9 +1,20 @@
 .shell {
+  --intake-bg: #0c1711;
+  --intake-panel: rgba(11, 19, 14, 0.9);
+  --intake-surface: rgba(23, 29, 25, 0.88);
+  --intake-surface-soft: rgba(245, 240, 227, 0.065);
+  --intake-text: #f4f0e5;
+  --intake-muted: rgba(244, 240, 229, 0.68);
+  --intake-gold: #f5c518;
+  --intake-gold-soft: #dfc07b;
+  --intake-line: rgba(245, 197, 24, 0.24);
+  --intake-input: rgba(20, 29, 24, 0.94);
+  --intake-input-border: rgba(223, 192, 123, 0.52);
   position: relative;
   min-height: 100svh;
   isolation: isolate;
   overflow: hidden;
-  background: #102117;
+  background: var(--intake-bg);
 }
 
 .background {
@@ -18,26 +29,26 @@
   object-fit: cover;
   object-position: center;
   transform: scale(1.04);
-  filter: saturate(0.78) contrast(1.08) brightness(0.78);
+  filter: saturate(0.46) contrast(1.07) brightness(0.58);
 }
 
 .overlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(8, 19, 13, 0.72), rgba(20, 12, 7, 0.84)),
-    radial-gradient(circle at 18% 5%, rgba(245, 197, 24, 0.18), transparent 30rem),
-    radial-gradient(circle at 86% 45%, rgba(58, 124, 84, 0.34), transparent 32rem);
+    linear-gradient(180deg, rgba(8, 17, 12, 0.78), rgba(16, 12, 8, 0.9)),
+    radial-gradient(circle at 15% 5%, rgba(245, 197, 24, 0.09), transparent 28rem),
+    radial-gradient(circle at 86% 42%, rgba(47, 103, 74, 0.16), transparent 34rem);
 }
 
 .texture {
   position: absolute;
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.14;
   background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: 34px 34px;
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 38px 38px;
   mask-image: linear-gradient(to bottom, black, transparent 88%);
 }
 
@@ -50,6 +61,7 @@
   position: relative;
   z-index: 1;
   background: transparent !important;
+  color: var(--intake-text) !important;
 }
 
 .shell :global(main > div) {
@@ -57,20 +69,56 @@
   z-index: 2;
 }
 
-.shell :global(main > div > section) {
-  border: 1px solid rgba(255, 255, 255, 0.46) !important;
-  background: rgba(245, 240, 228, 0.82) !important;
-  box-shadow:
-    0 30px 80px -34px rgba(0, 0, 0, 0.86),
-    inset 0 1px 0 rgba(255, 255, 255, 0.66) !important;
-  backdrop-filter: blur(28px) saturate(145%);
-  -webkit-backdrop-filter: blur(28px) saturate(145%);
+.shell :global(main > div > header) {
+  border-color: rgba(245, 197, 24, 0.16) !important;
+  background: rgba(10, 18, 13, 0.8) !important;
+  color: var(--intake-text) !important;
+  box-shadow: 0 22px 54px -38px rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(22px) saturate(120%);
+  -webkit-backdrop-filter: blur(22px) saturate(120%);
 }
 
-/* The first intake screen is the visual centrepiece: a lifestyle image sits beneath the glass form. */
+.shell :global(main > div > header > span) {
+  background: rgba(245, 197, 24, 0.1) !important;
+  color: var(--intake-gold-soft) !important;
+}
+
+.shell :global(main > div > section) {
+  border: 1px solid var(--intake-line) !important;
+  background: var(--intake-panel) !important;
+  color: var(--intake-text) !important;
+  box-shadow:
+    0 32px 78px -38px rgba(0, 0, 0, 0.92),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(25px) saturate(118%);
+  -webkit-backdrop-filter: blur(25px) saturate(118%);
+}
+
+.shell :global(main > div > section h1),
+.shell :global(main > div > section h2),
+.shell :global(main > div > section h3),
+.shell :global(main > div > section strong) {
+  color: var(--intake-text);
+}
+
+.shell :global(main > div > section p:not([class*='text-red']):not([class*='text-amber'])),
+.shell :global(main > div > section small),
+.shell :global(main > div > section label > span) {
+  color: var(--intake-muted) !important;
+}
+
+.shell :global(main > div > section p[class~='font-black']) {
+  color: var(--intake-text) !important;
+}
+
+.shell :global(main > div > section p[class~='font-black'] > span) {
+  color: var(--intake-gold-soft) !important;
+}
+
+/* The home image remains present, but is restrained beneath one charcoal-and-forest palette. */
 .shell :global(main > div > section[class~='overflow-hidden']) {
   background:
-    linear-gradient(145deg, rgba(247, 243, 232, 0.48), rgba(222, 236, 224, 0.4)),
+    linear-gradient(145deg, rgba(8, 17, 12, 0.7), rgba(17, 17, 14, 0.76)),
     url('/og-image.jpg') center 42% / cover no-repeat !important;
 }
 
@@ -78,35 +126,43 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 1px solid var(--intake-line);
   background:
-    radial-gradient(circle at 88% 12%, rgba(255, 222, 94, 0.4), transparent 15rem),
-    radial-gradient(circle at 8% 110%, rgba(111, 174, 125, 0.32), transparent 18rem),
-    linear-gradient(125deg, #102f20 0%, #286044 48%, #72551b 82%, #c89417 128%) !important;
-  color: #fffdf4 !important;
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.16);
+    radial-gradient(circle at 90% 0%, rgba(245, 197, 24, 0.08), transparent 14rem),
+    linear-gradient(132deg, rgba(14, 31, 22, 0.98), rgba(25, 25, 21, 0.96)) !important;
+  color: var(--intake-text) !important;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:first-child::after) {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245, 197, 24, 0.52), transparent);
 }
 
 .shell :global(main > div > section[class~='overflow-hidden'] > div:first-child h1) {
-  color: #fffdf4 !important;
-  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.28);
+  color: var(--intake-gold-soft) !important;
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.32);
 }
 
 .shell :global(main > div > section[class~='overflow-hidden'] > div:first-child p) {
-  color: rgba(255, 253, 244, 0.78) !important;
+  color: rgba(244, 240, 229, 0.74) !important;
 }
 
 .shell :global(main > div > section[class~='overflow-hidden'] > div:first-child svg) {
-  color: #ffe069;
-  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.28));
+  color: var(--intake-gold-soft);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.26));
 }
 
 .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2)) {
   position: relative;
-  background:
-    linear-gradient(145deg, rgba(255, 253, 247, 0.82), rgba(229, 239, 229, 0.7)) !important;
-  backdrop-filter: blur(15px) saturate(125%);
-  -webkit-backdrop-filter: blur(15px) saturate(125%);
+  background: linear-gradient(145deg, rgba(11, 20, 15, 0.91), rgba(22, 25, 22, 0.86)) !important;
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
 }
 
 .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > *) {
@@ -114,43 +170,107 @@
   z-index: 1;
 }
 
-.shell :global(main > div > section[class~='overflow-hidden'] textarea) {
-  border-color: rgba(76, 105, 79, 0.42) !important;
-  background: rgba(255, 255, 252, 0.94) !important;
+.shell :global(textarea),
+.shell :global(input:not([type='file'])),
+.shell :global(select) {
+  border-color: var(--intake-input-border) !important;
+  background: var(--intake-input) !important;
+  color: var(--intake-text) !important;
+  caret-color: var(--intake-gold) !important;
   box-shadow:
-    0 18px 44px -32px rgba(24, 54, 34, 0.58),
-    inset 0 1px 2px rgba(18, 32, 22, 0.06) !important;
+    0 18px 42px -34px rgba(0, 0, 0, 0.9),
+    inset 0 1px 2px rgba(0, 0, 0, 0.22) !important;
 }
 
-.shell :global(main > div > section[class~='overflow-hidden'] button:not(:last-child)) {
-  box-shadow: 0 16px 38px -30px rgba(21, 55, 34, 0.55);
+.shell :global(textarea::placeholder),
+.shell :global(input::placeholder) {
+  color: rgba(244, 240, 229, 0.48) !important;
+  opacity: 1;
 }
 
-.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > button:last-child) {
-  background: linear-gradient(135deg, #ffe05a, #f5c518 58%, #d9a409) !important;
+.shell :global(textarea:focus),
+.shell :global(input:focus),
+.shell :global(select:focus) {
+  border-color: rgba(245, 197, 24, 0.78) !important;
   box-shadow:
-    0 9px 0 #8d6911,
-    0 22px 46px -28px rgba(119, 83, 5, 0.82) !important;
+    0 0 0 3px rgba(245, 197, 24, 0.1),
+    0 18px 42px -34px rgba(0, 0, 0, 0.9) !important;
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > div[class~='grid'] > button) {
+  border-color: rgba(223, 192, 123, 0.24) !important;
+  background: rgba(245, 240, 227, 0.055) !important;
+  color: var(--intake-text) !important;
+  box-shadow: 0 16px 36px -30px rgba(0, 0, 0, 0.84);
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > div[class~='grid'] > button > span:first-child) {
+  background: rgba(223, 192, 123, 0.13) !important;
+  color: var(--intake-gold-soft) !important;
+  box-shadow: inset 0 0 0 1px rgba(223, 192, 123, 0.18);
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > p) {
+  border: 1px solid rgba(223, 192, 123, 0.12);
+  background: rgba(245, 240, 227, 0.055) !important;
+  color: var(--intake-muted) !important;
+}
+
+.shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > button:last-child),
+.shell :global(main > div > section:not([class~='overflow-hidden']) > button[class~='w-full']) {
+  border: 1px solid rgba(255, 229, 111, 0.48) !important;
+  background: linear-gradient(135deg, #ffe05a, #f5c518 58%, #d6a70b) !important;
+  color: #171006 !important;
+  box-shadow:
+    0 7px 0 #7d5f08,
+    0 22px 44px -28px rgba(245, 197, 24, 0.56) !important;
 }
 
 .shell :global(main > div > section[class~='space-y-5']) {
   padding: clamp(0.9rem, 3vw, 1.45rem);
 }
 
-.shell :global(main > div > div[class~='grid-cols-3']) {
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 1.25rem;
-  background: rgba(8, 24, 16, 0.54);
-  padding: 0.45rem;
-  box-shadow: 0 18px 46px -28px rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
+/* Clarification and confirmation cards follow the same restrained dark surface system. */
+.shell :global(main > div > section [class~='border-2'][class~='bg-white']) {
+  border-color: rgba(223, 192, 123, 0.18) !important;
+  background: rgba(245, 240, 227, 0.055) !important;
+  color: var(--intake-text) !important;
 }
 
-.shell :global(textarea),
-.shell :global(input),
-.shell :global(select) {
-  box-shadow: inset 0 1px 2px rgba(18, 32, 22, 0.08);
+.shell :global(main > div > section button[class*='bg-[#faf9f4]']) {
+  border-color: rgba(244, 240, 229, 0.14) !important;
+  background: rgba(245, 240, 227, 0.045) !important;
+  color: var(--intake-text) !important;
+}
+
+.shell :global(main > div > section button[class*='bg-[#dfe8d6]']),
+.shell :global(main > div > section [class*='bg-[#dfe8d6]']) {
+  border-color: rgba(245, 197, 24, 0.38) !important;
+  background: rgba(245, 197, 24, 0.12) !important;
+  color: var(--intake-gold-soft) !important;
+}
+
+.shell :global(main > div > section [class*='bg-[#e8eee2]']) {
+  border: 1px solid rgba(223, 192, 123, 0.12);
+  background: var(--intake-surface-soft) !important;
+  color: var(--intake-muted) !important;
+}
+
+.shell :global(main > div > div[class~='grid-cols-3']) {
+  border: 1px solid rgba(245, 197, 24, 0.12);
+  border-radius: 1.25rem;
+  background: rgba(8, 17, 12, 0.58);
+  padding: 0.45rem;
+  box-shadow: 0 18px 46px -30px rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+}
+
+.shell :global(main > div > div[class~='grid-cols-3'] > div[class*='bg-[#f5c518]']) {
+  border: 1px solid rgba(245, 197, 24, 0.22);
+  background: rgba(245, 197, 24, 0.13) !important;
+  color: #f4d76e !important;
+  box-shadow: inset 0 -2px 0 rgba(245, 197, 24, 0.52);
 }
 
 .shell :global(button),
@@ -159,41 +279,134 @@
 }
 
 :global(html[data-scp-theme='light']) .shell {
-  background: #e9efe7;
+  --intake-bg: #ebe7dc;
+  --intake-panel: rgba(255, 253, 247, 0.92);
+  --intake-surface: rgba(255, 255, 252, 0.94);
+  --intake-surface-soft: rgba(232, 239, 230, 0.78);
+  --intake-text: #172019;
+  --intake-muted: #5e685f;
+  --intake-gold-soft: #86670d;
+  --intake-line: rgba(150, 113, 12, 0.24);
+  --intake-input: rgba(255, 255, 252, 0.97);
+  --intake-input-border: rgba(150, 113, 12, 0.38);
+  background: var(--intake-bg);
 }
 
 :global(html[data-scp-theme='light']) .background img {
-  filter: saturate(0.74) contrast(1.03) brightness(1.02);
+  filter: saturate(0.56) contrast(1.02) brightness(1.02);
 }
 
 :global(html[data-scp-theme='light']) .overlay {
   background:
-    linear-gradient(180deg, rgba(239, 245, 239, 0.52), rgba(242, 235, 222, 0.7)),
-    radial-gradient(circle at 18% 5%, rgba(245, 197, 24, 0.16), transparent 30rem),
-    radial-gradient(circle at 86% 45%, rgba(58, 124, 84, 0.2), transparent 32rem);
+    linear-gradient(180deg, rgba(244, 241, 231, 0.62), rgba(236, 233, 224, 0.82)),
+    radial-gradient(circle at 15% 5%, rgba(245, 197, 24, 0.1), transparent 28rem),
+    radial-gradient(circle at 86% 42%, rgba(47, 103, 74, 0.1), transparent 34rem);
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > header) {
+  border-color: rgba(150, 113, 12, 0.16) !important;
+  background: rgba(255, 253, 247, 0.86) !important;
+  color: var(--intake-text) !important;
+  box-shadow: 0 20px 48px -36px rgba(43, 55, 46, 0.38) !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > header > span) {
+  background: rgba(245, 197, 24, 0.13) !important;
+  color: #72570a !important;
 }
 
 :global(html[data-scp-theme='light']) .shell :global(main > div > section) {
-  border-color: rgba(255, 255, 255, 0.78) !important;
-  background: rgba(255, 253, 247, 0.88) !important;
   box-shadow:
-    0 28px 70px -38px rgba(40, 62, 45, 0.45),
+    0 28px 68px -40px rgba(42, 57, 46, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
 }
 
 :global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden']) {
   background:
-    linear-gradient(145deg, rgba(255, 253, 247, 0.42), rgba(229, 239, 229, 0.34)),
+    linear-gradient(145deg, rgba(255, 253, 247, 0.4), rgba(235, 241, 232, 0.42)),
     url('/og-image.jpg') center 42% / cover no-repeat !important;
 }
 
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:first-child) {
+  border-bottom-color: rgba(150, 113, 12, 0.2);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(245, 197, 24, 0.1), transparent 14rem),
+    linear-gradient(132deg, rgba(255, 253, 247, 0.98), rgba(235, 241, 232, 0.96)) !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:first-child h1) {
+  color: #203629 !important;
+  text-shadow: none;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:first-child p) {
+  color: #5b665d !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:first-child svg) {
+  color: #9a7408;
+  filter: none;
+}
+
 :global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2)) {
-  background: linear-gradient(145deg, rgba(255, 253, 247, 0.88), rgba(236, 244, 236, 0.78)) !important;
+  background: linear-gradient(145deg, rgba(255, 253, 247, 0.89), rgba(238, 244, 236, 0.82)) !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > div[class~='grid'] > button) {
+  border-color: rgba(72, 96, 77, 0.18) !important;
+  background: rgba(255, 255, 252, 0.72) !important;
+  color: var(--intake-text) !important;
+  box-shadow: 0 16px 36px -30px rgba(42, 57, 46, 0.36);
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > div[class~='grid'] > button > span:first-child) {
+  background: rgba(245, 197, 24, 0.12) !important;
+  color: #72570a !important;
+  box-shadow: inset 0 0 0 1px rgba(150, 113, 12, 0.15);
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2) > p) {
+  border-color: rgba(72, 96, 77, 0.12);
+  background: rgba(232, 239, 230, 0.74) !important;
+  color: #566158 !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section [class~='border-2'][class~='bg-white']) {
+  border-color: rgba(72, 96, 77, 0.16) !important;
+  background: rgba(255, 255, 252, 0.88) !important;
+  color: var(--intake-text) !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section button[class*='bg-[#faf9f4]']) {
+  border-color: rgba(72, 96, 77, 0.16) !important;
+  background: rgba(255, 255, 252, 0.9) !important;
+  color: var(--intake-text) !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section button[class*='bg-[#dfe8d6]']),
+:global(html[data-scp-theme='light']) .shell :global(main > div > section [class*='bg-[#dfe8d6]']) {
+  border-color: rgba(150, 113, 12, 0.28) !important;
+  background: rgba(245, 197, 24, 0.13) !important;
+  color: #72570a !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > section [class*='bg-[#e8eee2]']) {
+  border-color: rgba(72, 96, 77, 0.12);
+  background: rgba(232, 239, 230, 0.76) !important;
+  color: #566158 !important;
 }
 
 :global(html[data-scp-theme='light']) .shell :global(main > div > div[class~='grid-cols-3']) {
-  border-color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 253, 247, 0.78);
+  border-color: rgba(150, 113, 12, 0.16);
+  background: rgba(255, 253, 247, 0.76);
+  box-shadow: 0 18px 44px -32px rgba(42, 57, 46, 0.36);
+}
+
+:global(html[data-scp-theme='light']) .shell :global(main > div > div[class~='grid-cols-3'] > div[class*='bg-[#f5c518]']) {
+  border-color: rgba(150, 113, 12, 0.22);
+  background: rgba(245, 197, 24, 0.16) !important;
+  color: #705609 !important;
+  box-shadow: inset 0 -2px 0 rgba(150, 113, 12, 0.32);
 }
 
 @media (max-width: 640px) {
@@ -207,8 +420,8 @@
 
   .shell :global(main > div > section) {
     border-radius: 1.55rem !important;
-    backdrop-filter: blur(22px) saturate(135%);
-    -webkit-backdrop-filter: blur(22px) saturate(135%);
+    backdrop-filter: blur(22px) saturate(112%);
+    -webkit-backdrop-filter: blur(22px) saturate(112%);
   }
 
   .shell :global(main > div > section[class~='overflow-hidden']) {
@@ -216,7 +429,11 @@
   }
 
   .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2)) {
-    background: linear-gradient(145deg, rgba(255, 253, 247, 0.9), rgba(231, 240, 232, 0.82)) !important;
+    background: linear-gradient(145deg, rgba(10, 19, 14, 0.94), rgba(21, 24, 21, 0.91)) !important;
+  }
+
+  :global(html[data-scp-theme='light']) .shell :global(main > div > section[class~='overflow-hidden'] > div:nth-child(2)) {
+    background: linear-gradient(145deg, rgba(255, 253, 247, 0.94), rgba(238, 244, 236, 0.88)) !important;
   }
 }
 
