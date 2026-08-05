@@ -105,14 +105,18 @@ function parsePublicIntake(body: unknown): CreateProjectInput {
           ...value.assessmentPayload as Record<string, unknown>,
           preferredProviderId: positiveInteger(value.preferredProviderId),
           preferredProviderName: optionalText(value.preferredProviderName, 160),
+          intakeOrigin: positiveInteger(value.preferredProviderId)
+            ? 'controlled_provider_browse'
+            : 'guided_homepage',
         }
       : {
           preferredProviderId: positiveInteger(value.preferredProviderId),
           preferredProviderName: optionalText(value.preferredProviderName, 160),
+          intakeOrigin: positiveInteger(value.preferredProviderId)
+            ? 'controlled_provider_browse'
+            : 'guided_homepage',
         },
-    sourceChannel: positiveInteger(value.preferredProviderId)
-      ? 'controlled_provider_browse'
-      : 'web',
+    sourceChannel: 'web',
     consentToShare: true,
   };
 }
