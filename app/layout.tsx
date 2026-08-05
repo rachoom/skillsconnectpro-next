@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CompletedProjectSummary } from '../components/CompletedProjectSummary';
 import { CustomerCompletionAction } from '../components/CustomerCompletionAction';
 import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
@@ -45,6 +46,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
         {children}
+        <CompletedProjectSummary />
         <MarketplaceLifecyclePanel />
         <CustomerCompletionAction />
         <CustomerDashboardAutoScroll />
