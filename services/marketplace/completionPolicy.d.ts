@@ -8,12 +8,15 @@ export function isProviderCompletionReport(event: CompletionEvent): boolean;
 
 export function isCustomerCompletionConfirmation(event: CompletionEvent): boolean;
 
+export function isSystemAutoCompletion(event: CompletionEvent): boolean;
+
 export function evaluateCustomerCompletionConfirmation(input: {
   actorType: 'customer' | 'provider';
   projectStatus: string;
   completionReportedAt: string | null;
   providerCompletionEvent: CompletionEvent;
   customerCompletionEvent: CompletionEvent;
+  systemCompletionEvent: CompletionEvent;
 }):
   | { allowed: true; alreadyConfirmed: boolean; reason: null }
   | { allowed: false; reason: string };
