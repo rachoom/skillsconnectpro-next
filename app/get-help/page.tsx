@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { IntakeNavigation } from '../../components/IntakeNavigation';
 import { ProjectIntakeEntryBridge } from '../../components/ProjectIntakeEntryBridge';
 import { ProjectIntakeV2 } from '../../components/ProjectIntakeV2';
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default function GetHelpPage() {
   return (
     <>
+      <IntakeNavigation />
       <Suspense fallback={null}>
         <ProjectIntakeEntryBridge />
       </Suspense>
