@@ -3,7 +3,12 @@ import {
   evaluateCustomerCompletionConfirmation,
   isCustomerCompletionConfirmation,
   isProviderCompletionReport,
+  isSystemAutoCompletion,
 } from './completionPolicy.js';
+import {
+  completionConfirmationDueAt,
+  getCompletionGraceHours,
+} from './completionAutomation';
 import { getProjectByAccessToken } from './projects';
 import { getProviderOpportunity } from './providerResponses';
 
@@ -55,8 +60,11 @@ export type MarketplaceLifecycleState = {
   completionReportedAt: string | null;
   completionReportedBy: string | null;
   completionNote: string | null;
+  completionConfirmationDueAt: string | null;
+  completionGraceHours: number;
   completionConfirmedAt: string | null;
   completionConfirmedByCustomer: boolean;
+  autoClosedAt: string | null;
   issueReportedAt: string | null;
   issueReportedBy: string | null;
   issueNote: string | null;
@@ -134,14 +142,20 @@ async function buildLifecycleState(input: {
     providerName = displayProviderName(data);
   }
 
-  const [completionReportEvent, completionConfirmationEvent, issueEvent] = await Promise.all([
+  const [completionReportEvent, completionConfirmationEvent, autoCompletionEvent, issueEvent] = await Promise.all([
     latestEvent(input.project.id, ['completion_reported']),
     latestEvent(input.project.id, ['project_completed']),
+    latestEvent(input.project.id, ['project_auto_completed']),
     latestEvent(input.project.id, ['customer_issue_reported', 'provider_issue_reported']),
   ]);
 
   const providerReportedCompletion = isProviderCompletionReport(completionReportEvent);
   const customerConfirmedCompletion = isCustomerCompletionConfirmation(completionConfirmationEvent);
+  const automaticallyClosed = isSystemAutoCompletion(autoCompletionEvent);
+  const completionReportedAt = providerReportedCompletion
+    ? input.match.completion_reported_at ?? completionReportEvent?.created_at ?? null
+    : null;
+  const completionGraceHours = getCompletionGraceHours();
 
   return {
     projectId: input.project.id,
@@ -153,9 +167,7 @@ async function buildLifecycleState(input: {
     providerName,
     customerName: input.project.guest_name?.trim() || 'Customer',
     contactReleased: Boolean(input.match.contact_released_at),
-    completionReportedAt: providerReportedCompletion
-      ? input.match.completion_reported_at ?? completionReportEvent?.created_at ?? null
-      : null,
+    completionReportedAt,
     completionReportedBy: providerReportedCompletion ? 'provider' : null,
     completionNote:
       providerReportedCompletion && typeof completionReportEvent?.event_data?.note === 'string'
@@ -163,10 +175,16 @@ async function buildLifecycleState(input: {
         : providerReportedCompletion
           ? completionReportEvent?.message ?? null
           : null,
+    completionConfirmationDueAt: completionConfirmationDueAt(
+      completionReportedAt,
+      completionGraceHours,
+    ),
+    completionGraceHours,
     completionConfirmedAt: customerConfirmedCompletion
       ? completionConfirmationEvent?.created_at ?? null
       : null,
     completionConfirmedByCustomer: customerConfirmedCompletion,
+    autoClosedAt: automaticallyClosed ? autoCompletionEvent?.created_at ?? null : null,
     issueReportedAt: issueEvent?.created_at ?? null,
     issueReportedBy: issueEvent?.actor_type ?? null,
     issueNote:
@@ -357,7 +375,7 @@ async function applyLifecycleAction(input: {
       eventType: 'completion_reported',
       actorType: input.actorType,
       actorId: input.actorId,
-      message: 'The provider reported that the work is complete and is awaiting customer confirmation.',
+      message: `The provider reported that the work is complete. The customer has ${getCompletionGraceHours()} hours to confirm or report a problem.`,
       action: input.action,
       note,
       finalPrice,
@@ -366,9 +384,10 @@ async function applyLifecycleAction(input: {
   }
 
   if (input.action === 'confirm_completion') {
-    const [providerCompletionEvent, customerCompletionEvent] = await Promise.all([
+    const [providerCompletionEvent, customerCompletionEvent, systemCompletionEvent] = await Promise.all([
       latestEvent(input.projectId, ['completion_reported']),
       latestEvent(input.projectId, ['project_completed']),
+      latestEvent(input.projectId, ['project_auto_completed']),
     ]);
 
     const decision = evaluateCustomerCompletionConfirmation({
@@ -377,6 +396,7 @@ async function applyLifecycleAction(input: {
       completionReportedAt: match.completion_reported_at,
       providerCompletionEvent,
       customerCompletionEvent,
+      systemCompletionEvent,
     });
 
     if (!decision.allowed) throw new Error(decision.reason);
@@ -403,7 +423,9 @@ async function applyLifecycleAction(input: {
       eventType: 'project_completed',
       actorType: input.actorType,
       actorId: input.actorId,
-      message: 'The customer confirmed that the provider completed the job.',
+      message: project.status === 'completed'
+        ? 'The customer later confirmed the provider’s completion report after the project was automatically closed.'
+        : 'The customer confirmed that the provider completed the job.',
       action: input.action,
       note,
       finalPrice,
