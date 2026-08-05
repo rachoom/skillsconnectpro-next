@@ -1,4 +1,9 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
+import {
+  evaluateCustomerCompletionConfirmation,
+  isCustomerCompletionConfirmation,
+  isProviderCompletionReport,
+} from './completionPolicy.js';
 import { getProjectByAccessToken } from './projects';
 import { getProviderOpportunity } from './providerResponses';
 
@@ -107,24 +112,6 @@ async function latestEvent(projectId: string, eventTypes: string[]): Promise<Sta
 
   if (error) throw new Error(`Unable to load project activity: ${error.message}`);
   return (data as StatusEventRow | null) ?? null;
-}
-
-function isProviderCompletionReport(event: StatusEventRow | null): boolean {
-  return Boolean(
-    event &&
-      event.event_type === 'completion_reported' &&
-      event.actor_type === 'provider' &&
-      event.event_data?.action === 'report_completion',
-  );
-}
-
-function isCustomerCompletionConfirmation(event: StatusEventRow | null): boolean {
-  return Boolean(
-    event &&
-      event.event_type === 'project_completed' &&
-      event.actor_type === 'customer' &&
-      event.event_data?.action === 'confirm_completion',
-  );
 }
 
 async function buildLifecycleState(input: {
@@ -379,24 +366,21 @@ async function applyLifecycleAction(input: {
   }
 
   if (input.action === 'confirm_completion') {
-    if (input.actorType !== 'customer') {
-      throw new Error('The customer must confirm final completion.');
-    }
+    const [providerCompletionEvent, customerCompletionEvent] = await Promise.all([
+      latestEvent(input.projectId, ['completion_reported']),
+      latestEvent(input.projectId, ['project_completed']),
+    ]);
 
-    const providerCompletionEvent = await latestEvent(input.projectId, ['completion_reported']);
-    if (!match.completion_reported_at || !isProviderCompletionReport(providerCompletionEvent)) {
-      throw new Error('The provider must report that the work is complete before you can confirm completion.');
-    }
+    const decision = evaluateCustomerCompletionConfirmation({
+      actorType: input.actorType,
+      projectStatus: project.status,
+      completionReportedAt: match.completion_reported_at,
+      providerCompletionEvent,
+      customerCompletionEvent,
+    });
 
-    if (project.status === 'completed') {
-      const existingConfirmation = await latestEvent(input.projectId, ['project_completed']);
-      if (isCustomerCompletionConfirmation(existingConfirmation)) return;
-      throw new Error('This project was closed without a verified customer confirmation. Please contact support.');
-    }
-
-    if (project.status !== 'in_progress') {
-      throw new Error('This job cannot be confirmed from its current status.');
-    }
+    if (!decision.allowed) throw new Error(decision.reason);
+    if (decision.alreadyConfirmed) return;
 
     const { error: matchUpdateError } = await supabase
       .from('project_matches')
