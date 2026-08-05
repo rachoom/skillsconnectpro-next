@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { processAutomaticRouting } from '@/services/marketplace/automaticRouting';
+import { processCompletionTimeouts } from '@/services/marketplace/completionAutomation';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
 export const runtime = 'nodejs';
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
   }
 
   try {
+    const completionTimeouts = await processCompletionTimeouts();
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from('projects')
@@ -71,14 +73,17 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      processed: summaries.length,
-      failed: failures.length,
-      summaries,
-      failures,
+      completionTimeouts,
+      routing: {
+        processed: summaries.length,
+        failed: failures.length,
+        summaries,
+        failures,
+      },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Scheduled routing failed.';
-    console.error('Scheduled marketplace routing failed:', error);
+    const message = error instanceof Error ? error.message : 'Scheduled marketplace processing failed.';
+    console.error('Scheduled marketplace processing failed:', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
