@@ -16,6 +16,15 @@ export function isCustomerCompletionConfirmation(event) {
   );
 }
 
+export function isSystemAutoCompletion(event) {
+  return Boolean(
+    event &&
+      event.event_type === 'project_auto_completed' &&
+      event.actor_type === 'system' &&
+      event.event_data?.action === 'auto_complete_after_timeout',
+  );
+}
+
 export function evaluateCustomerCompletionConfirmation(input) {
   if (input.actorType !== 'customer') {
     return {
@@ -34,6 +43,10 @@ export function evaluateCustomerCompletionConfirmation(input) {
   if (input.projectStatus === 'completed') {
     if (isCustomerCompletionConfirmation(input.customerCompletionEvent)) {
       return { allowed: true, alreadyConfirmed: true, reason: null };
+    }
+
+    if (isSystemAutoCompletion(input.systemCompletionEvent)) {
+      return { allowed: true, alreadyConfirmed: false, reason: null };
     }
 
     return {
