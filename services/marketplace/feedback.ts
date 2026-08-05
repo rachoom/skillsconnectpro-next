@@ -1,4 +1,8 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
+import {
+  isCustomerCompletionConfirmation,
+  verifiedReviewEligible,
+} from './completionPolicy.js';
 import { getProjectByAccessToken } from './projects';
 
 export const COMPLAINT_CATEGORIES = [
@@ -43,6 +47,7 @@ type ComplaintRow = {
 };
 
 type CompletionConfirmationRow = {
+  event_type: string;
   actor_type: string;
   event_data: Record<string, unknown> | null;
 };
@@ -125,11 +130,13 @@ async function loadFeedbackContext(projectId: string, accessToken: string) {
   return { project, match, provider };
 }
 
-async function customerConfirmedCompletion(projectId: string): Promise<boolean> {
+async function loadCustomerCompletionConfirmation(
+  projectId: string,
+): Promise<CompletionConfirmationRow | null> {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('project_status_events')
-    .select('actor_type, event_data')
+    .select('event_type, actor_type, event_data')
     .eq('project_id', projectId)
     .eq('event_type', 'project_completed')
     .eq('actor_type', 'customer')
@@ -138,19 +145,14 @@ async function customerConfirmedCompletion(projectId: string): Promise<boolean> 
     .maybeSingle();
 
   if (error) throw new Error(`Unable to verify customer completion confirmation: ${error.message}`);
-  const confirmation = (data as CompletionConfirmationRow | null) ?? null;
-  return Boolean(
-    confirmation &&
-      confirmation.actor_type === 'customer' &&
-      confirmation.event_data?.action === 'confirm_completion',
-  );
+  return (data as CompletionConfirmationRow | null) ?? null;
 }
 
 export async function getProjectFeedbackState(projectId: string, accessToken: string) {
   const { project, match, provider } = await loadFeedbackContext(projectId, accessToken);
   const supabase = getSupabaseAdmin();
 
-  const [reviewResult, complaintResult, confirmedByCustomer] = await Promise.all([
+  const [reviewResult, complaintResult, customerCompletionEvent] = await Promise.all([
     supabase
       .from('marketplace_reviews')
       .select('id, overall_rating, review_text, moderation_status, created_at, updated_at')
@@ -161,7 +163,7 @@ export async function getProjectFeedbackState(projectId: string, accessToken: st
       .select('id, category, severity, description, status, resolution_outcome, admin_notes, created_at, updated_at')
       .eq('project_id', projectId)
       .maybeSingle(),
-    customerConfirmedCompletion(projectId),
+    loadCustomerCompletionConfirmation(projectId),
   ]);
 
   if (reviewResult.error) {
@@ -174,8 +176,12 @@ export async function getProjectFeedbackState(projectId: string, accessToken: st
   const review = mapReview((reviewResult.data as ReviewRow | null) ?? null);
   const complaint = mapComplaint((complaintResult.data as ComplaintRow | null) ?? null);
   const hasSelectedProvider = Boolean(match);
-  const reviewEligible =
-    hasSelectedProvider && project.status === 'completed' && confirmedByCustomer;
+  const confirmedByCustomer = isCustomerCompletionConfirmation(customerCompletionEvent);
+  const reviewEligible = verifiedReviewEligible({
+    hasSelectedProvider,
+    projectStatus: project.status,
+    customerCompletionEvent,
+  });
   const complaintEligible =
     hasSelectedProvider &&
     ['provider_selected', 'contact_released', 'in_progress', 'completed', 'cancelled'].includes(project.status);
@@ -209,7 +215,15 @@ export async function submitProjectReview(input: {
   if (project.status !== 'completed') {
     throw new Error('A verified rating can only be submitted after the job is completed.');
   }
-  if (!(await customerConfirmedCompletion(input.projectId))) {
+
+  const customerCompletionEvent = await loadCustomerCompletionConfirmation(input.projectId);
+  if (
+    !verifiedReviewEligible({
+      hasSelectedProvider: true,
+      projectStatus: project.status,
+      customerCompletionEvent,
+    })
+  ) {
     throw new Error('Confirm the provider completion report before submitting a verified rating.');
   }
 
