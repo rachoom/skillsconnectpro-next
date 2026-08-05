@@ -5,9 +5,24 @@ import { processAutomaticRouting } from '@/services/marketplace/automaticRouting
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Marketplace-Admin-Key',
+  'Access-Control-Max-Age': '86400',
+};
+
+function json(body: unknown, status = 200) {
+  return NextResponse.json(body, { status, headers: CORS_HEADERS });
+}
+
 function parseForce(body: unknown): boolean {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return false;
   return (body as Record<string, unknown>).force === true;
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
 }
 
 export async function POST(
@@ -27,7 +42,7 @@ export async function POST(
     const routing = await processAutomaticRouting({ projectId, force });
     const origin = new URL(request.url).origin;
 
-    return NextResponse.json({
+    return json({
       routing: {
         ...routing,
         invitations: routing.invitations.map((invitation) => ({
@@ -46,7 +61,7 @@ export async function POST(
 
     console.error('POST automatic routing failed:', error);
 
-    return NextResponse.json(
+    return json(
       {
         error: unauthorised
           ? message
@@ -54,7 +69,7 @@ export async function POST(
             ? 'Marketplace service is not configured.'
             : message,
       },
-      { status: unauthorised ? 401 : configurationError ? 503 : 400 },
+      unauthorised ? 401 : configurationError ? 503 : 400,
     );
   }
 }
