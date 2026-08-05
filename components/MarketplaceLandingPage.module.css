@@ -118,16 +118,17 @@
 
 .heroImage {
   object-fit: cover;
-  object-position: 62% center;
-  filter: saturate(.82) contrast(1.04);
+  object-position: 64% center;
+  filter: saturate(1.06) contrast(1.08) brightness(1.04);
 }
 
+/* A directional overlay protects the copy on the left while allowing the moving image to breathe on the right. */
 .heroOverlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg,rgba(18,11,7,.66),rgba(18,11,7,.92) 78%,var(--brown-950)),
-    linear-gradient(90deg,rgba(18,11,7,.94),rgba(18,11,7,.26));
+    linear-gradient(180deg,rgba(18,11,7,.3),rgba(18,11,7,.5) 72%,var(--brown-950)),
+    linear-gradient(90deg,rgba(18,11,7,.94) 0%,rgba(18,11,7,.78) 46%,rgba(18,11,7,.22) 76%,rgba(18,11,7,.08) 100%);
 }
 
 .heroGlow {
@@ -137,7 +138,7 @@
   right: -11rem;
   top: 18%;
   border-radius: 999px;
-  background: rgba(47,103,74,.38);
+  background: rgba(47,103,74,.2);
   filter: blur(90px);
 }
 
@@ -148,7 +149,7 @@
   margin: 0 auto;
 }
 
-.heroCopy { max-width: 52rem; }
+.heroCopy { max-width: 44rem; }
 
 .eyebrow,
 .sectionKicker {
@@ -171,21 +172,23 @@
 }
 
 .heroCopy h1 {
-  max-width: 48rem;
+  max-width: 42rem;
   margin-top: 1.15rem;
   font-size: clamp(2.8rem,13vw,6rem);
   line-height: .96;
   letter-spacing: -.05em;
   font-weight: 900;
   text-wrap: balance;
+  text-shadow: 0 5px 30px rgba(0,0,0,.36);
 }
 
 .heroCopy > p:not(.inputNote) {
-  max-width: 43rem;
+  max-width: 40rem;
   margin-top: 1.2rem;
-  color: rgba(245,240,227,.78);
+  color: rgba(245,240,227,.82);
   font-size: 1rem;
   line-height: 1.72;
+  text-shadow: 0 2px 16px rgba(0,0,0,.4);
 }
 
 .heroButtons { display: flex; margin-top: 1.6rem; }
@@ -194,16 +197,17 @@
 .inputNote {
   max-width: 36rem;
   margin-top: 1rem;
-  color: rgba(245,240,227,.58);
+  color: rgba(245,240,227,.64);
   font-size: .76rem;
   line-height: 1.55;
+  text-shadow: 0 2px 12px rgba(0,0,0,.42);
 }
 
 .heroAssurances {
   display: grid;
   gap: .55rem;
   margin-top: 1rem;
-  color: rgba(245,240,227,.72);
+  color: rgba(245,240,227,.78);
   font-size: .76rem;
   font-weight: 700;
 }
@@ -417,6 +421,27 @@
   .tradeCard:hover img { transform: scale(1.05); }
 }
 
+@media (max-width:639px) {
+  .hero {
+    min-height: 76svh;
+    padding-top: 5rem;
+  }
+
+  .heroImage {
+    object-position: 68% center;
+  }
+
+  .heroOverlay {
+    background:
+      linear-gradient(180deg,rgba(18,11,7,.28),rgba(18,11,7,.48) 73%,var(--brown-950)),
+      linear-gradient(90deg,rgba(18,11,7,.95) 0%,rgba(18,11,7,.74) 52%,rgba(18,11,7,.18) 100%);
+  }
+
+  .heroCopy {
+    max-width: 92%;
+  }
+}
+
 @media (min-width:640px) {
   .brand img { width: 165px; }
   .navCta { padding-inline: 1rem; font-size: .72rem; }
@@ -436,6 +461,12 @@
   .menuButton,
   .mobileMenu { display: none; }
   .hero { min-height: 78vh; padding: 6.2rem 0 5rem; }
+  .heroImage { object-position: 68% center; }
+  .heroOverlay {
+    background:
+      linear-gradient(180deg,rgba(18,11,7,.16),rgba(18,11,7,.28) 66%,var(--brown-950)),
+      linear-gradient(90deg,rgba(18,11,7,.97) 0%,rgba(18,11,7,.88) 37%,rgba(18,11,7,.2) 63%,rgba(18,11,7,.025) 100%);
+  }
   .heroCopy h1 { font-size: clamp(4.5rem,8vw,6.6rem); }
   .section { padding-block: 5.8rem; }
   .sectionHeading { margin-inline: auto; text-align: center; }
