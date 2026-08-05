@@ -5,6 +5,7 @@ import {
   evaluateCustomerCompletionConfirmation,
   isCustomerCompletionConfirmation,
   isProviderCompletionReport,
+  isSystemAutoCompletion,
   verifiedReviewEligible,
 } from '../services/marketplace/completionPolicy.js';
 
@@ -19,6 +20,14 @@ const customerConfirmation = {
   actor_type: 'customer',
   event_data: { action: 'confirm_completion' },
 };
+
+const automaticCompletion = {
+  event_type: 'project_auto_completed',
+  actor_type: 'system',
+  event_data: { action: 'auto_complete_after_timeout' },
+};
+
+const noSystemCompletion = null;
 
 test('recognises only a valid provider completion report', () => {
   assert.equal(isProviderCompletionReport(providerReport), true);
@@ -44,6 +53,18 @@ test('recognises only a valid customer completion confirmation', () => {
   );
 });
 
+test('recognises only a valid system timeout closure', () => {
+  assert.equal(isSystemAutoCompletion(automaticCompletion), true);
+  assert.equal(
+    isSystemAutoCompletion({
+      event_type: 'project_auto_completed',
+      actor_type: 'admin',
+      event_data: { action: 'auto_complete_after_timeout' },
+    }),
+    false,
+  );
+});
+
 test('prevents a provider from confirming final completion', () => {
   const result = evaluateCustomerCompletionConfirmation({
     actorType: 'provider',
@@ -51,6 +72,7 @@ test('prevents a provider from confirming final completion', () => {
     completionReportedAt: '2026-08-05T04:00:00.000Z',
     providerCompletionEvent: providerReport,
     customerCompletionEvent: null,
+    systemCompletionEvent: noSystemCompletion,
   });
 
   assert.equal(result.allowed, false);
@@ -64,6 +86,7 @@ test('prevents customer confirmation before the provider reports completion', ()
     completionReportedAt: null,
     providerCompletionEvent: null,
     customerCompletionEvent: null,
+    systemCompletionEvent: noSystemCompletion,
   });
 
   assert.equal(result.allowed, false);
@@ -77,6 +100,7 @@ test('allows customer confirmation after a valid provider report', () => {
     completionReportedAt: '2026-08-05T04:00:00.000Z',
     providerCompletionEvent: providerReport,
     customerCompletionEvent: null,
+    systemCompletionEvent: noSystemCompletion,
   });
 
   assert.deepEqual(result, {
@@ -93,6 +117,7 @@ test('treats repeated customer confirmation as idempotent', () => {
     completionReportedAt: '2026-08-05T04:00:00.000Z',
     providerCompletionEvent: providerReport,
     customerCompletionEvent: customerConfirmation,
+    systemCompletionEvent: noSystemCompletion,
   });
 
   assert.deepEqual(result, {
@@ -102,12 +127,54 @@ test('treats repeated customer confirmation as idempotent', () => {
   });
 });
 
+test('allows late customer confirmation after an automatic timeout closure', () => {
+  const result = evaluateCustomerCompletionConfirmation({
+    actorType: 'customer',
+    projectStatus: 'completed',
+    completionReportedAt: '2026-08-05T04:00:00.000Z',
+    providerCompletionEvent: providerReport,
+    customerCompletionEvent: null,
+    systemCompletionEvent: automaticCompletion,
+  });
+
+  assert.deepEqual(result, {
+    allowed: true,
+    alreadyConfirmed: false,
+    reason: null,
+  });
+});
+
+test('rejects a completed project with no trusted closure event', () => {
+  const result = evaluateCustomerCompletionConfirmation({
+    actorType: 'customer',
+    projectStatus: 'completed',
+    completionReportedAt: '2026-08-05T04:00:00.000Z',
+    providerCompletionEvent: providerReport,
+    customerCompletionEvent: null,
+    systemCompletionEvent: null,
+  });
+
+  assert.equal(result.allowed, false);
+  assert.match(result.reason, /contact support/i);
+});
+
 test('keeps verified rating locked without customer confirmation', () => {
   assert.equal(
     verifiedReviewEligible({
       hasSelectedProvider: true,
       projectStatus: 'completed',
       customerCompletionEvent: null,
+    }),
+    false,
+  );
+});
+
+test('automatic closure alone does not unlock verified rating', () => {
+  assert.equal(
+    verifiedReviewEligible({
+      hasSelectedProvider: true,
+      projectStatus: 'completed',
+      customerCompletionEvent: automaticCompletion,
     }),
     false,
   );
