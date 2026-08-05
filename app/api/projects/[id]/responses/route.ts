@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { processAutomaticRouting } from '@/services/marketplace/automaticRouting';
 import { getCustomerProjectResponseFeed } from '@/services/marketplace/projectResponses';
 
 export const runtime = 'nodejs';
@@ -16,12 +17,37 @@ export async function GET(
       return NextResponse.json({ error: 'Project access token is required.' }, { status: 401 });
     }
 
-    const feed = await getCustomerProjectResponseFeed(projectId, accessToken);
+    let feed = await getCustomerProjectResponseFeed(projectId, accessToken);
     if (!feed) {
       return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
     }
 
-    return NextResponse.json(feed);
+    let routing: Awaited<ReturnType<typeof processAutomaticRouting>> | null = null;
+    try {
+      routing = await processAutomaticRouting({ projectId });
+      if (routing.invitationsQueued > 0) {
+        feed = await getCustomerProjectResponseFeed(projectId, accessToken);
+      }
+    } catch (routingError) {
+      console.error('Customer dashboard routing check failed:', routingError);
+    }
+
+    return NextResponse.json({
+      ...feed,
+      routing: routing
+        ? {
+            action: routing.action,
+            reason: routing.reason,
+            waveNumber: routing.waveNumber,
+            invitationsQueued: routing.invitationsQueued,
+            totalInvitations: routing.totalInvitations,
+            validResponses: routing.validResponses,
+            targetResponses: routing.targetResponses,
+            invitationCap: routing.invitationCap,
+            nextCheckAt: routing.nextCheckAt,
+          }
+        : null,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to load project responses.';
     const configurationError = message.includes('SUPABASE_');
