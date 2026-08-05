@@ -18,7 +18,9 @@ export const MarketplaceVisualConsistency = () => {
     if (surface) document.body.dataset.scpSurface = surface;
     else delete document.body.dataset.scpSurface;
 
-    return () => delete document.body.dataset.scpSurface;
+    return () => {
+      delete document.body.dataset.scpSurface;
+    };
   }, [pathname]);
 
   return (
