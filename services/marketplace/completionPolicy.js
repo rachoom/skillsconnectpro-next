@@ -33,13 +33,6 @@ export function evaluateCustomerCompletionConfirmation(input) {
     };
   }
 
-  if (!input.completionReportedAt || !isProviderCompletionReport(input.providerCompletionEvent)) {
-    return {
-      allowed: false,
-      reason: 'The provider must report that the work is complete before you can confirm completion.',
-    };
-  }
-
   if (input.projectStatus === 'completed') {
     if (isCustomerCompletionConfirmation(input.customerCompletionEvent)) {
       return { allowed: true, alreadyConfirmed: true, reason: null };
@@ -55,13 +48,16 @@ export function evaluateCustomerCompletionConfirmation(input) {
     };
   }
 
-  if (input.projectStatus !== 'in_progress') {
+  if (!['contact_released', 'in_progress'].includes(input.projectStatus)) {
     return {
       allowed: false,
       reason: 'This job cannot be confirmed from its current status.',
     };
   }
 
+  // The provider may report completion first, but that report is not a gate.
+  // The customer controls final completion and can close an active connected
+  // job once they have personally verified that the work is finished.
   return { allowed: true, alreadyConfirmed: false, reason: null };
 }
 
