@@ -79,7 +79,7 @@ test('prevents a provider from confirming final completion', () => {
   assert.match(result.reason, /customer must confirm/i);
 });
 
-test('prevents customer confirmation before the provider reports completion', () => {
+test('allows the customer to confirm an active job without waiting for the provider', () => {
   const result = evaluateCustomerCompletionConfirmation({
     actorType: 'customer',
     projectStatus: 'in_progress',
@@ -89,8 +89,28 @@ test('prevents customer confirmation before the provider reports completion', ()
     systemCompletionEvent: noSystemCompletion,
   });
 
-  assert.equal(result.allowed, false);
-  assert.match(result.reason, /provider must report/i);
+  assert.deepEqual(result, {
+    allowed: true,
+    alreadyConfirmed: false,
+    reason: null,
+  });
+});
+
+test('allows the customer to confirm directly after contact release', () => {
+  const result = evaluateCustomerCompletionConfirmation({
+    actorType: 'customer',
+    projectStatus: 'contact_released',
+    completionReportedAt: null,
+    providerCompletionEvent: null,
+    customerCompletionEvent: null,
+    systemCompletionEvent: noSystemCompletion,
+  });
+
+  assert.deepEqual(result, {
+    allowed: true,
+    alreadyConfirmed: false,
+    reason: null,
+  });
 });
 
 test('allows customer confirmation after a valid provider report', () => {
@@ -108,6 +128,20 @@ test('allows customer confirmation after a valid provider report', () => {
     alreadyConfirmed: false,
     reason: null,
   });
+});
+
+test('rejects completion before customer and provider are connected', () => {
+  const result = evaluateCustomerCompletionConfirmation({
+    actorType: 'customer',
+    projectStatus: 'provider_selected',
+    completionReportedAt: null,
+    providerCompletionEvent: null,
+    customerCompletionEvent: null,
+    systemCompletionEvent: noSystemCompletion,
+  });
+
+  assert.equal(result.allowed, false);
+  assert.match(result.reason, /current status/i);
 });
 
 test('treats repeated customer confirmation as idempotent', () => {
