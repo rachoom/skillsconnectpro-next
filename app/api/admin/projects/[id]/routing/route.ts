@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireMarketplaceAdmin } from '@/services/marketplace/adminAuth';
+import { requireMarketplaceAdminAccess } from '@/services/marketplace/adminSessionAuth';
 import { processAutomaticRouting } from '@/services/marketplace/automaticRouting';
 
 export const runtime = 'nodejs';
@@ -15,7 +15,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    requireMarketplaceAdmin(request);
+    await requireMarketplaceAdminAccess(request);
     const { id: projectId } = await context.params;
 
     let force = false;
@@ -40,14 +40,16 @@ export async function POST(
     const message = error instanceof Error ? error.message : 'Unable to process routing.';
     const unauthorised = error instanceof Error && error.name === 'UnauthorisedError';
     const configurationError =
-      message.includes('MARKETPLACE_ADMIN_API_KEY') || message.includes('SUPABASE_');
+      message.includes('MARKETPLACE_ADMIN_API_KEY') ||
+      message.includes('Supabase admin-session verification') ||
+      message.includes('SUPABASE_');
 
     console.error('POST automatic routing failed:', error);
 
     return NextResponse.json(
       {
         error: unauthorised
-          ? 'Unauthorised.'
+          ? message
           : configurationError
             ? 'Marketplace service is not configured.'
             : message,
