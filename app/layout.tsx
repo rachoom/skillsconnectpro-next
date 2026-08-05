@@ -3,6 +3,7 @@ import { CompletedProjectSummary } from '../components/CompletedProjectSummary';
 import { CustomerCompletionAction } from '../components/CustomerCompletionAction';
 import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
+import { LaunchThemeRepair } from '../components/LaunchThemeRepair';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
@@ -92,6 +93,7 @@ export default function RootLayout({
         <MarketplaceVisualConsistency />
         <ThemeDetailOverrides />
         <ThemeSurfacePolish />
+        <LaunchThemeRepair />
         <CompletedProjectSummary />
         <MarketplaceLifecycleHost />
         <CustomerCompletionAction />
