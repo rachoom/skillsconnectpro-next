@@ -4,21 +4,23 @@ export const IntakeHeroAlignment = () => (
      * The intake borrows the launch hero's visual language: bold editorial type,
      * warm gold details and one calm glass surface over visible trade imagery.
      */
+    body[data-scp-surface='intake'] {
+      --intake-brand-gold: #f5c518;
+      --intake-brand-gold-rgb: 245, 197, 24;
+    }
+
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
       object-position: 54% center !important;
-      filter: saturate(.92) contrast(1.03) brightness(.97) !important;
+      filter: none !important;
       transform: scale(1.015) !important;
     }
 
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_overlay'] {
-      background:
-        linear-gradient(180deg, rgba(7,12,9,.09), rgba(11,8,6,.23)),
-        radial-gradient(circle at 12% 4%, rgba(245,197,24,.07), transparent 27rem),
-        radial-gradient(circle at 90% 45%, rgba(47,103,74,.08), transparent 32rem) !important;
+      background: transparent !important;
     }
 
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_texture'] {
-      opacity: .045 !important;
+      opacity: .018 !important;
     }
 
     body[data-scp-surface='intake'] main > div {
@@ -28,7 +30,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] {
-      border-color: rgba(220,185,130,.18) !important;
+      border-color: rgba(var(--intake-brand-gold-rgb),.2) !important;
       background: rgba(7,13,10,.72) !important;
       color: #f5f0e3 !important;
       box-shadow: 0 18px 46px -34px rgba(0,0,0,.96) !important;
@@ -38,7 +40,7 @@ export const IntakeHeroAlignment = () => (
 
     body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] button,
     body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] a:not([href*='wa.me']) {
-      border-color: rgba(220,185,130,.24) !important;
+      border-color: rgba(var(--intake-brand-gold-rgb),.26) !important;
       background: rgba(246,239,226,.055) !important;
       color: rgba(245,240,227,.84) !important;
     }
@@ -63,7 +65,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     body[data-scp-surface='intake'] main > div > div[class~='grid-cols-3'] > div {
-      border: 1px solid rgba(220,185,130,.16) !important;
+      border: 1px solid rgba(var(--intake-brand-gold-rgb),.18) !important;
       background: rgba(7,13,10,.62) !important;
       color: rgba(245,240,227,.46) !important;
       box-shadow: 0 12px 28px -24px rgba(0,0,0,.9) !important;
@@ -83,7 +85,7 @@ export const IntakeHeroAlignment = () => (
     /* Shared glass panel used by every stage of the intake. */
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section:not([class~='space-y-5']),
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section[class~='space-y-5'] > div {
-      border: 1px solid rgba(220,185,130,.28) !important;
+      border: 1px solid rgba(var(--intake-brand-gold-rgb),.3) !important;
       background:
         radial-gradient(circle at 92% 0%, rgba(245,197,24,.055), transparent 18rem),
         linear-gradient(148deg, rgba(13,20,17,.83), rgba(15,14,13,.79)) !important;
@@ -123,7 +125,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     body[data-scp-surface='intake'] main section [class*='uppercase'][class*='tracking-widest']:not([class*='text-red']):not([class*='text-amber']) {
-      color: #d9bb83 !important;
+      color: var(--intake-brand-gold) !important;
     }
 
     /* Opening screen: one continuous panel, matching the supplied reference. */
@@ -146,10 +148,10 @@ export const IntakeHeroAlignment = () => (
       background: linear-gradient(
         108deg,
         transparent 10%,
-        rgba(245,197,24,.08) 35%,
+        rgba(var(--intake-brand-gold-rgb),.08) 35%,
         rgba(255,225,88,.72) 49%,
         rgba(255,250,224,.28) 52%,
-        rgba(245,197,24,.08) 66%,
+        rgba(var(--intake-brand-gold-rgb),.08) 66%,
         transparent 91%
       );
       background-position: 180% 0;
@@ -172,8 +174,8 @@ export const IntakeHeroAlignment = () => (
       height: .32rem;
       pointer-events: none;
       border-radius: 999px;
-      background: #ffe158;
-      box-shadow: 0 0 12px rgba(255,225,88,.72);
+      background: var(--intake-brand-gold);
+      box-shadow: 0 0 12px rgba(var(--intake-brand-gold-rgb),.72);
       animation: intake-status-pulse 3.2s ease-in-out infinite;
     }
 
@@ -204,10 +206,10 @@ export const IntakeHeroAlignment = () => (
       height: 1.45rem;
       margin: 0 auto;
       padding: .72rem;
-      border: 1px solid rgba(220,185,130,.22);
+      border: 1px solid rgba(var(--intake-brand-gold-rgb),.28);
       border-radius: .8rem;
-      background: rgba(220,185,130,.11);
-      color: #dfc08c !important;
+      background: rgba(var(--intake-brand-gold-rgb),.11);
+      color: var(--intake-brand-gold) !important;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 16px 34px -25px rgba(0,0,0,.95);
       filter: none !important;
     }
@@ -215,7 +217,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden'] > div:first-child h1 {
       max-width: 42rem;
       margin: 1.35rem auto 0 !important;
-      color: #f0cd7d !important;
+      color: var(--intake-brand-gold) !important;
       font-size: clamp(2.65rem, 8vw, 4.55rem) !important;
       line-height: .98 !important;
       letter-spacing: -.052em !important;
@@ -244,7 +246,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] main textarea,
     body[data-scp-surface='intake'] main input:not([type='file']):not([type='checkbox']),
     body[data-scp-surface='intake'] main select {
-      border: 1px solid rgba(220,185,130,.34) !important;
+      border: 1px solid rgba(var(--intake-brand-gold-rgb),.34) !important;
       background: rgba(6,12,9,.58) !important;
       color: #f6f0e5 !important;
       caret-color: #f5c518 !important;
@@ -282,7 +284,7 @@ export const IntakeHeroAlignment = () => (
 
     body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden'] > div:nth-child(2) > div[class~='grid'] > button {
       min-width: 0;
-      border: 1px solid rgba(220,185,130,.48) !important;
+      border: 1px solid rgba(var(--intake-brand-gold-rgb),.44) !important;
       background: rgba(246,239,226,.06) !important;
       color: #f5f0e3 !important;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 16px 36px -28px rgba(0,0,0,.9) !important;
@@ -290,9 +292,9 @@ export const IntakeHeroAlignment = () => (
 
     body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden'] > div:nth-child(2) > div[class~='grid'] > button > span:first-child {
       flex: 0 0 auto;
-      border: 1px solid rgba(220,185,130,.2) !important;
-      background: rgba(220,185,130,.12) !important;
-      color: #d9b98d !important;
+      border: 1px solid rgba(var(--intake-brand-gold-rgb),.24) !important;
+      background: rgba(var(--intake-brand-gold-rgb),.12) !important;
+      color: var(--intake-brand-gold) !important;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.045) !important;
     }
 
@@ -320,7 +322,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] main > div > section[class~='space-y-5'] > div button[class~='w-full'] {
       border: 1px solid rgba(255,225,88,.78) !important;
       background: linear-gradient(135deg, rgba(245,197,24,.12), rgba(6,12,9,.82) 38%, rgba(18,20,17,.9)) !important;
-      color: #ead7aa !important;
+      color: var(--intake-brand-gold) !important;
       box-shadow:
         0 0 0 1px rgba(245,197,24,.08),
         0 0 25px rgba(245,197,24,.14),
@@ -340,7 +342,7 @@ export const IntakeHeroAlignment = () => (
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section [class*='bg-white'],
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section [class*='bg-[#faf9f4]'],
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section [class*='bg-[#e8eee2]'] {
-      border-color: rgba(220,185,130,.25) !important;
+      border-color: rgba(var(--intake-brand-gold-rgb),.25) !important;
       background: rgba(246,239,226,.055) !important;
       color: #f5f0e3 !important;
       background-image: none !important;
@@ -356,13 +358,11 @@ export const IntakeHeroAlignment = () => (
 
     /* Light theme keeps the same composition in warm, translucent ivory. */
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
-      filter: saturate(.78) contrast(1.02) brightness(1.01) !important;
+      filter: none !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_overlay'] {
-      background:
-        linear-gradient(180deg, rgba(239,231,216,.16), rgba(226,216,197,.3)),
-        radial-gradient(circle at 12% 4%, rgba(245,197,24,.075), transparent 27rem) !important;
+      background: transparent !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section:not([class~='space-y-5']),
@@ -450,7 +450,7 @@ export const IntakeHeroAlignment = () => (
 
     @keyframes intake-system-breathe {
       0%, 100% {
-        border-color: rgba(220,185,130,.28);
+        border-color: rgba(var(--intake-brand-gold-rgb),.3);
         box-shadow: 0 34px 78px -38px rgba(0,0,0,.96), inset 0 1px 0 rgba(255,255,255,.065);
       }
       50% {
@@ -472,7 +472,7 @@ export const IntakeHeroAlignment = () => (
     @media (max-width: 640px) {
       body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
         object-position: 59% center !important;
-        filter: saturate(.94) contrast(1.03) brightness(.99) !important;
+        filter: none !important;
       }
 
       body[data-scp-surface='intake'] main > div {
@@ -525,7 +525,7 @@ export const IntakeHeroAlignment = () => (
       }
 
       html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
-        filter: saturate(.78) contrast(1.01) brightness(1.02) !important;
+        filter: none !important;
       }
     }
 
