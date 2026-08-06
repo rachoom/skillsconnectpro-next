@@ -108,6 +108,12 @@ export const SiteDesignAuditPolish = () => (
       color: #fffdf7 !important;
     }
 
+    html[data-scp-theme='light'] body[data-scp-surface='join'] main > div > section > div:first-child > div:first-child {
+      border-color: rgba(118, 80, 0, .36) !important;
+      background: rgba(245, 197, 24, .12) !important;
+      color: #765000 !important;
+    }
+
     html[data-scp-theme='light'] body[data-scp-surface='join'] main > div > section > div:first-child > div:last-child {
       border: 1px solid rgba(40, 102, 68, .3) !important;
       background: #dce9dc !important;
@@ -133,7 +139,7 @@ export const SiteDesignAuditPolish = () => (
       color: var(--scp-forest-strong) !important;
     }
 
-    html[data-scp-theme='light'] body[data-scp-surface='estimator'] main > div > div.relative.z-10 {
+    html[data-scp-theme='light'] body[data-scp-surface='estimator'] div.relative.z-10 {
       border: 1px solid rgba(245, 197, 24, .38) !important;
       background:
         radial-gradient(circle at 100% 0%, rgba(245, 197, 24, .1), transparent 20rem),
@@ -153,6 +159,17 @@ export const SiteDesignAuditPolish = () => (
     html[data-scp-theme='light'] body[data-scp-surface='intake'] main h3 {
       color: #233c2c !important;
       text-shadow: none !important;
+    }
+
+    html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='background'] img {
+      filter: saturate(.92) contrast(1.02) brightness(1) !important;
+    }
+
+    html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='overlay'] {
+      background:
+        linear-gradient(180deg, rgba(239, 232, 217, .12), rgba(228, 219, 201, .22)),
+        radial-gradient(circle at 15% 5%, rgba(245, 197, 24, .06), transparent 28rem),
+        radial-gradient(circle at 86% 42%, rgba(47, 103, 74, .04), transparent 34rem) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] main textarea,
@@ -246,7 +263,7 @@ export const SiteDesignAuditPolish = () => (
         padding-inline: .75rem !important;
       }
 
-      body[data-scp-surface='estimator'] main > div > div.relative.z-10 {
+      body[data-scp-surface='estimator'] div.relative.z-10 {
         padding: 1.2rem !important;
         border-radius: 1.5rem !important;
       }
