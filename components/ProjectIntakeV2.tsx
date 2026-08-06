@@ -173,6 +173,7 @@ export const ProjectIntakeV2: React.FC = () => {
   const [imagePreview, setImagePreview] = useState('');
   const [assessment, setAssessment] = useState<IntakeAssessment | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [answerHistory, setAnswerHistory] = useState<IntakeAnswer[]>([]);
   const [questionCount, setQuestionCount] = useState(0);
   const [questionProgress, setQuestionProgress] = useState<QuestionProgress | null>(null);
@@ -195,10 +196,14 @@ export const ProjectIntakeV2: React.FC = () => {
   const resolvedLocation = customLocation.trim() || location;
   const requiredAnsweredCount = useMemo(() => {
     if (!assessment) return 0;
-    return assessment.clarifyingQuestions.filter(
-      (question) => !question.required || Boolean(answers[question.id]?.trim()),
-    ).length;
+    return assessment.clarifyingQuestions.filter((question) => Boolean(answers[question.id]?.trim())).length;
   }, [answers, assessment]);
+
+  const activeQuestion = assessment?.clarifyingQuestions[activeQuestionIndex] ?? null;
+  const activeQuestionAnswered = Boolean(activeQuestion && answers[activeQuestion.id]?.trim());
+  const clarificationProgress = assessment?.clarifyingQuestions.length
+    ? Math.round(((activeQuestionIndex + 1) / assessment.clarifyingQuestions.length) * 100)
+    : 0;
 
   const assessProject = async (includeCurrentAnswers: boolean) => {
     setError('');
@@ -222,9 +227,12 @@ export const ProjectIntakeV2: React.FC = () => {
       });
 
       if (Object.keys(missing).length > 0) {
+        const firstMissingId = Object.keys(missing)[0];
+        const firstMissingIndex = assessment.clarifyingQuestions.findIndex((question) => question.id === firstMissingId);
+        if (firstMissingIndex >= 0) setActiveQuestionIndex(firstMissingIndex);
         setQuestionErrors(missing);
         setError('Please answer the highlighted clarification question(s).');
-        focusField(`question-${Object.keys(missing)[0]}`);
+        focusField(`question-${firstMissingId}`);
         return;
       }
 
@@ -268,6 +276,7 @@ export const ProjectIntakeV2: React.FC = () => {
       setQuestionCount(progress?.asked ?? questionsAskedForRequest + next.clarifyingQuestions.length);
       setQuestionProgress(progress ?? null);
       setAnswers({});
+      setActiveQuestionIndex(0);
       setStep(next.clarifyingQuestions.length ? 'clarify' : 'confirm');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (reason) {
@@ -417,6 +426,7 @@ export const ProjectIntakeV2: React.FC = () => {
     setImagePreview('');
     setAssessment(null);
     setAnswers({});
+    setActiveQuestionIndex(0);
     setAnswerHistory([]);
     setQuestionCount(0);
     setQuestionProgress(null);
@@ -448,10 +458,10 @@ export const ProjectIntakeV2: React.FC = () => {
         </header>
 
         {step !== 'done' && (
-          <div className="mb-6 grid grid-cols-3 gap-2">
+          <div data-intake-progress className="mb-6 grid grid-cols-3 gap-2" aria-label={`Step ${progress + 1} of 3`}>
             {['Describe', 'Clarify', 'Submit'].map((label, index) => (
-              <div key={label} className={`rounded-xl px-3 py-3 text-center ${index <= progress ? 'bg-[#f5c518]' : 'bg-white/10 text-white/45'}`}>
-                <div className="text-[9px] font-black uppercase tracking-widest">Step {index + 1}</div>
+              <div key={label} data-active={index === progress} data-complete={index < progress} aria-current={index === progress ? 'step' : undefined} className={`rounded-xl px-3 py-3 text-center ${index <= progress ? 'bg-[#f5c518]' : 'bg-white/10 text-white/45'}`}>
+                <div className="flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest"><span className="flex h-5 w-5 items-center justify-center rounded-full border border-current">{index < progress ? <Check size={12} /> : index + 1}</span><span>Step {index + 1}</span></div>
                 <div className="mt-1 text-xs font-black">{label}</div>
               </div>
             ))}
@@ -465,15 +475,15 @@ export const ProjectIntakeV2: React.FC = () => {
         )}
 
         {step === 'describe' && (
-          <section className="overflow-hidden rounded-[2rem] bg-[#f4f0e4] shadow-2xl">
+          <section data-intake-stage="describe" className="overflow-hidden rounded-[2rem] bg-[#f4f0e4] shadow-2xl">
             <div className="bg-[#f5c518] p-6 sm:p-9">
               <Home size={28} />
-              <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl">Show us the job.</h1>
-              <p className="mt-3 max-w-2xl font-semibold leading-6 text-black/65">Describe what you need in your own words. We will ask enough relevant questions to prepare a useful project brief.</p>
+              <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl">What do you need done?</h1>
+              <p className="mt-3 max-w-2xl font-semibold leading-6 text-black/65">Tell us in your own words. We’ll turn it into a clear project request and ask only the questions that matter.</p>
             </div>
             <div className="space-y-5 p-5 sm:p-8">
               <label className="block">
-                <span className="mb-2 block text-xs font-black uppercase tracking-widest text-[#59655a]">What do you need done?</span>
+                <span className="mb-2 block text-xs font-black uppercase tracking-widest text-[#59655a]">Describe the job</span>
                 <textarea
                   id="job-description"
                   value={description}
@@ -515,7 +525,7 @@ export const ProjectIntakeV2: React.FC = () => {
         )}
 
         {step === 'clarify' && assessment && (
-          <section className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
+          <section data-intake-stage="clarify" className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
             <button type="button" onClick={() => setStep('describe')} className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#59655a]"><ArrowLeft size={16} /> Back</button>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -523,8 +533,13 @@ export const ProjectIntakeV2: React.FC = () => {
                 <p className="mt-2 text-sm leading-6 text-[#667064]">These questions are based on the job you described—not a generic fault checklist.</p>
               </div>
               <span className="self-start rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">
-                {assessment.clarifyingQuestions.length} questions
+                Question {activeQuestionIndex + 1} of {assessment.clarifyingQuestions.length}
               </span>
+            </div>
+
+            <div className="mt-6" aria-label={`${clarificationProgress}% through clarification`}>
+              <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.16em]"><span>Project details</span><span>{clarificationProgress}%</span></div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><span className="block h-full rounded-full bg-[#f5c518] transition-[width] duration-300" style={{ width: `${clarificationProgress}%` }} /></div>
             </div>
 
             {usedFallback && (
@@ -533,63 +548,61 @@ export const ProjectIntakeV2: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-7 space-y-5">
-              {assessment.clarifyingQuestions.map((question, index) => {
-                const questionError = questionErrors[question.id];
-                return (
-                  <div id={`question-${question.id}`} key={question.id} tabIndex={-1} className={`rounded-2xl border-2 bg-white p-5 outline-none ${questionError ? 'border-red-400' : 'border-[#c8c7bb]'}`}>
-                    <p className="text-sm font-black"><span className="mr-2 text-[#a57f00]">{index + 1}.</span>{question.question}</p>
-                    {question.options.length ? (
-                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                        {question.options.map((option) => {
-                          const selected = answers[question.id] === option;
+            {activeQuestion && (() => {
+              const questionError = questionErrors[activeQuestion.id];
+              const isLastQuestion = activeQuestionIndex === assessment.clarifyingQuestions.length - 1;
+              return (
+                <div className="mt-6">
+                  <fieldset key={activeQuestion.id} id={`question-${activeQuestion.id}`} data-intake-question tabIndex={-1} className={`rounded-2xl border-2 bg-white p-5 outline-none sm:p-6 ${questionError ? 'border-red-400' : 'border-[#c8c7bb]'}`}>
+                    <legend className="sr-only">{activeQuestion.question}</legend>
+                    <div className="mb-5 flex items-start gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f5c518] text-xs font-black text-black">{activeQuestionIndex + 1}</span>
+                      <div><p className="text-lg font-black leading-snug">{activeQuestion.question}</p>{!activeQuestion.required && <small className="mt-1 block">Optional</small>}</div>
+                    </div>
+                    {activeQuestion.options.length ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {activeQuestion.options.map((option) => {
+                          const selected = answers[activeQuestion.id] === option;
                           return (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={() => {
-                                setAnswers((current) => ({ ...current, [question.id]: option }));
-                                setQuestionErrors((current) => ({ ...current, [question.id]: '' }));
-                              }}
-                              className={`flex min-h-12 items-center justify-between rounded-xl border-2 px-4 text-left text-sm font-bold ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}
-                            >
-                              {option}{selected && <Check size={17} />}
+                            <button key={option} type="button" aria-pressed={selected} data-selected={selected} onClick={() => {
+                              setAnswers((current) => ({ ...current, [activeQuestion.id]: option }));
+                              setQuestionErrors((current) => ({ ...current, [activeQuestion.id]: '' }));
+                            }} className={`flex min-h-14 items-center justify-between rounded-xl border-2 px-4 text-left text-sm font-bold transition ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}>
+                              <span>{option}</span><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-current">{selected && <Check size={15} />}</span>
                             </button>
                           );
                         })}
                       </div>
                     ) : (
-                      <input
-                        value={answers[question.id] ?? ''}
-                        onChange={(event) => {
-                          setAnswers((current) => ({ ...current, [question.id]: event.target.value }));
-                          setQuestionErrors((current) => ({ ...current, [question.id]: '' }));
-                        }}
-                        placeholder="Type your answer"
-                        className={`${fieldClass} mt-4 ${questionError ? errorFieldClass : ''}`}
-                      />
+                      <input value={answers[activeQuestion.id] ?? ''} onChange={(event) => {
+                        setAnswers((current) => ({ ...current, [activeQuestion.id]: event.target.value }));
+                        setQuestionErrors((current) => ({ ...current, [activeQuestion.id]: '' }));
+                      }} placeholder="Type your answer" className={`${fieldClass} ${questionError ? errorFieldClass : ''}`} />
                     )}
                     {questionError && <p className="mt-3 text-xs font-bold text-red-700">{questionError}</p>}
+                  </fieldset>
+
+                  <div className="mt-5 flex items-center gap-3">
+                    {activeQuestionIndex > 0 && <button type="button" onClick={() => setActiveQuestionIndex((current) => Math.max(0, current - 1))} className="flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/20 px-5 text-sm font-black"><ArrowLeft size={18} /> Previous</button>}
+                    {isLastQuestion ? (
+                      <button type="button" disabled={isWorking || (activeQuestion.required && !activeQuestionAnswered)} onClick={() => void assessProject(true)} className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-5 font-black disabled:opacity-45">
+                        {isWorking ? <Loader2 className="animate-spin" size={20} /> : <ArrowRight size={20} />}{isWorking ? 'Building your brief…' : 'Create my project brief'}
+                      </button>
+                    ) : (
+                      <button type="button" disabled={activeQuestion.required && !activeQuestionAnswered} onClick={() => setActiveQuestionIndex((current) => Math.min(assessment.clarifyingQuestions.length - 1, current + 1))} className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-5 font-black disabled:opacity-45">Next question <ArrowRight size={20} /></button>
+                    )}
                   </div>
-                );
-              })}
-            </div>
 
-            <div className="mt-6 rounded-2xl bg-[#e8eee2] p-4 text-xs leading-5 text-[#526052]">
-              Answered {requiredAnsweredCount} of {assessment.clarifyingQuestions.length} questions on this screen.
-              {questionProgress && ` The intake will not exceed ${questionProgress.hardLimit} clarification questions in total.`}
-            </div>
-
-            <button type="button" disabled={isWorking} onClick={() => void assessProject(true)} className="mt-7 flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black shadow-[0_8px_0_#a57f00] disabled:opacity-45">
-              {isWorking ? <Loader2 className="animate-spin" size={21} /> : <ArrowRight size={21} />}
-              {isWorking ? 'Updating the brief…' : 'Create my project brief'}
-            </button>
+                  <p className="mt-4 text-center text-xs leading-5">{requiredAnsweredCount} of {assessment.clarifyingQuestions.length} answered{questionProgress ? ` · up to ${questionProgress.hardLimit} questions maximum` : ''}</p>
+                </div>
+              );
+            })()}
           </section>
         )}
 
         {step === 'confirm' && assessment && (
-          <section className="space-y-5">
-            <div className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
+          <section data-intake-stage="confirm" className="space-y-5">
+            <div data-intake-card="brief" className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
               <button type="button" onClick={() => setStep('describe')} className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#59655a]"><ArrowLeft size={16} /> Change description</button>
               <p className="text-[10px] font-black uppercase tracking-widest text-[#667764]">Your project brief</p>
               <h1 className="mt-2 text-3xl font-black sm:text-4xl">{assessment.title}</h1>
@@ -599,7 +612,7 @@ export const ProjectIntakeV2: React.FC = () => {
               {usedFallback && <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-bold text-amber-900">A structured trade checklist was used because live AI assessment was unavailable.</div>}
               {assessment.safetyNotes.length > 0 && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div data-intake-summary className="mt-6 grid gap-3 sm:grid-cols-3">
                 <SummaryCard icon={<Clock3 size={20} />} label="Urgency" value={assessment.urgency.replace('_', ' ')} />
                 <SummaryCard icon={<CircleDollarSign size={20} />} label="Preliminary range" value={`${formatMoney(assessment.estimatedMin)} – ${formatMoney(assessment.estimatedMax)}`} />
                 <SummaryCard icon={<ShieldCheck size={20} />} label="Context collected" value={`${answerHistory.length} clarification answers`} />
@@ -607,7 +620,7 @@ export const ProjectIntakeV2: React.FC = () => {
               <div className="mt-5 rounded-2xl border border-[#c8c7bb] bg-white p-5"><p className="text-[10px] font-black uppercase tracking-widest text-[#667064]">Preliminary scope or likely issue</p><p className="mt-2 text-sm leading-6">{assessment.likelyIssue}</p></div>
 
               <p className="mb-3 mt-6 text-xs font-black uppercase tracking-widest text-[#667064]">Confirm urgency</p>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div data-intake-choice-grid className="grid gap-2 sm:grid-cols-2">
                 {URGENCY_OPTIONS.map((option) => {
                   const selected = assessment.urgency === option.value;
                   return (
@@ -694,7 +707,7 @@ export const ProjectIntakeV2: React.FC = () => {
         )}
 
         {step === 'done' && (
-          <section className="rounded-[2rem] border border-[#43a67b] bg-[#e9f5e8] p-7 text-center shadow-2xl sm:p-10">
+          <section data-intake-stage="done" className="rounded-[2rem] border border-[#43a67b] bg-[#e9f5e8] p-7 text-center shadow-2xl sm:p-10">
             <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#167451] text-white"><CheckCircle2 size={34} /></span>
             <p className="mt-6 text-[10px] font-black uppercase tracking-widest text-[#167451]">Project created</p>
             <h1 className="mt-2 text-3xl font-black sm:text-4xl">{createdTitle}</h1>
@@ -709,7 +722,7 @@ export const ProjectIntakeV2: React.FC = () => {
 };
 
 const SummaryCard: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="rounded-2xl bg-[#e8eee2] p-4"><span className="text-[#667764]">{icon}</span><div className="mt-3 text-[10px] font-black uppercase tracking-widest text-[#667064]">{label}</div><div className="mt-1 text-sm font-black capitalize">{value}</div></div>
+  <div data-intake-summary-card className="rounded-2xl bg-[#e8eee2] p-4"><span className="text-[#667764]">{icon}</span><div className="mt-3 text-[10px] font-black uppercase tracking-widest text-[#667064]">{label}</div><div className="mt-1 text-sm font-black capitalize">{value}</div></div>
 );
 
 const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -721,7 +734,7 @@ const FieldError: React.FC<{ message?: string }> = ({ message }) => (
 );
 
 const FormCard: React.FC<{ icon: React.ReactNode; title: string; description: string; children: React.ReactNode }> = ({ icon, title, description, children }) => (
-  <div className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
+  <div data-intake-card="form" className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
     <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f5c518]">{icon}</span><div><h2 className="text-xl font-black">{title}</h2><p className="text-xs leading-5 text-[#667064]">{description}</p></div></div>
     <div className="mt-5">{children}</div>
   </div>
