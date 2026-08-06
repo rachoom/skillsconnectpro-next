@@ -6,15 +6,15 @@ export const IntakeHeroAlignment = () => (
      */
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
       object-position: 54% center !important;
-      filter: saturate(.78) contrast(1.06) brightness(.72) !important;
+      filter: saturate(.92) contrast(1.03) brightness(.97) !important;
       transform: scale(1.015) !important;
     }
 
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_overlay'] {
       background:
-        linear-gradient(180deg, rgba(7,12,9,.30), rgba(11,8,6,.54)),
+        linear-gradient(180deg, rgba(7,12,9,.09), rgba(11,8,6,.23)),
         radial-gradient(circle at 12% 4%, rgba(245,197,24,.07), transparent 27rem),
-        radial-gradient(circle at 90% 45%, rgba(47,103,74,.11), transparent 32rem) !important;
+        radial-gradient(circle at 90% 45%, rgba(47,103,74,.08), transparent 32rem) !important;
     }
 
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_texture'] {
@@ -22,7 +22,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     body[data-scp-surface='intake'] main > div {
-      width: min(calc(100% - 2rem), 50rem) !important;
+      width: min(calc(100% - 4.5rem), 46rem) !important;
       max-width: none !important;
       padding: 1.7rem 0 5rem !important;
     }
@@ -86,13 +86,14 @@ export const IntakeHeroAlignment = () => (
       border: 1px solid rgba(220,185,130,.28) !important;
       background:
         radial-gradient(circle at 92% 0%, rgba(245,197,24,.055), transparent 18rem),
-        linear-gradient(148deg, rgba(13,20,17,.88), rgba(15,14,13,.84)) !important;
+        linear-gradient(148deg, rgba(13,20,17,.83), rgba(15,14,13,.79)) !important;
       color: #f5f0e3 !important;
       box-shadow:
         0 34px 78px -38px rgba(0,0,0,.96),
         inset 0 1px 0 rgba(255,255,255,.065) !important;
-      backdrop-filter: blur(24px) saturate(112%) !important;
-      -webkit-backdrop-filter: blur(24px) saturate(112%) !important;
+      backdrop-filter: blur(20px) saturate(112%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(112%) !important;
+      animation: intake-system-breathe 7s ease-in-out infinite;
     }
 
     body[data-scp-surface='intake'] main > div > section[class~='space-y-5'] {
@@ -118,7 +119,7 @@ export const IntakeHeroAlignment = () => (
 
     body[data-scp-surface='intake'] main p:not([class*='text-red']):not([class*='text-amber']),
     body[data-scp-surface='intake'] main small {
-      color: rgba(245,240,227,.68) !important;
+      color: rgba(255,252,245,.84) !important;
     }
 
     body[data-scp-surface='intake'] main section [class*='uppercase'][class*='tracking-widest']:not([class*='text-red']):not([class*='text-amber']) {
@@ -132,10 +133,48 @@ export const IntakeHeroAlignment = () => (
       border-radius: 2.2rem !important;
     }
 
-    body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden']::before,
+    /* A slow current traces the edge while a tiny status lamp suggests readiness. */
+    body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden']::before {
+      content: '' !important;
+      display: block !important;
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      padding: 1px;
+      border-radius: inherit;
+      background: linear-gradient(
+        108deg,
+        transparent 10%,
+        rgba(245,197,24,.08) 35%,
+        rgba(255,225,88,.72) 49%,
+        rgba(255,250,224,.28) 52%,
+        rgba(245,197,24,.08) 66%,
+        transparent 91%
+      );
+      background-position: 180% 0;
+      background-size: 240% 100%;
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      animation: intake-edge-current 9s linear infinite;
+    }
+
     body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden']::after {
-      content: none !important;
-      display: none !important;
+      content: '' !important;
+      display: block !important;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 6;
+      width: .32rem;
+      height: .32rem;
+      pointer-events: none;
+      border-radius: 999px;
+      background: #ffe158;
+      box-shadow: 0 0 12px rgba(255,225,88,.72);
+      animation: intake-status-pulse 3.2s ease-in-out infinite;
     }
 
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden'] > div:first-child,
@@ -176,7 +215,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden'] > div:first-child h1 {
       max-width: 42rem;
       margin: 1.35rem auto 0 !important;
-      color: #d9b98d !important;
+      color: #f0cd7d !important;
       font-size: clamp(2.65rem, 8vw, 4.55rem) !important;
       line-height: .98 !important;
       letter-spacing: -.052em !important;
@@ -186,7 +225,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden'] > div:first-child p {
       max-width: 38rem;
       margin: 1rem auto 0 !important;
-      color: rgba(245,240,227,.78) !important;
+      color: rgba(255,252,245,.9) !important;
       font-size: clamp(.92rem, 2vw, 1.08rem);
       font-weight: 500 !important;
       line-height: 1.65 !important;
@@ -219,7 +258,7 @@ export const IntakeHeroAlignment = () => (
 
     body[data-scp-surface='intake'] main textarea::placeholder,
     body[data-scp-surface='intake'] main input::placeholder {
-      color: rgba(245,240,227,.42) !important;
+      color: rgba(255,252,245,.56) !important;
       opacity: 1 !important;
     }
 
@@ -272,7 +311,7 @@ export const IntakeHeroAlignment = () => (
       border: 0 !important;
       background: transparent !important;
       padding: .35rem 1rem .2rem !important;
-      color: rgba(245,240,227,.63) !important;
+      color: rgba(255,252,245,.8) !important;
     }
 
     /* The dark outlined action mirrors the reference while retaining the site's gold identity. */
@@ -317,12 +356,12 @@ export const IntakeHeroAlignment = () => (
 
     /* Light theme keeps the same composition in warm, translucent ivory. */
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
-      filter: saturate(.7) contrast(1.02) brightness(.94) !important;
+      filter: saturate(.78) contrast(1.02) brightness(1.01) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_overlay'] {
       background:
-        linear-gradient(180deg, rgba(239,231,216,.28), rgba(226,216,197,.48)),
+        linear-gradient(180deg, rgba(239,231,216,.16), rgba(226,216,197,.3)),
         radial-gradient(circle at 12% 4%, rgba(245,197,24,.075), transparent 27rem) !important;
     }
 
@@ -409,14 +448,35 @@ export const IntakeHeroAlignment = () => (
       color: #271b13 !important;
     }
 
+    @keyframes intake-system-breathe {
+      0%, 100% {
+        border-color: rgba(220,185,130,.28);
+        box-shadow: 0 34px 78px -38px rgba(0,0,0,.96), inset 0 1px 0 rgba(255,255,255,.065);
+      }
+      50% {
+        border-color: rgba(255,225,88,.43);
+        box-shadow: 0 34px 78px -38px rgba(0,0,0,.96), 0 0 24px rgba(245,197,24,.09), inset 0 1px 0 rgba(255,255,255,.08);
+      }
+    }
+
+    @keyframes intake-edge-current {
+      from { background-position: 180% 0; }
+      to { background-position: -80% 0; }
+    }
+
+    @keyframes intake-status-pulse {
+      0%, 100% { opacity: .38; transform: scale(.82); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+
     @media (max-width: 640px) {
       body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
         object-position: 59% center !important;
-        filter: saturate(.8) contrast(1.05) brightness(.75) !important;
+        filter: saturate(.94) contrast(1.03) brightness(.99) !important;
       }
 
       body[data-scp-surface='intake'] main > div {
-        width: calc(100% - 1.5rem) !important;
+        width: calc(100% - 2rem) !important;
         padding-top: 1rem !important;
       }
 
@@ -465,13 +525,19 @@ export const IntakeHeroAlignment = () => (
       }
 
       html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
-        filter: saturate(.7) contrast(1.01) brightness(.96) !important;
+        filter: saturate(.78) contrast(1.01) brightness(1.02) !important;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
       body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
         transform: none !important;
+      }
+
+      html[data-scp-theme] body[data-scp-surface='intake'] main > div > section,
+      body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden']::before,
+      body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden']::after {
+        animation: none !important;
       }
     }
   `}</style>
