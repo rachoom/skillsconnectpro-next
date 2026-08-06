@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
 import React, { useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
@@ -10,12 +12,12 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Clock3,
+  Home,
   Loader2,
   MapPin,
   Mic,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
   UserRound,
   Wrench,
   X,
@@ -438,10 +440,10 @@ export const ProjectIntakeV2: React.FC = () => {
     <main className="min-h-screen bg-[#172119] text-[#182019]">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
         <header className="mb-6 flex items-center justify-between rounded-2xl border border-black/10 bg-[#f4f0e4] px-4 py-3 shadow-xl sm:px-6">
-          <a href="/" className="flex items-center gap-2 text-sm font-black">
+          <Link href="/" className="flex items-center gap-2 text-sm font-black">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5c518]"><Wrench size={19} /></span>
             Skills Connect Pro
-          </a>
+          </Link>
           <span className="hidden rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446] sm:block">Guided request</span>
         </header>
 
@@ -465,7 +467,7 @@ export const ProjectIntakeV2: React.FC = () => {
         {step === 'describe' && (
           <section className="overflow-hidden rounded-[2rem] bg-[#f4f0e4] shadow-2xl">
             <div className="bg-[#f5c518] p-6 sm:p-9">
-              <Sparkles size={28} />
+              <Home size={28} />
               <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl">Show us the job.</h1>
               <p className="mt-3 max-w-2xl font-semibold leading-6 text-black/65">Describe what you need in your own words. We will ask enough relevant questions to prepare a useful project brief.</p>
             </div>
@@ -498,14 +500,14 @@ export const ProjectIntakeV2: React.FC = () => {
 
               {imagePreview && (
                 <div className="relative rounded-2xl bg-[#dfe8d6] p-3">
-                  <img src={imagePreview} alt="Project issue" className="h-52 w-full rounded-xl object-cover" />
+                  <Image src={imagePreview} alt="Project issue" width={1200} height={624} unoptimized className="h-52 w-full rounded-xl object-cover" />
                   <button type="button" onClick={() => { setImageData(''); setImagePreview(''); }} className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-black text-white" aria-label="Remove image"><X size={18} /></button>
                 </div>
               )}
 
               <p className="rounded-2xl bg-[#e8eee2] p-4 text-xs leading-5 text-[#526052]"><strong>Preliminary only:</strong> this is not a final diagnosis, approved building plan or quotation. A suitable provider may need to inspect the site.</p>
               <button type="button" disabled={isWorking} onClick={() => void assessProject(false)} className="flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black shadow-[0_8px_0_#a57f00] disabled:opacity-45">
-                {isWorking ? <Loader2 className="animate-spin" size={21} /> : <Sparkles size={21} />}
+                {isWorking ? <Loader2 className="animate-spin" size={21} /> : <ArrowRight size={21} />}
                 {isWorking ? 'Understanding the job…' : 'Continue to job questions'}
               </button>
             </div>
