@@ -499,7 +499,7 @@ export const IntakeHeroAlignment = () => (
       text-wrap: balance;
     }
 
-    body[data-scp-surface='intake'] main > div > section[data-intake-stage] h1 {
+    html[data-scp-theme] body[data-scp-surface='intake'] main > div > section[data-intake-stage] h1 {
       color: var(--intake-brand-gold) !important;
     }
 
