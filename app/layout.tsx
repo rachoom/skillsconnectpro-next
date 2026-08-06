@@ -11,6 +11,7 @@ import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualCon
 import { ThemeDetailOverrides } from '../components/ThemeDetailOverrides';
 import { ThemeModeToggle } from '../components/ThemeModeToggle';
 import { ThemeSurfacePolish } from '../components/ThemeSurfacePolish';
+import { SiteDesignAuditPolish } from '../components/SiteDesignAuditPolish';
 import './globals.css';
 
 const themeInitialiser = `
@@ -95,6 +96,7 @@ export default function RootLayout({
         <ThemeDetailOverrides />
         <ThemeSurfacePolish />
         <LaunchThemeRepair />
+        <SiteDesignAuditPolish />
         <IntakeHeroAlignment />
         <CompletedProjectSummary />
         <MarketplaceLifecycleHost />
