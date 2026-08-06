@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import NextImage from 'next/image';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState } from 'react';
 import {
@@ -500,7 +500,7 @@ export const ProjectIntakeV2: React.FC = () => {
 
               {imagePreview && (
                 <div className="relative rounded-2xl bg-[#dfe8d6] p-3">
-                  <Image src={imagePreview} alt="Project issue" width={1200} height={624} unoptimized className="h-52 w-full rounded-xl object-cover" />
+                  <NextImage src={imagePreview} alt="Project issue" width={1200} height={624} unoptimized className="h-52 w-full rounded-xl object-cover" />
                   <button type="button" onClick={() => { setImageData(''); setImagePreview(''); }} className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-black text-white" aria-label="Remove image"><X size={18} /></button>
                 </div>
               )}
