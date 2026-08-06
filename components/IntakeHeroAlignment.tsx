@@ -714,7 +714,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-stage] h1 {
-      color: #765019 !important;
+      color: var(--intake-brand-gold) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-question],
