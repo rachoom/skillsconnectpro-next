@@ -3,18 +3,17 @@ export const IntakeHeroAlignment = () => (
     /*
      * Skills Connect Pro intake system
      * Light: pure white, black and brand yellow.
-     * Dark: rich brown, black and brand yellow, with white for legibility.
+     * Dark: pure black, white and brand yellow.
      */
     body[data-scp-surface='intake'] {
       --intake-yellow: #f5c518;
       --intake-black: #0b0a09;
       --intake-white: #ffffff;
-      --intake-canvas-brown: #3a2418;
-      --intake-brown-card: #452b1d;
-      --intake-brown-field: #2d1b13;
       --intake-dark-line: rgba(255, 255, 255, .14);
       --intake-dark-muted: rgba(255, 255, 255, .7);
-      background: var(--intake-canvas-brown) !important;
+      --intake-light-line: rgba(11, 10, 9, .14);
+      --intake-light-muted: rgba(11, 10, 9, .68);
+      background: var(--intake-black) !important;
       font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
     }
 
@@ -25,7 +24,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] {
       min-height: 100svh;
       overflow: visible !important;
-      background: var(--intake-canvas-brown) !important;
+      background: var(--intake-black) !important;
     }
 
     body[data-scp-surface='intake'] main {
@@ -62,7 +61,7 @@ export const IntakeHeroAlignment = () => (
     /* Flat navigation, with the form—not the chrome—remaining dominant. */
     body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] {
       border-bottom: 1px solid var(--intake-dark-line) !important;
-      background: var(--intake-canvas-brown) !important;
+      background: var(--intake-black) !important;
       box-shadow: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -137,7 +136,7 @@ export const IntakeHeroAlignment = () => (
     ) {
       border: 1px solid var(--intake-dark-line) !important;
       border-radius: 1.25rem !important;
-      background: var(--intake-brown-card) !important;
+      background: var(--intake-black) !important;
       color: var(--intake-white) !important;
       box-shadow: none !important;
       backdrop-filter: none !important;
@@ -150,7 +149,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > section[data-intake-stage='confirm'] > [data-intake-card] {
       border: 1px solid var(--intake-dark-line) !important;
       border-radius: 1.25rem !important;
-      background: var(--intake-brown-card) !important;
+      background: var(--intake-black) !important;
       color: var(--intake-white) !important;
       box-shadow: none !important;
       backdrop-filter: none !important;
@@ -161,7 +160,7 @@ export const IntakeHeroAlignment = () => (
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] [class*='IntakeVisualShell_content'] main > div > section[data-intake-stage='done'],
     html[data-scp-theme='dark'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] [class*='IntakeVisualShell_content'] main > div > section[data-intake-stage='confirm'] > [data-intake-card] {
       border-color: var(--intake-dark-line) !important;
-      background: var(--intake-brown-card) !important;
+      background: var(--intake-black) !important;
       color: var(--intake-white) !important;
     }
 
@@ -245,13 +244,13 @@ export const IntakeHeroAlignment = () => (
       overflow: hidden;
       border: 1px solid var(--intake-dark-line) !important;
       border-radius: .9rem !important;
-      background: var(--intake-brown-field) !important;
+      background: var(--intake-black) !important;
     }
 
     body[data-scp-surface='intake'] main :is(textarea, input:not([type='file']), select) {
       border: 1px solid var(--intake-dark-line) !important;
       border-radius: .8rem !important;
-      background: var(--intake-brown-field) !important;
+      background: var(--intake-black) !important;
       color: var(--intake-white) !important;
       caret-color: var(--intake-yellow) !important;
       box-shadow: none !important;
@@ -315,7 +314,7 @@ export const IntakeHeroAlignment = () => (
       overflow: hidden;
       border: 1px solid var(--intake-dark-line) !important;
       border-radius: .9rem !important;
-      background: var(--intake-brown-field) !important;
+      background: var(--intake-black) !important;
     }
 
     body[data-scp-surface='intake'] [data-intake-photo-preview] > div {
@@ -376,7 +375,7 @@ export const IntakeHeroAlignment = () => (
     body[data-scp-surface='intake'] [data-intake-question] button,
     body[data-scp-surface='intake'] [data-intake-card] > div[class*='border'] {
       border-color: var(--intake-dark-line) !important;
-      background: var(--intake-brown-field) !important;
+      background: var(--intake-black) !important;
       color: var(--intake-white) !important;
       box-shadow: none !important;
     }
@@ -389,7 +388,7 @@ export const IntakeHeroAlignment = () => (
 
     body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > section[data-intake-stage='clarify'] [data-intake-question] {
       border: 1px solid var(--intake-dark-line) !important;
-      background: var(--intake-brown-field) !important;
+      background: var(--intake-black) !important;
       color: var(--intake-white) !important;
       box-shadow: none !important;
     }
@@ -471,12 +470,12 @@ export const IntakeHeroAlignment = () => (
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] {
-      border-color: #e8e8e8 !important;
+      border-color: var(--intake-light-line) !important;
       background: var(--intake-white) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] :is(a, button) {
-      border-color: #d9d9d9 !important;
+      border-color: var(--intake-light-line) !important;
       color: var(--intake-black) !important;
     }
 
@@ -487,7 +486,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-progress] > div {
-      color: #737373 !important;
+      color: var(--intake-light-muted) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-progress] > div[data-active='true'] {
@@ -513,7 +512,7 @@ export const IntakeHeroAlignment = () => (
       [data-intake-stage='done'],
       main > div > section:not([class~='space-y-5'])
     ) {
-      border-color: #e2e2e2 !important;
+      border-color: var(--intake-light-line) !important;
       background: var(--intake-white) !important;
       color: var(--intake-black) !important;
     }
@@ -521,7 +520,7 @@ export const IntakeHeroAlignment = () => (
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > section[data-intake-stage='clarify'],
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > section[data-intake-stage='done'],
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > section[data-intake-stage='confirm'] > [data-intake-card] {
-      border: 1px solid #e2e2e2 !important;
+      border: 1px solid var(--intake-light-line) !important;
       background: var(--intake-white) !important;
       color: var(--intake-black) !important;
       box-shadow: none !important;
@@ -529,7 +528,7 @@ export const IntakeHeroAlignment = () => (
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main [data-intake-stage='describe'] > [data-intake-quickstart-heading],
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main [data-intake-stage='describe'] > [data-intake-quickstart-body] {
-      border-color: #e2e2e2 !important;
+      border-color: var(--intake-light-line) !important;
       background: var(--intake-white) !important;
       color: var(--intake-black) !important;
     }
@@ -544,7 +543,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] main :is(p, small, label, span):not([class*='text-red']):not([class*='text-amber']) {
-      color: #626262 !important;
+      color: var(--intake-light-muted) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-quickstart-heading] > div > p:first-child,
@@ -557,7 +556,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > [data-intake-stage='describe'] > [data-intake-quickstart-heading] p {
-      color: #626262 !important;
+      color: var(--intake-light-muted) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > [data-intake-stage='describe'] > [data-intake-quickstart-heading] > div > p:first-child {
@@ -580,24 +579,24 @@ export const IntakeHeroAlignment = () => (
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-choice-grid] > button,
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-question] button,
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-card] > div[class*='border'] {
-      border-color: #dedede !important;
+      border-color: var(--intake-light-line) !important;
       background: var(--intake-white) !important;
       color: var(--intake-black) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-composer-tools] {
-      border-color: #dedede !important;
+      border-color: var(--intake-light-line) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > section[data-intake-stage='clarify'] [data-intake-question] {
-      border: 1px solid #dedede !important;
+      border: 1px solid var(--intake-light-line) !important;
       background: var(--intake-white) !important;
       color: var(--intake-black) !important;
       box-shadow: none !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main > div > section[data-intake-stage='clarify'] [data-intake-question] button {
-      border-color: #d9d9d9 !important;
+      border-color: var(--intake-light-line) !important;
       background: var(--intake-white) !important;
       color: var(--intake-black) !important;
     }
@@ -615,7 +614,7 @@ export const IntakeHeroAlignment = () => (
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='IntakeVisualShell_shell'] main [data-intake-stage='describe'] [data-intake-assurance] {
       border: 0 !important;
       background: transparent !important;
-      color: #626262 !important;
+      color: var(--intake-light-muted) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-composer] textarea {
@@ -628,7 +627,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] main :is(textarea, input)::placeholder {
-      color: #868686 !important;
+      color: rgba(11, 10, 9, .5) !important;
       opacity: 1 !important;
     }
 
@@ -646,13 +645,13 @@ export const IntakeHeroAlignment = () => (
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-stage-navigation] {
-      border-color: #e2e2e2 !important;
+      border-color: var(--intake-light-line) !important;
     }
 
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-stage-navigation] button:first-child,
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-stage='clarify'] > button:first-child,
     html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-stage='clarify'] > div:last-of-type > button:first-child {
-      border-color: #d9d9d9 !important;
+      border-color: var(--intake-light-line) !important;
       color: var(--intake-black) !important;
     }
 
@@ -672,6 +671,44 @@ export const IntakeHeroAlignment = () => (
       border-color: var(--intake-black) !important;
       background: var(--intake-yellow) !important;
       color: var(--intake-black) !important;
+    }
+
+    html[data-scp-theme='dark'] body[data-scp-surface='intake'] {
+      background: var(--intake-black) !important;
+      color: var(--intake-white) !important;
+    }
+
+    html[data-scp-theme='dark'] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] {
+      border-color: var(--intake-dark-line) !important;
+      background: var(--intake-black) !important;
+      color: var(--intake-white) !important;
+      box-shadow: none !important;
+    }
+
+    html[data-scp-theme='light'] body[data-scp-surface='intake'] {
+      background: var(--intake-white) !important;
+      color: var(--intake-black) !important;
+    }
+
+    html[data-scp-theme='light'] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] {
+      border-color: var(--intake-light-line) !important;
+      background: var(--intake-white) !important;
+      color: var(--intake-black) !important;
+      box-shadow: none !important;
+    }
+
+    html[data-scp-theme='dark'] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] :is(a, button, span, svg) {
+      color: var(--intake-white) !important;
+    }
+
+    html[data-scp-theme='light'] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] :is(a, button, span, svg) {
+      color: var(--intake-black) !important;
+    }
+
+    html[data-scp-theme] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] a[href*='wa.me'],
+    html[data-scp-theme] body[data-scp-surface='intake'] nav[aria-label='Job request navigation'] a[href*='wa.me'] :is(span, svg) {
+      background: var(--intake-black) !important;
+      color: var(--intake-yellow) !important;
     }
 
     @keyframes intake-card-enter {
