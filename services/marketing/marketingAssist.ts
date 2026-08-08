@@ -74,9 +74,13 @@ export function formatJohannesburgDate(date = new Date()): string {
 }
 
 function providerName(provider: ProviderRow): string {
-  if (clean(provider.name)) return clean(provider.name);
-  const combined = `${clean(provider.first_name)} ${clean(provider.last_name)}`.trim();
-  return combined || `SkillsConnect Pro Provider #${provider.id}`;
+  const explicit = clean(provider.name);
+  const first = clean(provider.first_name);
+  const last = clean(provider.last_name);
+  const combined = `${first} ${last}`.trim();
+
+  if (explicit && explicit.toLowerCase() !== first.toLowerCase()) return explicit;
+  return combined || explicit || `SkillsConnect Pro Provider #${provider.id}`;
 }
 
 function providerCategory(provider: ProviderRow): string {
