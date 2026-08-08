@@ -451,7 +451,7 @@ export const ProjectIntakeV2: React.FC = () => {
   const progress = step === 'describe' ? 0 : step === 'clarify' ? 1 : 2;
 
   return (
-    <main className="min-h-screen bg-[#172119] text-[#182019]">
+    <main className="min-h-screen bg-[#0b0a09] text-[#f5c518]">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
         <header className="mb-6 flex items-center justify-between rounded-2xl border border-black/10 bg-[#f4f0e4] px-4 py-3 shadow-xl sm:px-6">
           <Link href="/" className="flex items-center gap-2 text-sm font-black">
