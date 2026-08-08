@@ -475,51 +475,61 @@ export const ProjectIntakeV2: React.FC = () => {
         )}
 
         {step === 'describe' && (
-          <section data-intake-stage="describe" className="overflow-hidden rounded-[2rem] bg-[#f4f0e4] shadow-2xl">
-            <div className="bg-[#f5c518] p-6 sm:p-9">
-              <Home size={28} />
-              <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl">What do you need done?</h1>
-              <p className="mt-3 max-w-2xl font-semibold leading-6 text-black/65">Tell us in your own words. We’ll turn it into a clear project request and ask only the questions that matter.</p>
+          <section data-intake-stage="describe" data-intake-quickstart className="overflow-hidden rounded-[2rem] bg-[#f4f0e4] shadow-2xl">
+            <div data-intake-quickstart-heading className="p-6 sm:p-8">
+              <span data-intake-quickstart-icon aria-hidden="true"><Home size={21} /></span>
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em]">Start your request</p>
+                <h1 className="mt-2 text-4xl font-black tracking-tight">What do you need done?</h1>
+                <p className="mt-2 font-semibold leading-6 text-black/65">Describe the job in your own words. We’ll guide you from there.</p>
+              </div>
             </div>
-            <div className="space-y-5 p-5 sm:p-8">
-              <label className="block">
-                <span className="mb-2 block text-xs font-black uppercase tracking-widest text-[#59655a]">Describe the job</span>
+            <div data-intake-quickstart-body className="space-y-4 p-5 sm:px-8 sm:pb-8">
+              <div data-intake-composer>
+                <label htmlFor="job-description" className="sr-only">Describe the job</label>
                 <textarea
                   id="job-description"
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
-                  rows={6}
+                  rows={4}
                   maxLength={4_000}
-                  placeholder="For example: I want to build an additional bedroom attached to my house, including electricity and a finished ceiling."
-                  className="w-full resize-none rounded-2xl border-2 border-[#c8c7bb] bg-white p-4 text-base leading-7 outline-none focus:border-[#667764]"
+                  placeholder="For example: My kitchen sink is leaking underneath and the cupboard is getting wet…"
+                  className="w-full resize-none border-0 bg-transparent p-4 pb-2 text-base leading-7 outline-none"
                 />
-                <p className="mt-2 text-xs leading-5 text-[#667064]">Include the result you want, what currently exists and anything that may affect the work.</p>
-              </label>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button type="button" onClick={toggleListening} className={`flex min-h-20 items-center gap-4 rounded-2xl border-2 p-4 text-left ${isListening ? 'border-red-400 bg-red-50' : 'border-[#aeb9a9] bg-[#e8eee2]'}`}>
-                  <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${isListening ? 'bg-red-500 text-white' : 'bg-[#667764] text-white'}`}><Mic size={21} /></span>
-                  <span><strong className="block text-sm">{isListening ? 'Listening…' : 'Speak instead'}</strong><small className="text-[#667064]">Use your own words</small></span>
-                </button>
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="flex min-h-20 items-center gap-4 rounded-2xl border-2 border-[#aeb9a9] bg-[#e8eee2] p-4 text-left">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#667764] text-white"><Camera size={21} /></span>
-                  <span><strong className="block text-sm">Add a photograph</strong><small className="text-[#667064]">Camera or gallery</small></span>
-                </button>
+                <div data-intake-composer-tools>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={toggleListening}
+                      aria-pressed={isListening}
+                      className={isListening ? 'is-listening' : undefined}
+                    >
+                      <Mic size={18} aria-hidden="true" />
+                      <span>{isListening ? 'Listening…' : 'Voice'}</span>
+                    </button>
+                    <button type="button" onClick={() => fileInputRef.current?.click()}>
+                      <Camera size={18} aria-hidden="true" />
+                      <span>Photo</span>
+                    </button>
+                  </div>
+                  <span data-intake-character-count>{description.length.toLocaleString()} / 4,000</span>
+                </div>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleImage} className="hidden" />
 
               {imagePreview && (
-                <div className="relative rounded-2xl bg-[#dfe8d6] p-3">
-                  <NextImage src={imagePreview} alt="Project issue" width={1200} height={624} unoptimized className="h-52 w-full rounded-xl object-cover" />
-                  <button type="button" onClick={() => { setImageData(''); setImagePreview(''); }} className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-black text-white" aria-label="Remove image"><X size={18} /></button>
+                <div data-intake-photo-preview className="relative">
+                  <NextImage src={imagePreview} alt="Attached project issue" width={1200} height={624} unoptimized className="h-32 w-full rounded-xl object-cover" />
+                  <div><CheckCircle2 size={16} /> Photograph attached</div>
+                  <button type="button" onClick={() => { setImageData(''); setImagePreview(''); }} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black text-white" aria-label="Remove photograph"><X size={17} /></button>
                 </div>
               )}
 
-              <p className="rounded-2xl bg-[#e8eee2] p-4 text-xs leading-5 text-[#526052]"><strong>Preliminary only:</strong> this is not a final diagnosis, approved building plan or quotation. A suitable provider may need to inspect the site.</p>
-              <button type="button" disabled={isWorking} onClick={() => void assessProject(false)} className="flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black shadow-[0_8px_0_#a57f00] disabled:opacity-45">
+              <button data-intake-continue type="button" disabled={isWorking} onClick={() => void assessProject(false)} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black shadow-[0_8px_0_#a57f00] disabled:opacity-45">
                 {isWorking ? <Loader2 className="animate-spin" size={21} /> : <ArrowRight size={21} />}
-                {isWorking ? 'Understanding the job…' : 'Continue to job questions'}
+                {isWorking ? 'Understanding the job…' : 'Continue'}
               </button>
+              <p data-intake-assurance><ShieldCheck size={15} aria-hidden="true" /> This starts a preliminary request. A provider may still need to inspect the job.</p>
             </div>
           </section>
         )}
