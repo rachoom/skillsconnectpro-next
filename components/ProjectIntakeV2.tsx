@@ -75,6 +75,7 @@ type QuestionProgress = {
 };
 
 type FieldErrors = Partial<Record<'location' | 'name' | 'phone' | 'email' | 'consent', string>>;
+type ConfirmStage = 'brief' | 'location' | 'contact' | 'review';
 
 type SpeechResultEvent = {
   results: ArrayLike<ArrayLike<{ transcript: string }>>;
@@ -168,6 +169,7 @@ export const ProjectIntakeV2: React.FC = () => {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const [step, setStep] = useState<'describe' | 'clarify' | 'confirm' | 'done'>('describe');
+  const [confirmStage, setConfirmStage] = useState<ConfirmStage>('brief');
   const [description, setDescription] = useState('');
   const [imageData, setImageData] = useState('');
   const [imagePreview, setImagePreview] = useState('');
@@ -277,6 +279,7 @@ export const ProjectIntakeV2: React.FC = () => {
       setQuestionProgress(progress ?? null);
       setAnswers({});
       setActiveQuestionIndex(0);
+      setConfirmStage('brief');
       setStep(next.clarifyingQuestions.length ? 'clarify' : 'confirm');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (reason) {
@@ -421,6 +424,7 @@ export const ProjectIntakeV2: React.FC = () => {
   const restart = () => {
     recognitionRef.current?.stop();
     setStep('describe');
+    setConfirmStage('brief');
     setDescription('');
     setImageData('');
     setImagePreview('');
@@ -611,108 +615,69 @@ export const ProjectIntakeV2: React.FC = () => {
         )}
 
         {step === 'confirm' && assessment && (
-          <section data-intake-stage="confirm" className="space-y-5">
-            <div data-intake-card="brief" className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
-              <button type="button" onClick={() => setStep('describe')} className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#59655a]"><ArrowLeft size={16} /> Change description</button>
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#667764]">Your project brief</p>
-              <h1 className="mt-2 text-3xl font-black sm:text-4xl">{assessment.title}</h1>
-              <p className="mt-3 text-sm leading-6 text-[#59655a]">{assessment.summary}</p>
-              <span className="mt-4 inline-flex rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">{assessment.category}</span>
+          <section data-intake-stage="confirm" data-confirm-stage={confirmStage} className="space-y-5">
+            {confirmStage === 'brief' && (
+              <div data-intake-card="brief" className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
+                <button type="button" onClick={() => setStep('describe')} className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#59655a]"><ArrowLeft size={16} /> Change description</button>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#667764]">Your project brief</p>
+                <h1 className="mt-2 text-3xl font-black sm:text-4xl">{assessment.title}</h1>
+                <p className="mt-3 text-sm leading-6 text-[#59655a]">{assessment.summary}</p>
+                <span className="mt-4 inline-flex rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">{assessment.category}</span>
 
-              {usedFallback && <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-bold text-amber-900">A structured trade checklist was used because live AI assessment was unavailable.</div>}
-              {assessment.safetyNotes.length > 0 && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
+                {usedFallback && <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-bold text-amber-900">A structured trade checklist was used because live AI assessment was unavailable.</div>}
+                {assessment.safetyNotes.length > 0 && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
 
-              <div data-intake-summary className="mt-6 grid gap-3 sm:grid-cols-3">
-                <SummaryCard icon={<Clock3 size={20} />} label="Urgency" value={assessment.urgency.replace('_', ' ')} />
-                <SummaryCard icon={<CircleDollarSign size={20} />} label="Preliminary range" value={`${formatMoney(assessment.estimatedMin)} – ${formatMoney(assessment.estimatedMax)}`} />
-                <SummaryCard icon={<ShieldCheck size={20} />} label="Context collected" value={`${answerHistory.length} clarification answers`} />
-              </div>
-              <div className="mt-5 rounded-2xl border border-[#c8c7bb] bg-white p-5"><p className="text-[10px] font-black uppercase tracking-widest text-[#667064]">Preliminary scope or likely issue</p><p className="mt-2 text-sm leading-6">{assessment.likelyIssue}</p></div>
-
-              <p className="mb-3 mt-6 text-xs font-black uppercase tracking-widest text-[#667064]">Confirm urgency</p>
-              <div data-intake-choice-grid className="grid gap-2 sm:grid-cols-2">
-                {URGENCY_OPTIONS.map((option) => {
-                  const selected = assessment.urgency === option.value;
-                  return (
-                    <button key={option.value} type="button" onClick={() => setAssessment((current) => current ? { ...current, urgency: option.value } : current)} className={`rounded-xl border-2 p-3 text-left ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}>
-                      <span className="flex justify-between text-sm font-black">{option.label}{selected && <Check size={17} />}</span>
-                      <small className="text-[#667064]">{option.detail}</small>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <FormCard icon={<MapPin size={21} />} title="Where and when?" description="Only the suburb, town or service area is shown on job cards before you select a provider.">
-              <div id="intake-location" tabIndex={-1} className="outline-none">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label>
-                    <FieldLabel>Suburb or town</FieldLabel>
-                    <select
-                      value={location}
-                      onChange={(event) => {
-                        setLocation(event.target.value);
-                        if (event.target.value) setCustomLocation('');
-                        setFieldErrors((current) => ({ ...current, location: '' }));
-                      }}
-                      className={`${fieldClass} ${fieldErrors.location ? errorFieldClass : ''}`}
-                    >
-                      <option value="">Select your area</option>
-                      {AREAS.map((area) => <option key={area}>{area}</option>)}
-                    </select>
-                  </label>
-                  <label><FieldLabel>Preferred date — optional</FieldLabel><input type="date" value={preferredDate} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setPreferredDate(event.target.value)} className={fieldClass} /></label>
+                <div data-intake-summary className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <SummaryCard icon={<Clock3 size={20} />} label="Urgency" value={assessment.urgency.replace('_', ' ')} />
+                  <SummaryCard icon={<CircleDollarSign size={20} />} label="Preliminary range" value={`${formatMoney(assessment.estimatedMin)} – ${formatMoney(assessment.estimatedMax)}`} />
+                  <SummaryCard icon={<ShieldCheck size={20} />} label="Context collected" value={`${answerHistory.length} clarification answers`} />
                 </div>
-                <label className="mt-4 block">
-                  <FieldLabel>Different suburb, town or service area</FieldLabel>
-                  <input
-                    name="service-area-only"
-                    autoComplete="off"
-                    value={customLocation}
-                    onChange={(event) => {
-                      setCustomLocation(event.target.value);
-                      if (event.target.value) setLocation('');
-                      setFieldErrors((current) => ({ ...current, location: '' }));
-                    }}
-                    placeholder="For example: Northdene or Kempton Park"
-                    className={`${fieldClass} ${fieldErrors.location ? errorFieldClass : ''}`}
-                  />
-                </label>
-                <p className="mt-2 text-xs leading-5 text-[#667064]"><strong>Privacy:</strong> do not enter your house number or street address here. Exact contact details are released only after you select a provider.</p>
-                <FieldError message={fieldErrors.location} />
-              </div>
-            </FormCard>
+                <div className="mt-5 rounded-2xl border border-[#c8c7bb] bg-white p-5"><p className="text-[10px] font-black uppercase tracking-widest text-[#667064]">Preliminary scope or likely issue</p><p className="mt-2 text-sm leading-6">{assessment.likelyIssue}</p></div>
 
-            <FormCard icon={<UserRound size={21} />} title="How should we reach you?" description="Your contact details remain private until you select and connect with a provider.">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label id="intake-name" tabIndex={-1} className="outline-none">
-                  <FieldLabel>Name</FieldLabel>
-                  <input autoComplete="name" value={customerName} onChange={(event) => { setCustomerName(event.target.value); setFieldErrors((current) => ({ ...current, name: '' })); }} placeholder="Your name" className={`${fieldClass} ${fieldErrors.name ? errorFieldClass : ''}`} />
-                  <FieldError message={fieldErrors.name} />
-                </label>
-                <label id="intake-phone" tabIndex={-1} className="outline-none">
-                  <FieldLabel>Phone or WhatsApp</FieldLabel>
-                  <input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => { setPhone(event.target.value); setFieldErrors((current) => ({ ...current, phone: '' })); }} placeholder="082 123 4567" className={`${fieldClass} ${fieldErrors.phone ? errorFieldClass : ''}`} />
-                  <FieldError message={fieldErrors.phone} />
-                </label>
+                <p className="mb-3 mt-6 text-xs font-black uppercase tracking-widest text-[#667064]">Confirm urgency</p>
+                <div data-intake-choice-grid className="grid gap-2 sm:grid-cols-2">
+                  {URGENCY_OPTIONS.map((option) => {
+                    const selected = assessment.urgency === option.value;
+                    return (
+                      <button key={option.value} type="button" onClick={() => setAssessment((current) => current ? { ...current, urgency: option.value } : current)} className={`rounded-xl border-2 p-3 text-left ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}>
+                        <span className="flex justify-between text-sm font-black">{option.label}{selected && <Check size={17} />}</span>
+                        <small className="text-[#667064]">{option.detail}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                <StageNavigation nextLabel="Add location" onNext={() => setConfirmStage('location')} />
               </div>
-              <label id="intake-email" tabIndex={-1} className="mt-4 block outline-none">
-                <FieldLabel>Email — optional</FieldLabel>
-                <input type="email" autoComplete="email" value={email} onChange={(event) => { setEmail(event.target.value); setFieldErrors((current) => ({ ...current, email: '' })); }} placeholder="name@example.com" className={`${fieldClass} ${fieldErrors.email ? errorFieldClass : ''}`} />
-                <FieldError message={fieldErrors.email} />
-              </label>
-              <div id="intake-consent" tabIndex={-1} className="mt-5 outline-none">
-                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-[#e8eee2] p-4 ${fieldErrors.consent ? 'border-red-500' : 'border-[#c8c7bb]'}`}>
-                  <input type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setFieldErrors((current) => ({ ...current, consent: '' })); }} className="mt-1 h-5 w-5 accent-[#667764]" />
-                  <span className="text-sm leading-6 text-[#526052]">I confirm this information is accurate and allow Skills Connect Pro to share the project brief—but not my contact details—with suitable providers.</span>
-                </label>
-                <FieldError message={fieldErrors.consent} />
-              </div>
-              <button type="button" disabled={isWorking} onClick={() => void submitProject()} className="mt-6 flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black shadow-[0_8px_0_#a57f00] disabled:opacity-45">
-                {isWorking ? <Loader2 className="animate-spin" size={21} /> : <CheckCircle2 size={21} />}
-                {isWorking ? 'Creating your project…' : 'Submit project request'}
-              </button>
-            </FormCard>
+            )}
+
+            {confirmStage === 'location' && (
+              <FormCard icon={<MapPin size={21} />} title="Where is the work?" description="Only your suburb, town or service area is shown before you choose a provider.">
+                <div id="intake-location" tabIndex={-1} className="outline-none">
+                  <label className="block"><FieldLabel>Suburb or town</FieldLabel><select value={location} onChange={(event) => { setLocation(event.target.value); if (event.target.value) setCustomLocation(''); setFieldErrors((current) => ({ ...current, location: '' })); }} className={`${fieldClass} ${fieldErrors.location ? errorFieldClass : ''}`}><option value="">Select your area</option>{AREAS.map((area) => <option key={area}>{area}</option>)}</select></label>
+                  <label className="mt-4 block"><FieldLabel>Different suburb, town or service area</FieldLabel><input name="service-area-only" autoComplete="off" value={customLocation} onChange={(event) => { setCustomLocation(event.target.value); if (event.target.value) setLocation(''); setFieldErrors((current) => ({ ...current, location: '' })); }} placeholder="For example: Northdene or Kempton Park" className={`${fieldClass} ${fieldErrors.location ? errorFieldClass : ''}`} /></label>
+                  <label className="mt-4 block"><FieldLabel>Preferred date — optional</FieldLabel><input type="date" value={preferredDate} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setPreferredDate(event.target.value)} className={fieldClass} /></label>
+                  <p className="mt-3 text-xs leading-5 text-[#667064]"><strong>Privacy:</strong> enter only a suburb or town—not a house number or street address.</p><FieldError message={fieldErrors.location} />
+                </div>
+                <StageNavigation previousLabel="Project brief" onPrevious={() => setConfirmStage('brief')} nextLabel="Add contact details" onNext={() => { if (!resolvedLocation || isLikelyStreetAddress(resolvedLocation)) { setFieldErrors((current) => ({ ...current, location: !resolvedLocation ? 'Select your suburb or enter a town/service area.' : 'Enter only a suburb or town—not a house number or street address.' })); focusField('intake-location'); return; } setConfirmStage('contact'); }} />
+              </FormCard>
+            )}
+
+            {confirmStage === 'contact' && (
+              <FormCard icon={<UserRound size={21} />} title="How can we reach you?" description="Your contact details stay private until you choose to connect with a provider.">
+                <label id="intake-name" tabIndex={-1} className="block outline-none"><FieldLabel>Name</FieldLabel><input autoComplete="name" value={customerName} onChange={(event) => { setCustomerName(event.target.value); setFieldErrors((current) => ({ ...current, name: '' })); }} placeholder="Your name" className={`${fieldClass} ${fieldErrors.name ? errorFieldClass : ''}`} /><FieldError message={fieldErrors.name} /></label>
+                <label id="intake-phone" tabIndex={-1} className="mt-4 block outline-none"><FieldLabel>Phone or WhatsApp</FieldLabel><input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => { setPhone(event.target.value); setFieldErrors((current) => ({ ...current, phone: '' })); }} placeholder="082 123 4567" className={`${fieldClass} ${fieldErrors.phone ? errorFieldClass : ''}`} /><FieldError message={fieldErrors.phone} /></label>
+                <label id="intake-email" tabIndex={-1} className="mt-4 block outline-none"><FieldLabel>Email — optional</FieldLabel><input type="email" autoComplete="email" value={email} onChange={(event) => { setEmail(event.target.value); setFieldErrors((current) => ({ ...current, email: '' })); }} placeholder="name@example.com" className={`${fieldClass} ${fieldErrors.email ? errorFieldClass : ''}`} /><FieldError message={fieldErrors.email} /></label>
+                <StageNavigation previousLabel="Location" onPrevious={() => setConfirmStage('location')} nextLabel="Review and submit" onNext={() => { const next: FieldErrors = {}; if (customerName.trim().length < 2) next.name = 'Your name is required.'; const phoneError = phoneValidationMessage(phone); if (phoneError) next.phone = phoneError; if (!validEmail(email)) next.email = 'Enter a valid email address or leave this field empty.'; setFieldErrors(next); if (Object.keys(next).length) { setError('Please correct the highlighted contact information.'); return; } setError(''); setConfirmStage('review'); }} />
+              </FormCard>
+            )}
+
+            {confirmStage === 'review' && (
+              <FormCard icon={<ShieldCheck size={21} />} title="Ready to send?" description="Review your request. Your project brief is shared with suitable providers; your contact details remain private until you choose one.">
+                <div className="rounded-2xl border border-[#c8c7bb] bg-white p-4 text-sm leading-6"><p className="font-black">{assessment.title}</p><p className="mt-1">{resolvedLocation}{preferredDate ? ` · ${preferredDate}` : ''}</p><p className="mt-1">{customerName} · {phone}</p>{email && <p className="mt-1">{email}</p>}</div>
+                <div id="intake-consent" tabIndex={-1} className="mt-5 outline-none"><label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-[#e8eee2] p-4 ${fieldErrors.consent ? 'border-red-500' : 'border-[#c8c7bb]'}`}><input type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setFieldErrors((current) => ({ ...current, consent: '' })); }} className="mt-1 h-5 w-5 accent-[#667764]" /><span className="text-sm leading-6 text-[#526052]">I confirm this information is accurate and allow Skills Connect Pro to share the project brief—but not my contact details—with suitable providers.</span></label><FieldError message={fieldErrors.consent} /></div>
+                <StageNavigation previousLabel="Contact details" onPrevious={() => setConfirmStage('contact')} nextLabel={isWorking ? 'Creating your project…' : 'Submit project request'} onNext={() => void submitProject()} isWorking={isWorking} finalAction />
+              </FormCard>
+            )}
           </section>
         )}
 
@@ -747,5 +712,21 @@ const FormCard: React.FC<{ icon: React.ReactNode; title: string; description: st
   <div data-intake-card="form" className="rounded-[2rem] bg-[#f4f0e4] p-5 shadow-2xl sm:p-8">
     <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f5c518]">{icon}</span><div><h2 className="text-xl font-black">{title}</h2><p className="text-xs leading-5 text-[#667064]">{description}</p></div></div>
     <div className="mt-5">{children}</div>
+  </div>
+);
+
+const StageNavigation: React.FC<{
+  previousLabel?: string;
+  onPrevious?: () => void;
+  nextLabel: string;
+  onNext: () => void;
+  isWorking?: boolean;
+  finalAction?: boolean;
+}> = ({ previousLabel, onPrevious, nextLabel, onNext, isWorking, finalAction }) => (
+  <div data-intake-stage-navigation className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+    {onPrevious && previousLabel ? <button type="button" onClick={onPrevious} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-[#8b5b2d] px-5 text-sm font-black text-[#5b371b]"><ArrowLeft size={17} /> {previousLabel}</button> : <span />}
+    <button type="button" disabled={isWorking} onClick={onNext} className={`flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-5 text-sm font-black shadow-[0_5px_0_#9b7010] disabled:opacity-50 sm:max-w-xs ${finalAction ? 'bg-[#f5c518] text-[#3d2612]' : 'bg-[#f5c518] text-[#3d2612]'}`}>
+      {isWorking ? <Loader2 className="animate-spin" size={18} /> : finalAction ? <CheckCircle2 size={18} /> : <ArrowRight size={18} />}{nextLabel}
+    </button>
   </div>
 );

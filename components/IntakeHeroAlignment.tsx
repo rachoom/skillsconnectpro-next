@@ -1152,6 +1152,92 @@ export const IntakeHeroAlignment = () => (
       }
     }
 
+    /* Final submit journey palette: yellow field, ivory card, brown type. */
+    body[data-scp-surface='intake'] {
+      background: #f5c518 !important;
+    }
+
+    body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'],
+    body[data-scp-surface='intake'] [class*='IntakeVisualShell_overlay'],
+    body[data-scp-surface='intake'] [class*='IntakeVisualShell_texture'] {
+      display: none !important;
+    }
+
+    body[data-scp-surface='intake'] main,
+    body[data-scp-surface='intake'] main > div {
+      background: #f5c518 !important;
+      color: #4b2d18 !important;
+    }
+
+    body[data-scp-surface='intake'] main > div > header,
+    body[data-scp-surface='intake'] main > div > section,
+    body[data-scp-surface='intake'] [data-intake-card='form'] {
+      background: #fffaf0 !important;
+      border-color: rgba(91, 55, 27, .32) !important;
+      color: #4b2d18 !important;
+      box-shadow: 0 18px 45px -30px rgba(74, 42, 15, .55) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    body[data-scp-surface='intake'] main h1,
+    body[data-scp-surface='intake'] main h2,
+    body[data-scp-surface='intake'] main h3,
+    body[data-scp-surface='intake'] main strong,
+    body[data-scp-surface='intake'] main label,
+    body[data-scp-surface='intake'] main p,
+    body[data-scp-surface='intake'] main small,
+    body[data-scp-surface='intake'] main span {
+      color: #4b2d18 !important;
+    }
+
+    body[data-scp-surface='intake'] main [class*='bg-[#f5c518]'],
+    body[data-scp-surface='intake'] main [data-intake-stage-navigation] button:last-child {
+      background: #f5c518 !important;
+      color: #4b2d18 !important;
+    }
+
+    body[data-scp-surface='intake'] main input:not([type='checkbox']),
+    body[data-scp-surface='intake'] main select,
+    body[data-scp-surface='intake'] main textarea,
+    body[data-scp-surface='intake'] main [class*='bg-white'],
+    body[data-scp-surface='intake'] main [class*='bg-[#faf9f4]'],
+    body[data-scp-surface='intake'] main [class*='bg-[#e8eee2]'] {
+      background: #fffdf7 !important;
+      border-color: rgba(91, 55, 27, .38) !important;
+      color: #4b2d18 !important;
+    }
+
+    body[data-scp-surface='intake'] main input::placeholder,
+    body[data-scp-surface='intake'] main textarea::placeholder {
+      color: rgba(75, 45, 24, .58) !important;
+    }
+
+    body[data-scp-surface='intake'] main [data-intake-stage-navigation] button:first-child {
+      background: #fffaf0 !important;
+      color: #4b2d18 !important;
+      border-color: #8b5b2d !important;
+    }
+
+    body[data-scp-surface='intake'] main [data-intake-progress] {
+      background: #fffaf0 !important;
+      border-color: rgba(91, 55, 27, .3) !important;
+    }
+
+    body[data-scp-surface='intake'] main [data-intake-stage-navigation] {
+      border-top: 1px solid rgba(91, 55, 27, .18);
+      padding-top: 1rem;
+    }
+
+    body[data-scp-surface='intake'] main [data-confirm-stage] {
+      animation: intake-card-in .22s ease-out both;
+    }
+
+    @keyframes intake-card-in {
+      from { opacity: .7; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       body[data-scp-surface='intake'] [class*='IntakeVisualShell_background'] img {
         transform: none !important;
