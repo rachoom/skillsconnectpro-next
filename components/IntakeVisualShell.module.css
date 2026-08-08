@@ -500,3 +500,239 @@
     transform: none;
   }
 }
+
+/*
+ * Authoritative minimalist intake palette.
+ * Keep this final in the module so earlier launch-era image, cream, green and
+ * brown treatments cannot reappear when the form advances between stages.
+ */
+.shell {
+  --intake-canvas: #0b0a09;
+  --intake-foreground: #ffffff;
+  --intake-muted-final: rgba(255, 255, 255, 0.7);
+  --intake-rule-final: rgba(255, 255, 255, 0.16);
+  --intake-accent-final: #f5c518;
+  background: var(--intake-canvas) !important;
+  color: var(--intake-foreground) !important;
+}
+
+.background {
+  display: none !important;
+}
+
+.shell :global(main),
+.shell :global(main > div > section),
+.shell :global([data-intake-stage='describe']),
+.shell :global([data-intake-stage='clarify']),
+.shell :global([data-intake-stage='done']),
+.shell :global([data-intake-card]) {
+  border-color: var(--intake-rule-final) !important;
+  background: var(--intake-canvas) !important;
+  color: var(--intake-foreground) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.shell :global([data-intake-stage='describe']::before),
+.shell :global([data-intake-stage='describe']::after) {
+  display: none !important;
+}
+
+.shell :global([data-intake-quickstart-heading]),
+.shell :global([data-intake-quickstart-body]) {
+  border-color: var(--intake-rule-final) !important;
+  background: transparent !important;
+  color: var(--intake-foreground) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.shell :global(main :is(h1, h2, h3, strong)) {
+  color: var(--intake-foreground) !important;
+  text-shadow: none !important;
+}
+
+.shell :global(main :is(p, small, label, span):not([class*='text-red']):not([class*='text-amber'])) {
+  color: var(--intake-muted-final) !important;
+}
+
+.shell :global([data-intake-composer]),
+.shell :global([data-intake-question]),
+.shell :global([data-intake-summary]),
+.shell :global([data-intake-summary-card]),
+.shell :global([data-intake-choice-grid] > button),
+.shell :global([data-intake-question] button),
+.shell :global(main :is(textarea, input:not([type='file']), select)) {
+  border-color: var(--intake-rule-final) !important;
+  background: var(--intake-canvas) !important;
+  color: var(--intake-foreground) !important;
+  box-shadow: none !important;
+}
+
+.shell :global(main :is(textarea, input)::placeholder) {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.shell :global([data-intake-composer-tools]) {
+  border-color: var(--intake-rule-final) !important;
+  background: transparent !important;
+}
+
+.shell :global([data-intake-composer-tools] button),
+.shell :global([data-intake-continue]),
+.shell :global([data-intake-stage-navigation] button:last-child) {
+  border-color: var(--intake-foreground) !important;
+  background: var(--intake-canvas) !important;
+  color: var(--intake-foreground) !important;
+  box-shadow: none !important;
+}
+
+.shell :global([data-intake-continue]),
+.shell :global([data-intake-stage-navigation] button:last-child) {
+  border-color: var(--intake-accent-final) !important;
+  background: #0b0a09 !important;
+  color: var(--intake-accent-final) !important;
+}
+
+.shell :global([data-intake-question] button[data-selected='true']),
+.shell :global([data-intake-choice-grid] > button[data-selected='true']),
+.shell :global([data-intake-choice-grid] > button:has(svg)) {
+  border-color: var(--intake-accent-final) !important;
+  background: var(--intake-accent-final) !important;
+  color: var(--intake-canvas) !important;
+}
+
+.shell :global([data-intake-progress] > div[data-active='true']),
+.shell :global([data-intake-question] > div:first-of-type > span:first-child) {
+  border-color: var(--intake-accent-final) !important;
+  background: var(--intake-accent-final) !important;
+  color: var(--intake-canvas) !important;
+}
+
+:global(html[data-scp-theme='light']) .shell {
+  --intake-canvas: #ffffff;
+  --intake-foreground: #0b0a09;
+  --intake-muted-final: rgba(11, 10, 9, 0.68);
+  --intake-rule-final: rgba(11, 10, 9, 0.16);
+}
+
+:global(html[data-scp-theme='light']) .shell :global([data-intake-composer-tools] button) {
+  border-color: #0b0a09 !important;
+  background: #0b0a09 !important;
+  color: #ffffff !important;
+}
+
+:global(html[data-scp-theme='light']) .shell :global([data-intake-continue]),
+:global(html[data-scp-theme='light']) .shell :global([data-intake-stage-navigation] button:last-child) {
+  border-color: #0b0a09 !important;
+  background: #0b0a09 !important;
+  color: #f5c518 !important;
+}
+
+/* Route-scoped final authority over the older high-specificity launch rules. */
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main > div > section),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main > div > section > [data-intake-card]) {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: #0b0a09 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main :is(h1, h2, h3, strong)) {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main :is(p, small, label, span):not([class*='text-red']):not([class*='text-amber'])) {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main [data-intake-question]),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main [data-intake-question] button),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main [data-intake-summary]),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main [data-intake-summary-card]),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main [data-intake-choice-grid] > button),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main :is(textarea, input:not([type='file']), select)) {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: #0b0a09 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main > div > section),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main > div > section > [data-intake-card]) {
+  border-color: rgba(11, 10, 9, 0.16) !important;
+  background: #ffffff !important;
+  color: #0b0a09 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main :is(h1, h2, h3, strong)) {
+  color: #0b0a09 !important;
+  text-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main :is(p, small, label, span):not([class*='text-red']):not([class*='text-amber'])) {
+  color: rgba(11, 10, 9, 0.68) !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main [data-intake-question]),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main [data-intake-question] button),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main [data-intake-summary]),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main [data-intake-summary-card]),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main [data-intake-choice-grid] > button),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main :is(textarea, input:not([type='file']), select)) {
+  border-color: rgba(11, 10, 9, 0.16) !important;
+  background: #ffffff !important;
+  color: #0b0a09 !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main [data-intake-question] button[data-selected='true']),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main [data-intake-choice-grid] > button[data-selected='true']),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main [data-intake-question] button[data-selected='true']),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main [data-intake-choice-grid] > button[data-selected='true']) {
+  border-color: #f5c518 !important;
+  background: #f5c518 !important;
+  color: #0b0a09 !important;
+}
+
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global([data-intake-quickstart-heading] h1) {
+  color: #ffffff !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global([data-intake-quickstart-heading] h1) {
+  color: #0b0a09 !important;
+}
+
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main > div > section[data-intake-stage='clarify']),
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main > div > section[data-intake-stage='done']) {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: #0b0a09 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main > div > section[data-intake-stage='clarify']),
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main > div > section[data-intake-stage='done']) {
+  border: 1px solid rgba(11, 10, 9, 0.16) !important;
+  background: #ffffff !important;
+  color: #0b0a09 !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-scp-theme='dark'] body[data-scp-surface='intake']) .shell :global(main > div > section[data-intake-stage='describe'] > [data-intake-quickstart-heading] h1) {
+  color: #ffffff !important;
+}
+
+:global(html[data-scp-theme='light'] body[data-scp-surface='intake']) .shell :global(main > div > section[data-intake-stage='describe'] > [data-intake-quickstart-heading] h1) {
+  color: #0b0a09 !important;
+}
