@@ -639,7 +639,7 @@ export const ProjectIntakeV2: React.FC = () => {
                   {URGENCY_OPTIONS.map((option) => {
                     const selected = assessment.urgency === option.value;
                     return (
-                      <button key={option.value} type="button" onClick={() => setAssessment((current) => current ? { ...current, urgency: option.value } : current)} className={`rounded-xl border-2 p-3 text-left ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}>
+                      <button key={option.value} type="button" data-selected={selected} aria-pressed={selected} onClick={() => setAssessment((current) => current ? { ...current, urgency: option.value } : current)} className={`rounded-xl border-2 p-3 text-left ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}>
                         <span className="flex justify-between text-sm font-black">{option.label}{selected && <Check size={17} />}</span>
                         <small className="text-[#667064]">{option.detail}</small>
                       </button>
