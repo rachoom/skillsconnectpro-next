@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AdminMarketingAssist } from '../components/AdminMarketingAssist';
 import { CompletedProjectSummary } from '../components/CompletedProjectSummary';
 import { CustomerCompletionAction } from '../components/CustomerCompletionAction';
 import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
@@ -92,6 +93,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: surfaceInitialiser }} />
         {children}
+        <AdminMarketingAssist />
         <MarketplaceVisualConsistency />
         <ThemeDetailOverrides />
         <ThemeSurfacePolish />
