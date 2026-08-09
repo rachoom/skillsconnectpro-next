@@ -3,18 +3,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { LockKeyhole, LogIn, ShieldCheck } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { supabase } from '../services/supabase';
 
 const LEGACY_SESSION_STORAGE_KEY = 'marketplaceAdminKey';
-const SESSION_MARKER = 'supabase-admin-session';
+const SESSION_MARKER = 'pin-admin-session';
 
-async function establishServerAdminSession(accessToken: string) {
+async function establishServerAdminSession(pin: string) {
   const response = await fetch('/api/admin/session', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
+    body: JSON.stringify({ pin }),
     cache: 'no-store',
   });
   const payload = await response.json().catch(() => ({}));
@@ -29,8 +28,7 @@ export function MarketplaceAdminAuthGate() {
   const isAdminRoute = pathname === '/marketplace-admin';
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [pin, setPin] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const signingOutRef = useRef(false);
@@ -44,17 +42,13 @@ export function MarketplaceAdminAuthGate() {
       setError(null);
 
       try {
-        const { data, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
-
-        const session = data.session;
-        if (!session) {
+        const response = await fetch('/api/admin/session', { cache: 'no-store' });
+        if (!response.ok) {
           window.sessionStorage.removeItem(LEGACY_SESSION_STORAGE_KEY);
           if (!cancelled) setAuthenticated(false);
           return;
         }
 
-        await establishServerAdminSession(session.access_token);
         const alreadyMarked = window.sessionStorage.getItem(LEGACY_SESSION_STORAGE_KEY) === SESSION_MARKER;
         window.sessionStorage.setItem(LEGACY_SESSION_STORAGE_KEY, SESSION_MARKER);
 
@@ -63,12 +57,8 @@ export function MarketplaceAdminAuthGate() {
           return;
         }
 
-        if (!cancelled) {
-          setEmail(session.user.email ?? '');
-          setAuthenticated(true);
-        }
+        if (!cancelled) setAuthenticated(true);
       } catch (caught) {
-        await supabase.auth.signOut().catch(() => undefined);
         window.sessionStorage.removeItem(LEGACY_SESSION_STORAGE_KEY);
         if (!cancelled) {
           setAuthenticated(false);
@@ -94,10 +84,7 @@ export function MarketplaceAdminAuthGate() {
 
       signingOutRef.current = true;
       try {
-        await Promise.all([
-          fetch('/api/admin/session', { method: 'DELETE', cache: 'no-store' }).catch(() => undefined),
-          supabase.auth.signOut().catch(() => undefined),
-        ]);
+        await fetch('/api/admin/session', { method: 'DELETE', cache: 'no-store' }).catch(() => undefined);
       } finally {
         window.location.reload();
       }
@@ -109,9 +96,9 @@ export function MarketplaceAdminAuthGate() {
 
   const signIn = async (event: React.FormEvent) => {
     event.preventDefault();
-    const cleanEmail = email.trim();
-    if (!cleanEmail || !password) {
-      setError('Enter your admin email address and password.');
+    const cleanPin = pin.trim();
+    if (!/^\d{4,12}$/.test(cleanPin)) {
+      setError('Enter your Admin PIN.');
       return;
     }
 
@@ -119,18 +106,10 @@ export function MarketplaceAdminAuthGate() {
     setError(null);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      });
-      if (signInError) throw signInError;
-      if (!data.session) throw new Error('No sign-in session was returned.');
-
-      await establishServerAdminSession(data.session.access_token);
+      await establishServerAdminSession(cleanPin);
       window.sessionStorage.setItem(LEGACY_SESSION_STORAGE_KEY, SESSION_MARKER);
       window.location.reload();
     } catch (caught) {
-      await supabase.auth.signOut().catch(() => undefined);
       window.sessionStorage.removeItem(LEGACY_SESSION_STORAGE_KEY);
       setError(caught instanceof Error ? caught.message : 'Unable to sign in.');
       setSubmitting(false);
@@ -150,43 +129,31 @@ export function MarketplaceAdminAuthGate() {
           SkillsConnect Pro Administration
         </p>
         <h1 className="mt-3 text-3xl font-black tracking-tight">
-          {checking ? 'Checking your session…' : 'Admin sign in'}
+          {checking ? 'Checking your session…' : 'Enter Admin PIN'}
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-400">
           {checking
-            ? 'Securely verifying your administrator account.'
-            : 'Sign in with your SkillsConnect Pro administrator account. No API key is required.'}
+            ? 'Securely verifying your administrator session.'
+            : 'Use the same Admin PIN you already use for the SkillsConnect Pro admin panel.'}
         </p>
 
         {!checking ? (
           <form onSubmit={signIn} className="mt-8 space-y-5">
             <div>
-              <label htmlFor="scp-admin-email" className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                Email address
+              <label htmlFor="scp-admin-pin" className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                Admin PIN
               </label>
               <input
-                id="scp-admin-email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="username"
-                inputMode="email"
-                className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base text-white outline-none transition focus:border-amber-400"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="scp-admin-password" className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                Password
-              </label>
-              <input
-                id="scp-admin-password"
+                id="scp-admin-pin"
                 type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                value={pin}
+                onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 12))}
                 autoComplete="current-password"
-                className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base text-white outline-none transition focus:border-amber-400"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoFocus
+                className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-center text-2xl font-black tracking-[0.45em] text-white outline-none transition focus:border-amber-400"
+                placeholder="••••"
               />
             </div>
 
@@ -202,13 +169,13 @@ export function MarketplaceAdminAuthGate() {
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-black uppercase tracking-wider text-black transition hover:bg-amber-300 disabled:cursor-wait disabled:opacity-60"
             >
               <LogIn className="h-5 w-5" />
-              {submitting ? 'Signing in…' : 'Sign in to Admin'}
+              {submitting ? 'Unlocking…' : 'Unlock Admin'}
             </button>
           </form>
         ) : null}
 
         <div className="mt-7 border-t border-white/10 pt-5 text-xs leading-5 text-zinc-500">
-          Your login is handled by SkillsConnect Pro&apos;s authenticated account system. Infrastructure secrets remain on the server.
+          The PIN is verified on the server and creates a secure administrator session. No API key or email password is required.
         </div>
       </section>
     </div>
