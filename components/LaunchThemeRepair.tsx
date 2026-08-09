@@ -33,6 +33,8 @@ export const LaunchThemeRepair = () => {
     return () => observer.disconnect();
   }, [pathname]);
 
+  if (pathname === '/get-help') return null;
+
   return (
     <style>{`
       /* Shared form voice: the same strong editorial typography used by the launch homepage. */
@@ -50,6 +52,71 @@ export const LaunchThemeRepair = () => {
 
       body[data-scp-surface='intake'] main h1 {
         font-size: clamp(2.35rem, 8vw, 4.65rem) !important;
+      }
+
+      /* Dark intake: every stage is a brown/forest card rather than a leftover cream form. */
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main {
+        color: #f5efe3 !important;
+      }
+
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section:not([class~='overflow-hidden']),
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section[class~='space-y-5'] > div {
+        border: 1px solid rgba(220,185,130,.36) !important;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(245,197,24,.055), transparent 18rem),
+          linear-gradient(145deg, rgba(31,22,17,.96), rgba(12,27,19,.95)) !important;
+        color: #f5efe3 !important;
+        box-shadow: 0 30px 72px -38px rgba(0,0,0,.94), inset 0 1px 0 rgba(255,255,255,.06) !important;
+      }
+
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section:not([class~='overflow-hidden']) :is(h1,h2,h3,strong),
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section[class~='space-y-5'] > div :is(h1,h2,h3,strong) {
+        color: #fff8e9 !important;
+      }
+
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section:not([class~='overflow-hidden']) :is(p,small,label,span):not([class*='text-red']):not([class*='text-amber']),
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section[class~='space-y-5'] > div :is(p,small,label,span):not([class*='text-red']):not([class*='text-amber']) {
+        color: rgba(245,239,227,.72) !important;
+      }
+
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section [class*='bg-white'],
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section [class*='bg-[#faf9f4]'],
+      html[data-scp-theme='dark'] body[data-scp-surface='intake'] main > div > section [class*='bg-[#e8eee2]'] {
+        border-color: rgba(220,185,130,.3) !important;
+        background: rgba(246,239,226,.065) !important;
+        color: #f5efe3 !important;
+      }
+
+      /* Light intake: warm ivory, espresso type and stronger brown/gold construction lines. */
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main {
+        color: #261a12 !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section:not([class~='overflow-hidden']),
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section[class~='space-y-5'] > div {
+        border: 2px solid rgba(91,55,24,.58) !important;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(245,197,24,.1), transparent 19rem),
+          linear-gradient(145deg, rgba(255,252,243,.98), rgba(244,234,214,.96)) !important;
+        color: #261a12 !important;
+        box-shadow: 0 28px 64px -36px rgba(78,47,21,.54), inset 0 1px 0 rgba(255,255,255,.96) !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section :is(h1,h2,h3,strong) {
+        color: #261a12 !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section :is(p,small,label,span):not([class*='text-red']):not([class*='text-amber']) {
+        color: #5b5147 !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section [class*='bg-white'],
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section [class*='bg-[#faf9f4]'],
+      html[data-scp-theme='light'] body[data-scp-surface='intake'] main > div > section [class*='bg-[#e8eee2]'] {
+        border-color: rgba(104,65,27,.52) !important;
+        background: rgba(255,253,247,.96) !important;
+        color: #261a12 !important;
+        box-shadow: 0 15px 32px -27px rgba(78,47,21,.42) !important;
       }
 
       /* Customer record: switch the actual cards and all inherited text, not only the page background. */

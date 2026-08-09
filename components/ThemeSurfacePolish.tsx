@@ -1,4 +1,12 @@
-export const ThemeSurfacePolish = () => (
+'use client';
+
+import { usePathname } from 'next/navigation';
+
+export const ThemeSurfacePolish = () => {
+  const pathname = usePathname();
+  if (pathname === '/get-help') return null;
+
+  return (
   <style>{`
     /* Shared intake typography: bold, direct headings with restrained gold hierarchy. */
     body[data-scp-surface='intake'] main h1,
@@ -200,4 +208,5 @@ export const ThemeSurfacePolish = () => (
       }
     }
   `}</style>
-);
+  );
+};

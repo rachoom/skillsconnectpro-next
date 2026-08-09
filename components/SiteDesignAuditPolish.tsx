@@ -1,3 +1,7 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+
 /**
  * Final cross-site visual quality layer.
  *
@@ -6,7 +10,11 @@
  * makes the theme contract explicit while those older surfaces are gradually
  * migrated to shared tokens.
  */
-export const SiteDesignAuditPolish = () => (
+export const SiteDesignAuditPolish = () => {
+  const pathname = usePathname();
+  if (pathname === '/get-help') return null;
+
+  return (
   <style>{`
     :root {
       --scp-gold: #f5c518;
@@ -316,4 +324,5 @@ export const SiteDesignAuditPolish = () => (
       }
     }
   `}</style>
-);
+  );
+};

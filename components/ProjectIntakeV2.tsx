@@ -12,12 +12,12 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Clock3,
-  Home,
   Loader2,
   MapPin,
   Mic,
   RotateCcw,
   ShieldCheck,
+  SquarePen,
   UserRound,
   Wrench,
   X,
@@ -481,12 +481,13 @@ export const ProjectIntakeV2: React.FC = () => {
         {step === 'describe' && (
           <section data-intake-stage="describe" data-intake-quickstart className="overflow-hidden rounded-[2rem] bg-[#f4f0e4] shadow-2xl">
             <div data-intake-quickstart-heading className="p-6 sm:p-8">
-              <span data-intake-quickstart-icon aria-hidden="true"><Home size={21} /></span>
-              <div>
+              <span data-intake-quickstart-icon aria-hidden="true"><SquarePen size={21} /></span>
+              <div data-intake-quickstart-copy>
                 <p className="text-xs font-black uppercase tracking-[0.18em]">Start your request</p>
                 <h1 className="mt-2 text-4xl font-black tracking-tight">What do you need done?</h1>
                 <p className="mt-2 font-semibold leading-6 text-black/65">Describe the job in your own words. We’ll guide you from there.</p>
               </div>
+              <div data-intake-illustration aria-hidden="true" />
             </div>
             <div data-intake-quickstart-body className="space-y-4 p-5 sm:px-8 sm:pb-8">
               <div data-intake-composer>
@@ -639,7 +640,7 @@ export const ProjectIntakeV2: React.FC = () => {
                   {URGENCY_OPTIONS.map((option) => {
                     const selected = assessment.urgency === option.value;
                     return (
-                      <button key={option.value} type="button" data-selected={selected} aria-pressed={selected} onClick={() => setAssessment((current) => current ? { ...current, urgency: option.value } : current)} className={`rounded-xl border-2 p-3 text-left ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}>
+                      <button key={option.value} type="button" onClick={() => setAssessment((current) => current ? { ...current, urgency: option.value } : current)} className={`rounded-xl border-2 p-3 text-left ${selected ? 'border-[#667764] bg-[#dfe8d6]' : 'border-[#d9d8cf] bg-[#faf9f4]'}`}>
                         <span className="flex justify-between text-sm font-black">{option.label}{selected && <Check size={17} />}</span>
                         <small className="text-[#667064]">{option.detail}</small>
                       </button>

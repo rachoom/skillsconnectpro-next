@@ -31,7 +31,7 @@ export const MarketplaceVisualConsistency = () => {
     };
   }, [pathname]);
 
-  return (
+  return pathname === '/get-help' ? null : (
     <style>{`
       html[data-scp-theme='dark'] {
         color-scheme: dark;
