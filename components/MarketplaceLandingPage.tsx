@@ -125,36 +125,31 @@ export const MarketplaceLandingPage = () => {
       </nav>
 
       <section className={styles.hero}>
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          disablePictureInPicture
-          preload="metadata"
-          poster="/artisans/hero-welder.jpg"
-          className={`absolute inset-0 h-full w-full object-cover ${styles.heroImage}`}
-          aria-hidden="true"
-          tabIndex={-1}
-        >
-          <source src="/download.webm" type="video/webm" />
-        </video>
+        <Image
+          src="/artisans/hero-welder.jpg"
+          alt="Skilled local service provider at work"
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroImage}
+        />
         <div className={styles.heroOverlay} />
         <div className={styles.heroGlow} />
 
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <div className={styles.eyebrow}><Sparkles size={15} /> Your local home-services assistant</div>
-            <h1>Tell us what needs doing.</h1>
+            <div className={styles.eyebrow}><Sparkles size={15} /> Trusted local skills. One guided connection.</div>
+            <h1>Need the right service provider? <span>We&apos;ve got you.</span></h1>
             <p>
-              Show us the job once and we will guide the rest: understand the work, invite suitable providers,
-              help you compare responses and keep the project record in one place.
+              Tell us what you need. We&apos;ll turn it into a clear project, connect you with suitable local providers,
+              and help you compare responses with confidence.
             </p>
 
             <div className={styles.heroButtons}>
               <Link href="/get-help" className={styles.primaryButton}>
-                Show us the job <ArrowRight size={19} />
+                Find a service provider <ArrowRight size={19} />
               </Link>
+              <Link href="/join" className={styles.heroSecondaryButton}>Join as a provider</Link>
             </div>
 
             <p className={styles.inputNote}>
@@ -166,6 +161,14 @@ export const MarketplaceLandingPage = () => {
               <span><CheckCircle2 size={16} /> You choose who to connect with</span>
             </div>
           </div>
+        </div>
+
+        <div className={styles.heroJourney} aria-label="How Skills Connect Pro works">
+          <div><strong>01</strong><span><b>Find</b><small>Tell us what you need</small></span></div>
+          <ArrowRight aria-hidden="true" />
+          <div><strong>02</strong><span><b>Connect</b><small>Compare suitable providers</small></span></div>
+          <ArrowRight aria-hidden="true" />
+          <div><strong>03</strong><span><b>Grow</b><small>Complete work with confidence</small></span></div>
         </div>
       </section>
 

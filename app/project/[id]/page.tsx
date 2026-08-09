@@ -19,6 +19,7 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
+import styles from './project-overview.module.css';
 
 type ProviderResponse = {
   id: string;
@@ -166,12 +167,15 @@ export default function CustomerProjectPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get('token') ?? '';
-    setAccessToken(token);
-    if (!token) {
-      setError('This project link is missing its secure access token.');
-      setLoading(false);
-    }
+    const initialisation = window.setTimeout(() => {
+      const token = new URLSearchParams(window.location.search).get('token') ?? '';
+      setAccessToken(token);
+      if (!token) {
+        setError('This project link is missing its secure access token.');
+        setLoading(false);
+      }
+    }, 0);
+    return () => window.clearTimeout(initialisation);
   }, []);
 
   const loadFeed = useCallback(async (quiet = false) => {
@@ -197,9 +201,12 @@ export default function CustomerProjectPage() {
 
   useEffect(() => {
     if (!accessToken) return;
-    void loadFeed();
+    const initialLoad = window.setTimeout(() => void loadFeed(), 0);
     const interval = window.setInterval(() => void loadFeed(true), 15000);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
   }, [accessToken, loadFeed]);
 
   const selectedResponseId = feed?.match?.providerResponseId ?? null;
@@ -296,8 +303,15 @@ export default function CustomerProjectPage() {
     : null;
 
   return (
-    <main className="min-h-screen bg-[#080d0b] px-4 py-8 text-white md:px-8">
+    <main className={`${styles.page} min-h-screen bg-[#080d0b] px-4 py-8 text-white md:px-8`}>
       <div className="mx-auto max-w-5xl">
+        <div className={styles.overviewBar}>
+          <div>
+            <span>Customer workspace</span>
+            <strong>Project Overview</strong>
+          </div>
+          <div className={styles.liveState}><i /> Live updates</div>
+        </div>
         <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-8">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
             <div>
