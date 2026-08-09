@@ -6,6 +6,7 @@ import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAuto
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
 import { IntakeHeroAlignment } from '../components/IntakeHeroAlignment';
 import { LaunchThemeRepair } from '../components/LaunchThemeRepair';
+import { MarketplaceAdminAuthGate } from '../components/MarketplaceAdminAuthGate';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
@@ -93,6 +94,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: surfaceInitialiser }} />
         {children}
+        <MarketplaceAdminAuthGate />
         <AdminMarketingAssist />
         <MarketplaceVisualConsistency />
         <ThemeDetailOverrides />
