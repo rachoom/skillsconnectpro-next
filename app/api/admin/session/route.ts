@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, scryptSync, timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import {
   createMarketplaceAdminSessionToken,
@@ -34,6 +34,23 @@ function clientIpHash(request: Request): string {
   return createHash('sha256').update(ip).digest('hex');
 }
 
+function verifyStoredPin(pin: string, storedHash: string): boolean {
+  const [version, saltValue, digestValue] = storedHash.split('$');
+  if (version !== 'scrypt-v1' || !saltValue || !digestValue) return false;
+
+  try {
+    const salt = Buffer.from(saltValue, 'base64url');
+    const expected = Buffer.from(digestValue, 'base64url');
+    if (!salt.length || !expected.length) return false;
+
+    const actual = scryptSync(pin, salt, expected.length);
+    if (actual.length !== expected.length) return false;
+    return timingSafeEqual(actual, expected);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const payload = await request.json().catch(() => ({}));
@@ -65,12 +82,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const verification = await supabase.rpc('verify_marketplace_admin_pin', { p_pin: pin });
-    if (verification.error) {
-      throw new Error(`Unable to verify Admin PIN: ${verification.error.message}`);
+    const credentialResult = await supabase
+      .from('marketplace_admin_credentials')
+      .select('pin_hash')
+      .eq('credential_name', 'primary')
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (credentialResult.error) {
+      throw new Error(`Unable to read Admin PIN credential: ${credentialResult.error.message}`);
     }
 
-    const authenticated = verification.data === true;
+    const credential = credentialResult.data as { pin_hash: string } | null;
+    const authenticated = Boolean(credential && verifyStoredPin(pin, credential.pin_hash));
+
     const attempt = await supabase.from('marketplace_admin_login_attempts').insert({
       ip_hash: ipHash,
       succeeded: authenticated,
