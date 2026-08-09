@@ -87,6 +87,7 @@ async function readJson(response: Response) {
 
 export function AdminMarketingAssist() {
   const [adminKey, setAdminKey] = useState('');
+  const [validatedKey, setValidatedKey] = useState('');
   const [onAdminRoute, setOnAdminRoute] = useState(false);
   const [open, setOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -98,12 +99,16 @@ export function AdminMarketingAssist() {
   useEffect(() => {
     const sync = () => {
       const isAdmin = window.location.pathname === '/marketplace-admin';
+      const storedKey = isAdmin
+        ? window.sessionStorage.getItem('marketplaceAdminKey') ?? ''
+        : '';
+
       setOnAdminRoute(isAdmin);
-      setAdminKey(isAdmin ? window.sessionStorage.getItem('marketplaceAdminKey') ?? '' : '');
+      setAdminKey((current) => (current === storedKey ? current : storedKey));
     };
 
     sync();
-    const timer = window.setInterval(sync, 750);
+    const timer = window.setInterval(sync, 500);
     window.addEventListener('popstate', sync);
     return () => {
       window.clearInterval(timer);
@@ -112,20 +117,87 @@ export function AdminMarketingAssist() {
   }, []);
 
   useEffect(() => {
-    if (!onAdminRoute || !adminKey) setOpen(false);
+    if (!onAdminRoute || !adminKey) {
+      setValidatedKey('');
+      setOpen(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const validateAdminKey = async () => {
+      try {
+        const response = await fetch('/api/admin/projects', {
+          headers: { 'x-marketplace-admin-key': adminKey },
+          cache: 'no-store',
+        });
+
+        if (response.ok) {
+          if (!cancelled) {
+            setValidatedKey(adminKey);
+            setError(null);
+          }
+          return;
+        }
+
+        const payload = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          window.sessionStorage.removeItem('marketplaceAdminKey');
+          if (!cancelled) {
+            setValidatedKey('');
+            setAdminKey('');
+            setOpen(false);
+          }
+          window.location.reload();
+          return;
+        }
+
+        if (!cancelled) {
+          setValidatedKey('');
+          setError(payload.error || 'Unable to validate the Marketplace Admin session.');
+        }
+      } catch (caught) {
+        if (!cancelled) {
+          setValidatedKey('');
+          setError(caught instanceof Error ? caught.message : 'Unable to validate the Marketplace Admin session.');
+        }
+      }
+    };
+
+    void validateAdminKey();
+
+    return () => {
+      cancelled = true;
+    };
   }, [adminKey, onAdminRoute]);
 
+  const isValidated = Boolean(adminKey && validatedKey === adminKey);
+
+  const handleUnauthorised = useCallback(() => {
+    window.sessionStorage.removeItem('marketplaceAdminKey');
+    setValidatedKey('');
+    setAdminKey('');
+    setOpen(false);
+    window.location.reload();
+  }, []);
+
   const refresh = useCallback(async () => {
-    if (!adminKey) return;
+    if (!adminKey || !isValidated) return;
     setLoading(true);
     setError(null);
     try {
-      const payload = await readJson(
-        await fetch('/api/admin/marketing', {
-          headers: { 'x-marketplace-admin-key': adminKey },
-          cache: 'no-store',
-        }),
-      );
+      const response = await fetch('/api/admin/marketing', {
+        headers: { 'x-marketplace-admin-key': adminKey },
+        cache: 'no-store',
+      });
+
+      if (response.status === 401) {
+        handleUnauthorised();
+        return;
+      }
+
+      const payload = await readJson(response);
       setCampaigns((payload.campaigns ?? []) as Campaign[]);
       setProviders((payload.providers ?? []) as Provider[]);
     } catch (caught) {
@@ -133,11 +205,11 @@ export function AdminMarketingAssist() {
     } finally {
       setLoading(false);
     }
-  }, [adminKey]);
+  }, [adminKey, handleUnauthorised, isValidated]);
 
   useEffect(() => {
-    if (open) void refresh();
-  }, [open, refresh]);
+    if (open && isValidated) void refresh();
+  }, [isValidated, open, refresh]);
 
   const providersById = useMemo(
     () => new Map(providers.map((provider) => [provider.id, provider])),
@@ -195,19 +267,24 @@ export function AdminMarketingAssist() {
   }, [campaigns, providers, todayCampaign?.provider_id]);
 
   const createToday = async () => {
-    if (!adminKey) return;
+    if (!adminKey || !isValidated) return;
     setCreatingToday(true);
     setError(null);
     try {
-      await readJson(
-        await fetch('/api/admin/marketing', {
-          method: 'POST',
-          headers: {
-            'x-marketplace-admin-key': adminKey,
-            'Content-Type': 'application/json',
-          },
-        }),
-      );
+      const response = await fetch('/api/admin/marketing', {
+        method: 'POST',
+        headers: {
+          'x-marketplace-admin-key': adminKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        handleUnauthorised();
+        return;
+      }
+
+      await readJson(response);
       await refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to prepare today’s campaign.');
@@ -247,7 +324,7 @@ export function AdminMarketingAssist() {
     );
   };
 
-  if (!onAdminRoute || !adminKey) return null;
+  if (!onAdminRoute || !isValidated) return null;
 
   return (
     <>
