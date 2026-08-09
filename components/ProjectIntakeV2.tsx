@@ -12,12 +12,12 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Clock3,
+  Home,
   Loader2,
   MapPin,
   Mic,
   RotateCcw,
   ShieldCheck,
-  SquarePen,
   UserRound,
   Wrench,
   X,
@@ -481,13 +481,12 @@ export const ProjectIntakeV2: React.FC = () => {
         {step === 'describe' && (
           <section data-intake-stage="describe" data-intake-quickstart className="overflow-hidden rounded-[2rem] bg-[#f4f0e4] shadow-2xl">
             <div data-intake-quickstart-heading className="p-6 sm:p-8">
-              <span data-intake-quickstart-icon aria-hidden="true"><SquarePen size={21} /></span>
-              <div data-intake-quickstart-copy>
+              <span data-intake-quickstart-icon aria-hidden="true"><Home size={21} /></span>
+              <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em]">Start your request</p>
                 <h1 className="mt-2 text-4xl font-black tracking-tight">What do you need done?</h1>
                 <p className="mt-2 font-semibold leading-6 text-black/65">Describe the job in your own words. We’ll guide you from there.</p>
               </div>
-              <div data-intake-illustration aria-hidden="true" />
             </div>
             <div data-intake-quickstart-body className="space-y-4 p-5 sm:px-8 sm:pb-8">
               <div data-intake-composer>
