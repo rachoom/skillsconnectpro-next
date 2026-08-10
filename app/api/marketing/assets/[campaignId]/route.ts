@@ -49,12 +49,21 @@ export async function GET(
   }) | null;
   const phone = (provider?.whatsapp || provider?.phone || '').trim();
   const origin = `${requestUrl.protocol}//${requestUrl.host}`;
+
+  // Personal profile photos are not automatically safe for public advertising.
+  // The campaign snapshot already chooses the intended marketing image (image_url
+  // before profile_image), so prevent the live profile_image field from silently
+  // overriding that curated/generated image inside the artwork renderer.
+  const artworkProvider: MarketingArtworkProvider | null = provider
+    ? { ...provider, profile_image: null }
+    : null;
+
   const artwork = buildMarketingArtwork({
     campaign: campaignResult.data as unknown as MarketingCampaignRow,
     variant,
     origin,
     phone,
-    provider,
+    provider: artworkProvider,
   });
 
   return new ImageResponse(artwork.element, {
