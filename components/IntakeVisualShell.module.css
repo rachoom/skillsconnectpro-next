@@ -1,0 +1,25 @@
+.shell {
+  min-height: 100svh;
+  isolation: isolate;
+  background: #050505;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+:global(html[data-scp-theme='light']) .shell {
+  background: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell *,
+  .shell *::before,
+  .shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

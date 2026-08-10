@@ -20,13 +20,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/join',
-        destination: 'https://wa.me/message/VOIITMTQW6ZSI1', // Temporarily routing to your WhatsApp
-        permanent: false,
-      },
-      {
         source: '/quick-join',
-        destination: 'https://wa.me/message/VOIITMTQW6ZSI1', // Temporarily routing to your WhatsApp
+        destination: '/join',
         permanent: false,
       },
     ];
