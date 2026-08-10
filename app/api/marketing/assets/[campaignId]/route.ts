@@ -13,6 +13,8 @@ import {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const PUBLIC_MARKETING_ASSET_ORIGIN = 'https://www.skillsconnectpro.co.za';
+
 function isVariant(value: string | null): value is MarketingAssetVariant {
   return Boolean(value && MARKETING_ASSET_VARIANTS.includes(value as MarketingAssetVariant));
 }
@@ -48,7 +50,12 @@ export async function GET(
     whatsapp?: string | null;
   }) | null;
   const phone = (provider?.whatsapp || provider?.phone || '').trim();
-  const origin = `${requestUrl.protocol}//${requestUrl.host}`;
+
+  // Protected Vercel preview hosts return an authentication response when
+  // ImageResponse tries to fetch local static assets such as the SkillsConnect
+  // logo and category fallbacks. Always resolve those assets from the public
+  // SkillsConnect Pro site so previews and production render identically.
+  const origin = PUBLIC_MARKETING_ASSET_ORIGIN;
 
   // Personal profile photos are not automatically safe for public advertising.
   // The campaign snapshot already chooses the intended marketing image (image_url
