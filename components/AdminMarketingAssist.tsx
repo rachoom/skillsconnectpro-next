@@ -94,6 +94,7 @@ export function AdminMarketingAssist() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(false);
   const [creatingToday, setCreatingToday] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -217,9 +218,14 @@ export function AdminMarketingAssist() {
   );
   const today = johannesburgToday();
   const todayCampaign = campaigns.find((campaign) => campaign.campaign_date === today) ?? null;
-  const todayProvider = todayCampaign
-    ? providersById.get(todayCampaign.provider_id) ?? null
+  const selectedCampaign = selectedCampaignId
+    ? campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? null
     : null;
+  const viewedCampaign = selectedCampaign ?? todayCampaign;
+  const viewedProvider = viewedCampaign
+    ? providersById.get(viewedCampaign.provider_id) ?? null
+    : null;
+  const viewingArchive = Boolean(selectedCampaign && selectedCampaign.id !== todayCampaign?.id);
 
   const eligibleCount = useMemo(
     () => providers.filter((provider) => {
@@ -285,6 +291,7 @@ export function AdminMarketingAssist() {
       }
 
       await readJson(response);
+      setSelectedCampaignId(null);
       await refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to prepare today’s campaign.');
@@ -296,21 +303,31 @@ export function AdminMarketingAssist() {
   const assetUrl = (campaignId: string, variant: string) =>
     `${window.location.origin}/api/marketing/assets/${campaignId}?variant=${variant}`;
 
+  const openCampaign = (campaignId: string) => {
+    setSelectedCampaignId(campaignId);
+    window.setTimeout(() => {
+      document.getElementById('marketing-campaign-viewer')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 0);
+  };
+
   const sendViaWhatsApp = () => {
-    if (!todayCampaign || !todayProvider) return;
-    const phone = normaliseWhatsApp(todayProvider.whatsapp || todayProvider.phone || '');
+    if (!viewedCampaign || !viewedProvider) return;
+    const phone = normaliseWhatsApp(viewedProvider.whatsapp || viewedProvider.phone || '');
     if (!phone) return;
 
-    const firstName = todayProvider.first_name
-      || todayCampaign.provider_snapshot?.firstName
+    const firstName = viewedProvider.first_name
+      || viewedCampaign.provider_snapshot?.firstName
       || 'there';
     const message = [
-      `Hi ${firstName}! SkillsConnect Pro selected your business for today's complimentary marketing support.`,
+      `Hi ${firstName}! SkillsConnect Pro created a complimentary marketing pack for your business.`,
       '',
-      'We created three branded marketing pieces for you:',
-      `1. Promotional poster: ${assetUrl(todayCampaign.id, 'poster')}`,
-      `2. Digital business card: ${assetUrl(todayCampaign.id, 'business_card')}`,
-      `3. WhatsApp Status: ${assetUrl(todayCampaign.id, 'whatsapp_status')}`,
+      'Your three branded marketing pieces are ready:',
+      `1. Promotional poster: ${assetUrl(viewedCampaign.id, 'poster')}`,
+      `2. Digital business card: ${assetUrl(viewedCampaign.id, 'business_card')}`,
+      `3. WhatsApp Status: ${assetUrl(viewedCampaign.id, 'whatsapp_status')}`,
       '',
       'You are welcome to save and share them with customers and your WhatsApp contacts.',
       '',
@@ -395,29 +412,41 @@ export function AdminMarketingAssist() {
                 </div>
               </section>
 
-              <section>
+              <section id="marketing-campaign-viewer" className="scroll-mt-36">
                 <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300">Today&apos;s featured provider</div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300">
+                      {viewingArchive ? `Campaign archive • ${viewedCampaign?.campaign_date || ''}` : "Today's featured provider"}
+                    </div>
                     <h3 className="mt-2 text-2xl font-black md:text-3xl">
-                      {todayCampaign?.provider_snapshot?.name || 'No campaign prepared yet'}
+                      {viewedCampaign?.provider_snapshot?.name || 'No campaign prepared yet'}
                     </h3>
                     <p className="mt-1 text-sm text-zinc-400">
-                      {todayCampaign?.provider_snapshot?.category || ''}
-                      {todayCampaign?.provider_snapshot?.location
-                        ? ` • ${todayCampaign.provider_snapshot.location}`
+                      {viewedCampaign?.provider_snapshot?.category || ''}
+                      {viewedCampaign?.provider_snapshot?.location
+                        ? ` • ${viewedCampaign.provider_snapshot.location}`
                         : ''}
                     </p>
+                    {viewingArchive ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCampaignId(null)}
+                        className="mt-4 rounded-xl border border-amber-300/25 bg-amber-300/5 px-4 py-2 text-xs font-black uppercase tracking-wider text-amber-300 transition hover:border-amber-300/60 hover:bg-amber-300/10"
+                      >
+                        ← Back to today&apos;s campaign
+                      </button>
+                    ) : null}
                   </div>
-                  {todayCampaign && todayProvider ? (
+                  {viewedCampaign && viewedProvider ? (
                     <button
                       type="button"
                       onClick={sendViaWhatsApp}
                       className="flex items-center justify-center gap-3 rounded-2xl bg-emerald-500 px-6 py-4 text-sm font-black uppercase tracking-wider text-white shadow-[0_15px_40px_rgba(16,185,129,0.25)] transition hover:-translate-y-1 hover:bg-emerald-400"
                     >
-                      <MessageCircle className="h-5 w-5" /> Send pack on WhatsApp
+                      <MessageCircle className="h-5 w-5" />
+                      {viewingArchive ? 'Send this pack on WhatsApp' : 'Send pack on WhatsApp'}
                     </button>
-                  ) : (
+                  ) : !todayCampaign ? (
                     <button
                       type="button"
                       onClick={() => void createToday()}
@@ -427,10 +456,10 @@ export function AdminMarketingAssist() {
                       <Megaphone className="h-5 w-5" />
                       {creatingToday ? 'Preparing…' : 'Prepare today’s pack'}
                     </button>
-                  )}
+                  ) : null}
                 </div>
 
-                {todayCampaign ? (
+                {viewedCampaign ? (
                   <div className="grid gap-5 lg:grid-cols-3">
                     {variants.map((variant) => (
                       <div key={variant.key} className="overflow-hidden rounded-3xl border border-white/10 bg-[#15110c]">
@@ -438,8 +467,8 @@ export function AdminMarketingAssist() {
                           {/* Dynamic ImageResponse assets intentionally use a plain img so admin previews can render arbitrary generated dimensions. */}
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={`/api/marketing/assets/${todayCampaign.id}?variant=${variant.key}`}
-                            alt={`${variant.label} for ${todayCampaign.provider_snapshot?.name || 'featured provider'}`}
+                            src={`/api/marketing/assets/${viewedCampaign.id}?variant=${variant.key}`}
+                            alt={`${variant.label} for ${viewedCampaign.provider_snapshot?.name || 'featured provider'}`}
                             className="h-full w-full object-contain"
                           />
                         </div>
@@ -449,7 +478,7 @@ export function AdminMarketingAssist() {
                             <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">PNG • WhatsApp ready</div>
                           </div>
                           <a
-                            href={`/api/marketing/assets/${todayCampaign.id}?variant=${variant.key}`}
+                            href={`/api/marketing/assets/${viewedCampaign.id}?variant=${variant.key}`}
                             target="_blank"
                             rel="noreferrer"
                             className="rounded-xl border border-white/10 p-2 text-zinc-400 hover:border-amber-300/50 hover:text-amber-300"
@@ -501,29 +530,49 @@ export function AdminMarketingAssist() {
                 </div>
 
                 <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6">
-                  <h3 className="mb-5 text-xl font-black">Recent campaigns</h3>
+                  <div className="mb-5 flex items-end justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-black">Recent campaigns</h3>
+                      <p className="mt-1 text-xs text-zinc-500">Tap any campaign to reopen its complete marketing pack.</p>
+                    </div>
+                  </div>
                   <div className="max-h-[390px] space-y-3 overflow-y-auto pr-1">
-                    {campaigns.slice(0, 12).map((campaign) => (
-                      <div key={campaign.id} className="rounded-2xl border border-white/5 bg-black/30 p-4">
-                        <div className="flex items-center justify-between gap-4">
-                          <div>
-                            <div className="text-sm font-bold">
-                              {campaign.provider_snapshot?.name || `Provider #${campaign.provider_id}`}
+                    {campaigns.slice(0, 12).map((campaign) => {
+                      const active = viewedCampaign?.id === campaign.id;
+                      return (
+                        <button
+                          key={campaign.id}
+                          type="button"
+                          onClick={() => openCampaign(campaign.id)}
+                          className={`w-full rounded-2xl border p-4 text-left transition ${
+                            active
+                              ? 'border-amber-300/45 bg-amber-300/[0.08]'
+                              : 'border-white/5 bg-black/30 hover:border-amber-300/30 hover:bg-white/[0.04]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <div className="text-sm font-bold">
+                                {campaign.provider_snapshot?.name || `Provider #${campaign.provider_id}`}
+                              </div>
+                              <div className="mt-1 text-xs text-zinc-500">{campaign.campaign_date}</div>
+                              <div className="mt-2 text-[10px] font-black uppercase tracking-wider text-amber-300/80">
+                                {active ? 'Viewing pack' : 'View pack →'}
+                              </div>
                             </div>
-                            <div className="mt-1 text-xs text-zinc-500">{campaign.campaign_date}</div>
+                            <span className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-wider ${
+                              campaign.status === 'sent'
+                                ? 'bg-emerald-500/15 text-emerald-300'
+                                : campaign.status === 'failed'
+                                  ? 'bg-red-500/15 text-red-300'
+                                  : 'bg-amber-300/10 text-amber-300'
+                            }`}>
+                              {campaign.status}
+                            </span>
                           </div>
-                          <span className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-wider ${
-                            campaign.status === 'sent'
-                              ? 'bg-emerald-500/15 text-emerald-300'
-                              : campaign.status === 'failed'
-                                ? 'bg-red-500/15 text-red-300'
-                                : 'bg-amber-300/10 text-amber-300'
-                          }`}>
-                            {campaign.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </section>
