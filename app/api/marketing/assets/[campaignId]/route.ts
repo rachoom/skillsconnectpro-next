@@ -5,7 +5,10 @@ import {
   type MarketingAssetVariant,
   type MarketingCampaignRow,
 } from '@/services/marketing/marketingAssist';
-import { buildMarketingArtwork } from '@/services/marketing/marketingArtwork';
+import {
+  buildMarketingArtwork,
+  type MarketingArtworkProvider,
+} from '@/services/marketing/marketingArtwork';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -36,11 +39,14 @@ export async function GET(
 
   const providerResult = await supabase
     .from('artisans')
-    .select('phone, whatsapp')
+    .select('phone, whatsapp, profile_image, image_url, portfolio, portfolio_images, portfolio_urls, proof_of_work, services, years_experience, experience, description, bio, verified, isVerified')
     .eq('id', campaignResult.data.provider_id)
     .maybeSingle();
 
-  const provider = providerResult.data as { phone?: string | null; whatsapp?: string | null } | null;
+  const provider = providerResult.data as (MarketingArtworkProvider & {
+    phone?: string | null;
+    whatsapp?: string | null;
+  }) | null;
   const phone = (provider?.whatsapp || provider?.phone || '').trim();
   const origin = `${requestUrl.protocol}//${requestUrl.host}`;
   const artwork = buildMarketingArtwork({
@@ -48,13 +54,14 @@ export async function GET(
     variant,
     origin,
     phone,
+    provider,
   });
 
   return new ImageResponse(artwork.element, {
     width: artwork.width,
     height: artwork.height,
     headers: {
-      'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+      'Cache-Control': 'public, max-age=120, s-maxage=900, stale-while-revalidate=3600',
       'Content-Disposition': `inline; filename="skillsconnect-pro-${variant}-${campaignId}.png"`,
     },
   });
