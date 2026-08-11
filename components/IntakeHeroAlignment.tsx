@@ -11,6 +11,7 @@ export const IntakeHeroAlignment = () => (
       --intake-line: #75601a;
       --intake-line-strong: #a88618;
       --intake-button: #18150b;
+      --intake-button-text: #ffffff;
       --intake-shadow: 0 26px 68px rgba(0,0,0,.52);
       margin: 0;
       background: var(--intake-bg) !important;
@@ -27,6 +28,7 @@ export const IntakeHeroAlignment = () => (
       --intake-line: #cfcfcf;
       --intake-line-strong: #8b8b8b;
       --intake-button: #111111;
+      --intake-button-text: #ffffff;
       --intake-shadow: 0 22px 54px rgba(17,17,17,.10);
     }
 
@@ -332,7 +334,7 @@ export const IntakeHeroAlignment = () => (
       border: 1px solid var(--intake-line) !important;
       border-radius: .65rem !important;
       background: var(--intake-button) !important;
-      color: var(--intake-text) !important;
+      color: var(--intake-button-text) !important;
       box-shadow: none !important;
       font-size: .8rem;
       font-weight: 700;
@@ -366,6 +368,7 @@ export const IntakeHeroAlignment = () => (
     }
 
     body[data-scp-surface='intake'] [data-intake-continue],
+    body[data-scp-surface='intake'] [data-intake-primary-action],
     body[data-scp-surface='intake'] [data-intake-stage-navigation] button:last-child,
     body[data-scp-surface='intake'] [data-intake-stage='clarify'] > div:last-of-type > button:not(:first-child),
     body[data-scp-surface='intake'] [data-intake-stage='done'] > a {
@@ -377,6 +380,12 @@ export const IntakeHeroAlignment = () => (
       box-shadow: none !important;
       font-weight: 900 !important;
       transition: transform .18s ease, filter .18s ease;
+    }
+
+    body[data-scp-surface='intake'] :is([data-intake-continue],[data-intake-primary-action]) *,
+    body[data-scp-surface='intake'] [data-intake-question] button[data-selected='true'] * {
+      color: #090909 !important;
+      stroke: currentColor;
     }
 
     body[data-scp-surface='intake'] [data-intake-continue]:hover,
@@ -416,7 +425,7 @@ export const IntakeHeroAlignment = () => (
       padding: 1.65rem 2rem !important;
     }
 
-    body[data-scp-surface='intake'] main :is(p,small,label,span):not([class*='text-red']):not([class*='text-amber']) {
+    body[data-scp-surface='intake'] main :is(p,small,label):not([class*='text-red']):not([class*='text-amber']) {
       color: var(--intake-muted);
     }
 
@@ -427,15 +436,20 @@ export const IntakeHeroAlignment = () => (
       border: 1px solid var(--intake-line) !important;
       border-radius: .7rem !important;
       background: var(--intake-button) !important;
-      color: var(--intake-text) !important;
+      color: var(--intake-button-text) !important;
       box-shadow: none !important;
     }
 
-    body[data-scp-surface='intake'] [data-intake-stage='clarify'] > div:first-of-type > span,
-    body[data-scp-surface='intake'] [data-intake-card='brief'] > span {
+    body[data-scp-surface='intake'] [data-intake-question-counter] {
       border: 1px solid var(--intake-line) !important;
       background: var(--intake-button) !important;
-      color: var(--intake-muted) !important;
+      color: var(--intake-yellow) !important;
+    }
+
+    body[data-scp-surface='intake'] [data-intake-category] {
+      border: 1px solid var(--intake-line-strong) !important;
+      background: #090909 !important;
+      color: var(--intake-yellow) !important;
     }
 
     body[data-scp-surface='intake'] [data-intake-stage='clarify'] [aria-label$='through clarification'] > div:last-child {
@@ -466,6 +480,11 @@ export const IntakeHeroAlignment = () => (
       color: #090909 !important;
     }
 
+    body[data-scp-surface='intake'] [data-intake-question-title],
+    body[data-scp-surface='intake'] [data-intake-review] > p:first-child {
+      color: var(--intake-text) !important;
+    }
+
     body[data-scp-surface='intake'] [data-intake-question] button,
     body[data-scp-surface='intake'] [data-intake-choice-grid] > button {
       border: 1px solid var(--intake-line) !important;
@@ -492,7 +511,25 @@ export const IntakeHeroAlignment = () => (
     }
 
     body[data-scp-surface='intake'] [data-intake-summary-card] > span,
-    body[data-scp-surface='intake'] [data-intake-card='form'] > div:first-child > span {
+    body[data-scp-surface='intake'] [data-intake-summary-card] > span * {
+      color: var(--intake-yellow) !important;
+    }
+
+    body[data-scp-surface='intake'] [data-intake-summary-card] > div:first-of-type {
+      color: var(--intake-yellow) !important;
+    }
+
+    html[data-scp-theme='light'] body[data-scp-surface='intake'] [data-intake-summary-card] > div:first-of-type {
+      color: var(--intake-muted) !important;
+    }
+
+    body[data-scp-surface='intake'] [data-intake-summary-card] > div:last-of-type,
+    body[data-scp-surface='intake'] [data-intake-consent] > span {
+      color: var(--intake-text) !important;
+    }
+
+    body[data-scp-surface='intake'] [data-intake-card='form'] > div:first-child > span,
+    body[data-scp-surface='intake'] [data-intake-card='form'] > div:first-child > span * {
       color: #090909 !important;
     }
 
@@ -503,11 +540,29 @@ export const IntakeHeroAlignment = () => (
     }
 
     body[data-scp-surface='intake'] [role='alert'],
-    body[data-scp-surface='intake'] [class*='text-red'],
-    body[data-scp-surface='intake'] [class*='text-amber'] {
+    body[data-scp-surface='intake'] [data-intake-safety],
+    body[data-scp-surface='intake'] [class*='border-amber'] {
       border-color: var(--intake-yellow) !important;
       background: var(--intake-yellow) !important;
       color: #090909 !important;
+    }
+
+    body[data-scp-surface='intake'] :is([role='alert'],[data-intake-safety],[class*='border-amber']) * {
+      color: #090909 !important;
+      stroke: currentColor;
+    }
+
+    body[data-scp-surface='intake'] [class*='text-red']:not([role='alert']):not([data-intake-safety]) {
+      color: #ff9d9d !important;
+    }
+
+    html[data-scp-theme='light'] body[data-scp-surface='intake'] [class*='text-red']:not([role='alert']):not([data-intake-safety]) {
+      color: #9f1717 !important;
+    }
+
+    body[data-scp-surface='intake'] [data-intake-review] p,
+    body[data-scp-surface='intake'] [data-intake-consent] > span {
+      overflow-wrap: anywhere;
     }
 
     body[data-scp-surface='intake'] [data-intake-stage='done'] {

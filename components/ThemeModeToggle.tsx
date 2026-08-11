@@ -30,7 +30,9 @@ export const ThemeModeToggle = () => {
   const [theme, setTheme] = useState<ThemeMode>('dark');
 
   useEffect(() => {
-    setTheme(readTheme());
+    const initialSyncFrame = window.requestAnimationFrame(() => {
+      setTheme(readTheme());
+    });
 
     const syncTheme = (event: Event) => {
       const nextTheme = (event as CustomEvent<ThemeMode>).detail;
@@ -38,7 +40,10 @@ export const ThemeModeToggle = () => {
     };
 
     window.addEventListener('scp-theme-change', syncTheme);
-    return () => window.removeEventListener('scp-theme-change', syncTheme);
+    return () => {
+      window.cancelAnimationFrame(initialSyncFrame);
+      window.removeEventListener('scp-theme-change', syncTheme);
+    };
   }, []);
 
   const nextTheme: ThemeMode = theme === 'dark' ? 'light' : 'dark';
@@ -57,8 +62,8 @@ export const ThemeModeToggle = () => {
           : 'rounded-2xl border-white/20 bg-black/70 sm:px-4'
       }`}
       style={isHome ? {
-        top: 'calc(68px + max(0.85rem, env(safe-area-inset-top)))',
-        right: 'max(0.8rem, env(safe-area-inset-right))',
+        left: 'max(0.8rem, env(safe-area-inset-left))',
+        bottom: 'max(0.8rem, env(safe-area-inset-bottom))',
       } : {
         left: 'max(0.8rem, env(safe-area-inset-left))',
         bottom: 'max(0.8rem, env(safe-area-inset-bottom))',
@@ -69,7 +74,7 @@ export const ThemeModeToggle = () => {
       suppressHydrationWarning
     >
       {nextTheme === 'light' ? <Sun size={19} /> : <Moon size={19} />}
-      <span className={`${isHome ? 'inline' : 'hidden sm:inline'} text-[11px] font-black uppercase tracking-wider`}>
+      <span className="hidden text-[11px] font-black uppercase tracking-wider sm:inline">
         {nextTheme === 'light' ? 'Light mode' : 'Dark mode'}
       </span>
     </button>

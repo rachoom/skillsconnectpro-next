@@ -68,7 +68,15 @@
   box-shadow: 0 14px 30px -18px rgba(245,197,24,.78);
 }
 
-.navCta { min-height: 42px; padding-inline: .75rem; font-size: .67rem; }
+.navCta {
+  min-height: 42px;
+  border-color: rgba(245,197,24,.55);
+  background: #080808;
+  color: #fff;
+  padding-inline: .75rem;
+  font-size: .67rem;
+  box-shadow: 0 12px 28px -18px rgba(0,0,0,.95);
+}
 
 .secondaryButton {
   border: 1px solid rgba(245,240,227,.25);
@@ -193,7 +201,7 @@
   text-shadow: 0 2px 16px rgba(0,0,0,.4);
 }
 
-.heroButtons { display: grid; gap: .7rem; margin-top: 1.6rem; }
+.heroButtons { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.6rem; }
 .primaryButton { width: 100%; min-height: 56px; font-size: .84rem; }
 
 .heroSecondaryButton {
@@ -224,12 +232,12 @@
   gap: .55rem;
   margin-top: 1rem;
   color: rgba(245,240,227,.78);
-  font-size: .76rem;
+  font-size: .84rem;
   font-weight: 700;
 }
 
 .heroAssurances span { display: flex; align-items: center; gap: .5rem; }
-.heroAssurances svg { color: #79d4a4; }
+.heroAssurances svg { flex: 0 0 auto; color: #79d4a4; stroke-width: 2.4; }
 
 .heroJourney {
   position: relative;
@@ -300,7 +308,8 @@
 
 .tradeCard {
   position: relative;
-  min-height: 182px;
+  min-height: 0;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border: 1px solid rgba(245,240,227,.14);
   border-radius: 1.35rem;
@@ -310,12 +319,12 @@
 
 .tradeCard > img { object-fit: cover; transition: transform 300ms ease; }
 .tradeShade { position: absolute; inset: 0; background: linear-gradient(180deg,rgba(7,19,14,.05),rgba(7,19,14,.94)); }
-.tradeContent { position: absolute; inset: auto 0 0; padding: .95rem; }
+.tradeContent { position: absolute; inset: auto 0 0; padding: .8rem; }
 
 .tradeContent > span {
   display: flex;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   align-items: center;
   justify-content: center;
   border-radius: .75rem;
@@ -325,8 +334,14 @@
 
 .tradeContent strong,
 .tradeContent small { display: block; }
-.tradeContent strong { margin-top: .65rem; font-size: .9rem; font-weight: 900; }
-.tradeContent small { margin-top: .15rem; color: rgba(245,240,227,.58); font-size: .67rem; }
+.tradeContent strong {
+  margin-top: .5rem;
+  overflow-wrap: anywhere;
+  font-size: clamp(.72rem, 3.6vw, .9rem);
+  font-weight: 900;
+  line-height: 1.12;
+}
+.tradeContent small { margin-top: .2rem; color: rgba(245,240,227,.75); font-size: .67rem; line-height: 1.15; }
 
 .trustStrip {
   border-block: 1px solid rgba(255,255,255,.08);
@@ -344,13 +359,13 @@
 .trustGrid div {
   display: flex;
   align-items: flex-start;
-  gap: .55rem;
+  gap: .8rem;
   color: rgba(245,240,227,.72);
-  font-size: .75rem;
+  font-size: .86rem;
   line-height: 1.45;
 }
 
-.trustGrid svg { flex: 0 0 auto; color: #75d39f; }
+.trustGrid svg { flex: 0 0 auto; width: 25px; height: 25px; color: #75d39f; stroke-width: 2.4; }
 
 .stepsGrid { display: grid; gap: .9rem; }
 
@@ -478,12 +493,17 @@
   .heroCopy {
     max-width: 92%;
   }
+
+  .tradeGrid { gap: .65rem; }
+  .tradeCard { border-radius: 1rem; }
+  .tradeContent > span { width: 30px; height: 30px; border-radius: .65rem; }
+  .tradeContent > span svg { width: 16px; height: 16px; }
+  .trustStrip { padding-block: 1.4rem; }
 }
 
 @media (min-width:640px) {
   .brand img { width: 165px; }
   .navCta { padding-inline: 1rem; font-size: .72rem; }
-  .heroButtons { grid-template-columns: max-content max-content; }
   .primaryButton { width: auto; min-width: 230px; }
   .heroSecondaryButton { min-width: 180px; padding-inline: 1.2rem; }
   .heroAssurances { grid-template-columns: repeat(2,max-content); }
@@ -514,7 +534,7 @@
   .sectionHeading { margin-inline: auto; text-align: center; }
   .stepsGrid { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .tradeSection { padding-inline: 1.5rem; }
-  .tradeCard { min-height: 250px; }
+  .tradeCard { aspect-ratio: 4 / 3; }
   .choiceSection,
   .providerSection { grid-template-columns: 1fr max-content; align-items: center; padding: 2.5rem 3rem; }
   .faqGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
