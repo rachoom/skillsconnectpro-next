@@ -16,7 +16,12 @@ type ProviderRow = {
   whatsapp: string | null;
   image_url: string | null;
   profile_image: string | null;
+  portfolio: string[] | null;
+  portfolio_images: string[] | null;
+  portfolio_urls: string[] | null;
+  proof_of_work: string[] | null;
   verified: boolean | null;
+  isVerified: boolean | null;
   status: string | null;
   approval_status: string | null;
   created_at: string | null;
@@ -26,6 +31,12 @@ type HistoryRow = {
   provider_id: number;
   campaign_date: string;
   status: string;
+};
+
+type QueueOverrideRow = {
+  provider_id: number;
+  queue_state: 'priority' | 'skipped';
+  priority_rank: number | null;
 };
 
 export type MarketingCampaignRow = {
@@ -100,7 +111,31 @@ function eligible(provider: ProviderRow): boolean {
   return providerPhone(provider).replace(/\D/g, '').length >= 9;
 }
 
-export function selectNextMarketingProvider(providers: ProviderRow[], history: HistoryRow[]): ProviderRow | null {
+function hasItems(items: string[] | null | undefined): boolean {
+  return Array.isArray(items) && items.some((item) => clean(item).length > 0);
+}
+
+export function providerHasProofImages(provider: ProviderRow): boolean {
+  return hasItems(provider.proof_of_work)
+    || hasItems(provider.portfolio_urls)
+    || hasItems(provider.portfolio_images)
+    || hasItems(provider.portfolio);
+}
+
+function creativeTier(provider: ProviderRow): number {
+  const proof = providerHasProofImages(provider);
+  const verified = provider.verified === true || provider.isVerified === true;
+  if (proof && verified) return 0;
+  if (proof) return 1;
+  if (verified) return 2;
+  return 3;
+}
+
+export function selectNextMarketingProvider(
+  providers: ProviderRow[],
+  history: HistoryRow[],
+  overrides: QueueOverrideRow[] = [],
+): ProviderRow | null {
   const lastFeatured = new Map<number, string>();
   for (const campaign of history) {
     if (campaign.status === 'failed' || campaign.status === 'skipped') continue;
@@ -108,14 +143,37 @@ export function selectNextMarketingProvider(providers: ProviderRow[], history: H
     if (!previous || campaign.campaign_date > previous) lastFeatured.set(campaign.provider_id, campaign.campaign_date);
   }
 
-  const ranked = providers.filter(eligible).sort((left, right) => {
-    const leftLast = lastFeatured.get(left.id);
-    const rightLast = lastFeatured.get(right.id);
-    if (!leftLast && rightLast) return -1;
-    if (leftLast && !rightLast) return 1;
-    if (leftLast && rightLast && leftLast !== rightLast) return leftLast.localeCompare(rightLast);
-    return (clean(left.created_at) || String(left.id)).localeCompare(clean(right.created_at) || String(right.id));
-  });
+  const overrideByProvider = new Map(overrides.map((override) => [override.provider_id, override]));
+
+  const ranked = providers
+    .filter(eligible)
+    .filter((provider) => overrideByProvider.get(provider.id)?.queue_state !== 'skipped')
+    .sort((left, right) => {
+      const leftOverride = overrideByProvider.get(left.id);
+      const rightOverride = overrideByProvider.get(right.id);
+      const leftPriority = leftOverride?.queue_state === 'priority';
+      const rightPriority = rightOverride?.queue_state === 'priority';
+
+      if (leftPriority !== rightPriority) return leftPriority ? -1 : 1;
+      if (leftPriority && rightPriority) {
+        const leftRank = leftOverride?.priority_rank ?? Number.MAX_SAFE_INTEGER;
+        const rightRank = rightOverride?.priority_rank ?? Number.MAX_SAFE_INTEGER;
+        if (leftRank !== rightRank) return leftRank - rightRank;
+      }
+
+      const leftLast = lastFeatured.get(left.id);
+      const rightLast = lastFeatured.get(right.id);
+      const leftNeverFeatured = !leftLast;
+      const rightNeverFeatured = !rightLast;
+      if (leftNeverFeatured !== rightNeverFeatured) return leftNeverFeatured ? -1 : 1;
+
+      const tierDifference = creativeTier(left) - creativeTier(right);
+      if (tierDifference !== 0) return tierDifference;
+
+      if (leftLast && rightLast && leftLast !== rightLast) return leftLast.localeCompare(rightLast);
+      return (clean(left.created_at) || String(left.id)).localeCompare(clean(right.created_at) || String(right.id));
+    });
+
   return ranked[0] ?? null;
 }
 
@@ -153,7 +211,7 @@ function snapshot(provider: ProviderRow) {
     category: providerCategory(provider),
     location: clean(provider.location) || 'Local service area',
     imageUrl: clean(provider.image_url) || clean(provider.profile_image) || null,
-    verified: provider.verified === true,
+    verified: provider.verified === true || provider.isVerified === true,
   };
 }
 
@@ -171,16 +229,19 @@ export async function ensureDailyMarketingCampaign(now = new Date()): Promise<{ 
   if (existing.error) throw new Error(`Unable to check today's marketing campaign: ${existing.error.message}`);
   if (existing.data) return { campaign: existing.data as unknown as MarketingCampaignRow, created: false };
 
-  const [providersResult, historyResult] = await Promise.all([
-    supabase.from('artisans').select('id, first_name, last_name, name, category, services, location, phone, whatsapp, image_url, profile_image, verified, status, approval_status, created_at').order('id'),
+  const [providersResult, historyResult, overrideResult] = await Promise.all([
+    supabase.from('artisans').select('id, first_name, last_name, name, category, services, location, phone, whatsapp, image_url, profile_image, portfolio, portfolio_images, portfolio_urls, proof_of_work, verified, isVerified, status, approval_status, created_at').order('id'),
     supabase.from('marketing_campaigns').select('provider_id, campaign_date, status').order('campaign_date'),
+    supabase.from('marketing_provider_queue_overrides').select('provider_id, queue_state, priority_rank'),
   ]);
   if (providersResult.error) throw new Error(`Unable to load providers: ${providersResult.error.message}`);
   if (historyResult.error) throw new Error(`Unable to load marketing history: ${historyResult.error.message}`);
+  if (overrideResult.error) throw new Error(`Unable to load marketing queue preferences: ${overrideResult.error.message}`);
 
   const provider = selectNextMarketingProvider(
     (providersResult.data ?? []) as ProviderRow[],
     (historyResult.data ?? []) as HistoryRow[],
+    (overrideResult.data ?? []) as QueueOverrideRow[],
   );
   if (!provider) throw new Error('No eligible provider with a WhatsApp-capable phone number is available.');
 
@@ -197,5 +258,12 @@ export async function ensureDailyMarketingCampaign(now = new Date()): Promise<{ 
   }).select(columns).single();
 
   if (inserted.error || !inserted.data) throw new Error(`Unable to create today's campaign: ${inserted.error?.message ?? 'Unknown database error.'}`);
+
+  const selectedOverride = (overrideResult.data ?? []).find((override) => override.provider_id === provider.id);
+  if (selectedOverride?.queue_state === 'priority') {
+    const cleared = await supabase.from('marketing_provider_queue_overrides').delete().eq('provider_id', provider.id);
+    if (cleared.error) console.error('Unable to clear consumed marketing priority:', cleared.error.message);
+  }
+
   return { campaign: inserted.data as unknown as MarketingCampaignRow, created: true };
 }
