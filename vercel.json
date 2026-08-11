@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/marketplace-routing",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/marketing-assist",
+      "schedule": "15 6 * * *"
     }
   ]
 }

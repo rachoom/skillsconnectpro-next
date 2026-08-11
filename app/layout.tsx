@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { AdminMarketingAssist } from '../components/AdminMarketingAssist';
 import { CompletedProjectSummary } from '../components/CompletedProjectSummary';
 import { CustomerCompletionAction } from '../components/CustomerCompletionAction';
 import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
 import { IntakeHeroAlignment } from '../components/IntakeHeroAlignment';
 import { LaunchThemeRepair } from '../components/LaunchThemeRepair';
+import { MarketplaceAdminAuthGate } from '../components/MarketplaceAdminAuthGate';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
@@ -92,6 +94,8 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: surfaceInitialiser }} />
         {children}
+        <MarketplaceAdminAuthGate />
+        <AdminMarketingAssist />
         <MarketplaceVisualConsistency />
         <ThemeDetailOverrides />
         <ThemeSurfacePolish />
