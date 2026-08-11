@@ -547,7 +547,7 @@ export const ProjectIntakeV2: React.FC = () => {
                 <h1 className="text-3xl font-black">Tell us a little more.</h1>
                 <p className="mt-2 text-sm leading-6 text-[#667064]">These questions are based on the job you described—not a generic fault checklist.</p>
               </div>
-              <span className="self-start rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">
+              <span data-intake-question-counter className="self-start rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">
                 Question {activeQuestionIndex + 1} of {assessment.clarifyingQuestions.length}
               </span>
             </div>
@@ -572,7 +572,7 @@ export const ProjectIntakeV2: React.FC = () => {
                     <legend className="sr-only">{activeQuestion.question}</legend>
                     <div className="mb-5 flex items-start gap-3">
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f5c518] text-xs font-black text-black">{activeQuestionIndex + 1}</span>
-                      <div><p className="text-lg font-black leading-snug">{activeQuestion.question}</p>{!activeQuestion.required && <small className="mt-1 block">Optional</small>}</div>
+                      <div><p data-intake-question-title className="text-lg font-black leading-snug">{activeQuestion.question}</p>{!activeQuestion.required && <small className="mt-1 block">Optional</small>}</div>
                     </div>
                     {activeQuestion.options.length ? (
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -600,11 +600,11 @@ export const ProjectIntakeV2: React.FC = () => {
                   <div className="mt-5 flex items-center gap-3">
                     {activeQuestionIndex > 0 && <button type="button" onClick={() => setActiveQuestionIndex((current) => Math.max(0, current - 1))} className="flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/20 px-5 text-sm font-black"><ArrowLeft size={18} /> Previous</button>}
                     {isLastQuestion ? (
-                      <button type="button" disabled={isWorking || (activeQuestion.required && !activeQuestionAnswered)} onClick={() => void assessProject(true)} className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-5 font-black disabled:opacity-45">
+                      <button data-intake-primary-action type="button" disabled={isWorking || (activeQuestion.required && !activeQuestionAnswered)} onClick={() => void assessProject(true)} className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-5 font-black text-black disabled:opacity-45">
                         {isWorking ? <Loader2 className="animate-spin" size={20} /> : <ArrowRight size={20} />}{isWorking ? 'Building your brief…' : 'Create my project brief'}
                       </button>
                     ) : (
-                      <button type="button" disabled={activeQuestion.required && !activeQuestionAnswered} onClick={() => setActiveQuestionIndex((current) => Math.min(assessment.clarifyingQuestions.length - 1, current + 1))} className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-5 font-black disabled:opacity-45">Next question <ArrowRight size={20} /></button>
+                      <button data-intake-primary-action type="button" disabled={activeQuestion.required && !activeQuestionAnswered} onClick={() => setActiveQuestionIndex((current) => Math.min(assessment.clarifyingQuestions.length - 1, current + 1))} className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-5 font-black text-black disabled:opacity-45">Next question <ArrowRight size={20} /></button>
                     )}
                   </div>
 
@@ -623,10 +623,10 @@ export const ProjectIntakeV2: React.FC = () => {
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#667764]">Your project brief</p>
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">{assessment.title}</h1>
                 <p className="mt-3 text-sm leading-6 text-[#59655a]">{assessment.summary}</p>
-                <span className="mt-4 inline-flex rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">{assessment.category}</span>
+                <span data-intake-category className="mt-4 inline-flex rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">{assessment.category}</span>
 
                 {usedFallback && <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-bold text-amber-900">A structured trade checklist was used because live AI assessment was unavailable.</div>}
-                {assessment.safetyNotes.length > 0 && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
+                {assessment.safetyNotes.length > 0 && <div data-intake-safety className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
 
                 <div data-intake-summary className="mt-6 grid gap-3 sm:grid-cols-3">
                   <SummaryCard icon={<Clock3 size={20} />} label="Urgency" value={assessment.urgency.replace('_', ' ')} />
@@ -674,8 +674,8 @@ export const ProjectIntakeV2: React.FC = () => {
 
             {confirmStage === 'review' && (
               <FormCard icon={<ShieldCheck size={21} />} title="Ready to send?" description="Review your request. Your project brief is shared with suitable providers; your contact details remain private until you choose one.">
-                <div className="rounded-2xl border border-[#c8c7bb] bg-white p-4 text-sm leading-6"><p className="font-black">{assessment.title}</p><p className="mt-1">{resolvedLocation}{preferredDate ? ` · ${preferredDate}` : ''}</p><p className="mt-1">{customerName} · {phone}</p>{email && <p className="mt-1">{email}</p>}</div>
-                <div id="intake-consent" tabIndex={-1} className="mt-5 outline-none"><label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-[#e8eee2] p-4 ${fieldErrors.consent ? 'border-red-500' : 'border-[#c8c7bb]'}`}><input type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setFieldErrors((current) => ({ ...current, consent: '' })); }} className="mt-1 h-5 w-5 accent-[#667764]" /><span className="text-sm leading-6 text-[#526052]">I confirm this information is accurate and allow Skills Connect Pro to share the project brief—but not my contact details—with suitable providers.</span></label><FieldError message={fieldErrors.consent} /></div>
+                <div data-intake-review className="rounded-2xl border border-[#c8c7bb] bg-white p-4 text-sm leading-6"><p className="font-black">{assessment.title}</p><p className="mt-1">{resolvedLocation}{preferredDate ? ` · ${preferredDate}` : ''}</p><p className="mt-1">{customerName} · {phone}</p>{email && <p className="mt-1">{email}</p>}</div>
+                <div id="intake-consent" tabIndex={-1} className="mt-5 outline-none"><label data-intake-consent className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-[#e8eee2] p-4 ${fieldErrors.consent ? 'border-red-500' : 'border-[#c8c7bb]'}`}><input type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setFieldErrors((current) => ({ ...current, consent: '' })); }} className="mt-1 h-5 w-5 accent-[#667764]" /><span className="text-sm leading-6 text-[#526052]">I confirm this information is accurate and allow Skills Connect Pro to share the project brief—but not my contact details—with suitable providers.</span></label><FieldError message={fieldErrors.consent} /></div>
                 <StageNavigation previousLabel="Contact details" onPrevious={() => setConfirmStage('contact')} nextLabel={isWorking ? 'Creating your project…' : 'Submit project request'} onNext={() => void submitProject()} isWorking={isWorking} finalAction />
               </FormCard>
             )}
@@ -688,7 +688,7 @@ export const ProjectIntakeV2: React.FC = () => {
             <p className="mt-6 text-[10px] font-black uppercase tracking-widest text-[#167451]">Project created</p>
             <h1 className="mt-2 text-3xl font-black sm:text-4xl">{createdTitle}</h1>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-[#526052]">Your private dashboard is ready. Provider responses will appear there, and your contact details remain protected until you select someone.</p>
-            <a href={customerUrl} className="mt-7 flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black text-black shadow-[0_8px_0_#a57f00]">Open my project dashboard <ArrowRight size={21} /></a>
+            <a data-intake-primary-action href={customerUrl} className="mt-7 flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black text-black shadow-[0_8px_0_#a57f00]">Open my project dashboard <ArrowRight size={21} /></a>
             <button type="button" onClick={restart} className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#526052]"><RotateCcw size={16} /> Create another project</button>
           </section>
         )}
@@ -726,7 +726,7 @@ const StageNavigation: React.FC<{
 }> = ({ previousLabel, onPrevious, nextLabel, onNext, isWorking, finalAction }) => (
   <div data-intake-stage-navigation className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
     {onPrevious && previousLabel ? <button type="button" onClick={onPrevious} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-[#8b5b2d] px-5 text-sm font-black text-[#5b371b]"><ArrowLeft size={17} /> {previousLabel}</button> : <span />}
-    <button type="button" disabled={isWorking} onClick={onNext} className={`flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-5 text-sm font-black shadow-[0_5px_0_#9b7010] disabled:opacity-50 sm:max-w-xs ${finalAction ? 'bg-[#f5c518] text-[#3d2612]' : 'bg-[#f5c518] text-[#3d2612]'}`}>
+    <button data-intake-primary-action type="button" disabled={isWorking} onClick={onNext} className={`flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-5 text-sm font-black shadow-[0_5px_0_#9b7010] disabled:opacity-50 sm:max-w-xs ${finalAction ? 'bg-[#f5c518] text-black' : 'bg-[#f5c518] text-black'}`}>
       {isWorking ? <Loader2 className="animate-spin" size={18} /> : finalAction ? <CheckCircle2 size={18} /> : <ArrowRight size={18} />}{nextLabel}
     </button>
   </div>

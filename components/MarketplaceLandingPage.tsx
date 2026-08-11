@@ -99,7 +99,7 @@ export const MarketplaceLandingPage = () => {
           </div>
 
           <div className={styles.navActions}>
-            <Link href="/get-help" className={styles.navCta}>Show us the job</Link>
+            <Link href="/join" className={styles.navCta}>Join as provider</Link>
             <button
               type="button"
               className={styles.menuButton}
@@ -119,7 +119,7 @@ export const MarketplaceLandingPage = () => {
             <Link href="/browse-providers" onClick={closeMenu}>Browse providers</Link>
             <Link href="/estimator" onClick={closeMenu}>Cost estimator</Link>
             <a href="#support" onClick={closeMenu}>Support</a>
-            <Link href="/get-help" onClick={closeMenu}>Show us the job</Link>
+            <Link href="/join" onClick={closeMenu}>Join as provider</Link>
           </div>
         )}
       </nav>
@@ -147,9 +147,8 @@ export const MarketplaceLandingPage = () => {
 
             <div className={styles.heroButtons}>
               <Link href="/get-help" className={styles.primaryButton}>
-                Find a service provider <ArrowRight size={19} />
+                Show us the job <ArrowRight size={19} />
               </Link>
-              <Link href="/join" className={styles.heroSecondaryButton}>Join as a provider</Link>
             </div>
 
             <p className={styles.inputNote}>
@@ -157,8 +156,8 @@ export const MarketplaceLandingPage = () => {
             </p>
 
             <div className={styles.heroAssurances}>
-              <span><ShieldCheck size={16} /> Private contact details</span>
-              <span><CheckCircle2 size={16} /> You choose who to connect with</span>
+              <span><ShieldCheck size={21} /> Private contact details</span>
+              <span><CheckCircle2 size={21} /> You choose who to connect with</span>
             </div>
           </div>
         </div>
@@ -186,7 +185,7 @@ export const MarketplaceLandingPage = () => {
               href={`/get-help?service=${encodeURIComponent(label)}`}
               className={styles.tradeCard}
             >
-              <Image src={image} alt="" fill sizes="(max-width: 700px) 50vw, 25vw" />
+              <Image src={image} alt="" fill sizes="(max-width: 639px) 46vw, (max-width: 899px) 25vw, 19vw" />
               <div className={styles.tradeShade} />
               <div className={styles.tradeContent}>
                 <span><Icon size={18} /></span>
@@ -201,7 +200,7 @@ export const MarketplaceLandingPage = () => {
       <section className={styles.trustStrip} aria-label="Marketplace protections">
         <div className={styles.trustGrid}>
           {trustPoints.map((point) => (
-            <div key={point}><CheckCircle2 size={18} /><span>{point}</span></div>
+            <div key={point}><CheckCircle2 size={25} /><span>{point}</span></div>
           ))}
         </div>
       </section>
