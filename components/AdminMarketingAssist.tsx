@@ -37,9 +37,24 @@ type Provider = {
   location: string | null;
   phone: string | null;
   whatsapp: string | null;
+  verified: boolean | null;
+  isVerified: boolean | null;
+  image_url: string | null;
+  profile_image: string | null;
+  portfolio: string[] | null;
+  portfolio_images: string[] | null;
+  portfolio_urls: string[] | null;
+  proof_of_work: string[] | null;
   status: string | null;
   approval_status: string | null;
   created_at: string | null;
+};
+
+type QueueOverride = {
+  provider_id: number;
+  queue_state: 'priority' | 'skipped';
+  priority_rank: number | null;
+  updated_at: string | null;
 };
 
 const variants = [
@@ -62,6 +77,39 @@ function providerName(provider: Provider): string {
   const combined = `${first} ${last}`.trim();
   if (explicit && explicit.toLowerCase() !== first.toLowerCase()) return explicit;
   return combined || explicit || `Provider #${provider.id}`;
+}
+
+function providerEligible(provider: Provider): boolean {
+  const phone = provider.whatsapp || provider.phone || '';
+  const status = (provider.status || '').toLowerCase();
+  const approval = (provider.approval_status || '').toLowerCase();
+  return normaliseWhatsApp(phone).length >= 9
+    && !['inactive', 'disabled', 'suspended', 'deleted'].includes(status)
+    && !['rejected', 'declined'].includes(approval);
+}
+
+function hasItems(items: string[] | null | undefined): boolean {
+  return Array.isArray(items) && items.some((item) => (item || '').trim().length > 0);
+}
+
+function providerHasProofImages(provider: Provider): boolean {
+  return hasItems(provider.proof_of_work)
+    || hasItems(provider.portfolio_urls)
+    || hasItems(provider.portfolio_images)
+    || hasItems(provider.portfolio);
+}
+
+function providerVerified(provider: Provider): boolean {
+  return provider.verified === true || provider.isVerified === true;
+}
+
+function creativeTier(provider: Provider): number {
+  const proof = providerHasProofImages(provider);
+  const verified = providerVerified(provider);
+  if (proof && verified) return 0;
+  if (proof) return 1;
+  if (verified) return 2;
+  return 3;
 }
 
 function johannesburgToday(): string {
@@ -92,8 +140,11 @@ export function AdminMarketingAssist() {
   const [open, setOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [queueOverrides, setQueueOverrides] = useState<QueueOverride[]>([]);
   const [loading, setLoading] = useState(false);
   const [creatingToday, setCreatingToday] = useState(false);
+  const [queueBusyId, setQueueBusyId] = useState<number | null>(null);
+  const [selectedProviderForQueue, setSelectedProviderForQueue] = useState('');
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -201,6 +252,7 @@ export function AdminMarketingAssist() {
       const payload = await readJson(response);
       setCampaigns((payload.campaigns ?? []) as Campaign[]);
       setProviders((payload.providers ?? []) as Provider[]);
+      setQueueOverrides((payload.queueOverrides ?? []) as QueueOverride[]);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to load Marketing Assist.');
     } finally {
@@ -216,6 +268,11 @@ export function AdminMarketingAssist() {
     () => new Map(providers.map((provider) => [provider.id, provider])),
     [providers],
   );
+  const queueOverrideByProvider = useMemo(
+    () => new Map(queueOverrides.map((override) => [override.provider_id, override])),
+    [queueOverrides],
+  );
+
   const today = johannesburgToday();
   const todayCampaign = campaigns.find((campaign) => campaign.campaign_date === today) ?? null;
   const selectedCampaign = selectedCampaignId
@@ -228,14 +285,12 @@ export function AdminMarketingAssist() {
   const viewingArchive = Boolean(selectedCampaign && selectedCampaign.id !== todayCampaign?.id);
 
   const eligibleCount = useMemo(
-    () => providers.filter((provider) => {
-      const phone = provider.whatsapp || provider.phone || '';
-      const status = (provider.status || '').toLowerCase();
-      const approval = (provider.approval_status || '').toLowerCase();
-      return normaliseWhatsApp(phone).length >= 9
-        && !['inactive', 'disabled', 'suspended', 'deleted'].includes(status)
-        && !['rejected', 'declined'].includes(approval);
-    }).length,
+    () => providers.filter(providerEligible).length,
+    [providers],
+  );
+
+  const imageReadyCount = useMemo(
+    () => providers.filter((provider) => providerEligible(provider) && providerHasProofImages(provider)).length,
     [providers],
   );
 
@@ -250,27 +305,57 @@ export function AdminMarketingAssist() {
     }
 
     return providers
-      .filter((provider) => {
-        const phone = provider.whatsapp || provider.phone || '';
-        const status = (provider.status || '').toLowerCase();
-        const approval = (provider.approval_status || '').toLowerCase();
-        return normaliseWhatsApp(phone).length >= 9
-          && !['inactive', 'disabled', 'suspended', 'deleted'].includes(status)
-          && !['rejected', 'declined'].includes(approval)
-          && provider.id !== todayCampaign?.provider_id;
-      })
+      .filter(providerEligible)
+      .filter((provider) => queueOverrideByProvider.get(provider.id)?.queue_state !== 'skipped')
+      .filter((provider) => provider.id !== todayCampaign?.provider_id)
       .sort((left, right) => {
+        const leftOverride = queueOverrideByProvider.get(left.id);
+        const rightOverride = queueOverrideByProvider.get(right.id);
+        const leftPriority = leftOverride?.queue_state === 'priority';
+        const rightPriority = rightOverride?.queue_state === 'priority';
+        if (leftPriority !== rightPriority) return leftPriority ? -1 : 1;
+        if (leftPriority && rightPriority) {
+          const leftRank = leftOverride?.priority_rank ?? Number.MAX_SAFE_INTEGER;
+          const rightRank = rightOverride?.priority_rank ?? Number.MAX_SAFE_INTEGER;
+          if (leftRank !== rightRank) return leftRank - rightRank;
+        }
+
         const leftLast = lastCampaign.get(left.id);
         const rightLast = lastCampaign.get(right.id);
-        if (!leftLast && rightLast) return -1;
-        if (leftLast && !rightLast) return 1;
-        if (leftLast && rightLast && leftLast !== rightLast) {
-          return leftLast.localeCompare(rightLast);
-        }
-        return left.id - right.id;
+        const leftNeverFeatured = !leftLast;
+        const rightNeverFeatured = !rightLast;
+        if (leftNeverFeatured !== rightNeverFeatured) return leftNeverFeatured ? -1 : 1;
+
+        const tierDifference = creativeTier(left) - creativeTier(right);
+        if (tierDifference !== 0) return tierDifference;
+
+        if (leftLast && rightLast && leftLast !== rightLast) return leftLast.localeCompare(rightLast);
+        const createdDifference = (left.created_at || '').localeCompare(right.created_at || '');
+        return createdDifference || left.id - right.id;
       })
       .slice(0, 5);
-  }, [campaigns, providers, todayCampaign?.provider_id]);
+  }, [campaigns, providers, queueOverrideByProvider, todayCampaign?.provider_id]);
+
+  const selectableProviders = useMemo(
+    () => providers
+      .filter(providerEligible)
+      .filter((provider) => provider.id !== todayCampaign?.provider_id)
+      .sort((left, right) => {
+        const tierDifference = creativeTier(left) - creativeTier(right);
+        if (tierDifference !== 0) return tierDifference;
+        return providerName(left).localeCompare(providerName(right));
+      }),
+    [providers, todayCampaign?.provider_id],
+  );
+
+  const skippedProviders = useMemo(
+    () => queueOverrides
+      .filter((override) => override.queue_state === 'skipped')
+      .map((override) => providersById.get(override.provider_id))
+      .filter((provider): provider is Provider => Boolean(provider))
+      .sort((left, right) => providerName(left).localeCompare(providerName(right))),
+    [providersById, queueOverrides],
+  );
 
   const createToday = async () => {
     if (!adminKey || !isValidated) return;
@@ -298,6 +383,47 @@ export function AdminMarketingAssist() {
     } finally {
       setCreatingToday(false);
     }
+  };
+
+  const updateQueue = async (
+    providerId: number,
+    action: 'make_next' | 'prioritize' | 'skip' | 'restore',
+  ) => {
+    if (!adminKey || !isValidated) return;
+    setQueueBusyId(providerId);
+    setError(null);
+    try {
+      const response = await fetch('/api/admin/marketing', {
+        method: 'PATCH',
+        headers: {
+          'x-marketplace-admin-key': adminKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ providerId, action }),
+      });
+
+      if (response.status === 401) {
+        handleUnauthorised();
+        return;
+      }
+
+      await readJson(response);
+      await refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to update the marketing queue.');
+    } finally {
+      setQueueBusyId(null);
+    }
+  };
+
+  const applySelectedQueueAction = async (action: 'make_next' | 'prioritize') => {
+    const providerId = Number(selectedProviderForQueue);
+    if (!Number.isInteger(providerId) || providerId <= 0) {
+      setError('Choose a provider first.');
+      return;
+    }
+    await updateQueue(providerId, action);
+    setSelectedProviderForQueue('');
   };
 
   const assetUrl = (campaignId: string, variant: string) =>
@@ -406,9 +532,9 @@ export function AdminMarketingAssist() {
                   <div className="mt-1 text-xs text-zinc-500">with WhatsApp-capable contact numbers</div>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Packs prepared</div>
-                  <div className="mt-2 text-3xl font-black">{campaigns.length}</div>
-                  <div className="mt-1 text-xs text-zinc-500">campaign records in this rotation</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Creative-ready</div>
+                  <div className="mt-2 text-3xl font-black text-amber-300">{imageReadyCount}</div>
+                  <div className="mt-1 text-xs text-zinc-500">eligible providers with proof/portfolio images</div>
                 </div>
               </section>
 
@@ -464,7 +590,6 @@ export function AdminMarketingAssist() {
                     {variants.map((variant) => (
                       <div key={variant.key} className="overflow-hidden rounded-3xl border border-white/10 bg-[#15110c]">
                         <div className={`relative w-full overflow-hidden bg-black ${variant.ratio}`}>
-                          {/* Dynamic ImageResponse assets intentionally use a plain img so admin previews can render arbitrary generated dimensions. */}
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`/api/marketing/assets/${viewedCampaign.id}?variant=${variant.key}`}
@@ -499,34 +624,135 @@ export function AdminMarketingAssist() {
 
               <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6">
-                  <div className="mb-5 flex items-center gap-3">
-                    <CalendarDays className="h-5 w-5 text-amber-300" />
-                    <h3 className="text-xl font-black">Upcoming rotation</h3>
+                  <div className="mb-5">
+                    <div className="flex items-center gap-3">
+                      <CalendarDays className="h-5 w-5 text-amber-300" />
+                      <h3 className="text-xl font-black">Upcoming rotation</h3>
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-zinc-500">
+                      Automatic rotation now favours verified providers with proof-of-work or portfolio images. Manual priorities always come first.
+                    </p>
                   </div>
-                  <div className="space-y-3">
-                    {rotation.map((provider, index) => (
-                      <div
-                        key={provider.id}
-                        className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/30 px-4 py-3"
+
+                  <div className="mb-5 rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] p-4">
+                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">Choose any provider</div>
+                    <select
+                      value={selectedProviderForQueue}
+                      onChange={(event) => setSelectedProviderForQueue(event.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-black/70 px-3 py-3 text-sm text-white outline-none focus:border-amber-300/60"
+                    >
+                      <option value="">Select provider…</option>
+                      {selectableProviders.map((provider) => (
+                        <option key={provider.id} value={provider.id}>
+                          {providerHasProofImages(provider) ? '★ ' : ''}{providerName(provider)} — {provider.category || 'Local professional'}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void applySelectedQueueAction('make_next')}
+                        disabled={!selectedProviderForQueue || queueBusyId !== null}
+                        className="rounded-xl bg-amber-300 px-3 py-3 text-[10px] font-black uppercase tracking-wider text-black disabled:opacity-40"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-amber-300/25 bg-amber-300/10 text-xs font-black text-amber-300">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold">{providerName(provider)}</div>
-                            <div className="text-xs text-zinc-500">
-                              {provider.category || 'Local professional'} • {provider.location || 'Local area'}
+                        Make next
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void applySelectedQueueAction('prioritize')}
+                        disabled={!selectedProviderForQueue || queueBusyId !== null}
+                        className="rounded-xl border border-amber-300/35 bg-amber-300/5 px-3 py-3 text-[10px] font-black uppercase tracking-wider text-amber-300 disabled:opacity-40"
+                      >
+                        Add to priority
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {rotation.map((provider, index) => {
+                      const override = queueOverrideByProvider.get(provider.id);
+                      const hasProof = providerHasProofImages(provider);
+                      const verified = providerVerified(provider);
+                      return (
+                        <div
+                          key={provider.id}
+                          className="rounded-2xl border border-white/5 bg-black/30 px-4 py-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex min-w-0 items-start gap-4">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-300/25 bg-amber-300/10 text-xs font-black text-amber-300">
+                                {index + 1}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-sm font-bold">{providerName(provider)}</div>
+                                <div className="mt-1 text-xs leading-5 text-zinc-500">
+                                  {provider.category || 'Local professional'} • {provider.location || 'Local area'}
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                  {override?.queue_state === 'priority' ? (
+                                    <span className="rounded-full bg-amber-300/15 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-amber-300">Manual priority</span>
+                                  ) : null}
+                                  {hasProof ? (
+                                    <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-emerald-300">Proof of work</span>
+                                  ) : null}
+                                  {verified ? (
+                                    <span className="rounded-full bg-sky-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-sky-300">Verified</span>
+                                  ) : null}
+                                </div>
+                              </div>
                             </div>
                           </div>
+                          <div className="mt-3 flex justify-end gap-2 border-t border-white/5 pt-3">
+                            <button
+                              type="button"
+                              onClick={() => void updateQueue(provider.id, 'make_next')}
+                              disabled={queueBusyId !== null}
+                              className="rounded-lg border border-amber-300/25 px-3 py-2 text-[9px] font-black uppercase tracking-wider text-amber-300 disabled:opacity-40"
+                            >
+                              Make next
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void updateQueue(provider.id, 'skip')}
+                              disabled={queueBusyId !== null}
+                              className="rounded-lg border border-white/10 px-3 py-2 text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:border-red-400/30 hover:text-red-300 disabled:opacity-40"
+                            >
+                              Skip
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-[10px] font-black uppercase tracking-wider text-zinc-600">Queued</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {!loading && rotation.length === 0 ? (
                       <div className="py-8 text-center text-sm text-zinc-500">No eligible providers waiting in the rotation.</div>
                     ) : null}
                   </div>
+
+                  {skippedProviders.length ? (
+                    <div className="mt-6 border-t border-white/10 pt-5">
+                      <div className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                        Skipped providers ({skippedProviders.length})
+                      </div>
+                      <div className="space-y-2">
+                        {skippedProviders.slice(0, 10).map((provider) => (
+                          <div key={provider.id} className="flex items-center justify-between gap-3 rounded-xl bg-black/25 px-3 py-2.5">
+                            <div className="min-w-0">
+                              <div className="truncate text-xs font-bold text-zinc-300">{providerName(provider)}</div>
+                              <div className="text-[10px] text-zinc-600">{provider.category || 'Local professional'}</div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => void updateQueue(provider.id, 'restore')}
+                              disabled={queueBusyId !== null}
+                              className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[8px] font-black uppercase tracking-wider text-zinc-400 hover:border-amber-300/30 hover:text-amber-300 disabled:opacity-40"
+                            >
+                              Restore
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6">
