@@ -656,7 +656,7 @@ export default function MarketplaceAdminPage() {
                 <div className="mt-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                   <div>
                     <h3 className="font-black">Provider candidates</h3>
-                    <p className="mt-1 text-xs text-zinc-500">Choose up to three providers for the first wave.</p>
+                    <p className="mt-1 text-xs text-zinc-500">Choose up to three providers. Selecting an already queued provider safely refreshes their unanswered delivery link.</p>
                   </div>
                   <button
                     onClick={() => void sendInvitations()}
@@ -664,7 +664,7 @@ export default function MarketplaceAdminPage() {
                     className="flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-xs font-black uppercase tracking-wider text-black disabled:opacity-40"
                   >
                     {sendingInvites ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
-                    Invite selected ({selectedProviderIds.length})
+                    Prepare selected ({selectedProviderIds.length})
                   </button>
                 </div>
 
@@ -677,9 +677,8 @@ export default function MarketplaceAdminPage() {
                       return (
                         <button
                           key={candidate.providerId}
-                          disabled={candidate.alreadyInvited}
                           onClick={() => toggleProvider(candidate.providerId)}
-                          className={`rounded-2xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                          className={`rounded-2xl border p-4 text-left transition ${
                             selected ? 'border-amber-400 bg-amber-400/10' : 'border-white/10 bg-black/20 hover:border-white/25'
                           }`}
                         >
@@ -705,7 +704,7 @@ export default function MarketplaceAdminPage() {
                           <p className="mt-3 text-xs text-zinc-500">
                             {candidate.phone || 'No phone number'} · {candidate.availabilityStatus.replaceAll('_', ' ')}
                           </p>
-                          {candidate.alreadyInvited && <p className="mt-2 text-xs font-bold text-amber-300">Already invited to this project</p>}
+                          {candidate.alreadyInvited && <p className="mt-2 text-xs font-bold text-amber-300">Already queued — select to refresh the secure delivery link</p>}
                         </button>
                       );
                     })}
