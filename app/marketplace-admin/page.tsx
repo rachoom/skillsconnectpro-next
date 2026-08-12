@@ -359,10 +359,13 @@ export default function MarketplaceAdminPage() {
         }),
       );
 
-      setInvitationResults(payload.invitations ?? []);
-      setNotice('Invitation records created. Use the WhatsApp buttons below to deliver the secure links.');
+      const invitations: InvitationResult[] = payload.invitations ?? [];
       await loadProjects();
       await loadCandidates(selectedProjectId);
+      setInvitationResults(invitations);
+      setNotice(
+        `${invitations.length} invitation${invitations.length === 1 ? '' : 's'} queued. Preview each provider view, copy the prepared message or open WhatsApp below.`,
+      );
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to create invitations.');
     } finally {
@@ -375,10 +378,9 @@ export default function MarketplaceAdminPage() {
     setNotice('Copied to clipboard.');
   };
 
-  const openWhatsAppInvitation = (invitation: InvitationResult) => {
-    if (!selectedProject || !invitation.deliveryAddress) return;
-    const number = normaliseWhatsAppNumber(invitation.deliveryAddress);
-    const message = [
+  const invitationMessage = (invitation: InvitationResult): string => {
+    if (!selectedProject) return invitation.responseUrl;
+    return [
       `New ${selectedProject.category} opportunity from Skills Connect Pro`,
       `Area: ${selectedProject.suburb || selectedProject.city || selectedProject.locationText}`,
       `Urgency: ${selectedProject.urgency}`,
@@ -386,7 +388,16 @@ export default function MarketplaceAdminPage() {
       '',
       `View the project brief and respond securely: ${invitation.responseUrl}`,
     ].join('\n');
-    window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const openWhatsAppInvitation = (invitation: InvitationResult) => {
+    if (!invitation.deliveryAddress) return;
+    const number = normaliseWhatsAppNumber(invitation.deliveryAddress);
+    window.open(
+      `https://wa.me/${number}?text=${encodeURIComponent(invitationMessage(invitation))}`,
+      '_blank',
+      'noopener,noreferrer',
+    );
   };
 
   if (!adminKey) {
@@ -718,11 +729,19 @@ export default function MarketplaceAdminPage() {
                               <p className="mt-1 text-xs text-zinc-500">Deadline: {formatDate(invitation.responseDeadline)}</p>
                             </div>
                             <div className="flex flex-wrap gap-2">
+                              <a
+                                href={invitation.responseUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-2 rounded-xl border border-amber-400/50 px-3 py-2 text-xs font-bold text-amber-200"
+                              >
+                                <ChevronRight size={14} /> Provider view
+                              </a>
                               <button
-                                onClick={() => copyText(invitation.responseUrl)}
+                                onClick={() => void copyText(invitationMessage(invitation))}
                                 className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs font-bold"
                               >
-                                <Clipboard size={14} /> Copy link
+                                <Clipboard size={14} /> Copy message
                               </button>
                               {invitation.deliveryAddress && (
                                 <button
