@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from '../supabaseAdmin';
 import type { DeliveryChannel, ProjectUrgency } from '../../types/marketplace';
 import { getInvitationResponseDeadline } from './routing';
 import { createTokenPair } from './tokens';
+import { projectStatusAfterInvitation } from './invitationStatusPolicy.js';
 
 export interface ProviderInvitationTarget {
   providerId: number;
@@ -189,14 +190,17 @@ export async function createProviderInvitations(input: {
   const invitationRows = invitationData ?? [];
   const tokenByProviderId = new Map(prepared.map((item) => [item.row.provider_id, item.token]));
 
-  const { error: projectUpdateError } = await supabase
-    .from('projects')
-    .update({ status: 'matching' })
-    .eq('id', input.projectId)
-    .in('status', ['draft', 'assessment_complete', 'matching', 'responses_received']);
+  const nextProjectStatus = projectStatusAfterInvitation(project.status);
+  if (nextProjectStatus !== project.status) {
+    const { error: projectUpdateError } = await supabase
+      .from('projects')
+      .update({ status: nextProjectStatus })
+      .eq('id', input.projectId)
+      .eq('status', project.status);
 
-  if (projectUpdateError) {
-    console.error('Invitations created but project status update failed:', projectUpdateError.message);
+    if (projectUpdateError) {
+      console.error('Invitations created but project status update failed:', projectUpdateError.message);
+    }
   }
 
   const { error: eventError } = await supabase.from('project_status_events').insert({
