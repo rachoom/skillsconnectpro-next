@@ -62,6 +62,9 @@ type InvitationResult = {
   deliveryChannel: string;
   deliveryAddress: string | null;
   responseUrl: string;
+  deliveryStatus?: 'manual' | 'sent' | 'failed';
+  externalMessageId?: string | null;
+  deliveryReason?: string | null;
 };
 
 type NewProjectForm = {
@@ -363,8 +366,16 @@ export default function MarketplaceAdminPage() {
       await loadProjects();
       await loadCandidates(selectedProjectId);
       setInvitationResults(invitations);
+      const sentCount = invitations.filter((invitation) => invitation.deliveryStatus === 'sent').length;
+      const failedCount = invitations.filter((invitation) => invitation.deliveryStatus === 'failed').length;
+      const manualCount = invitations.length - sentCount - failedCount;
+      const deliverySummary = [
+        sentCount ? `${sentCount} sent automatically` : '',
+        manualCount ? `${manualCount} ready for manual WhatsApp delivery` : '',
+        failedCount ? `${failedCount} failed and requires review` : '',
+      ].filter(Boolean).join(' · ');
       setNotice(
-        `${invitations.length} invitation${invitations.length === 1 ? '' : 's'} queued. Preview each provider view, copy the prepared message or open WhatsApp below.`,
+        `${invitations.length} invitation${invitations.length === 1 ? '' : 's'} prepared. ${deliverySummary}.`,
       );
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to create invitations.');

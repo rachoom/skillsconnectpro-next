@@ -204,6 +204,16 @@ export async function dispatchProviderInvitations(input: {
       const reason = error instanceof Error ? error.message : 'Unexpected WhatsApp delivery failure.';
       console.error('WhatsApp invitation delivery failed:', reason);
       await recordAttempt({ invitation, status: 'failed', errorCode: 'unexpected_error', errorMessage: reason });
+      const supabase = getSupabaseAdmin();
+      await supabase
+        .from('lead_invitations')
+        .update({
+          status: 'failed',
+          failure_reason: reason.slice(0, 1_000),
+          delivery_provider: 'meta_cloud_api',
+          delivery_attempted_at: new Date().toISOString(),
+        })
+        .eq('id', invitation.invitationId);
       results.push({ invitationId: invitation.invitationId, status: 'failed', externalMessageId: null, reason });
     }
   }
