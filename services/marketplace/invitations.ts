@@ -3,6 +3,7 @@ import type { DeliveryChannel, ProjectUrgency } from '../../types/marketplace';
 import { getInvitationResponseDeadline } from './routing';
 import { createTokenPair } from './tokens';
 import { projectStatusAfterInvitation } from './invitationStatusPolicy.js';
+import { dispatchProviderInvitations } from './whatsappDelivery';
 
 export interface ProviderInvitationTarget {
   providerId: number;
@@ -18,6 +19,9 @@ export interface CreatedProviderInvitation {
   responseDeadline: string;
   deliveryChannel: DeliveryChannel;
   deliveryAddress: string | null;
+  deliveryStatus: 'manual' | 'sent' | 'failed';
+  externalMessageId: string | null;
+  deliveryReason: string | null;
 }
 
 type ProjectRoutingRow = {
@@ -25,6 +29,9 @@ type ProjectRoutingRow = {
   urgency: ProjectUrgency;
   status: string;
   consent_to_share: boolean;
+  title: string;
+  category: string;
+  location_text: string;
 };
 
 type ProjectMatchRow = {
@@ -101,7 +108,7 @@ export async function createProviderInvitations(input: {
   const [projectResult, matchResult, existingInvitationResult] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, urgency, status, consent_to_share')
+      .select('id, urgency, status, consent_to_share, title, category, location_text')
       .eq('id', input.projectId)
       .single(),
     supabase
@@ -219,7 +226,10 @@ export async function createProviderInvitations(input: {
     console.error('Provider invitations created but timeline event failed:', eventError.message);
   }
 
-  return invitationRows.map((row) => ({
+  const targetByProviderId = new Map(
+    input.targets.map((target) => [target.providerId, target]),
+  );
+  const createdInvitations = invitationRows.map((row) => ({
     invitationId: row.id,
     providerId: row.provider_id,
     responseToken: tokenByProviderId.get(row.provider_id) ?? '',
@@ -227,4 +237,37 @@ export async function createProviderInvitations(input: {
     deliveryChannel: row.delivery_channel,
     deliveryAddress: row.delivery_address,
   }));
+  const deliveryResults = await dispatchProviderInvitations({
+    project: {
+      title: project.title,
+      category: project.category,
+      location: project.location_text,
+    },
+    invitations: createdInvitations.map((invitation) => {
+      const target = targetByProviderId.get(invitation.providerId);
+      const snapshot = target?.providerSnapshot ?? {};
+      const providerName =
+        (typeof snapshot.displayName === 'string' && snapshot.displayName.trim())
+        || (typeof snapshot.name === 'string' && snapshot.name.trim())
+        || 'Service provider';
+
+      return {
+        ...invitation,
+        providerName,
+      };
+    }),
+  });
+  const deliveryByInvitationId = new Map(
+    deliveryResults.map((delivery) => [delivery.invitationId, delivery]),
+  );
+
+  return createdInvitations.map((invitation) => {
+    const delivery = deliveryByInvitationId.get(invitation.invitationId);
+    return {
+      ...invitation,
+      deliveryStatus: delivery?.status ?? 'manual',
+      externalMessageId: delivery?.externalMessageId ?? null,
+      deliveryReason: delivery?.reason ?? null,
+    };
+  });
 }
