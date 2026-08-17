@@ -27,6 +27,7 @@ export interface AdminProjectSummary {
   createdAt: string;
   invitationsSent: number;
   validResponsesReceived: number;
+  manualDispatchPending: number;
 }
 
 export async function getOpenProjectsForAdmin(): Promise<AdminProjectSummary[]> {
@@ -49,7 +50,7 @@ export async function getOpenProjectsForAdmin(): Promise<AdminProjectSummary[]> 
   const [invitationResult, responseResult] = await Promise.all([
     supabase
       .from('lead_invitations')
-      .select('project_id, status')
+      .select('project_id, status, sent_at')
       .in('project_id', projectIds),
     supabase
       .from('provider_responses')
@@ -65,8 +66,15 @@ export async function getOpenProjectsForAdmin(): Promise<AdminProjectSummary[]> 
   }
 
   const invitationCounts = new Map<string, number>();
+  const manualDispatchPendingCounts = new Map<string, number>();
   for (const row of invitationResult.data ?? []) {
     invitationCounts.set(row.project_id, (invitationCounts.get(row.project_id) ?? 0) + 1);
+    if (row.status === 'queued' && row.sent_at === null) {
+      manualDispatchPendingCounts.set(
+        row.project_id,
+        (manualDispatchPendingCounts.get(row.project_id) ?? 0) + 1,
+      );
+    }
   }
 
   const responseCounts = new Map<string, number>();
@@ -92,5 +100,6 @@ export async function getOpenProjectsForAdmin(): Promise<AdminProjectSummary[]> 
     createdAt: project.created_at,
     invitationsSent: invitationCounts.get(project.id) ?? 0,
     validResponsesReceived: responseCounts.get(project.id) ?? 0,
+    manualDispatchPending: manualDispatchPendingCounts.get(project.id) ?? 0,
   }));
 }
