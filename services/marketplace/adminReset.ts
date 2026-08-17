@@ -11,15 +11,25 @@ export interface MarketplaceResetResult {
   backendRunsAfter: number;
 }
 
-async function countRows(
-  table: string,
-  configure?: (query: ReturnType<ReturnType<typeof getSupabaseAdmin>['from']> extends infer T ? T : never) => unknown,
-): Promise<number> {
+async function countTableRows(table: string): Promise<number> {
   const supabase = getSupabaseAdmin();
-  let query = supabase.from(table).select('*', { count: 'exact', head: true });
-  if (configure) query = configure(query) as typeof query;
-  const { count, error } = await query;
+  const { count, error } = await supabase
+    .from(table)
+    .select('id', { count: 'exact', head: true });
+
   if (error) throw new Error(`Unable to count ${table}: ${error.message}`);
+  return count ?? 0;
+}
+
+async function countPendingDispatchRows(): Promise<number> {
+  const supabase = getSupabaseAdmin();
+  const { count, error } = await supabase
+    .from('lead_invitations')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'queued')
+    .is('sent_at', null);
+
+  if (error) throw new Error(`Unable to count pending dispatch rows: ${error.message}`);
   return count ?? 0;
 }
 
@@ -37,15 +47,14 @@ export async function resetMarketplaceTestData(): Promise<MarketplaceResetResult
   const supabase = getSupabaseAdmin();
 
   const [projectsBefore, pendingDispatchBefore, backendRunsBefore] = await Promise.all([
-    countRows('projects'),
-    countRows('lead_invitations', (query) => query.eq('status', 'queued').is('sent_at', null)),
-    countRows('marketplace_backend_runs'),
+    countTableRows('projects'),
+    countPendingDispatchRows(),
+    countTableRows('marketplace_backend_runs'),
   ]);
 
-  // Delivery attempts depend on invitations, and invitations depend on projects.
   // Deleting projects cascades through the active customer/provider workflow chain:
   // project_media, lead_invitations, provider_responses, project_matches,
-  // status events, reviews, complaints, and delivery attempts.
+  // status events, reviews, complaints, and invitation delivery attempts.
   const { error: projectDeleteError } = await supabase
     .from('projects')
     .delete()
@@ -55,12 +64,13 @@ export async function resetMarketplaceTestData(): Promise<MarketplaceResetResult
     throw new Error(`Unable to reset projects: ${projectDeleteError.message}`);
   }
 
+  // Clear backend run history so the pilot dashboard starts clean for the next test.
   await deleteRows('marketplace_backend_runs');
 
   const [projectsAfter, pendingDispatchAfter, backendRunsAfter] = await Promise.all([
-    countRows('projects'),
-    countRows('lead_invitations', (query) => query.eq('status', 'queued').is('sent_at', null)),
-    countRows('marketplace_backend_runs'),
+    countTableRows('projects'),
+    countPendingDispatchRows(),
+    countTableRows('marketplace_backend_runs'),
   ]);
 
   return {
