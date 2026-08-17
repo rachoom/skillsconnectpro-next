@@ -33,6 +33,7 @@ type AdminProject = {
   createdAt: string;
   invitationsSent: number;
   validResponsesReceived: number;
+  manualDispatchPending: number;
 };
 
 type ProviderCandidate = {
@@ -65,6 +66,7 @@ type InvitationResult = {
   deliveryStatus?: 'manual' | 'sent' | 'failed';
   externalMessageId?: string | null;
   deliveryReason?: string | null;
+  manualSentAt?: string | null;
 };
 
 type NewProjectForm = {
@@ -127,6 +129,18 @@ async function readJson(response: Response) {
   return payload;
 }
 
+function deliverySummary(invitations: InvitationResult[]): string {
+  const sentCount = invitations.filter((invitation) => invitation.deliveryStatus === 'sent').length;
+  const failedCount = invitations.filter((invitation) => invitation.deliveryStatus === 'failed').length;
+  const manualCount = invitations.length - sentCount - failedCount;
+
+  return [
+    sentCount ? `${sentCount} sent automatically` : '',
+    manualCount ? `${manualCount} ready for manual WhatsApp delivery` : '',
+    failedCount ? `${failedCount} failed and requires review` : '',
+  ].filter(Boolean).join(' · ');
+}
+
 export default function MarketplaceAdminPage() {
   const [adminKey, setAdminKey] = useState('');
   const [keyDraft, setKeyDraft] = useState('');
@@ -141,6 +155,8 @@ export default function MarketplaceAdminPage() {
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [creatingProject, setCreatingProject] = useState(false);
   const [sendingInvites, setSendingInvites] = useState(false);
+  const [preparingAutomatedWave, setPreparingAutomatedWave] = useState(false);
+  const [markingSentIds, setMarkingSentIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -272,7 +288,11 @@ export default function MarketplaceAdminPage() {
       });
       setSelectedProjectId(payload.project.id);
       setNewProject(EMPTY_PROJECT);
-      setNotice('Project created. Its customer access token is displayed once below.');
+      setNotice(
+        payload.routing?.providersQueued
+          ? 'Project created. Automated routing queued the first provider wave; prepare manual WhatsApp delivery from the selected project panel.'
+          : 'Project created. Its customer access token is displayed once below.',
+      );
       await loadProjects();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to create project.');
@@ -326,6 +346,42 @@ export default function MarketplaceAdminPage() {
     });
   };
 
+  const prepareAutomatedWave = async () => {
+    if (!selectedProjectId) return;
+    setPreparingAutomatedWave(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const payload = await readJson(
+        await fetch(`/api/admin/projects/${selectedProjectId}/manual-dispatch`, {
+          method: 'POST',
+          headers: adminHeaders,
+          body: JSON.stringify({}),
+        }),
+      );
+
+      const invitations: InvitationResult[] = payload.routing?.invitations ?? [];
+      await loadProjects();
+      await loadCandidates(selectedProjectId);
+      setSelectedProviderIds([]);
+      setInvitationResults(invitations);
+
+      if (invitations.length === 0) {
+        setNotice(payload.routing?.reason || 'No manual WhatsApp delivery is needed right now.');
+        return;
+      }
+
+      setNotice(
+        `${invitations.length} automated invitation${invitations.length === 1 ? '' : 's'} ready. ${deliverySummary(invitations)}.`,
+      );
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to prepare automated wave.');
+    } finally {
+      setPreparingAutomatedWave(false);
+    }
+  };
+
   const sendInvitations = async () => {
     if (!selectedProjectId || selectedProviderIds.length === 0) return;
     setSendingInvites(true);
@@ -366,16 +422,8 @@ export default function MarketplaceAdminPage() {
       await loadProjects();
       await loadCandidates(selectedProjectId);
       setInvitationResults(invitations);
-      const sentCount = invitations.filter((invitation) => invitation.deliveryStatus === 'sent').length;
-      const failedCount = invitations.filter((invitation) => invitation.deliveryStatus === 'failed').length;
-      const manualCount = invitations.length - sentCount - failedCount;
-      const deliverySummary = [
-        sentCount ? `${sentCount} sent automatically` : '',
-        manualCount ? `${manualCount} ready for manual WhatsApp delivery` : '',
-        failedCount ? `${failedCount} failed and requires review` : '',
-      ].filter(Boolean).join(' · ');
       setNotice(
-        `${invitations.length} invitation${invitations.length === 1 ? '' : 's'} prepared. ${deliverySummary}.`,
+        `${invitations.length} invitation${invitations.length === 1 ? '' : 's'} prepared. ${deliverySummary(invitations)}.`,
       );
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to create invitations.');
@@ -401,7 +449,40 @@ export default function MarketplaceAdminPage() {
     ].join('\n');
   };
 
-  const openWhatsAppInvitation = (invitation: InvitationResult) => {
+  const markInvitationManuallySent = async (invitation: InvitationResult) => {
+    if (markingSentIds.includes(invitation.invitationId)) return;
+    setMarkingSentIds((current) => [...current, invitation.invitationId]);
+
+    try {
+      const payload = await readJson(
+        await fetch(`/api/admin/invitations/${invitation.invitationId}/manual-sent`, {
+          method: 'POST',
+          headers: adminHeaders,
+          body: JSON.stringify({}),
+        }),
+      );
+
+      setInvitationResults((current) =>
+        current.map((item) =>
+          item.invitationId === invitation.invitationId
+            ? {
+                ...item,
+                deliveryStatus: 'sent',
+                manualSentAt: payload.invitation?.sentAt ?? new Date().toISOString(),
+              }
+            : item,
+        ),
+      );
+      await loadProjects({ silent: true });
+      setNotice('Manual WhatsApp dispatch recorded. Confirm the message was sent in WhatsApp.');
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to record manual dispatch.');
+    } finally {
+      setMarkingSentIds((current) => current.filter((id) => id !== invitation.invitationId));
+    }
+  };
+
+  const openWhatsAppInvitation = async (invitation: InvitationResult) => {
     if (!invitation.deliveryAddress) return;
     const number = normaliseWhatsAppNumber(invitation.deliveryAddress);
     window.open(
@@ -409,6 +490,7 @@ export default function MarketplaceAdminPage() {
       '_blank',
       'noopener,noreferrer',
     );
+    await markInvitationManuallySent(invitation);
   };
 
   if (!adminKey) {
@@ -457,7 +539,7 @@ export default function MarketplaceAdminPage() {
             </div>
             <h1 className="mt-2 text-3xl font-black md:text-4xl">Marketplace Routing Console</h1>
             <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-              Create structured projects, rank registered providers and issue the first controlled invitation wave.
+              Create structured projects, let the routing engine choose the provider wave, then manually dispatch WhatsApp links for testing.
             </p>
           </div>
           <div className="flex gap-2">
@@ -609,7 +691,9 @@ export default function MarketplaceAdminPage() {
                       className={`w-full rounded-2xl border p-4 text-left transition ${
                         selectedProjectId === project.id
                           ? 'border-amber-400 bg-amber-400/10'
-                          : 'border-white/5 bg-black/20 hover:border-white/20'
+                          : project.manualDispatchPending > 0
+                            ? 'border-amber-400/60 bg-amber-400/10'
+                            : 'border-white/5 bg-black/20 hover:border-white/20'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -629,6 +713,11 @@ export default function MarketplaceAdminPage() {
                       <p className="mt-3 text-xs text-zinc-500">
                         {project.invitationsSent} invited · {project.validResponsesReceived} responses
                       </p>
+                      {project.manualDispatchPending > 0 && (
+                        <p className="mt-2 rounded-lg bg-amber-400/15 px-2 py-1 text-[11px] font-bold text-amber-200">
+                          {project.manualDispatchPending} WhatsApp send{project.manualDispatchPending === 1 ? '' : 's'} pending
+                        </p>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -654,28 +743,43 @@ export default function MarketplaceAdminPage() {
                       <h2 className="mt-2 text-2xl font-black">{selectedProject.title}</h2>
                       <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">{selectedProject.customerDescription}</p>
                       <p className="mt-3 text-xs text-zinc-500">Response target: {formatDate(selectedProject.responseTargetAt)}</p>
+                      {selectedProject.manualDispatchPending > 0 && (
+                        <p className="mt-3 inline-flex rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-200">
+                          {selectedProject.manualDispatchPending} manual WhatsApp dispatch{selectedProject.manualDispatchPending === 1 ? '' : 'es'} pending
+                        </p>
+                      )}
                     </div>
-                    <button
-                      onClick={() => void loadCandidates(selectedProject.id)}
-                      className="flex shrink-0 items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider"
-                    >
-                      <RefreshCw size={14} /> Re-rank
-                    </button>
+                    <div className="flex flex-col gap-2 sm:flex-row md:flex-col xl:flex-row">
+                      <button
+                        onClick={() => void prepareAutomatedWave()}
+                        disabled={preparingAutomatedWave}
+                        className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-xs font-black uppercase tracking-wider text-black disabled:opacity-50"
+                      >
+                        {preparingAutomatedWave ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
+                        Prepare automated wave
+                      </button>
+                      <button
+                        onClick={() => void loadCandidates(selectedProject.id)}
+                        className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider"
+                      >
+                        <RefreshCw size={14} /> Re-rank
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 <div className="mt-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                   <div>
                     <h3 className="font-black">Provider candidates</h3>
-                    <p className="mt-1 text-xs text-zinc-500">Choose up to three providers. Selecting an already queued provider safely refreshes their unanswered delivery link.</p>
+                    <p className="mt-1 text-xs text-zinc-500">Use Prepare automated wave for the test route. Manual selection remains as an admin override.</p>
                   </div>
                   <button
                     onClick={() => void sendInvitations()}
                     disabled={selectedProviderIds.length === 0 || sendingInvites}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-xs font-black uppercase tracking-wider text-black disabled:opacity-40"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-amber-400/40 px-5 py-3 text-xs font-black uppercase tracking-wider text-amber-100 disabled:opacity-40"
                   >
                     {sendingInvites ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
-                    Prepare selected ({selectedProviderIds.length})
+                    Prepare selected override ({selectedProviderIds.length})
                   </button>
                 </div>
 
@@ -715,7 +819,7 @@ export default function MarketplaceAdminPage() {
                           <p className="mt-3 text-xs text-zinc-500">
                             {candidate.phone || 'No phone number'} · {candidate.availabilityStatus.replaceAll('_', ' ')}
                           </p>
-                          {candidate.alreadyInvited && <p className="mt-2 text-xs font-bold text-amber-300">Already queued — select to refresh the secure delivery link</p>}
+                          {candidate.alreadyInvited && <p className="mt-2 text-xs font-bold text-amber-300">Already queued — automated handoff can refresh the secure delivery link</p>}
                         </button>
                       );
                     })}
@@ -728,15 +832,19 @@ export default function MarketplaceAdminPage() {
                 {invitationResults.length > 0 && (
                   <section className="mt-8 border-t border-white/10 pt-6">
                     <h3 className="font-black">Invitation delivery</h3>
-                    <p className="mt-1 text-xs text-zinc-500">Invitation records exist in Supabase. Deliver each secure response link through WhatsApp or copy it.</p>
+                    <p className="mt-1 text-xs text-zinc-500">Open WhatsApp for each provider and tap Send. The admin console records the invitation as manually sent after opening WhatsApp.</p>
                     <div className="mt-4 space-y-3">
                       {invitationResults.map((invitation) => {
                         const candidate = candidates.find((item) => item.providerId === invitation.providerId);
+                        const markingSent = markingSentIds.includes(invitation.invitationId);
+                        const manuallySent = invitation.deliveryStatus === 'sent' || Boolean(invitation.manualSentAt);
                         return (
                           <div key={invitation.invitationId} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 md:flex-row md:items-center md:justify-between">
                             <div>
                               <p className="font-bold">{candidate?.displayName || `Provider #${invitation.providerId}`}</p>
-                              <p className="mt-1 text-xs text-zinc-500">Deadline: {formatDate(invitation.responseDeadline)}</p>
+                              <p className="mt-1 text-xs text-zinc-500">
+                                Deadline: {formatDate(invitation.responseDeadline)}{manuallySent ? ' · sent recorded' : ''}
+                              </p>
                             </div>
                             <div className="flex flex-wrap gap-2">
                               <a
@@ -755,10 +863,18 @@ export default function MarketplaceAdminPage() {
                               </button>
                               {invitation.deliveryAddress && (
                                 <button
-                                  onClick={() => openWhatsAppInvitation(invitation)}
-                                  className="flex items-center gap-2 rounded-xl bg-[#128C7E] px-3 py-2 text-xs font-bold text-white"
+                                  onClick={() => void openWhatsAppInvitation(invitation)}
+                                  disabled={markingSent || manuallySent}
+                                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white disabled:opacity-70 ${manuallySent ? 'bg-emerald-700' : 'bg-[#128C7E]'}`}
                                 >
-                                  <Send size={14} /> Open WhatsApp
+                                  {markingSent ? (
+                                    <Loader2 className="animate-spin" size={14} />
+                                  ) : manuallySent ? (
+                                    <CheckCircle2 size={14} />
+                                  ) : (
+                                    <Send size={14} />
+                                  )}
+                                  {manuallySent ? 'Marked sent' : 'Open WhatsApp + mark sent'}
                                 </button>
                               )}
                             </div>
