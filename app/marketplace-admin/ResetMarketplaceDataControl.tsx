@@ -25,7 +25,18 @@ export default function ResetMarketplaceDataControl() {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    setAdminKey(window.sessionStorage.getItem(STORAGE_KEY) ?? '');
+    const syncAdminKey = () => {
+      setAdminKey(window.sessionStorage.getItem(STORAGE_KEY) ?? '');
+    };
+
+    syncAdminKey();
+    window.addEventListener('focus', syncAdminKey);
+    const timer = window.setInterval(syncAdminKey, 1000);
+
+    return () => {
+      window.removeEventListener('focus', syncAdminKey);
+      window.clearInterval(timer);
+    };
   }, []);
 
   if (!adminKey) return null;
