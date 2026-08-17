@@ -26,6 +26,8 @@ export type InvitationDeliveryResult = {
   reason: string | null;
 };
 
+type WhatsAppDeliveryMode = 'manual' | 'automatic';
+
 type WhatsAppConfiguration = {
   accessToken: string;
   phoneNumberId: string;
@@ -35,7 +37,14 @@ type WhatsAppConfiguration = {
   publicSiteUrl: string;
 };
 
+function configuredDeliveryMode(): WhatsAppDeliveryMode {
+  return process.env.MARKETPLACE_WHATSAPP_DELIVERY_MODE?.trim().toLowerCase() === 'automatic'
+    ? 'automatic'
+    : 'manual';
+}
+
 function configuration(): WhatsAppConfiguration | null {
+  if (configuredDeliveryMode() !== 'automatic') return null;
   if (process.env.MARKETPLACE_WHATSAPP_AUTO_SEND !== 'true') return null;
 
   const accessToken = process.env.META_WHATSAPP_ACCESS_TOKEN?.trim();
@@ -186,13 +195,18 @@ export async function dispatchProviderInvitations(input: {
   project: ProjectDeliveryContext;
   invitations: DispatchInvitation[];
 }): Promise<InvitationDeliveryResult[]> {
+  const mode = configuredDeliveryMode();
   const config = configuration();
   if (!config) {
+    const reason = mode === 'automatic'
+      ? 'Automatic WhatsApp delivery is not enabled or Meta Cloud API configuration is incomplete.'
+      : 'Manual WhatsApp delivery mode is active.';
+
     return input.invitations.map((invitation) => ({
       invitationId: invitation.invitationId,
       status: 'manual',
       externalMessageId: null,
-      reason: 'Automatic WhatsApp delivery is not enabled.',
+      reason,
     }));
   }
 
