@@ -1,0 +1,181 @@
+.scope :global(nav[aria-label="Primary navigation"]) {
+  top: .35rem;
+  padding: .35rem .7rem 0;
+  background: transparent !important;
+  border: 0 !important;
+  pointer-events: none;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child),
+.scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2)) {
+  pointer-events: auto;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.17) !important;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.115),rgba(255,255,255,.035) 42%,rgba(245,197,24,.035) 100%) !important;
+  box-shadow:
+    0 22px 58px -32px rgba(0,0,0,.92),
+    0 8px 24px -18px rgba(245,197,24,.30),
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(255,255,255,.045) !important;
+  backdrop-filter: blur(26px) saturate(150%) contrast(104%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(150%) contrast(104%) !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(105deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.035) 28%,transparent 52%),
+    radial-gradient(circle at 82% -30%,rgba(245,197,24,.13),transparent 38%);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child)::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg,transparent,rgba(245,197,24,.50),transparent);
+  opacity: .7;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"]) {
+  position: relative;
+  z-index: 1;
+  padding: .15rem .28rem;
+  border-radius: .8rem;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) {
+  filter:
+    drop-shadow(0 5px 12px rgba(0,0,0,.30))
+    drop-shadow(0 0 12px rgba(245,197,24,.045)) !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.17) !important;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.035)) !important;
+  color: rgba(255,255,255,.96) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 8px 18px -15px rgba(0,0,0,.95) !important;
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]) {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.135),rgba(255,255,255,.045)) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 10px 24px -18px rgba(0,0,0,.95) !important;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"])::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 45%;
+  border-radius: inherit;
+  background: linear-gradient(180deg,rgba(255,255,255,.12),transparent);
+  pointer-events: none;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"] svg) {
+  position: relative;
+  z-index: 1;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2)) {
+  position: relative;
+  overflow: hidden;
+  margin-top: .55rem !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background:
+    linear-gradient(145deg,rgba(18,18,16,.78),rgba(8,8,7,.67)) !important;
+  box-shadow:
+    0 26px 64px -34px rgba(0,0,0,.96),
+    inset 0 1px 0 rgba(255,255,255,.14) !important;
+  backdrop-filter: blur(28px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(145%) !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2) a) {
+  border: 1px solid transparent;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+@media (hover:hover) {
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]:hover),
+  .scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]:hover) {
+    border-color: rgba(245,197,24,.38) !important;
+    background: linear-gradient(145deg,rgba(245,197,24,.12),rgba(255,255,255,.055)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.20),
+      0 12px 30px -18px rgba(245,197,24,.32) !important;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]:hover) {
+    transform: translateY(-1px);
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2) a:hover) {
+    border-color: rgba(245,197,24,.18);
+    background: rgba(245,197,24,.07);
+  }
+}
+
+@media (max-width:639px) {
+  .scope :global(nav[aria-label="Primary navigation"]) {
+    top: .2rem;
+    padding: .25rem .48rem 0;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+    border-radius: 1.05rem !important;
+    background:
+      linear-gradient(140deg,rgba(255,255,255,.13),rgba(255,255,255,.045) 52%,rgba(245,197,24,.035)) !important;
+    backdrop-filter: blur(22px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(145%) !important;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+    padding-inline: .58rem !important;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2)) {
+    width: calc(100% - .96rem) !important;
+    margin-inline: auto !important;
+    border-radius: 1.05rem !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child),
+  .scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2)) {
+    background: rgba(10,10,9,.94) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
