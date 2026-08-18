@@ -1,14 +1,17 @@
 .shell {
-  --page: #596451;
-  --surface: #e7e2d7;
-  --surface-muted: #d8ddd0;
-  --field: #f0ece3;
-  --accent: #c99b2e;
-  --accent-border: #876817;
-  --text: #1d231e;
-  --muted: #626a61;
-  --border: #4d594b;
-  --shadow: rgba(28, 36, 29, 0.22);
+  --page: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #f7f7f5;
+  --field: #ffffff;
+  --accent: #f5c518;
+  --accent-border: #a88618;
+  --accent-text: #5f4c00;
+  --text: #111111;
+  --muted: #5f5f5f;
+  --faint: #8a8a8a;
+  --border: #d2d2cd;
+  --border-strong: #aaa9a2;
+  --shadow: rgba(17, 17, 17, 0.1);
 
   min-height: 100vh;
   background: var(--page);
@@ -18,16 +21,19 @@
 }
 
 .dark {
-  --page: #182019;
-  --surface: #252d26;
-  --surface-muted: #303930;
-  --field: #1f261f;
-  --accent: #d1a236;
-  --accent-border: #8f6d19;
-  --text: #f0ece2;
-  --muted: #b7bdb4;
-  --border: #5a6658;
-  --shadow: rgba(0, 0, 0, 0.38);
+  --page: #060606;
+  --surface: #12110e;
+  --surface-muted: #18150b;
+  --field: #0a0a09;
+  --accent: #f5c518;
+  --accent-border: #75601a;
+  --accent-text: #f5c518;
+  --text: #ffffff;
+  --muted: #aeaeae;
+  --faint: #858585;
+  --border: #75601a;
+  --border-strong: #a88618;
+  --shadow: rgba(0, 0, 0, 0.52);
   color-scheme: dark;
 }
 
@@ -37,36 +43,42 @@
 
 @media (prefers-color-scheme: dark) {
   .shell:not(.light) {
-    --page: #182019;
-    --surface: #252d26;
-    --surface-muted: #303930;
-    --field: #1f261f;
-    --accent: #d1a236;
-    --accent-border: #8f6d19;
-    --text: #f0ece2;
-    --muted: #b7bdb4;
-    --border: #5a6658;
-    --shadow: rgba(0, 0, 0, 0.38);
+    --page: #060606;
+    --surface: #12110e;
+    --surface-muted: #18150b;
+    --field: #0a0a09;
+    --accent: #f5c518;
+    --accent-border: #75601a;
+    --accent-text: #f5c518;
+    --text: #ffffff;
+    --muted: #aeaeae;
+    --faint: #858585;
+    --border: #75601a;
+    --border-strong: #a88618;
+    --shadow: rgba(0, 0, 0, 0.52);
     color-scheme: dark;
   }
 }
 
 .topbar {
+  position: relative;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 3.75rem;
-  padding: 0.65rem 1rem;
-  background: var(--surface);
+  min-height: 4.35rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--page);
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
 
 .topbarTitle {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  color: var(--accent-text);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -74,28 +86,43 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  min-width: 5.25rem;
-  min-height: 2.45rem;
-  padding: 0.55rem 0.85rem;
-  border: 1px solid var(--accent-border);
-  border-radius: 999px;
-  background: var(--accent);
+  gap: 0.5rem;
+  min-width: 5.6rem;
+  min-height: 2.7rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.8rem;
+  background: var(--surface);
   color: var(--text);
+  box-shadow: 0 8px 24px var(--shadow);
   font: inherit;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+}
+
+.themeToggle svg {
+  color: var(--accent);
+}
+
+.themeToggle:hover {
+  border-color: var(--accent);
 }
 
 .themeToggle:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .shell :global(main) {
+  min-height: calc(100svh - 4.35rem);
   background: var(--page) !important;
   color: var(--text) !important;
+}
+
+.shell :global(main > div) {
+  width: min(calc(100% - 2rem), 68rem);
+  max-width: 68rem !important;
 }
 
 .shell :global(header),
@@ -104,13 +131,32 @@
 .shell :global(main > section) {
   background: var(--surface) !important;
   border-color: var(--border) !important;
+  border-width: 1px !important;
   color: var(--text) !important;
 }
 
 .shell :global(header),
 .shell :global(article),
 .shell :global(form) {
-  box-shadow: 0 12px 28px var(--shadow) !important;
+  box-shadow: 0 22px 54px var(--shadow) !important;
+}
+
+.shell :global(header) {
+  border-color: var(--accent-border) !important;
+}
+
+.shell :global(header h1),
+.shell :global(article h1),
+.shell :global(article h2),
+.shell :global(form h2),
+.shell :global(main strong) {
+  color: var(--text) !important;
+  text-shadow: none !important;
+}
+
+.shell :global(header > div:first-child),
+.shell :global(header > div:first-child > div:first-child) {
+  color: var(--accent-text) !important;
 }
 
 .shell :global([class*="bg-[#FFF6D8]"]),
@@ -146,12 +192,23 @@
 .shell :global([class*="bg-[#FFD75F]"]),
 .shell :global([class*="bg-[#FFC21A]"]) {
   background-color: var(--accent) !important;
+  border-color: var(--accent-border) !important;
+  color: #090909 !important;
+}
+
+.shell :global(form) {
+  border-color: var(--accent-border) !important;
 }
 
 .shell :global(form button) {
-  background-color: var(--surface) !important;
+  background-color: var(--surface-muted) !important;
   border-color: var(--border) !important;
   color: var(--text) !important;
+  box-shadow: none !important;
+}
+
+.shell :global(form button:hover) {
+  border-color: var(--border-strong) !important;
 }
 
 .shell :global(form button[class*="ring-[#203020]/20"]),
@@ -160,18 +217,62 @@
 .shell :global(form > button:last-child) {
   background-color: var(--accent) !important;
   border-color: var(--accent-border) !important;
-  color: var(--text) !important;
+  color: #090909 !important;
+}
+
+.shell :global(form button[class*="ring-[#203020]/20"] span),
+.shell :global(form button[class*="ring-[#6E2430]/15"] span),
+.shell :global(form button[class*="bg-[#FFD75F]"] span),
+.shell :global(form > button:last-child span) {
+  color: #090909 !important;
+}
+
+.shell :global(form button[class*="ring-[#203020]/20"] svg),
+.shell :global(form button[class*="ring-[#6E2430]/15"] svg),
+.shell :global(form button[class*="bg-[#FFD75F]"] svg),
+.shell :global(form > button:last-child svg) {
+  color: #090909 !important;
+}
+
+.shell :global(form button:not([class*="ring"]) span:last-child) {
+  color: var(--muted);
 }
 
 .shell :global(input),
 .shell :global(textarea) {
   background: var(--field) !important;
-  border-color: var(--border) !important;
+  border-color: var(--border-strong) !important;
   color: var(--text) !important;
+  caret-color: var(--accent) !important;
+  box-shadow: none !important;
+}
+
+.shell :global(input:focus),
+.shell :global(textarea:focus) {
+  border-color: var(--accent) !important;
 }
 
 .shell :global(input::placeholder),
 .shell :global(textarea::placeholder) {
+  color: var(--faint) !important;
+  opacity: 1 !important;
+}
+
+.shell :global(input:focus-visible),
+.shell :global(textarea:focus-visible),
+.shell :global(button:focus-visible),
+.shell :global(a:focus-visible),
+.shell :global(summary:focus-visible) {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 3px !important;
+}
+
+.shell :global(details) {
+  background: var(--surface-muted) !important;
+  border-color: var(--border) !important;
+}
+
+.shell :global(summary) {
   color: var(--muted) !important;
 }
 
@@ -209,7 +310,11 @@
 .shell :global([class*="text-[#5F4300]"]),
 .shell :global([class*="text-[#6F5414]"]),
 .shell :global([class*="text-[#21885A]"]) {
-  color: var(--accent-border) !important;
+  color: var(--accent-text) !important;
+}
+
+.shell :global([class*="text-[#2E2200]"]) {
+  color: #090909 !important;
 }
 
 .shell :global([class*="border-[#C95D65]"]),
@@ -234,19 +339,51 @@
   --tw-shadow-color: var(--shadow) !important;
 }
 
-@media (max-width: 520px) {
+.shell :global(a[class*="bg-[#FFC21A]"]) {
+  background: var(--accent) !important;
+  border-color: var(--accent-border) !important;
+  color: #090909 !important;
+}
+
+.shell :global(a[class*="bg-[#C8F0D2]"]) {
+  background: var(--surface-muted) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+@media (max-width: 700px) {
   .topbar {
-    min-height: 3.4rem;
-    padding-inline: 0.8rem;
+    min-height: 3.9rem;
+    padding: 0.65rem 0.9rem;
   }
 
   .topbarTitle {
     font-size: 0.7rem;
+    letter-spacing: 0.12em;
   }
 
   .themeToggle {
-    min-width: 4.75rem;
-    min-height: 2.25rem;
+    min-width: 5rem;
+    min-height: 2.45rem;
     padding: 0.45rem 0.7rem;
+  }
+
+  .shell :global(main) {
+    padding-left: 0.9rem !important;
+    padding-right: 0.9rem !important;
+  }
+
+  .shell :global(main > div) {
+    width: 100%;
+  }
+
+  .shell :global(header),
+  .shell :global(article),
+  .shell :global(form) {
+    border-radius: 1.4rem !important;
+  }
+
+  .shell :global(form button) {
+    min-height: 3.15rem;
   }
 }
