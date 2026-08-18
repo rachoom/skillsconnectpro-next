@@ -2,6 +2,13 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import ClientWrapper from './ClientWrapper';
 import { MarketplaceLandingPage } from '../components/MarketplaceLandingPage';
+import { LandingScrollReveal } from './LandingScrollReveal';
+import polishStyles from './HomeVisualPolish.module.css';
+import loopStyles from './HeroLoopExperiment.module.css';
+import headerStyles from './HeaderGlassPolish.module.css';
+import lightContrastStyles from './LightThemeContrastPolish.module.css';
+import motionStyles from './LandingMotionPolish.module.css';
+import scrollStyles from './LandingScrollReveal.module.css';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -34,5 +41,10 @@ export default async function Page({ searchParams }: Props) {
   // account portal is prepared for launch.
   if (claimId) return <ClientWrapper />;
 
-  return <MarketplaceLandingPage />;
+  return (
+    <div className={`${polishStyles.scope} ${loopStyles.loopPreview} ${headerStyles.scope} ${lightContrastStyles.scope} ${motionStyles.motion} ${scrollStyles.scope}`}>
+      <LandingScrollReveal />
+      <MarketplaceLandingPage />
+    </div>
+  );
 }

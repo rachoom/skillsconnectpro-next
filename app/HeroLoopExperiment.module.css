@@ -1,0 +1,48 @@
+.loopPreview :global(main > section:first-of-type > video) {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 67% center;
+  filter: saturate(1.08) contrast(1.08) brightness(1.02);
+  transform: scale(1.01);
+  pointer-events: none;
+}
+
+/* Keep the copy protected while allowing the moving footage to read clearly. */
+.loopPreview :global(main > section:first-of-type > div:nth-of-type(1)) {
+  background:
+    linear-gradient(180deg,rgba(7,7,6,.12),rgba(7,7,6,.26) 68%,rgba(8,8,6,.92)),
+    linear-gradient(90deg,rgba(7,7,6,.94) 0%,rgba(7,7,6,.80) 38%,rgba(7,7,6,.25) 68%,rgba(7,7,6,.03) 100%) !important;
+}
+
+@media (max-width: 639px) {
+  .loopPreview :global(main > section:first-of-type > video) {
+    object-position: 70% center;
+    filter: saturate(1.06) contrast(1.06) brightness(.98);
+  }
+
+  .loopPreview :global(main > section:first-of-type > div:nth-of-type(1)) {
+    background:
+      linear-gradient(180deg,rgba(7,7,6,.16),rgba(7,7,6,.35) 68%,rgba(8,8,6,.94)),
+      linear-gradient(90deg,rgba(7,7,6,.94) 0%,rgba(7,7,6,.78) 58%,rgba(7,7,6,.16) 100%) !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 899px) {
+  .loopPreview :global(main > section:first-of-type > video) {
+    object-position: 69% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loopPreview :global(main > section:first-of-type) {
+    background: url('/artisans/hero-welder.jpg') 67% center / cover no-repeat;
+  }
+
+  .loopPreview :global(main > section:first-of-type > video) {
+    display: none;
+  }
+}

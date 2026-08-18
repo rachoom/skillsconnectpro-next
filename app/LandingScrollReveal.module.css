@@ -1,0 +1,79 @@
+.scope {
+  --scroll-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+/*
+ * Reliable viewport-triggered motion. The page stays fully visible until the
+ * client observer marks the wrapper ready, avoiding hidden content if JS fails.
+ */
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal]) {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0) scale(.992);
+  filter: blur(4px);
+  transition:
+    opacity 720ms var(--scroll-ease) var(--scroll-delay, 0ms),
+    transform 760ms var(--scroll-ease) var(--scroll-delay, 0ms),
+    filter 560ms ease var(--scroll-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal='heading']) {
+  transform: translate3d(0, 34px, 0);
+}
+
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal='item']) {
+  transform: translate3d(0, 24px, 0) scale(.982);
+}
+
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal='block']) {
+  transform: translate3d(0, 32px, 0) scale(.986);
+}
+
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal='footer']) {
+  transform: translate3d(0, 22px, 0);
+}
+
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal][data-scroll-visible='true']) {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+  will-change: auto;
+}
+
+/* A subtle edge-light arrives with larger conversion surfaces. */
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal='block']) {
+  transition-property: opacity, transform, filter, box-shadow, border-color;
+}
+
+.scope[data-scroll-ready='true'] :global([data-scroll-reveal='block'][data-scroll-visible='true']) {
+  box-shadow: 0 28px 64px -48px rgba(245,197,24,.26);
+}
+
+/* Mobile motion uses a shorter distance and duration so the experience stays quick. */
+@media (max-width: 639px) {
+  .scope[data-scroll-ready='true'] :global([data-scroll-reveal]) {
+    transform: translate3d(0, 20px, 0) scale(.994);
+    filter: blur(2.5px);
+    transition-duration: 560ms, 620ms, 420ms;
+  }
+
+  .scope[data-scroll-ready='true'] :global([data-scroll-reveal='item']) {
+    transform: translate3d(0, 17px, 0) scale(.986);
+  }
+
+  .scope[data-scroll-ready='true'] :global([data-scroll-reveal][data-scroll-visible='true']) {
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* No content or functionality depends on motion. */
+@media (prefers-reduced-motion: reduce) {
+  .scope[data-scroll-ready='true'] :global([data-scroll-reveal]),
+  .scope[data-scroll-ready='true'] :global([data-scroll-reveal][data-scroll-visible='true']) {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}

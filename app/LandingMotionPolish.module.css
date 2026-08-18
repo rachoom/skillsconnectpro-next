@@ -1,0 +1,219 @@
+.motion {
+  --motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --motion-fast: 220ms;
+  --motion-medium: 620ms;
+}
+
+/*
+ * Landing-page motion layer only.
+ * Presentation-only: no routes, data, forms, state, marketplace logic or backend behaviour change.
+ */
+
+@keyframes headerArrive {
+  from { opacity: 0; transform: translateY(-14px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes heroArrive {
+  from { opacity: 0; transform: translateY(18px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes journeyArrive {
+  from { opacity: 0; transform: translateY(14px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(26px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(20px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ctaSheen {
+  0%, 74% { transform: translateX(-155%) skewX(-18deg); opacity: 0; }
+  78% { opacity: .1; }
+  86% { opacity: .42; }
+  94%, 100% { transform: translateX(255%) skewX(-18deg); opacity: 0; }
+}
+
+@keyframes detailReveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Floating glass header: one polished entrance rather than constant motion. */
+.motion :global(nav[aria-label="Primary navigation"] > div:first-child) {
+  animation: headerArrive 700ms var(--motion-ease) 40ms both;
+}
+
+/* Hero copy enters in a quiet sequence so the video remains the ambient motion. */
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *) {
+  animation: heroArrive var(--motion-medium) var(--motion-ease) both;
+}
+
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *:nth-child(1)) { animation-delay: 110ms; }
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *:nth-child(2)) { animation-delay: 190ms; }
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *:nth-child(3)) { animation-delay: 280ms; }
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *:nth-child(4)) { animation-delay: 370ms; }
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *:nth-child(5)) { animation-delay: 450ms; }
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *:nth-child(6)) { animation-delay: 530ms; }
+
+.motion :global(main > section:first-of-type > div:nth-of-type(4)) {
+  animation: journeyArrive 720ms var(--motion-ease) 650ms both;
+}
+
+/* The primary action gets a restrained occasional light sweep, not a constant pulse. */
+.motion :global(main > section:first-of-type a[href="/get-help"]) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.motion :global(main > section:first-of-type a[href="/get-help"])::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -55%;
+  left: -35%;
+  width: 24%;
+  height: 215%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.78), transparent);
+  filter: blur(1px);
+  animation: ctaSheen 7.5s ease-in-out 1.5s infinite;
+}
+
+/* Premium tactile feedback for the compact trust cards and journey stages. */
+.motion :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) > span),
+.motion :global(main > section:first-of-type > div:nth-of-type(4) > div) {
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) ease,
+    background var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+}
+
+/* Below-fold reveals use native scroll-driven animation when available.
+ * Browsers without support simply render the content normally. */
+@supports (animation-timeline: view()) {
+  .motion :global(section#services > div:first-child),
+  .motion :global(section#how-it-works > div:first-child),
+  .motion :global(section#support > div:first-child),
+  .motion :global(main > section:nth-of-type(5)),
+  .motion :global(main > section:nth-of-type(6)),
+  .motion :global(main > section:nth-of-type(7) > div:last-child) {
+    animation: revealUp 1ms linear both;
+    animation-timeline: view();
+    animation-range: entry 4% cover 30%;
+  }
+
+  .motion :global(section#services a[href^="/get-help?service="]),
+  .motion :global(section#how-it-works article),
+  .motion :global(section#support details) {
+    animation: cardReveal 1ms linear both;
+    animation-timeline: view();
+    animation-range: entry 2% cover 24%;
+  }
+}
+
+/* FAQ interaction feels intentional instead of snapping open. */
+.motion :global(section#support details summary svg) {
+  transition: transform 260ms var(--motion-ease);
+}
+
+.motion :global(section#support details[open] summary svg) {
+  transform: rotate(180deg);
+}
+
+.motion :global(section#support details[open] p) {
+  animation: detailReveal 320ms var(--motion-ease) both;
+}
+
+@media (hover:hover) {
+  .motion :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) > span:hover) {
+    transform: translateY(-3px);
+    border-color: rgba(245,197,24,.30) !important;
+    background: rgba(10,10,8,.62) !important;
+    box-shadow: 0 16px 34px -28px rgba(245,197,24,.42), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+
+  .motion :global(main > section:first-of-type > div:nth-of-type(4) > div:hover) {
+    transform: translateY(-2px);
+  }
+
+  .motion :global(section#services a[href^="/get-help?service="]) {
+    transition: transform 280ms var(--motion-ease), box-shadow 280ms ease, border-color 280ms ease;
+  }
+
+  .motion :global(section#services a[href^="/get-help?service="]:hover) {
+    transform: translateY(-6px) scale(1.012);
+    border-color: rgba(245,197,24,.34) !important;
+    box-shadow: 0 30px 58px -32px rgba(0,0,0,.72), 0 12px 28px -22px rgba(245,197,24,.38);
+  }
+
+  .motion :global(section#how-it-works article) {
+    transition: transform 280ms var(--motion-ease), border-color 280ms ease, box-shadow 280ms ease;
+  }
+
+  .motion :global(section#how-it-works article:hover) {
+    transform: translateY(-5px);
+    border-color: rgba(245,197,24,.26) !important;
+    box-shadow: 0 32px 66px -42px rgba(0,0,0,.62), 0 10px 24px -22px rgba(245,197,24,.30);
+  }
+
+  .motion :global(main > section:nth-of-type(5)),
+  .motion :global(main > section:nth-of-type(6)) {
+    transition: transform 300ms var(--motion-ease), border-color 300ms ease, box-shadow 300ms ease;
+  }
+
+  .motion :global(main > section:nth-of-type(5):hover),
+  .motion :global(main > section:nth-of-type(6):hover) {
+    transform: translateY(-3px);
+    border-color: rgba(245,197,24,.30) !important;
+    box-shadow: 0 28px 58px -42px rgba(0,0,0,.56);
+  }
+
+  .motion :global(section#support details) {
+    transition: transform 220ms var(--motion-ease), border-color 220ms ease, background 220ms ease;
+  }
+
+  .motion :global(section#support details:hover) {
+    transform: translateY(-2px);
+    border-color: rgba(245,197,24,.24) !important;
+  }
+}
+
+/* Mobile gets the same refinement with shorter travel/duration and no gratuitous hover assumptions. */
+@media (max-width:639px) {
+  .motion :global(main > section:first-of-type > div:nth-of-type(3) > div > *) {
+    animation-duration: 520ms;
+  }
+
+  .motion :global(main > section:first-of-type > div:nth-of-type(4)) {
+    animation-duration: 580ms;
+  }
+
+  .motion :global(main > section:first-of-type a[href="/get-help"])::after {
+    animation-duration: 8.5s;
+  }
+}
+
+/* Accessibility: movement is never required to understand or operate the page. */
+@media (prefers-reduced-motion: reduce) {
+  .motion *,
+  .motion *::before,
+  .motion *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .motion :global(section#support details[open] p) {
+    transform: none !important;
+  }
+}
