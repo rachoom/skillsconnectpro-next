@@ -125,14 +125,18 @@ export const MarketplaceLandingPage = () => {
       </nav>
 
       <section className={styles.hero}>
-        <Image
-          src="/artisans/hero-welder.jpg"
-          alt="Skilled local service provider at work"
-          fill
-          priority
-          sizes="100vw"
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster="/artisans/hero-welder.jpg"
           className={styles.heroImage}
-        />
+          aria-hidden="true"
+        >
+          <source src="/download.webm" type="video/webm" />
+        </video>
         <div className={styles.heroOverlay} />
         <div className={styles.heroGlow} />
 
