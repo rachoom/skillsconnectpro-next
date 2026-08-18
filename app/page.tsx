@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import ClientWrapper from './ClientWrapper';
 import { MarketplaceLandingPage } from '../components/MarketplaceLandingPage';
+import polishStyles from './HomeVisualPolish.module.css';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -34,5 +35,9 @@ export default async function Page({ searchParams }: Props) {
   // account portal is prepared for launch.
   if (claimId) return <ClientWrapper />;
 
-  return <MarketplaceLandingPage />;
+  return (
+    <div className={polishStyles.scope}>
+      <MarketplaceLandingPage />
+    </div>
+  );
 }
