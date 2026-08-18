@@ -1,0 +1,103 @@
+.scope {}
+
+/*
+ * Homepage light-theme contrast pass.
+ * Keep the dark/video hero unchanged; correct only copy that sits on pale
+ * light-theme surfaces and the light glass header controls.
+ */
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(2) > div:first-child > span),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(4) > div:first-child > span),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(5) > div:first-child > span),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(6) > div:first-child > span),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(7) > div:first-child > span),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(4) article > span:first-child) {
+  color: #7a4a00 !important;
+  text-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(2) > div:first-child h2),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(4) > div:first-child h2),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(4) article h3),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(5) h2),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(6) h2),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(7) h2),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(7) summary),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(7) strong) {
+  color: #142018 !important;
+  text-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(2) > div:first-child p),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(4) > div:first-child p),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(4) article p),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(5) p),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(6) p),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(7) details p),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(7) div > span) {
+  color: #5d645e !important;
+  text-shadow: none !important;
+}
+
+/* Light cards: force readable foregrounds without touching image-backed service cards. */
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(4) article),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(5)),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(6)),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(7) details) {
+  color: #142018 !important;
+}
+
+/* Secondary CTAs on pale surfaces should read as dark ink, not white. */
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(5) > a),
+:global(html[data-scp-theme='light']) .scope :global(main > section:nth-of-type(6) > a) {
+  border-color: rgba(20,32,24,.22) !important;
+  background: rgba(255,255,255,.76) !important;
+  color: #183b2b !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 12px 30px -24px rgba(24,59,43,.28) !important;
+}
+
+/*
+ * The logo artwork contains white lettering, so in light mode give just the
+ * brand mark a small smoked-glass island while keeping the outer header light.
+ */
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
+  border: 1px solid rgba(255,255,255,.18) !important;
+  background: linear-gradient(145deg,rgba(18,20,17,.72),rgba(22,20,15,.55)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 10px 24px -20px rgba(0,0,0,.7) !important;
+  backdrop-filter: blur(12px) saturate(125%);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
+  border-color: rgba(20,32,24,.18) !important;
+  background: rgba(255,255,255,.44) !important;
+  color: #183b2b !important;
+  text-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation']) {
+  border-color: rgba(20,32,24,.18) !important;
+  background: rgba(255,255,255,.42) !important;
+  color: #183b2b !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation'] svg) {
+  color: #183b2b !important;
+  stroke: #183b2b !important;
+}
+
+/* Opened menu retains a darker glass surface so white menu copy stays legible. */
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] > div:nth-child(2)) {
+  background: linear-gradient(145deg,rgba(24,24,20,.91),rgba(13,14,12,.87)) !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] > div:nth-child(2) a) {
+  color: rgba(255,255,255,.92) !important;
+}
+
+@media (max-width: 639px) {
+  :global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
+    padding: .18rem .38rem !important;
+    border-radius: .72rem !important;
+  }
+}
