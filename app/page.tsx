@@ -6,6 +6,7 @@ import polishStyles from './HomeVisualPolish.module.css';
 import loopStyles from './HeroLoopExperiment.module.css';
 import headerStyles from './HeaderGlassPolish.module.css';
 import lightContrastStyles from './LightThemeContrastPolish.module.css';
+import motionStyles from './LandingMotionPolish.module.css';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -39,7 +40,7 @@ export default async function Page({ searchParams }: Props) {
   if (claimId) return <ClientWrapper />;
 
   return (
-    <div className={`${polishStyles.scope} ${loopStyles.loopPreview} ${headerStyles.scope} ${lightContrastStyles.scope}`}>
+    <div className={`${polishStyles.scope} ${loopStyles.loopPreview} ${headerStyles.scope} ${lightContrastStyles.scope} ${motionStyles.motion}`}>
       <MarketplaceLandingPage />
     </div>
   );
