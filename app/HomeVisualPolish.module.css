@@ -1,0 +1,391 @@
+.scope {
+  --scp-gold: #f5c518;
+  --scp-ink: #080806;
+  --scp-cream: #fffaf0;
+}
+
+/*
+ * Homepage-only visual refinement layer.
+ * This deliberately changes presentation only: no routes, state, forms,
+ * data flow, marketplace behaviour or backend logic are touched.
+ */
+.scope :global(nav[aria-label="Primary navigation"]) {
+  top: 0;
+  padding: .6rem .75rem 0;
+  border-bottom: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+  min-height: 60px;
+  width: min(100%, 76rem);
+  padding: 0 .55rem 0 .8rem;
+  border: 1px solid rgba(245,197,24,.22);
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg,rgba(13,12,10,.92),rgba(7,7,6,.86));
+  box-shadow:
+    0 18px 48px -32px rgba(0,0,0,.95),
+    inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) {
+  filter: drop-shadow(0 5px 14px rgba(0,0,0,.22));
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+  min-height: 40px;
+  border-color: rgba(245,197,24,.34);
+  border-radius: .85rem;
+  background: rgba(255,255,255,.055);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]) {
+  width: 42px;
+  height: 42px;
+  border-color: rgba(245,197,24,.25);
+  border-radius: .85rem;
+  background: linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2)) {
+  width: min(calc(100% - 1.5rem), 34rem);
+  margin: .45rem 0 0 auto;
+  border: 1px solid rgba(245,197,24,.18);
+  border-radius: 1.2rem;
+  background: rgba(8,8,7,.97);
+  box-shadow: 0 24px 60px -34px rgba(0,0,0,.96);
+  overflow: hidden;
+}
+
+/* Hero surface */
+.scope :global(main > section:first-of-type) {
+  isolation: isolate;
+  min-height: 74svh;
+  padding-top: 4.5rem;
+  border-bottom-left-radius: 2.2rem;
+  border-bottom-right-radius: 2.2rem;
+  box-shadow: 0 28px 70px -54px rgba(245,197,24,.42);
+}
+
+.scope :global(main > section:first-of-type)::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 30%,rgba(245,197,24,.08),transparent 26rem),
+    linear-gradient(180deg,rgba(255,255,255,.025),transparent 28%);
+}
+
+.scope :global(main > section:first-of-type > img) {
+  object-position: 67% center !important;
+  filter: saturate(1.02) contrast(1.08) brightness(.96) !important;
+  transform: scale(1.008);
+}
+
+/* First direct div is the directional image overlay. */
+.scope :global(main > section:first-of-type > div:nth-of-type(1)) {
+  background:
+    linear-gradient(180deg,rgba(7,7,6,.20),rgba(7,7,6,.38) 70%,rgba(8,8,6,.95)),
+    linear-gradient(90deg,rgba(7,7,6,.97) 0%,rgba(7,7,6,.88) 38%,rgba(7,7,6,.38) 66%,rgba(7,7,6,.10) 100%) !important;
+}
+
+/* Second direct div is the decorative glow. Keep it restrained. */
+.scope :global(main > section:first-of-type > div:nth-of-type(2)) {
+  width: 28rem;
+  height: 28rem;
+  right: -14rem;
+  background: rgba(245,197,24,.075) !important;
+  filter: blur(110px) !important;
+}
+
+/* Third direct div is hero content. */
+.scope :global(main > section:first-of-type > div:nth-of-type(3)) {
+  width: min(100% - 1.5rem,76rem);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div) {
+  max-width: 43rem;
+}
+
+/* Assistant badge */
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:first-child) {
+  min-height: 34px;
+  border-color: rgba(245,197,24,.34);
+  background: rgba(8,8,7,.58);
+  color: #ffe46d;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
+  letter-spacing: .13em;
+}
+
+.scope :global(main > section:first-of-type h1) {
+  max-width: 41rem;
+  margin-top: 1.1rem;
+  color: var(--scp-cream);
+  letter-spacing: -.058em;
+  line-height: .93;
+  text-wrap: balance;
+  text-shadow: 0 10px 34px rgba(0,0,0,.44);
+}
+
+.scope :global(main > section:first-of-type h1 span) {
+  color: #ffd83d;
+  text-shadow: 0 8px 28px rgba(245,197,24,.11);
+}
+
+.scope :global(main > section:first-of-type h1 + p) {
+  max-width: 37rem;
+  margin-top: 1.15rem;
+  color: rgba(255,250,240,.82);
+  line-height: 1.65;
+}
+
+/* Primary hero CTA */
+.scope :global(main > section:first-of-type a[href="/get-help"]) {
+  min-height: 56px;
+  border: 1px solid rgba(255,221,83,.92);
+  border-radius: 1rem;
+  background: linear-gradient(135deg,#ffdc43 0%,#f5c518 68%,#e9b90c 100%);
+  color: #151108;
+  box-shadow:
+    0 18px 38px -24px rgba(245,197,24,.72),
+    inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+.scope :global(main > section:first-of-type a[href="/get-help"] svg) {
+  width: 25px;
+  height: 25px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(21,17,8,.09);
+  transition: transform 180ms ease;
+}
+
+/* Input-method note */
+.scope :global(main > section:first-of-type a[href="/get-help"] + p),
+.scope :global(main > section:first-of-type div:nth-of-type(3) p:last-of-type) {
+  color: rgba(255,250,240,.66);
+}
+
+/* Trust assurances become compact premium micro-cards. */
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3)) {
+  gap: .55rem;
+  margin-top: 1.15rem;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) > span) {
+  min-height: 46px;
+  padding: .65rem .78rem;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: .9rem;
+  background: rgba(8,8,7,.50);
+  color: rgba(255,250,240,.88);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) svg) {
+  color: #f5c518;
+}
+
+/* Fourth direct div is the Find / Connect / Grow journey strip. */
+.scope :global(main > section:first-of-type > div:nth-of-type(4)) {
+  width: min(calc(100% - 1.5rem),70rem);
+  margin-top: 2.65rem;
+  border-color: rgba(245,197,24,.18);
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg,rgba(12,12,10,.79),rgba(6,6,5,.86));
+  box-shadow:
+    0 24px 60px -38px rgba(0,0,0,.98),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(4) strong) {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: .68rem;
+  background: var(--scp-gold);
+  color: #171006;
+  letter-spacing: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(4) b) {
+  color: #fffaf0;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(4) small) {
+  color: rgba(255,250,240,.63);
+}
+
+/* Smooth visual handoff into the service grid without changing its content. */
+.scope :global(main > section:nth-of-type(2)) {
+  position: relative;
+  z-index: 4;
+  margin-top: -1.35rem;
+  padding-top: 5.3rem;
+  border-top-left-radius: 2.2rem;
+  border-top-right-radius: 2.2rem;
+  box-shadow: 0 -20px 54px -46px rgba(245,197,24,.42);
+}
+
+@media (hover:hover) {
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]:hover),
+  .scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]:hover) {
+    border-color: rgba(245,197,24,.5);
+    background: rgba(245,197,24,.08);
+  }
+
+  .scope :global(main > section:first-of-type a[href="/get-help"]:hover svg) {
+    transform: translateX(2px);
+  }
+}
+
+@media (max-width:639px) {
+  .scope :global(nav[aria-label="Primary navigation"]) {
+    padding: .45rem .55rem 0;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+    min-height: 56px;
+    padding-inline: .6rem .45rem;
+    border-radius: 1rem;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) {
+    width: 122px;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+    min-height: 38px;
+    padding-inline: .62rem;
+    font-size: .64rem;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]) {
+    width: 40px;
+    height: 40px;
+  }
+
+  .scope :global(main > section:first-of-type) {
+    min-height: 72svh;
+    padding: 4.25rem 0 3.2rem;
+    border-bottom-left-radius: 1.65rem;
+    border-bottom-right-radius: 1.65rem;
+  }
+
+  .scope :global(main > section:first-of-type > img) {
+    object-position: 70% center !important;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(1)) {
+    background:
+      linear-gradient(180deg,rgba(7,7,6,.23),rgba(7,7,6,.46) 68%,rgba(8,8,6,.96)),
+      linear-gradient(90deg,rgba(7,7,6,.96) 0%,rgba(7,7,6,.80) 58%,rgba(7,7,6,.23) 100%) !important;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div) {
+    max-width: 94%;
+  }
+
+  .scope :global(main > section:first-of-type h1) {
+    max-width: 20rem;
+    font-size: clamp(2.65rem,13vw,3.45rem);
+    line-height: .94;
+  }
+
+  .scope :global(main > section:first-of-type h1 + p) {
+    max-width: 29rem;
+    font-size: .96rem;
+    line-height: 1.58;
+  }
+
+  .scope :global(main > section:first-of-type a[href="/get-help"]) {
+    width: 100%;
+    min-height: 55px;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3)) {
+    grid-template-columns: 1fr;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) > span) {
+    width: 100%;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(4)) {
+    gap: .48rem;
+    margin-top: 2rem;
+    padding: .72rem;
+    border-radius: 1rem;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(4) > div) {
+    min-height: 46px;
+    padding: .1rem .15rem;
+  }
+
+  .scope :global(main > section:nth-of-type(2)) {
+    margin-top: -1rem;
+    padding-top: 4.8rem;
+    border-top-left-radius: 1.65rem;
+    border-top-right-radius: 1.65rem;
+  }
+}
+
+@media (min-width:640px) and (max-width:899px) {
+  .scope :global(main > section:first-of-type) {
+    min-height: 72svh;
+    padding-top: 5rem;
+  }
+
+  .scope :global(main > section:first-of-type > img) {
+    object-position: 69% center !important;
+  }
+}
+
+@media (min-width:900px) {
+  .scope :global(nav[aria-label="Primary navigation"]) {
+    padding-top: .75rem;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+    min-height: 66px;
+    padding-inline: 1rem .65rem;
+    border-radius: 1.4rem;
+  }
+
+  .scope :global(main > section:first-of-type) {
+    min-height: 80vh;
+    padding: 6rem 0 4.7rem;
+  }
+
+  .scope :global(main > section:first-of-type h1) {
+    font-size: clamp(4.7rem,7.6vw,6.5rem);
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3)) {
+    grid-template-columns: repeat(2,max-content);
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .scope *,
+  .scope *::before,
+  .scope *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
