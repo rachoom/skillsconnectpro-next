@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import ClientWrapper from './ClientWrapper';
 import { MarketplaceLandingPage } from '../components/MarketplaceLandingPage';
 import polishStyles from './HomeVisualPolish.module.css';
+import loopStyles from './HeroLoopExperiment.module.css';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -36,7 +37,7 @@ export default async function Page({ searchParams }: Props) {
   if (claimId) return <ClientWrapper />;
 
   return (
-    <div className={polishStyles.scope}>
+    <div className={`${polishStyles.scope} ${loopStyles.loopPreview}`}>
       <MarketplaceLandingPage />
     </div>
   );
