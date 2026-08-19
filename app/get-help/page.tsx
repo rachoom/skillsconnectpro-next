@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { IntakeCopyPolish } from '../../components/IntakeCopyPolish';
 import { IntakeNavigation } from '../../components/IntakeNavigation';
 import { IntakeVisualShell } from '../../components/IntakeVisualShell';
+import { ProjectBriefUXEnhancer } from '../../components/ProjectBriefUXEnhancer';
 import { ProjectIntakeEntryBridge } from '../../components/ProjectIntakeEntryBridge';
 import { ProjectIntakeV2 } from '../../components/ProjectIntakeV2';
 
@@ -20,6 +21,7 @@ export default function GetHelpPage() {
         <ProjectIntakeEntryBridge />
       </Suspense>
       <ProjectIntakeV2 />
+      <ProjectBriefUXEnhancer />
     </IntakeVisualShell>
   );
 }
