@@ -79,6 +79,8 @@ const faqs = [
   },
 ];
 
+const HERO_IMAGE = 'https://images.pexels.com/photos/14074835/pexels-photo-14074835.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1920&h=1080';
+
 export const MarketplaceLandingPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
@@ -92,9 +94,10 @@ export const MarketplaceLandingPage = () => {
           </Link>
 
           <div className={styles.desktopNav}>
-            <a href="#services">Services</a>
+            <a href="#services">Find services</a>
             <a href="#how-it-works">How it works</a>
             <Link href="/browse-providers">Browse providers</Link>
+            <Link href="/join">For providers</Link>
             <a href="#support">Support</a>
           </div>
 
@@ -114,7 +117,7 @@ export const MarketplaceLandingPage = () => {
 
         {menuOpen && (
           <div className={styles.mobileMenu}>
-            <a href="#services" onClick={closeMenu}>Services</a>
+            <a href="#services" onClick={closeMenu}>Find services</a>
             <a href="#how-it-works" onClick={closeMenu}>How it works</a>
             <Link href="/browse-providers" onClick={closeMenu}>Browse providers</Link>
             <Link href="/estimator" onClick={closeMenu}>Cost estimator</Link>
@@ -125,39 +128,46 @@ export const MarketplaceLandingPage = () => {
       </nav>
 
       <section className={styles.hero}>
-        <Image
-          src="/artisans/hero-welder.jpg"
-          alt="Skilled local service provider at work"
-          fill
-          priority
-          sizes="100vw"
+        <img
+          src={HERO_IMAGE}
+          alt="A modern home improvement project with skilled workers on site"
           className={styles.heroImage}
+          loading="eager"
+          fetchPriority="high"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = '/artisans/hero-welder.jpg';
+          }}
         />
         <div className={styles.heroOverlay} />
         <div className={styles.heroGlow} />
 
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <div className={styles.eyebrow}><Sparkles size={15} /> Trusted local skills. One guided connection.</div>
-            <h1>Need the right service provider? <span>We&apos;ve got you.</span></h1>
+            <div className={styles.eyebrow}><Sparkles size={15} /> Home improvement. One guided connection.</div>
+            <h1>Need the right home service? <span>We&apos;ve got you.</span></h1>
             <p>
-              Tell us what you need. We&apos;ll turn it into a clear project, connect you with suitable local providers,
-              and help you compare responses with confidence.
+              Tell us what needs fixing, improving or building. We&apos;ll turn it into a clear project, connect you with
+              suitable local providers, and help you compare responses with confidence.
             </p>
 
             <div className={styles.heroButtons}>
               <Link href="/get-help" className={styles.primaryButton}>
                 Show us the job <ArrowRight size={19} />
               </Link>
+              <a href="#how-it-works" className={styles.heroSecondaryButton}>
+                Learn how it works <ArrowRight size={18} />
+              </a>
             </div>
 
             <p className={styles.inputNote}>
-              Typing, photographs and voice input are all available inside the same guided form.
+              Type it, photograph it or describe it by voice — the same guided form handles all three.
             </p>
 
             <div className={styles.heroAssurances}>
-              <span><ShieldCheck size={21} /> Private contact details</span>
-              <span><CheckCircle2 size={21} /> You choose who to connect with</span>
+              <span><ShieldCheck size={21} /> Private &amp; secure</span>
+              <span><CheckCircle2 size={21} /> You choose who connects</span>
+              <span><CheckCircle2 size={21} /> Compare with confidence</span>
             </div>
           </div>
         </div>
