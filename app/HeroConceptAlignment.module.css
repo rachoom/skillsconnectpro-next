@@ -2,12 +2,12 @@
 
 /*
  * Homepage concept alignment.
- * Keep the hero editorial and image-led: a floating transparent title bar,
- * restrained left column and no UI cards sitting across the photograph.
+ * The target is an architectural, image-led hero: deep charcoal glass,
+ * warm gold light and a restrained left copy column.
  */
 .scope :global(nav[aria-label='Primary navigation']) {
   position: absolute !important;
-  top: .85rem !important;
+  top: .75rem !important;
   right: 0;
   left: 0;
   z-index: 90;
@@ -24,15 +24,15 @@
 }
 
 .scope :global(nav[aria-label='Primary navigation'] > div:first-child) {
-  min-height: 62px !important;
+  min-height: 64px !important;
   width: min(calc(100% - .2rem), 76rem) !important;
-  padding: .38rem .5rem .38rem .8rem !important;
-  border: 1px solid rgba(255,255,255,.22) !important;
-  border-radius: 1.15rem !important;
-  background: linear-gradient(115deg,rgba(7,9,8,.44),rgba(7,9,8,.20)) !important;
-  box-shadow: 0 18px 44px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.11) !important;
-  backdrop-filter: blur(18px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+  padding: .38rem .48rem .38rem .8rem !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  border-radius: 1rem !important;
+  background: linear-gradient(115deg,rgba(12,14,13,.76),rgba(14,15,14,.58)) !important;
+  box-shadow: 0 18px 48px -30px rgba(0,0,0,.94), inset 0 1px 0 rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(118%) !important;
 }
 
 .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
@@ -45,33 +45,33 @@
 }
 
 .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home'] img) {
-  width: 142px !important;
+  width: 148px !important;
   height: auto !important;
-  filter: drop-shadow(0 3px 10px rgba(0,0,0,.30)) !important;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,.32)) !important;
 }
 
 .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
   min-height: 42px !important;
-  padding-inline: .9rem !important;
-  border: 1px solid rgba(255,255,255,.30) !important;
-  border-radius: .8rem !important;
-  background: rgba(8,10,9,.25) !important;
-  color: #fff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.09) !important;
+  padding-inline: 1rem !important;
+  border: 1px solid #f5c518 !important;
+  border-radius: .72rem !important;
+  background: linear-gradient(135deg,#ffd62e,#f5c518) !important;
+  color: #171006 !important;
+  box-shadow: 0 10px 28px -18px rgba(245,197,24,.72), inset 0 1px 0 rgba(255,255,255,.36) !important;
   text-shadow: none !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation']) {
   width: 42px !important;
   height: 42px !important;
   min-height: 42px !important;
-  border: 1px solid rgba(255,255,255,.30) !important;
-  border-radius: .8rem !important;
-  background: rgba(8,10,9,.25) !important;
+  border: 1px solid rgba(255,255,255,.24) !important;
+  border-radius: .72rem !important;
+  background: rgba(8,10,9,.46) !important;
   color: #fff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.09) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
@@ -86,7 +86,7 @@
   margin: .55rem .9rem 0 auto !important;
   border: 1px solid rgba(255,255,255,.18) !important;
   border-radius: 1rem !important;
-  background: rgba(7,9,8,.88) !important;
+  background: rgba(7,9,8,.94) !important;
   box-shadow: 0 20px 50px -30px rgba(0,0,0,.95) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
@@ -97,15 +97,44 @@
 }
 
 .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:nth-child(2) a) {
-  color: rgba(255,255,255,.76) !important;
+  color: rgba(255,255,255,.78) !important;
 }
 
-/* Hero: image first, copy second. */
+/* Stop the light theme from turning the hero navigation into a pale slab. */
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] > div:first-child) {
+  border-color: rgba(255,255,255,.16) !important;
+  background: linear-gradient(115deg,rgba(12,14,13,.76),rgba(14,15,14,.58)) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
+  border-color: #f5c518 !important;
+  background: linear-gradient(135deg,#ffd62e,#f5c518) !important;
+  color: #171006 !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation']) {
+  border-color: rgba(255,255,255,.24) !important;
+  background: rgba(8,10,9,.46) !important;
+  color: #fff !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation'] svg) {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+/* Hero: house first, copy second. */
 .scope :global(main > section:first-of-type) {
-  min-height: 88svh !important;
-  padding: 9rem 0 6.5rem !important;
-  border-radius: 0 0 2rem 2rem !important;
-  background: #080a09 !important;
+  min-height: 86svh !important;
+  padding: 8.7rem 0 6.2rem !important;
+  border-radius: 0 !important;
+  background: #070807 !important;
 }
 
 .scope :global(main > section:first-of-type > img) {
@@ -114,15 +143,15 @@
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  object-position: 72% center !important;
-  filter: saturate(.98) contrast(1.02) brightness(.94) !important;
+  object-position: 60% center !important;
+  filter: saturate(.78) contrast(1.10) brightness(.72) !important;
   transform: none !important;
 }
 
 .scope :global(main > section:first-of-type > div:nth-of-type(1)) {
   background:
-    linear-gradient(180deg,rgba(5,7,6,.08) 0%,rgba(5,7,6,.06) 62%,rgba(5,7,6,.54) 100%),
-    linear-gradient(90deg,rgba(4,6,5,.88) 0%,rgba(4,6,5,.69) 26%,rgba(4,6,5,.30) 43%,rgba(4,6,5,.06) 61%,transparent 78%) !important;
+    linear-gradient(180deg,rgba(4,5,5,.22) 0%,rgba(4,5,5,.13) 58%,rgba(4,5,5,.68) 100%),
+    linear-gradient(90deg,rgba(3,5,4,.94) 0%,rgba(3,5,4,.80) 25%,rgba(3,5,4,.49) 42%,rgba(3,5,4,.16) 61%,rgba(3,5,4,.02) 78%) !important;
 }
 
 .scope :global(main > section:first-of-type > div:nth-of-type(2)) {
@@ -139,41 +168,41 @@
 
 .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:first-child) {
   min-height: 0 !important;
-  padding: .48rem .66rem !important;
-  border: 1px solid rgba(255,255,255,.26) !important;
+  padding: .48rem .7rem !important;
+  border: 1px solid rgba(245,197,24,.42) !important;
   border-radius: 999px !important;
-  background: rgba(5,7,6,.20) !important;
-  color: rgba(255,255,255,.80) !important;
+  background: rgba(5,7,6,.42) !important;
+  color: #f6d85b !important;
   box-shadow: none !important;
   letter-spacing: .12em !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: blur(9px) !important;
+  -webkit-backdrop-filter: blur(9px) !important;
 }
 
 .scope :global(main > section:first-of-type h1) {
-  max-width: 9.4ch !important;
+  max-width: 9.7ch !important;
   margin-top: 1.15rem !important;
   color: #fff !important;
   font-size: clamp(3.5rem,6vw,5.35rem) !important;
-  font-weight: 820 !important;
-  line-height: .96 !important;
-  letter-spacing: -.052em !important;
+  font-weight: 850 !important;
+  line-height: .95 !important;
+  letter-spacing: -.055em !important;
   text-wrap: balance;
-  text-shadow: 0 6px 30px rgba(0,0,0,.38) !important;
+  text-shadow: 0 6px 30px rgba(0,0,0,.44) !important;
 }
 
 .scope :global(main > section:first-of-type h1 span) {
-  color: #fff !important;
+  color: #f5c518 !important;
   text-shadow: inherit !important;
 }
 
 .scope :global(main > section:first-of-type h1 + p) {
-  max-width: 28rem !important;
+  max-width: 29rem !important;
   margin-top: 1.25rem !important;
-  color: rgba(255,255,255,.76) !important;
+  color: rgba(255,255,255,.77) !important;
   font-size: .96rem !important;
   line-height: 1.68 !important;
-  text-shadow: 0 2px 15px rgba(0,0,0,.30) !important;
+  text-shadow: 0 2px 15px rgba(0,0,0,.34) !important;
 }
 
 .scope :global(main > section:first-of-type h1 + p + div) {
@@ -189,7 +218,7 @@
   min-width: 11.5rem !important;
   min-height: 51px !important;
   padding-inline: 1.1rem !important;
-  border-radius: .8rem !important;
+  border-radius: .72rem !important;
   box-shadow: 0 12px 30px -20px rgba(245,197,24,.75) !important;
 }
 
@@ -198,16 +227,16 @@
   min-width: 10.5rem !important;
   min-height: 51px !important;
   padding: .8rem 1rem !important;
-  border: 1px solid rgba(255,255,255,.32) !important;
-  border-radius: .8rem !important;
-  background: rgba(7,9,8,.20) !important;
+  border: 1px solid rgba(245,197,24,.48) !important;
+  border-radius: .72rem !important;
+  background: rgba(7,9,8,.46) !important;
   color: #fff !important;
   box-shadow: none !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: blur(9px) !important;
+  -webkit-backdrop-filter: blur(9px) !important;
 }
 
-/* Safety against older homepage rules: these dense rails no longer belong in the image. */
+/* Safety against older homepage rules: dense rails do not belong inside the photograph. */
 .scope :global(main > section:first-of-type [class*='heroAssurances']),
 .scope :global(main > section:first-of-type [class*='heroJourney']),
 .scope :global(main > section:first-of-type [class*='inputNote']) {
@@ -215,17 +244,21 @@
 }
 
 @media (hover:hover) {
-  .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']:hover),
+  .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']:hover) {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
   .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation']:hover),
   .scope :global(main > section:first-of-type a[href='#how-it-works']:hover) {
-    border-color: rgba(245,197,24,.58) !important;
-    background: rgba(7,9,8,.38) !important;
+    border-color: rgba(245,197,24,.65) !important;
+    background: rgba(7,9,8,.64) !important;
   }
 }
 
 @media (max-width: 639px) {
   .scope :global(nav[aria-label='Primary navigation']) {
-    top: .55rem !important;
+    top: .5rem !important;
     padding: 0 .55rem !important;
   }
 
@@ -233,8 +266,8 @@
     min-height: 56px !important;
     width: 100% !important;
     padding: .28rem .34rem .28rem .56rem !important;
-    border-radius: .95rem !important;
-    background: linear-gradient(115deg,rgba(7,9,8,.42),rgba(7,9,8,.18)) !important;
+    border-radius: .9rem !important;
+    background: linear-gradient(115deg,rgba(12,14,13,.79),rgba(14,15,14,.60)) !important;
   }
 
   .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home'] img) {
@@ -243,7 +276,7 @@
 
   .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
     min-height: 39px !important;
-    padding-inline: .62rem !important;
+    padding-inline: .7rem !important;
     font-size: .62rem !important;
   }
 
@@ -255,19 +288,19 @@
 
   .scope :global(main > section:first-of-type) {
     min-height: 82svh !important;
-    padding: 7.6rem 0 5rem !important;
-    border-radius: 0 0 1.5rem 1.5rem !important;
+    padding: 7.45rem 0 4.8rem !important;
+    border-radius: 0 !important;
   }
 
   .scope :global(main > section:first-of-type > img) {
-    object-position: 68% center !important;
-    filter: saturate(.96) contrast(1.02) brightness(.90) !important;
+    object-position: 62% center !important;
+    filter: saturate(.75) contrast(1.08) brightness(.68) !important;
   }
 
   .scope :global(main > section:first-of-type > div:nth-of-type(1)) {
     background:
-      linear-gradient(180deg,rgba(5,7,6,.07),rgba(5,7,6,.10) 68%,rgba(5,7,6,.57) 100%),
-      linear-gradient(90deg,rgba(4,6,5,.86) 0%,rgba(4,6,5,.61) 40%,rgba(4,6,5,.23) 65%,rgba(4,6,5,.03) 89%) !important;
+      linear-gradient(180deg,rgba(4,5,5,.18),rgba(4,5,5,.15) 66%,rgba(4,5,5,.66) 100%),
+      linear-gradient(90deg,rgba(3,5,4,.93) 0%,rgba(3,5,4,.78) 39%,rgba(3,5,4,.42) 63%,rgba(3,5,4,.08) 90%) !important;
   }
 
   .scope :global(main > section:first-of-type > div:nth-of-type(3)) {
@@ -275,43 +308,53 @@
   }
 
   .scope :global(main > section:first-of-type > div:nth-of-type(3) > div) {
-    max-width: 19.4rem !important;
+    max-width: 20.5rem !important;
   }
 
   .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:first-child) {
-    max-width: 18rem !important;
+    max-width: 18.5rem !important;
     padding: .42rem .55rem !important;
     font-size: .54rem !important;
     line-height: 1.2 !important;
   }
 
   .scope :global(main > section:first-of-type h1) {
-    max-width: 8.2ch !important;
+    max-width: 9.4ch !important;
     margin-top: .95rem !important;
-    font-size: clamp(2.7rem,11.5vw,3.55rem) !important;
-    line-height: .96 !important;
+    font-size: clamp(2.72rem,11.5vw,3.6rem) !important;
+    line-height: .95 !important;
   }
 
   .scope :global(main > section:first-of-type h1 + p) {
-    max-width: 18.5rem !important;
+    max-width: 19.2rem !important;
     margin-top: 1rem !important;
     font-size: .82rem !important;
     line-height: 1.56 !important;
   }
 
   .scope :global(main > section:first-of-type h1 + p + div) {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    max-width: 13.8rem !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    max-width: 19.6rem !important;
     margin-top: 1.25rem !important;
+    gap: .45rem !important;
   }
 
   .scope :global(main > section:first-of-type a[href='/get-help']),
   .scope :global(main > section:first-of-type a[href='#how-it-works']) {
-    width: 100% !important;
+    width: auto !important;
     min-width: 0 !important;
-    min-height: 48px !important;
-    font-size: .76rem !important;
+    min-height: 47px !important;
+    padding-inline: .75rem !important;
+    font-size: .68rem !important;
+  }
+
+  .scope :global(main > section:first-of-type a[href='/get-help']) {
+    flex: 1 1 54%;
+  }
+
+  .scope :global(main > section:first-of-type a[href='#how-it-works']) {
+    flex: 1 1 46%;
   }
 }
 
@@ -327,6 +370,6 @@
 
 @media (prefers-reduced-transparency: reduce) {
   .scope :global(nav[aria-label='Primary navigation'] > div:first-child) {
-    background: rgba(7,9,8,.88) !important;
+    background: rgba(7,9,8,.94) !important;
   }
 }
