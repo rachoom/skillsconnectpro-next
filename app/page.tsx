@@ -15,13 +15,15 @@ type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+const HERO_SOCIAL_IMAGE = 'https://images.unsplash.com/photo-1757359056339-22968344cce6?auto=format&fit=crop&w=1600&q=84';
+
 export const metadata: Metadata = {
   title: 'Skills Connect Pro | Home Improvement & Local Services',
   description: 'Tell us what needs fixing, improving or building. Skills Connect Pro prepares a clear project, connects you with suitable local professionals and helps you compare responses with confidence.',
   openGraph: {
     title: 'Skills Connect Pro | Home Improvement & Local Services',
     description: 'From repairs and maintenance to renovations and improvements, start one guided home project and compare suitable local providers with confidence.',
-    images: [{ url: 'https://images.pexels.com/photos/14074835/pexels-photo-14074835.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1920&h=1080', width: 1200, height: 630 }],
+    images: [{ url: HERO_SOCIAL_IMAGE, width: 1200, height: 630 }],
     type: 'website',
   },
 };
