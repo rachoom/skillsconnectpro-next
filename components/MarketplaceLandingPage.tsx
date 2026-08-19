@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -96,6 +96,85 @@ const faqs = [
 ];
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1757359056339-22968344cce6?auto=format&fit=crop&w=2400&q=84';
+const HERO_LEAD = 'Need the right service provider?';
+const HERO_ACCENT = "We've got you.";
+const HERO_HEADLINE = `${HERO_LEAD} ${HERO_ACCENT}`;
+
+const visuallyHidden: React.CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
+const HeroTypewriterHeadline = () => {
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const syncPreference = () => {
+      setReduceMotion(media.matches);
+      if (media.matches) {
+        setVisibleCount(HERO_HEADLINE.length);
+        setDeleting(false);
+      }
+    };
+
+    syncPreference();
+    media.addEventListener?.('change', syncPreference);
+    return () => media.removeEventListener?.('change', syncPreference);
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    let delay = deleting ? 24 : 48;
+    let nextCount = deleting ? visibleCount - 1 : visibleCount + 1;
+    let nextDeleting = deleting;
+
+    if (!deleting && visibleCount >= HERO_HEADLINE.length) {
+      delay = 1900;
+      nextCount = visibleCount;
+      nextDeleting = true;
+    } else if (deleting && visibleCount <= 0) {
+      delay = 620;
+      nextCount = 0;
+      nextDeleting = false;
+    }
+
+    const timer = window.setTimeout(() => {
+      setVisibleCount(Math.max(0, Math.min(HERO_HEADLINE.length, nextCount)));
+      setDeleting(nextDeleting);
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [visibleCount, deleting, reduceMotion]);
+
+  const visibleText = HERO_HEADLINE.slice(0, visibleCount);
+  const leadText = visibleText.slice(0, Math.min(visibleText.length, HERO_LEAD.length));
+  const accentStart = HERO_LEAD.length + 1;
+  const accentText = visibleText.length > accentStart ? visibleText.slice(accentStart) : '';
+  const showGap = visibleText.length > HERO_LEAD.length;
+
+  return (
+    <h1 aria-label={HERO_HEADLINE} data-hero-typewriter>
+      <span aria-hidden="true" data-hero-typewriter-visual>
+        <span data-hero-typewriter-lead>{leadText}</span>
+        {showGap ? ' ' : null}
+        <span data-hero-typewriter-accent>{accentText}</span>
+        <span data-hero-typewriter-caret />
+      </span>
+      <span aria-hidden="true" style={visuallyHidden}>{HERO_HEADLINE}</span>
+    </h1>
+  );
+};
 
 export const MarketplaceLandingPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -161,7 +240,7 @@ export const MarketplaceLandingPage = () => {
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
             <div className={styles.eyebrow}><Sparkles size={15} /> Trusted local skills. One guided connection.</div>
-            <h1>Need the right service provider? <span>We&apos;ve got you.</span></h1>
+            <HeroTypewriterHeadline />
             <p>
               Tell us what needs fixing, improving or building. We&apos;ll turn it into a clear project, connect you with
               suitable local providers, and help you compare responses with confidence.
