@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { IntakeChromePolish } from '../../components/IntakeChromePolish';
 import { IntakeCopyPolish } from '../../components/IntakeCopyPolish';
 import { IntakeNavigation } from '../../components/IntakeNavigation';
 import { IntakeVisualShell } from '../../components/IntakeVisualShell';
@@ -22,6 +23,7 @@ export default function GetHelpPage() {
       </Suspense>
       <ProjectIntakeV2 />
       <ProjectBriefUXEnhancer />
+      <IntakeChromePolish />
     </IntakeVisualShell>
   );
 }
