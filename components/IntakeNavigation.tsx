@@ -1,10 +1,43 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, House, MessageCircleQuestion } from 'lucide-react';
+import { ChevronLeft, House, MessageCircleQuestion, PencilLine } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export const IntakeNavigation = () => {
+  const [isEditingBrief, setIsEditingBrief] = useState(false);
+
+  useEffect(() => {
+    const sync = () => {
+      setIsEditingBrief(Boolean(document.querySelector("[data-intake-card='brief']")));
+    };
+
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.body, { subtree: true, childList: true });
+    return () => observer.disconnect();
+  }, []);
+
   const goBack = () => {
+    const brief = document.querySelector<HTMLElement>("[data-intake-card='brief']");
+    const changeDescription = brief?.querySelector<HTMLButtonElement>(':scope > button:first-child');
+    if (changeDescription) {
+      changeDescription.click();
+      return;
+    }
+
+    const clarifyBack = document.querySelector<HTMLButtonElement>("[data-intake-stage='clarify'] > button:first-child");
+    if (clarifyBack) {
+      clarifyBack.click();
+      return;
+    }
+
+    const stageBack = document.querySelector<HTMLButtonElement>("[data-intake-stage='confirm'] [data-intake-stage-navigation] button:first-child");
+    if (stageBack) {
+      stageBack.click();
+      return;
+    }
+
     if (window.history.length > 1) window.history.back();
     else window.location.assign('/');
   };
@@ -16,10 +49,12 @@ export const IntakeNavigation = () => {
           type="button"
           onClick={goBack}
           data-intake-nav-action="back"
+          data-intake-nav-mode={isEditingBrief ? 'edit-description' : 'back'}
+          aria-label={isEditingBrief ? 'Change project description' : 'Go back'}
           className="flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 text-xs font-black uppercase tracking-wider text-white/85"
         >
-          <span data-intake-nav-icon aria-hidden="true"><ChevronLeft size={18} /></span>
-          <span data-intake-nav-label>Back</span>
+          <span data-intake-nav-icon aria-hidden="true">{isEditingBrief ? <PencilLine size={17} /> : <ChevronLeft size={18} />}</span>
+          <span data-intake-nav-label>{isEditingBrief ? 'Change description' : 'Back'}</span>
         </button>
 
         <div className="flex items-center gap-2">
