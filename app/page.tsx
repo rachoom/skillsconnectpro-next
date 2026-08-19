@@ -9,6 +9,7 @@ import lightContrastStyles from './LightThemeContrastPolish.module.css';
 import motionStyles from './LandingMotionPolish.module.css';
 import scrollStyles from './LandingScrollReveal.module.css';
 import heroUpgradeStyles from './HeroUpgrade.module.css';
+import heroCompatibilityStyles from './HeroCompatibilityFix.module.css';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -42,7 +43,7 @@ export default async function Page({ searchParams }: Props) {
   if (claimId) return <ClientWrapper />;
 
   return (
-    <div className={`${polishStyles.scope} ${headerStyles.scope} ${lightContrastStyles.scope} ${motionStyles.motion} ${scrollStyles.scope} ${heroUpgradeStyles.scope}`}>
+    <div className={`${polishStyles.scope} ${headerStyles.scope} ${lightContrastStyles.scope} ${motionStyles.motion} ${scrollStyles.scope} ${heroUpgradeStyles.scope} ${heroCompatibilityStyles.scope}`}>
       <LandingScrollReveal />
       <MarketplaceLandingPage />
     </div>
