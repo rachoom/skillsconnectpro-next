@@ -124,10 +124,10 @@ export const MarketplaceLandingPage = () => {
         )}
       </nav>
 
-      <section className={styles.hero}>
+      <section className={styles.hero} data-hero="property-maintenance">
         <Image
-          src="/artisans/hero-welder.jpg"
-          alt="Skilled local service provider at work"
+          src="/artisans/build.png"
+          alt="Home improvement project with local tradespeople working on the property"
           fill
           priority
           sizes="100vw"
@@ -138,36 +138,46 @@ export const MarketplaceLandingPage = () => {
 
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <div className={styles.eyebrow}><Sparkles size={15} /> Trusted local skills. One guided connection.</div>
-            <h1>Need the right service provider? <span>We&apos;ve got you.</span></h1>
+            <div className={styles.eyebrow}><Sparkles size={15} /> Home repair • Maintenance • Improvement</div>
+            <h1>Home improvement, <span>without the guesswork.</span></h1>
             <p>
-              Tell us what you need. We&apos;ll turn it into a clear project, connect you with suitable local providers,
-              and help you compare responses with confidence.
+              Show us what needs fixing, maintaining or improving. Skills Connect Pro turns it into a clear project,
+              connects you with suitable local professionals, and helps you manage the work from request to completion.
             </p>
+
+            <ul aria-label="Popular home project types">
+              <li>Repairs</li>
+              <li>Maintenance</li>
+              <li>Renovations</li>
+              <li>Improvements</li>
+            </ul>
 
             <div className={styles.heroButtons}>
               <Link href="/get-help" className={styles.primaryButton}>
-                Show us the job <ArrowRight size={19} />
+                Start your home project <ArrowRight size={19} />
+              </Link>
+              <Link href="/browse-providers" className={styles.heroSecondaryButton}>
+                Browse providers
               </Link>
             </div>
 
             <p className={styles.inputNote}>
-              Typing, photographs and voice input are all available inside the same guided form.
+              Not sure which trade you need? Start with the problem you can see or the result you want.
             </p>
 
             <div className={styles.heroAssurances}>
-              <span><ShieldCheck size={21} /> Private contact details</span>
-              <span><CheckCircle2 size={21} /> You choose who to connect with</span>
+              <span><ShieldCheck size={21} /> Your details stay private</span>
+              <span><CheckCircle2 size={21} /> Compare before you connect</span>
             </div>
           </div>
         </div>
 
         <div className={styles.heroJourney} aria-label="How Skills Connect Pro works">
-          <div><strong>01</strong><span><b>Find</b><small>Tell us what you need</small></span></div>
+          <div><strong>01</strong><span><b>Describe</b><small>Show us the home project</small></span></div>
           <ArrowRight aria-hidden="true" />
-          <div><strong>02</strong><span><b>Connect</b><small>Compare suitable providers</small></span></div>
+          <div><strong>02</strong><span><b>Match</b><small>Suitable local providers respond</small></span></div>
           <ArrowRight aria-hidden="true" />
-          <div><strong>03</strong><span><b>Grow</b><small>Complete work with confidence</small></span></div>
+          <div><strong>03</strong><span><b>Choose</b><small>Compare, connect and manage</small></span></div>
         </div>
       </section>
 
