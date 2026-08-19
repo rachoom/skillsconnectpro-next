@@ -34,42 +34,17 @@ const trades = [
 ];
 
 const whyPoints = [
-  {
-    number: '01',
-    title: 'A guided project brief',
-    text: 'Start with the result you need. We help turn the problem into a clearer project before providers respond.',
-    icon: ShieldCheck,
-  },
-  {
-    number: '02',
-    title: 'Faster, clearer responses',
-    text: 'Suitable providers respond to the same project context, making the next conversation easier to compare.',
-    icon: Zap,
-  },
-  {
-    number: '03',
-    title: 'You stay in control',
-    text: 'Review the responses and decide who you want to connect with. The choice remains yours.',
-    icon: CheckCircle2,
-  },
-  {
-    number: '04',
-    title: 'Private by design',
-    text: 'Your personal contact details stay protected while you review provider responses.',
-    icon: LockKeyhole,
-  },
-  {
-    number: '05',
-    title: 'Context that stays together',
-    text: 'Keep responses, project communication and completed-job feedback connected to the real work.',
-    icon: Star,
-  },
+  { number: '01', title: 'A guided project brief', icon: ShieldCheck },
+  { number: '02', title: 'Faster, clearer responses', icon: Zap },
+  { number: '03', title: 'You stay in control', icon: CheckCircle2 },
+  { number: '04', title: 'Private by design', icon: LockKeyhole },
+  { number: '05', title: 'Context that stays together', icon: Star },
 ];
 
-const whyStats = [
-  { value: '1', label: 'Guided request' },
-  { value: '3', label: 'Ways to describe the job' },
-  { value: '0', label: 'Contact details shared before you choose' },
+const previewStats = [
+  { value: '100+', label: 'Homeowners' },
+  { value: '250+', label: 'Projects' },
+  { value: '4.8★', label: 'Experience' },
 ];
 
 const steps = [
@@ -212,23 +187,24 @@ export const MarketplaceLandingPage = () => {
         </div>
 
         <div data-home-why-grid>
-          {whyPoints.map(({ number, title, text, icon: Icon }) => (
+          {whyPoints.map(({ number, title, icon: Icon }) => (
             <article key={number} data-home-why-card>
-              <span data-home-why-icon><Icon size={27} /></span>
+              <span data-home-why-icon><Icon size={25} /></span>
               <span data-home-why-number>{number}</span>
               <h3>{title}</h3>
-              <p>{text}</p>
             </article>
           ))}
         </div>
 
         <div data-home-why-proof>
-          <div data-home-why-proof-copy>
-            <strong>Built around the job—not just a listing.</strong>
-            <span>Describe the work once, keep the context together and decide who you want to connect with.</span>
+          <div data-home-why-testimonial>
+            <div data-home-why-stars aria-label="Five star preview rating">★★★★★</div>
+            <blockquote>“The whole process feels clearer because everything starts with the actual job—not just a list of names.”</blockquote>
+            <span>Illustrative homeowner testimonial</span>
           </div>
           <div data-home-why-proof-stats>
-            {whyStats.map((stat) => (
+            <small>Preview figures</small>
+            {previewStats.map((stat) => (
               <div key={stat.label}>
                 <strong>{stat.value}</strong>
                 <span>{stat.label}</span>
