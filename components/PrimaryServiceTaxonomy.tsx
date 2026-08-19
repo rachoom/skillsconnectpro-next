@@ -51,19 +51,19 @@ function replaceAdminCategoryOptions() {
 
     const builders = options.find((option) => option.value === 'Builders');
     if (builders) {
-      if (hasMechanics) builders.remove();
+      if (hasCleaners) builders.remove();
       else {
-        builders.value = 'Mechanics';
-        builders.textContent = 'Mechanics';
+        builders.value = 'Cleaners';
+        builders.textContent = 'Cleaners';
       }
     }
 
     const carpenters = Array.from(select.options).find((option) => option.value === 'Carpenters');
     if (carpenters) {
-      if (hasCleaners) carpenters.remove();
+      if (hasMechanics) carpenters.remove();
       else {
-        carpenters.value = 'Cleaners';
-        carpenters.textContent = 'Cleaners';
+        carpenters.value = 'Mechanics';
+        carpenters.textContent = 'Mechanics';
       }
     }
   }
@@ -81,8 +81,8 @@ function removeLegacyPromotedCards() {
     if (!card || card.closest('#services')) continue;
 
     const pageHasReplacement = src.includes('builders.png')
-      ? Boolean(document.querySelector('img[src*="/artisans/Cards/Mechanic.png"]'))
-      : Boolean(document.querySelector('img[src*="/artisans/Cards/Cleaners.png"]'));
+      ? Boolean(document.querySelector('img[src*="/artisans/Cards/Cleaners.png"]'))
+      : Boolean(document.querySelector('img[src*="/artisans/Cards/Mechanic.png"]'));
 
     if (pageHasReplacement) card.style.display = 'none';
   }
