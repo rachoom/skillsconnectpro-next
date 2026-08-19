@@ -16,12 +16,12 @@ type Props = {
 };
 
 export const metadata: Metadata = {
-  title: 'Skills Connect Pro | Your Local Home-Services Assistant',
-  description: 'Describe, photograph or speak about a home-service job. Skills Connect Pro prepares a clear request, invites suitable local providers and helps you manage the job from start to finish.',
+  title: 'Skills Connect Pro | Home Improvement & Local Services',
+  description: 'Tell us what needs fixing, improving or building. Skills Connect Pro prepares a clear project, connects you with suitable local professionals and helps you compare responses with confidence.',
   openGraph: {
-    title: 'Skills Connect Pro | Your Local Home-Services Assistant',
-    description: 'Show us the job, compare provider responses and manage the work through one guided local marketplace.',
-    images: [{ url: '/artisans/hero-welder.jpg', width: 1200, height: 630 }],
+    title: 'Skills Connect Pro | Home Improvement & Local Services',
+    description: 'From repairs and maintenance to renovations and improvements, start one guided home project and compare suitable local providers with confidence.',
+    images: [{ url: 'https://images.pexels.com/photos/14074835/pexels-photo-14074835.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1920&h=1080', width: 1200, height: 630 }],
     type: 'website',
   },
 };
