@@ -1,0 +1,123 @@
+.scope {}
+
+/* Final homepage header sizing and contrast pass. */
+.scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home'] img) {
+  width: 197px !important;
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* The hero is dark in both site themes, so the mobile navigation needs a
+   guaranteed high-contrast treatment rather than inheriting page text colors. */
+:global(html[data-scp-theme='dark']) .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation']) {
+  border-color: rgba(245,197,24,.48) !important;
+  background: rgba(7,9,8,.58) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 8px 22px -16px rgba(0,0,0,.92) !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation'] svg) {
+  color: #f5c518 !important;
+  stroke: #f5c518 !important;
+  opacity: 1 !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope :global(nav[aria-label='Primary navigation'] > div:nth-child(2)) {
+  border-color: rgba(245,197,24,.22) !important;
+  background: rgba(7,9,8,.97) !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope :global(nav[aria-label='Primary navigation'] > div:nth-child(2) a) {
+  color: #ffffff !important;
+  text-shadow: 0 1px 10px rgba(0,0,0,.55) !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope :global(nav[aria-label='Primary navigation'] > div:nth-child(2) a:last-child) {
+  background: #f5c518 !important;
+  color: #171006 !important;
+  text-shadow: none !important;
+}
+
+/* Keep the hamburger itself crisp over the dusk hero in light mode too. */
+:global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation'] svg) {
+  color: #f5c518 !important;
+  stroke: #f5c518 !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 639px) {
+  .scope :global(nav[aria-label='Primary navigation'] > div:first-child) {
+    gap: .48rem !important;
+    padding-inline: .68rem !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home'] img) {
+    width: 175px !important;
+    max-width: 100%;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child) {
+    flex: 0 0 auto;
+    gap: .42rem !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
+    min-height: 36px !important;
+    padding-inline: .66rem !important;
+    white-space: nowrap;
+    font-size: .60rem !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation']) {
+    flex: 0 0 36px;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] > div:nth-child(2)) {
+    width: calc(100% - 1rem) !important;
+    max-height: calc(100svh - 4.5rem);
+    overflow-y: auto;
+    margin: .4rem .5rem 0 !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] > div:nth-child(2) a) {
+    min-height: 46px !important;
+    padding: .72rem .9rem !important;
+    font-size: .82rem !important;
+    line-height: 1.2 !important;
+  }
+}
+
+/* Extra breathing room for smaller Android/iPhone widths. */
+@media (max-width: 380px) {
+  .scope :global(nav[aria-label='Primary navigation'] > div:first-child) {
+    gap: .32rem !important;
+    padding-inline: .52rem !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home'] img) {
+    width: 160px !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child) {
+    gap: .30rem !important;
+  }
+
+  .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
+    padding-inline: .52rem !important;
+    font-size: .56rem !important;
+  }
+}
