@@ -1,0 +1,351 @@
+.scope {
+  --hero-gold: #f5c518;
+  --hero-ink: #090a08;
+  --hero-cream: #fffaf0;
+}
+
+/* Property-first homepage refinement. Presentation only. */
+.scope :global(nav[aria-label="Primary navigation"]) {
+  top: .4rem !important;
+  padding: .35rem .7rem 0 !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+  min-height: 64px !important;
+  width: min(calc(100% - .35rem), 76rem) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  border-radius: 1.25rem !important;
+  background: linear-gradient(135deg,rgba(8,12,10,.88),rgba(10,11,9,.72) 62%,rgba(38,31,7,.62)) !important;
+  box-shadow: 0 22px 58px -34px rgba(0,0,0,.96), 0 8px 24px -21px rgba(245,197,24,.72), inset 0 1px 0 rgba(255,255,255,.16) !important;
+  backdrop-filter: blur(24px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(145%) !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child)::after {
+  left: 4% !important;
+  right: 4% !important;
+  background: linear-gradient(90deg,transparent,rgba(245,197,24,.72),transparent) !important;
+  opacity: .84 !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) {
+  width: 150px !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+  min-height: 42px !important;
+  padding-inline: .85rem !important;
+  border: 1px solid rgba(245,197,24,.46) !important;
+  border-radius: .85rem !important;
+  background: linear-gradient(145deg,rgba(245,197,24,.13),rgba(255,255,255,.045)) !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 10px 24px -19px rgba(245,197,24,.72) !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"])::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-right: .4rem;
+  border-radius: 999px;
+  background: var(--hero-gold);
+  box-shadow: 0 0 0 4px rgba(245,197,24,.10);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]) {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: .85rem !important;
+  border-color: rgba(255,255,255,.22) !important;
+  background: rgba(255,255,255,.07) !important;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:nth-child(2) a) {
+  position: relative;
+  color: rgba(255,250,240,.74) !important;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:nth-child(2) a)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -.55rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--hero-gold);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 160ms ease;
+}
+
+.scope :global(section[data-hero="property-maintenance"]) {
+  min-height: 80svh !important;
+  padding-top: 5.8rem !important;
+  padding-bottom: 4.5rem !important;
+  border-bottom-left-radius: 2.35rem !important;
+  border-bottom-right-radius: 2.35rem !important;
+  background: #0a0b08;
+}
+
+.scope :global(section[data-hero="property-maintenance"] > img) {
+  object-position: 58% 54% !important;
+  filter: saturate(1.03) contrast(1.04) brightness(1.03) !important;
+  transform: scale(1.01) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(1)) {
+  background: linear-gradient(180deg,rgba(6,8,7,.18),rgba(6,8,7,.18) 58%,rgba(8,8,6,.94) 100%), linear-gradient(90deg,rgba(7,8,7,.92) 0%,rgba(7,8,7,.77) 30%,rgba(7,8,7,.44) 48%,rgba(7,8,7,.12) 70%,rgba(7,8,7,.04) 100%) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(2)) {
+  width: 34rem !important;
+  height: 34rem !important;
+  right: -10rem !important;
+  top: 20% !important;
+  background: rgba(245,197,24,.09) !important;
+  filter: blur(130px) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(3) > div) {
+  max-width: 45rem !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(3) > div > div:first-child) {
+  border-color: rgba(245,197,24,.42) !important;
+  background: rgba(8,10,8,.58) !important;
+  color: #ffe36a !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 30px -24px rgba(0,0,0,.88) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] h1) {
+  max-width: 44rem !important;
+  font-size: clamp(3.35rem, 7.2vw, 6rem) !important;
+  line-height: .93 !important;
+  letter-spacing: -.06em !important;
+  text-shadow: 0 12px 36px rgba(0,0,0,.48) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] h1 span) { color: #ffd83d !important; }
+
+.scope :global(section[data-hero="property-maintenance"] h1 + p) {
+  max-width: 39rem !important;
+  color: rgba(255,250,240,.86) !important;
+  font-size: 1.03rem !important;
+  line-height: 1.68 !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] ul[aria-label="Popular home project types"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 1.15rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scope :global(section[data-hero="property-maintenance"] ul[aria-label="Popular home project types"] li) {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  background: rgba(8,10,8,.44);
+  padding: .4rem .7rem;
+  color: rgba(255,250,240,.84);
+  font-size: .69rem;
+  font-weight: 850;
+  letter-spacing: .035em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.scope :global(section[data-hero="property-maintenance"] ul[aria-label="Popular home project types"] li)::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-right: .4rem;
+  border-radius: 999px;
+  background: var(--hero-gold);
+}
+
+.scope :global(section[data-hero="property-maintenance"] div[class*="heroButtons"]) {
+  align-items: stretch;
+  gap: .65rem !important;
+  margin-top: 1.35rem !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] a[href="/get-help"]) {
+  min-width: 250px !important;
+  min-height: 58px !important;
+  border-radius: 1rem !important;
+  font-size: .84rem !important;
+  box-shadow: 0 20px 42px -24px rgba(245,197,24,.84), inset 0 1px 0 rgba(255,255,255,.56) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] a[href="/browse-providers"]) {
+  min-width: 170px;
+  min-height: 58px;
+  padding-inline: 1.05rem;
+  border-color: rgba(255,255,255,.36) !important;
+  background: rgba(7,9,8,.44) !important;
+  color: #fffaf0 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.075);
+}
+
+.scope :global(section[data-hero="property-maintenance"] a[href="/get-help"] + a[href="/browse-providers"])::after {
+  content: "↗";
+  margin-left: .55rem;
+  color: var(--hero-gold);
+  font-size: 1rem;
+}
+
+.scope :global(section[data-hero="property-maintenance"] p[class*="inputNote"]) {
+  max-width: 37rem !important;
+  margin-top: .8rem !important;
+  color: rgba(255,250,240,.68) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] div[class*="heroAssurances"] > span) {
+  border-color: rgba(255,255,255,.15) !important;
+  background: rgba(7,9,8,.46) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(4)) {
+  width: min(calc(100% - 1.5rem), 72rem) !important;
+  border-color: rgba(245,197,24,.22) !important;
+  background: linear-gradient(100deg,rgba(8,11,9,.84),rgba(11,11,8,.74),rgba(35,29,8,.58)) !important;
+  box-shadow: 0 28px 68px -40px rgba(0,0,0,.98), inset 0 1px 0 rgba(255,255,255,.075) !important;
+}
+
+.scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(4) strong) {
+  background: linear-gradient(145deg,#ffe164,#f5c518) !important;
+  color: #171006 !important;
+}
+
+@media (hover:hover) {
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:nth-child(2) a:hover) {
+    color: #fffaf0 !important;
+    transform: translateY(-1px);
+  }
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:nth-child(2) a:hover)::after { transform: scaleX(1); }
+  .scope :global(section[data-hero="property-maintenance"] a[href="/browse-providers"]:hover) {
+    border-color: rgba(245,197,24,.48) !important;
+    background: rgba(245,197,24,.08) !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .scope :global(nav[aria-label="Primary navigation"]) { top: .2rem !important; padding: .25rem .48rem 0 !important; }
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+    min-height: 58px !important;
+    width: 100% !important;
+    padding-inline: .62rem .42rem !important;
+    border-radius: 1.05rem !important;
+  }
+  .scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) { width: 124px !important; }
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+    min-height: 39px !important;
+    padding-inline: .58rem !important;
+    font-size: .62rem !important;
+  }
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"])::before {
+    width: 5px;
+    height: 5px;
+    margin-right: .3rem;
+  }
+  .scope :global(section[data-hero="property-maintenance"]) {
+    min-height: 82svh !important;
+    padding: 5.1rem 0 3.15rem !important;
+    border-bottom-left-radius: 1.7rem !important;
+    border-bottom-right-radius: 1.7rem !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] > img) {
+    object-position: 63% center !important;
+    filter: saturate(1.02) contrast(1.03) brightness(1.02) !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(1)) {
+    background: linear-gradient(180deg,rgba(5,7,6,.16),rgba(6,8,7,.30) 50%,rgba(8,8,6,.96) 100%), linear-gradient(90deg,rgba(6,8,7,.94) 0%,rgba(6,8,7,.80) 50%,rgba(6,8,7,.32) 78%,rgba(6,8,7,.10) 100%) !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(3) > div) { max-width: 96% !important; }
+  .scope :global(section[data-hero="property-maintenance"] h1) {
+    max-width: 21rem !important;
+    font-size: clamp(2.75rem, 12vw, 3.55rem) !important;
+    line-height: .94 !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] h1 + p) {
+    max-width: 29rem !important;
+    font-size: .95rem !important;
+    line-height: 1.58 !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] ul[aria-label="Popular home project types"]) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, max-content));
+    gap: .4rem;
+    margin-top: .9rem;
+  }
+  .scope :global(section[data-hero="property-maintenance"] ul[aria-label="Popular home project types"] li) {
+    min-height: 29px;
+    justify-content: flex-start;
+    padding: .34rem .58rem;
+    font-size: .64rem;
+  }
+  .scope :global(section[data-hero="property-maintenance"] div[class*="heroButtons"]) {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: .55rem !important;
+    margin-top: 1.15rem !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] a[href="/get-help"]),
+  .scope :global(section[data-hero="property-maintenance"] a[href="/browse-providers"]) {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 54px !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] p[class*="inputNote"]) {
+    margin-top: .72rem !important;
+    font-size: .72rem !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] div[class*="heroAssurances"]) {
+    margin-top: .8rem !important;
+    gap: .42rem !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] div[class*="heroAssurances"] > span) {
+    min-height: 42px !important;
+    padding: .55rem .68rem !important;
+    font-size: .76rem !important;
+  }
+  .scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(4)) {
+    margin-top: 1.55rem !important;
+    gap: .36rem !important;
+    padding: .68rem !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 899px) {
+  .scope :global(section[data-hero="property-maintenance"] > img) { object-position: 61% center !important; }
+}
+
+@media (min-width: 900px) {
+  .scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) { width: 166px !important; }
+  .scope :global(section[data-hero="property-maintenance"] > div:nth-of-type(3) > div) {
+    padding: 1.25rem 1.35rem 1.35rem !important;
+    border: 1px solid rgba(255,255,255,.075);
+    border-radius: 1.55rem;
+    background: linear-gradient(120deg,rgba(7,9,8,.28),rgba(7,9,8,.10));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child),
+  .scope :global(section[data-hero="property-maintenance"] ul[aria-label="Popular home project types"] li),
+  .scope :global(section[data-hero="property-maintenance"] div[class*="heroAssurances"] > span) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
