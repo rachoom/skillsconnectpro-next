@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { CompletedProjectSummary } from '../components/CompletedProjectSummary';
 import { CustomerCompletionAction } from '../components/CustomerCompletionAction';
+import { CustomerCompletionReset } from '../components/CustomerCompletionReset';
 import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
 import { IntakeHeroAlignment } from '../components/IntakeHeroAlignment';
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
   description: 'Describe, photograph or speak about a home-service job. Skills Connect Pro prepares a clear request, invites suitable local providers and helps you manage the job from start to finish.',
   openGraph: {
     title: 'Skills Connect Pro | Your Local Home-Services Assistant',
-    description: 'Show us the job, compare suitable provider responses and manage the work through one guided local marketplace.',
+    description: 'Show us the job, compare provider responses and manage the work through one guided local marketplace.',
     url: 'https://www.skillsconnectpro.co.za',
     siteName: 'Skills Connect Pro',
     images: [
@@ -101,6 +102,7 @@ export default function RootLayout({
         <CompletedProjectSummary />
         <MarketplaceLifecycleHost />
         <CustomerCompletionAction />
+        <CustomerCompletionReset />
         <CustomerDashboardAutoScroll />
         <FeedbackSubmissionAutoClose />
         <MarketplaceFeedbackLauncher />
