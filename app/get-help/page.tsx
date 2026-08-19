@@ -4,6 +4,7 @@ import { IntakeChromePolish } from '../../components/IntakeChromePolish';
 import { IntakeCopyPolish } from '../../components/IntakeCopyPolish';
 import { IntakeNavigation } from '../../components/IntakeNavigation';
 import { IntakeVisualShell } from '../../components/IntakeVisualShell';
+import { ProjectBriefSummaryCardPolish } from '../../components/ProjectBriefSummaryCardPolish';
 import { ProjectBriefUXEnhancer } from '../../components/ProjectBriefUXEnhancer';
 import { ProjectIntakeEntryBridge } from '../../components/ProjectIntakeEntryBridge';
 import { ProjectIntakeV2 } from '../../components/ProjectIntakeV2';
@@ -23,6 +24,7 @@ export default function GetHelpPage() {
       </Suspense>
       <ProjectIntakeV2 />
       <ProjectBriefUXEnhancer />
+      <ProjectBriefSummaryCardPolish />
       <IntakeChromePolish />
     </IntakeVisualShell>
   );
