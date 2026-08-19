@@ -1,10 +1,10 @@
 .scope {}
 
-/* Premium white credibility band directly below the hero. */
+/* Compact white credibility band directly below the hero. */
 .scope :global([data-home-why]) {
   width: 100%;
   margin: 0;
-  padding: 4.4rem max(1rem, calc((100vw - 76rem) / 2)) 4.2rem;
+  padding: 2.7rem max(1rem, calc((100vw - 76rem) / 2)) 2.5rem;
   background: #f7f5ef;
   color: #151816;
   border-bottom: 1px solid rgba(25,28,25,.08);
@@ -13,25 +13,25 @@
 .scope :global([data-home-why-heading]) {
   display: grid;
   justify-items: center;
-  max-width: 52rem;
-  margin: 0 auto 2.7rem;
+  max-width: 46rem;
+  margin: 0 auto 1.8rem;
   text-align: center;
 }
 
 .scope :global([data-home-why-heading] > span) {
   color: #8a6500 !important;
-  font-size: .64rem !important;
+  font-size: .58rem !important;
   font-weight: 900 !important;
-  letter-spacing: .18em !important;
+  letter-spacing: .17em !important;
   text-transform: uppercase;
 }
 
 .scope :global([data-home-why-heading] h2) {
   position: relative;
-  margin-top: .6rem;
-  padding-bottom: .9rem;
+  margin-top: .45rem;
+  padding-bottom: .7rem;
   color: #151816 !important;
-  font-size: clamp(2.15rem,4vw,3.25rem);
+  font-size: clamp(1.85rem,3vw,2.55rem);
   font-weight: 880;
   line-height: 1;
   letter-spacing: -.045em;
@@ -43,123 +43,141 @@
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 4.5rem;
+  width: 3.8rem;
   height: 2px;
   transform: translateX(-50%);
   background: #f5c518;
 }
 
 .scope :global([data-home-why-heading] p) {
-  max-width: 42rem;
-  margin-top: .8rem;
+  max-width: 38rem;
+  margin-top: .65rem;
   color: #646861 !important;
-  font-size: .9rem;
-  line-height: 1.65;
+  font-size: .82rem;
+  line-height: 1.55;
   text-shadow: none !important;
 }
 
 .scope :global([data-home-why-grid]) {
   display: grid;
   grid-template-columns: repeat(5,minmax(0,1fr));
-  gap: .8rem;
-  width: min(100%,76rem);
+  gap: .5rem;
+  width: min(100%,72rem);
   margin: 0 auto;
 }
 
 .scope :global([data-home-why-card]) {
-  display: flex;
+  display: grid;
   min-width: 0;
-  min-height: 12.8rem;
-  flex-direction: column;
-  align-items: center;
-  border: 1px solid #dfd6c2;
-  border-radius: 1rem;
-  background: linear-gradient(180deg,#fffdf7,#faf6ed) !important;
-  padding: 1.2rem 1rem;
+  justify-items: center;
+  align-content: start;
+  padding: .45rem .35rem .6rem;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   color: #171917;
   text-align: center;
-  box-shadow: 0 18px 36px -30px rgba(46,36,17,.28) !important;
+  box-shadow: none !important;
 }
 
 .scope :global([data-home-why-icon]) {
   display: inline-flex;
-  width: 3.35rem;
-  height: 3.35rem;
+  width: 2.75rem;
+  height: 2.75rem;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #fff8db;
+  background: #fff9df;
   color: #171917 !important;
-  box-shadow: inset 0 0 0 1px rgba(245,197,24,.58);
+  box-shadow: inset 0 0 0 1px rgba(245,197,24,.62);
 }
 
 .scope :global([data-home-why-icon] svg) {
+  width: 21px;
+  height: 21px;
   stroke-width: 1.75;
 }
 
 .scope :global([data-home-why-number]) {
-  margin-top: .7rem;
+  margin-top: .42rem;
   color: #9b7200 !important;
-  font-size: .6rem;
+  font-size: .52rem;
   font-weight: 900;
-  letter-spacing: .16em;
+  letter-spacing: .14em;
 }
 
 .scope :global([data-home-why-card] h3) {
-  margin-top: .45rem;
+  max-width: 9.5rem;
+  margin-top: .22rem;
   color: #171917 !important;
-  font-size: .9rem;
+  font-size: .72rem;
   font-weight: 850;
-  line-height: 1.22;
-  letter-spacing: -.018em;
+  line-height: 1.2;
+  letter-spacing: -.012em;
   text-shadow: none !important;
 }
 
-.scope :global([data-home-why-card] p) {
-  margin-top: .5rem;
-  color: #686b65 !important;
-  font-size: .7rem;
-  line-height: 1.5;
-  text-shadow: none !important;
-}
-
+/* Compact testimonial / preview metrics strip. */
 .scope :global([data-home-why-proof]) {
   display: grid;
-  grid-template-columns: minmax(0,1.1fr) minmax(0,1.35fr);
-  gap: 1.4rem;
+  grid-template-columns: minmax(0,1.15fr) minmax(0,1fr);
+  gap: 1.2rem;
   width: min(100%,72rem);
   margin: 1.35rem auto 0;
-  border: 1px solid rgba(245,197,24,.22);
-  border-radius: 1.2rem;
+  border: 1px solid rgba(245,197,24,.18);
+  border-radius: .95rem;
   background: linear-gradient(135deg,#171b18,#0c0f0d) !important;
-  padding: 1.35rem 1.5rem;
+  padding: 1rem 1.15rem;
   color: #fff;
-  box-shadow: 0 24px 50px -38px rgba(0,0,0,.7);
+  box-shadow: 0 20px 44px -34px rgba(0,0,0,.68);
 }
 
-.scope :global([data-home-why-proof-copy]) {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.scope :global([data-home-why-testimonial]) {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding-right: .8rem;
 }
 
-.scope :global([data-home-why-proof-copy] strong) {
+.scope :global([data-home-why-stars]) {
+  color: #f5c518 !important;
+  font-size: .82rem;
+  letter-spacing: .08em;
+}
+
+.scope :global([data-home-why-testimonial] blockquote) {
+  max-width: 34rem;
+  margin: .38rem 0 0;
   color: #fff !important;
-  font-size: .92rem;
-  font-weight: 850;
-  letter-spacing: -.015em;
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
-.scope :global([data-home-why-proof-copy] span) {
-  margin-top: .35rem;
-  color: rgba(255,255,255,.62) !important;
-  font-size: .72rem;
-  line-height: 1.5;
+.scope :global([data-home-why-testimonial] > span) {
+  margin-top: .3rem;
+  color: rgba(255,255,255,.52) !important;
+  font-size: .58rem;
+  letter-spacing: .04em;
 }
 
 .scope :global([data-home-why-proof-stats]) {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));
+  align-items: stretch;
+  min-width: 0;
+  padding-top: .85rem;
+}
+
+.scope :global([data-home-why-proof-stats] > small) {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: rgba(255,255,255,.4) !important;
+  font-size: .5rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
 
 .scope :global([data-home-why-proof-stats] > div) {
@@ -167,30 +185,28 @@
   align-content: center;
   justify-items: center;
   min-width: 0;
-  padding: .35rem .8rem;
+  padding: .2rem .55rem;
   text-align: center;
 }
 
 .scope :global([data-home-why-proof-stats] > div + div) {
-  border-left: 1px solid rgba(255,255,255,.15);
+  border-left: 1px solid rgba(255,255,255,.13);
 }
 
 .scope :global([data-home-why-proof-stats] strong) {
   color: #f5c518 !important;
-  font-size: 1.75rem;
+  font-size: 1.38rem;
   font-weight: 900;
   line-height: 1;
 }
 
 .scope :global([data-home-why-proof-stats] span) {
-  max-width: 10rem;
-  margin-top: .35rem;
-  color: rgba(255,255,255,.65) !important;
-  font-size: .66rem;
-  line-height: 1.35;
+  margin-top: .26rem;
+  color: rgba(255,255,255,.62) !important;
+  font-size: .56rem;
+  line-height: 1.25;
 }
 
-/* The white section is intentional in both site themes, matching the approved concept. */
 :global(html[data-scp-theme='dark']) .scope :global([data-home-why]),
 :global(html[data-scp-theme='light']) .scope :global([data-home-why]) {
   background: #f7f5ef !important;
@@ -198,91 +214,97 @@
 }
 
 @media (max-width: 899px) {
-  .scope :global([data-home-why-grid]) {
-    grid-template-columns: repeat(3,minmax(0,1fr));
+  .scope :global([data-home-why]) {
+    padding-inline: 1rem;
   }
 
-  .scope :global([data-home-why-card]:nth-child(4)),
-  .scope :global([data-home-why-card]:nth-child(5)) {
-    min-height: 11.8rem;
+  .scope :global([data-home-why-grid]) {
+    grid-template-columns: repeat(5,minmax(0,1fr));
+    gap: .2rem;
+  }
+
+  .scope :global([data-home-why-card] h3) {
+    font-size: .66rem;
   }
 }
 
 @media (max-width: 639px) {
   .scope :global([data-home-why]) {
-    padding: 3.2rem .75rem 3rem;
+    padding: 2.25rem .72rem 2.1rem;
   }
 
   .scope :global([data-home-why-heading]) {
-    margin-bottom: 1.8rem;
-    padding-inline: .45rem;
+    margin-bottom: 1.35rem;
+    padding-inline: .4rem;
   }
 
   .scope :global([data-home-why-heading] h2) {
-    font-size: clamp(2rem,10vw,2.7rem);
+    font-size: clamp(1.85rem,9vw,2.35rem);
   }
 
   .scope :global([data-home-why-heading] p) {
-    max-width: 22rem;
-    font-size: .82rem;
+    max-width: 21rem;
+    font-size: .75rem;
   }
 
   .scope :global([data-home-why-grid]) {
-    grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: .65rem;
+    grid-template-columns: repeat(5,minmax(4.4rem,1fr));
+    gap: .18rem;
+    overflow-x: auto;
+    padding-bottom: .25rem;
+    scrollbar-width: none;
+  }
+
+  .scope :global([data-home-why-grid])::-webkit-scrollbar {
+    display: none;
   }
 
   .scope :global([data-home-why-card]) {
-    min-height: 11.5rem;
-    border-radius: .85rem;
-    padding: 1rem .7rem;
-  }
-
-  .scope :global([data-home-why-card]:last-child) {
-    grid-column: 1 / -1;
-    width: calc(50% - .325rem);
-    justify-self: center;
+    min-width: 4.4rem;
+    padding-inline: .2rem;
   }
 
   .scope :global([data-home-why-icon]) {
-    width: 2.9rem;
-    height: 2.9rem;
+    width: 2.45rem;
+    height: 2.45rem;
   }
 
   .scope :global([data-home-why-icon] svg) {
-    width: 22px;
-    height: 22px;
+    width: 19px;
+    height: 19px;
   }
 
   .scope :global([data-home-why-card] h3) {
-    font-size: .8rem;
-  }
-
-  .scope :global([data-home-why-card] p) {
-    font-size: .65rem;
+    max-width: 7rem;
+    font-size: .61rem;
   }
 
   .scope :global([data-home-why-proof]) {
     grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-top: .85rem;
-    border-radius: 1rem;
-    padding: 1.1rem;
+    gap: .85rem;
+    margin-top: 1rem;
+    border-radius: .85rem;
+    padding: .9rem;
   }
 
-  .scope :global([data-home-why-proof-copy]) {
-    text-align: center;
+  .scope :global([data-home-why-testimonial]) {
+    padding-right: 0;
+    text-align: left;
   }
 
-  .scope :global([data-home-why-proof-stats] > div) {
-    padding-inline: .4rem;
+  .scope :global([data-home-why-testimonial] blockquote) {
+    font-size: .72rem;
+  }
+
+  .scope :global([data-home-why-proof-stats]) {
+    padding-top: .72rem;
   }
 
   .scope :global([data-home-why-proof-stats] strong) {
-    font-size: 1.35rem;
+    font-size: 1.16rem;
   }
 
   .scope :global([data-home-why-proof-stats] span) {
-    font-size: .58rem;
+    font-size: .52rem;
   }
 }
