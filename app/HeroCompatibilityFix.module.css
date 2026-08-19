@@ -1,0 +1,33 @@
+.scope :global(main > section:first-of-type > img) {
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3)),
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div),
+.scope :global(main > section:first-of-type h1 + p + div),
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3)) {
+  min-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(4)) {
+  min-height: 0 !important;
+  padding: .95rem 1.1rem !important;
+}
+
+@media (max-width:639px) {
+  .scope :global(main > section:first-of-type) {
+    min-height: 84svh !important;
+    padding: 5.05rem 0 3rem !important;
+  }
+
+  .scope :global(main > section:first-of-type h1) {
+    font-size: clamp(2.7rem,12.6vw,3.45rem) !important;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(4)) {
+    padding: .7rem !important;
+  }
+}
