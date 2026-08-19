@@ -10,7 +10,13 @@
   object-fit: cover !important;
   object-position: 50% center !important;
   pointer-events: none;
+  opacity: 0;
   filter: saturate(.82) contrast(1.1) brightness(.72) !important;
+  transition: opacity 520ms ease;
+}
+
+.scope :global([data-hero-video][data-hero-video-ready='true']) {
+  opacity: 1;
 }
 
 .scope :global([data-hero-poster]) {
