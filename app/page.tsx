@@ -12,6 +12,7 @@ import heroConceptStyles from './HeroConceptAlignment.module.css';
 import whyConceptStyles from './WhyConcept.module.css';
 import motionUpgradeStyles from './LandingMotionUpgrade.module.css';
 import headerFinalStyles from './HomepageHeaderFinal.module.css';
+import heroVideoStyles from './HeroVideoPolish.module.css';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -47,7 +48,7 @@ export default async function Page({ searchParams }: Props) {
   if (claimId) return <ClientWrapper />;
 
   return (
-    <div className={`${polishStyles.scope} ${headerStyles.scope} ${lightContrastStyles.scope} ${motionStyles.motion} ${scrollStyles.scope} ${heroConceptStyles.scope} ${whyConceptStyles.scope} ${motionUpgradeStyles.scope} ${headerFinalStyles.scope}`}>
+    <div className={`${polishStyles.scope} ${headerStyles.scope} ${lightContrastStyles.scope} ${motionStyles.motion} ${scrollStyles.scope} ${heroConceptStyles.scope} ${whyConceptStyles.scope} ${motionUpgradeStyles.scope} ${headerFinalStyles.scope} ${heroVideoStyles.scope}`}>
       <LandingScrollReveal />
       <MarketplaceLandingPage />
     </div>
