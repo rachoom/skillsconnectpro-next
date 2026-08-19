@@ -1,0 +1,45 @@
+.scope {}
+
+/* Uploaded Skills Connect Pro hero loop. The existing still image remains
+ * underneath as the immediate poster/fallback while the video starts. */
+.scope :global([data-hero-video]) {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: 50% center !important;
+  pointer-events: none;
+  filter: saturate(.82) contrast(1.1) brightness(.72) !important;
+}
+
+.scope :global([data-hero-poster]) {
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .scope :global([data-hero-video]) {
+    object-position: 50% center !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .scope :global([data-hero-video]) {
+    object-position: 50% center !important;
+    filter: saturate(.8) contrast(1.08) brightness(.69) !important;
+  }
+}
+
+/* Respect users who have asked for less motion/data: they receive the same
+ * premium dusk still that already sits beneath the loop. */
+@media (prefers-reduced-motion: reduce) {
+  .scope :global([data-hero-video]) {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .scope :global([data-hero-video]) {
+    display: none !important;
+  }
+}
