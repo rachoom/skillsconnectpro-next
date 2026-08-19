@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { CompletedProjectSummary } from '../components/CompletedProjectSummary';
 import { CustomerCompletionAction } from '../components/CustomerCompletionAction';
-import { CustomerCompletionReset } from '../components/CustomerCompletionReset';
 import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
 import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
 import { IntakeHeroAlignment } from '../components/IntakeHeroAlignment';
@@ -9,6 +8,7 @@ import { LaunchThemeRepair } from '../components/LaunchThemeRepair';
 import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
 import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
+import { PrimaryServiceTaxonomy } from '../components/PrimaryServiceTaxonomy';
 import { ThemeDetailOverrides } from '../components/ThemeDetailOverrides';
 import { ThemeModeToggle } from '../components/ThemeModeToggle';
 import { ThemeSurfacePolish } from '../components/ThemeSurfacePolish';
@@ -93,6 +93,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: surfaceInitialiser }} />
         {children}
+        <PrimaryServiceTaxonomy />
         <MarketplaceVisualConsistency />
         <ThemeDetailOverrides />
         <ThemeSurfacePolish />
@@ -102,7 +103,6 @@ export default function RootLayout({
         <CompletedProjectSummary />
         <MarketplaceLifecycleHost />
         <CustomerCompletionAction />
-        <CustomerCompletionReset />
         <CustomerDashboardAutoScroll />
         <FeedbackSubmissionAutoClose />
         <MarketplaceFeedbackLauncher />

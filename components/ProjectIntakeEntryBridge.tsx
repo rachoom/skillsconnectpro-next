@@ -16,10 +16,11 @@ const normalise = (value: string | null | undefined) =>
   String(value || '').replace(/\s+/g, ' ').trim();
 
 /**
- * Bridges the new homepage/provider discovery routes into the existing guided
- * intake without duplicating the intake engine. It can prefill a service or a
- * preferred provider and appends the preferred provider id to the final intake
- * request so the server can include them in the first invitation wave.
+ * Bridges homepage/provider discovery routes into the guided intake without
+ * duplicating the intake engine. It also routes assessment calls through the
+ * current primary-service taxonomy so Mechanics is treated as a first-class
+ * category while legacy Building/Carpentry requests fall back safely to the
+ * General Contractor lane.
  */
 export const ProjectIntakeEntryBridge = () => {
   const searchParams = useSearchParams();
@@ -72,6 +73,17 @@ export const ProjectIntakeEntryBridge = () => {
         : input instanceof URL
           ? input.toString()
           : input.url;
+
+      if (url.includes('/api/project-intake/assess-v2')) {
+        return originalFetch(url.replace('/api/project-intake/assess-v2', '/api/project-intake/assess-v3'), init);
+      }
+
+      if (
+        url.includes('/api/project-intake/assess')
+        && !url.includes('/api/project-intake/assess-v3')
+      ) {
+        return originalFetch(url.replace('/api/project-intake/assess', '/api/project-intake/assess-v3'), init);
+      }
 
       if (
         Number.isInteger(providerId)
