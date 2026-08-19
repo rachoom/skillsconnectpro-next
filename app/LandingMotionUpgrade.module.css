@@ -23,17 +23,25 @@
   50% { text-shadow: 0 0 18px rgba(245,197,24,.38); }
 }
 
-/* Preserve the full headline footprint while the characters loop in and out. */
-.scope :global([data-hero-typewriter]) {
-  min-height: 4.65em;
+/*
+ * Keep the question permanently visible. The existing typewriter state still
+ * drives the gold accent, but the lead is rendered as fixed visual copy so the
+ * only visible typing/deleting motion is “We've got you.”
+ */
+.scope :global([data-hero-typewriter])::before {
+  content: "Need the right service provider?";
+  display: block;
+  color: #fff !important;
 }
 
 .scope :global([data-hero-typewriter-visual]) {
-  display: inline;
+  display: block;
+  min-height: 1.05em;
+  white-space: nowrap;
 }
 
 .scope :global([data-hero-typewriter-lead]) {
-  color: #fff !important;
+  display: none !important;
 }
 
 .scope :global([data-hero-typewriter-accent]) {
@@ -140,8 +148,8 @@
 }
 
 @media (max-width: 639px) {
-  .scope :global([data-hero-typewriter]) {
-    min-height: 4.85em;
+  .scope :global([data-hero-typewriter-visual]) {
+    min-height: 1.05em;
   }
 
   .scope[data-scroll-ready='true'] :global([data-scroll-reveal]) {
@@ -154,6 +162,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .scope :global([data-hero-typewriter-visual]) {
+    min-height: 1.05em;
+  }
+
   .scope :global([data-hero-typewriter-caret]) {
     display: none;
   }
