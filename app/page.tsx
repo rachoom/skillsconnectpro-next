@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import ClientWrapper from './ClientWrapper';
 import { MarketplaceLandingPage } from '../components/MarketplaceLandingPage';
 import { LandingScrollReveal } from './LandingScrollReveal';
+import { HeroVideoInjector } from './HeroVideoInjector';
 import polishStyles from './HomeVisualPolish.module.css';
 import headerStyles from './HeaderGlassPolish.module.css';
 import lightContrastStyles from './LightThemeContrastPolish.module.css';
@@ -50,6 +51,7 @@ export default async function Page({ searchParams }: Props) {
   return (
     <div className={`${polishStyles.scope} ${headerStyles.scope} ${lightContrastStyles.scope} ${motionStyles.motion} ${scrollStyles.scope} ${heroConceptStyles.scope} ${whyConceptStyles.scope} ${motionUpgradeStyles.scope} ${headerFinalStyles.scope} ${heroVideoStyles.scope}`}>
       <LandingScrollReveal />
+      <HeroVideoInjector />
       <MarketplaceLandingPage />
     </div>
   );
