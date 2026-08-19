@@ -1,0 +1,400 @@
+.scope {
+  --hero-gold: #f5c518;
+  --hero-gold-bright: #ffdb35;
+  --hero-ink: #070807;
+  --hero-cream: #fffaf0;
+}
+
+/* Premium floating title bar */
+.scope :global(nav[aria-label="Primary navigation"]) {
+  padding: .55rem .7rem 0;
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+  min-height: 64px;
+  width: min(100%, 78rem);
+  padding: .3rem .5rem .3rem .85rem;
+  border: 1px solid rgba(245,197,24,.28);
+  border-radius: 1.35rem;
+  background:
+    linear-gradient(120deg,rgba(6,8,8,.94),rgba(15,17,15,.84));
+  box-shadow:
+    0 22px 52px -32px rgba(0,0,0,.96),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 0 0 1px rgba(255,255,255,.015);
+  backdrop-filter: blur(24px) saturate(1.12);
+  -webkit-backdrop-filter: blur(24px) saturate(1.12);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) {
+  width: 142px;
+  height: auto;
+  filter: drop-shadow(0 5px 14px rgba(0,0,0,.34));
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+  min-height: 42px;
+  padding-inline: .9rem;
+  border: 1px solid rgba(255,222,81,.92);
+  border-radius: .9rem;
+  background: linear-gradient(135deg,#ffdd42,#f5c518 72%,#eab70a);
+  color: #151108;
+  box-shadow:
+    0 14px 30px -20px rgba(245,197,24,.8),
+    inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]) {
+  width: 43px;
+  height: 43px;
+  border: 1px solid rgba(245,197,24,.35);
+  border-radius: .9rem;
+  background: rgba(255,255,255,.055);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.075);
+}
+
+.scope :global(nav[aria-label="Primary navigation"] > div:nth-child(2)) {
+  margin-top: .5rem;
+  border-color: rgba(245,197,24,.26);
+  background: rgba(7,8,7,.97);
+  box-shadow: 0 26px 65px -34px rgba(0,0,0,.98);
+}
+
+/* Hero framing and image */
+.scope :global(main > section:first-of-type) {
+  min-height: 80svh;
+  padding: 5.2rem 0 4rem;
+  border-bottom-left-radius: 2rem;
+  border-bottom-right-radius: 2rem;
+  background: #070807;
+}
+
+.scope :global(main > section:first-of-type > img) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% center !important;
+  filter: saturate(1.04) contrast(1.05) brightness(.91) !important;
+  transform: none;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(1)) {
+  background:
+    linear-gradient(180deg,rgba(5,7,6,.16),rgba(5,7,6,.26) 58%,rgba(5,6,5,.93) 100%),
+    linear-gradient(90deg,rgba(5,6,5,.98) 0%,rgba(5,6,5,.91) 33%,rgba(5,6,5,.56) 53%,rgba(5,6,5,.16) 78%,rgba(5,6,5,.05) 100%) !important;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(2)) {
+  width: 30rem;
+  height: 30rem;
+  right: -13rem;
+  top: 17%;
+  background: rgba(245,197,24,.09) !important;
+  filter: blur(125px) !important;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3)) {
+  width: min(100% - 1.7rem,78rem);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div) {
+  max-width: 39rem;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:first-child) {
+  min-height: 35px;
+  padding: .6rem .8rem;
+  border-color: rgba(245,197,24,.42);
+  background: rgba(6,7,6,.58);
+  color: #ffe477;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  letter-spacing: .135em;
+}
+
+.scope :global(main > section:first-of-type h1) {
+  max-width: 38rem;
+  margin-top: 1.05rem;
+  font-size: clamp(3.05rem,7.3vw,5.9rem);
+  line-height: .94;
+  letter-spacing: -.057em;
+  color: var(--hero-cream);
+  text-shadow: 0 12px 34px rgba(0,0,0,.48);
+}
+
+.scope :global(main > section:first-of-type h1 span) {
+  color: var(--hero-gold-bright);
+  text-shadow: 0 10px 26px rgba(245,197,24,.13);
+}
+
+.scope :global(main > section:first-of-type h1 + p) {
+  max-width: 35rem;
+  margin-top: 1.15rem;
+  color: rgba(255,250,240,.85);
+  font-size: 1rem;
+  line-height: 1.62;
+}
+
+/* Dual action layout */
+.scope :global(main > section:first-of-type h1 + p + div) {
+  display: grid;
+  grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr);
+  gap: .7rem;
+  max-width: 34rem;
+  margin-top: 1.45rem;
+}
+
+.scope :global(main > section:first-of-type a[href="/get-help"]) {
+  width: 100%;
+  min-height: 57px;
+  border-radius: 1rem;
+}
+
+.scope :global(main > section:first-of-type a[href="#how-it-works"]) {
+  display: inline-flex;
+  min-height: 57px;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .85rem 1rem;
+  border: 1px solid rgba(245,197,24,.62);
+  border-radius: 1rem;
+  background: rgba(7,8,7,.62);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.scope :global(main > section:first-of-type a[href="#how-it-works"] svg) {
+  color: var(--hero-gold);
+}
+
+/* Microcopy and trust chips */
+.scope :global(main > section:first-of-type h1 + p + div + p) {
+  max-width: 34rem;
+  margin-top: .9rem;
+  color: rgba(255,250,240,.67);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3)) {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: .55rem;
+  max-width: 39rem;
+  margin-top: 1rem;
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) > span) {
+  min-height: 48px;
+  justify-content: flex-start;
+  padding: .6rem .68rem;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: .9rem;
+  background: rgba(6,7,6,.54);
+  color: rgba(255,250,240,.9);
+  font-size: .73rem;
+  line-height: 1.2;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) svg) {
+  width: 19px;
+  height: 19px;
+  color: var(--hero-gold);
+}
+
+/* Find / Connect / Grow glass rail */
+.scope :global(main > section:first-of-type > div:nth-of-type(4)) {
+  width: min(calc(100% - 1.7rem),72rem);
+  margin-top: 2.15rem;
+  padding: .95rem 1.1rem;
+  border: 1px solid rgba(245,197,24,.2);
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg,rgba(9,10,9,.78),rgba(4,5,4,.9));
+  box-shadow:
+    0 26px 62px -38px rgba(0,0,0,.99),
+    inset 0 1px 0 rgba(255,255,255,.055);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.scope :global(main > section:first-of-type > div:nth-of-type(4) strong) {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+  border-radius: .72rem;
+  background: linear-gradient(135deg,#ffdb3d,#f5c518);
+}
+
+@media (hover:hover) {
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]:hover) {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]:hover),
+  .scope :global(main > section:first-of-type a[href="#how-it-works"]:hover) {
+    border-color: rgba(245,197,24,.72);
+    background: rgba(245,197,24,.1);
+  }
+}
+
+@media (max-width:639px) {
+  .scope :global(nav[aria-label="Primary navigation"]) {
+    padding: .42rem .5rem 0;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+    min-height: 58px;
+    padding: .28rem .38rem .28rem .7rem;
+    border-radius: 1.05rem;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) {
+    width: 136px;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:last-child > a[href="/join"]) {
+    min-height: 39px;
+    padding-inline: .7rem;
+    font-size: .64rem;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] button[aria-label="Toggle navigation"]) {
+    width: 40px;
+    height: 40px;
+  }
+
+  .scope :global(main > section:first-of-type) {
+    min-height: 84svh;
+    padding: 5.05rem 0 3rem;
+    border-bottom-left-radius: 1.55rem;
+    border-bottom-right-radius: 1.55rem;
+  }
+
+  .scope :global(main > section:first-of-type > img) {
+    object-position: 59% center !important;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(1)) {
+    background:
+      linear-gradient(180deg,rgba(5,6,5,.17),rgba(5,6,5,.32) 55%,rgba(5,6,5,.96) 100%),
+      linear-gradient(90deg,rgba(5,6,5,.97) 0%,rgba(5,6,5,.83) 48%,rgba(5,6,5,.38) 74%,rgba(5,6,5,.09) 100%) !important;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3)) {
+    width: min(100% - 1.25rem,78rem);
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div) {
+    max-width: 95%;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:first-child) {
+    max-width: 92%;
+    font-size: .58rem;
+    line-height: 1.2;
+  }
+
+  .scope :global(main > section:first-of-type h1) {
+    max-width: 20.5rem;
+    font-size: clamp(2.7rem,12.6vw,3.45rem);
+    line-height: .95;
+  }
+
+  .scope :global(main > section:first-of-type h1 + p) {
+    max-width: 29rem;
+    font-size: .93rem;
+    line-height: 1.56;
+  }
+
+  .scope :global(main > section:first-of-type h1 + p + div) {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    gap: .6rem;
+    margin-top: 1.25rem;
+  }
+
+  .scope :global(main > section:first-of-type a[href="/get-help"]),
+  .scope :global(main > section:first-of-type a[href="#how-it-works"]) {
+    width: 100%;
+    min-height: 54px;
+  }
+
+  .scope :global(main > section:first-of-type h1 + p + div + p) {
+    font-size: .72rem;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3)) {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: .38rem;
+    width: 100%;
+    max-width: none;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(3) > div > div:nth-of-type(3) > span) {
+    min-height: 66px;
+    flex-direction: column;
+    justify-content: center;
+    gap: .35rem;
+    padding: .48rem .35rem;
+    text-align: center;
+    font-size: .61rem;
+    line-height: 1.18;
+  }
+
+  .scope :global(main > section:first-of-type > div:nth-of-type(4)) {
+    width: min(calc(100% - 1rem),72rem);
+    gap: .45rem;
+    margin-top: 1.75rem;
+    padding: .7rem;
+    border-radius: 1rem;
+  }
+}
+
+@media (min-width:640px) and (max-width:899px) {
+  .scope :global(main > section:first-of-type > img) {
+    object-position: 62% center !important;
+  }
+}
+
+@media (min-width:900px) {
+  .scope :global(nav[aria-label="Primary navigation"]) {
+    padding-top: .7rem;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child) {
+    min-height: 70px;
+    padding-inline: 1.05rem .65rem;
+    border-radius: 1.5rem;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] a[aria-label="Skills Connect Pro home"] img) {
+    width: 176px;
+  }
+
+  .scope :global(nav[aria-label="Primary navigation"] .desktopNav a),
+  .scope :global(nav[aria-label="Primary navigation"] > div:first-child > div:nth-child(2) a) {
+    font-size: .74rem;
+  }
+
+  .scope :global(main > section:first-of-type) {
+    min-height: 83vh;
+    padding: 6.15rem 0 4.35rem;
+  }
+
+  .scope :global(main > section:first-of-type > img) {
+    object-position: 66% center !important;
+  }
+
+  .scope :global(main > section:first-of-type h1) {
+    font-size: clamp(4.25rem,6.7vw,5.9rem);
+  }
+}
