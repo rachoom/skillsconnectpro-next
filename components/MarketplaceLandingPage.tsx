@@ -31,6 +31,24 @@ const trades = [
   { label: 'General maintenance', image: '/artisans/Cards/General Artisan.png', icon: Wrench },
 ];
 
+const whyPoints = [
+  {
+    number: '01',
+    title: 'Start with the job, not the trade',
+    text: 'Tell us what you need in your own words. We help shape it into a clearer project before providers respond.',
+  },
+  {
+    number: '02',
+    title: 'Stay private until you choose',
+    text: 'Your personal contact details remain protected while you review suitable provider responses.',
+  },
+  {
+    number: '03',
+    title: 'Compare with better context',
+    text: 'Keep availability, preliminary estimates, communication and completed-job feedback connected to the real project.',
+  },
+];
+
 const steps = [
   {
     number: '01',
@@ -159,27 +177,26 @@ export const MarketplaceLandingPage = () => {
                 Learn how it works <ArrowRight size={18} />
               </a>
             </div>
-
-            <p className={styles.inputNote}>
-              Type it, photograph it or describe it by voice — the same guided form handles all three.
-            </p>
-
-            <div className={styles.heroAssurances}>
-              <span><ShieldCheck size={21} /> Private &amp; secure</span>
-              <span><CheckCircle2 size={21} /> You choose who connects</span>
-              <span><CheckCircle2 size={21} /> Compare with confidence</span>
-            </div>
           </div>
         </div>
-
-        <div className={styles.heroJourney} aria-label="How Skills Connect Pro works">
-          <div><strong>01</strong><span><b>Find</b><small>Tell us what you need</small></span></div>
-          <ArrowRight aria-hidden="true" />
-          <div><strong>02</strong><span><b>Connect</b><small>Compare suitable providers</small></span></div>
-          <ArrowRight aria-hidden="true" />
-          <div><strong>03</strong><span><b>Grow</b><small>Complete work with confidence</small></span></div>
-        </div>
       </section>
+
+      <div data-home-why aria-labelledby="why-skills-connect-pro-title">
+        <div data-home-why-heading>
+          <span className={styles.sectionKicker}>Why Skills Connect Pro</span>
+          <h2 id="why-skills-connect-pro-title">A clearer way to get local work done.</h2>
+          <p>Less noise, more context and a guided connection from the first description to the final choice.</p>
+        </div>
+        <div data-home-why-grid>
+          {whyPoints.map((point) => (
+            <article key={point.number} data-home-why-card>
+              <span data-home-why-number>{point.number}</span>
+              <h3>{point.title}</h3>
+              <p>{point.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
 
       <section id="services" className={`${styles.section} ${styles.tradeSection}`}>
         <div className={styles.sectionHeadingLeft}>
