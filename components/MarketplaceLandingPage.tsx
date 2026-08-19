@@ -9,11 +9,13 @@ import {
   ChevronDown,
   Hammer,
   Headphones,
+  LockKeyhole,
   Menu,
   MessageCircle,
   Paintbrush,
   ShieldCheck,
   Sparkles,
+  Star,
   Wrench,
   X,
   Zap,
@@ -34,19 +36,40 @@ const trades = [
 const whyPoints = [
   {
     number: '01',
-    title: 'Start with the job, not the trade',
-    text: 'Tell us what you need in your own words. We help shape it into a clearer project before providers respond.',
+    title: 'A guided project brief',
+    text: 'Start with the result you need. We help turn the problem into a clearer project before providers respond.',
+    icon: ShieldCheck,
   },
   {
     number: '02',
-    title: 'Stay private until you choose',
-    text: 'Your personal contact details remain protected while you review suitable provider responses.',
+    title: 'Faster, clearer responses',
+    text: 'Suitable providers respond to the same project context, making the next conversation easier to compare.',
+    icon: Zap,
   },
   {
     number: '03',
-    title: 'Compare with better context',
-    text: 'Keep availability, preliminary estimates, communication and completed-job feedback connected to the real project.',
+    title: 'You stay in control',
+    text: 'Review the responses and decide who you want to connect with. The choice remains yours.',
+    icon: CheckCircle2,
   },
+  {
+    number: '04',
+    title: 'Private by design',
+    text: 'Your personal contact details stay protected while you review provider responses.',
+    icon: LockKeyhole,
+  },
+  {
+    number: '05',
+    title: 'Context that stays together',
+    text: 'Keep responses, project communication and completed-job feedback connected to the real work.',
+    icon: Star,
+  },
+];
+
+const whyStats = [
+  { value: '1', label: 'Guided request' },
+  { value: '3', label: 'Ways to describe the job' },
+  { value: '0', label: 'Contact details shared before you choose' },
 ];
 
 const steps = [
@@ -97,7 +120,7 @@ const faqs = [
   },
 ];
 
-const HERO_IMAGE = 'https://images.pexels.com/photos/14074835/pexels-photo-14074835.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1920&h=1080';
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1757359056339-22968344cce6?auto=format&fit=crop&w=2400&q=84';
 
 export const MarketplaceLandingPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -148,7 +171,7 @@ export const MarketplaceLandingPage = () => {
       <section className={styles.hero}>
         <img
           src={HERO_IMAGE}
-          alt="A modern home improvement project with skilled workers on site"
+          alt="A high-end modern home illuminated at dusk"
           className={styles.heroImage}
           loading="eager"
           fetchPriority="high"
@@ -162,8 +185,8 @@ export const MarketplaceLandingPage = () => {
 
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <div className={styles.eyebrow}><Sparkles size={15} /> Home improvement. One guided connection.</div>
-            <h1>Need the right home service? <span>We&apos;ve got you.</span></h1>
+            <div className={styles.eyebrow}><Sparkles size={15} /> Trusted local skills. One guided connection.</div>
+            <h1>Need the right service provider? <span>We&apos;ve got you.</span></h1>
             <p>
               Tell us what needs fixing, improving or building. We&apos;ll turn it into a clear project, connect you with
               suitable local providers, and help you compare responses with confidence.
@@ -183,18 +206,35 @@ export const MarketplaceLandingPage = () => {
 
       <div data-home-why aria-labelledby="why-skills-connect-pro-title">
         <div data-home-why-heading>
-          <span className={styles.sectionKicker}>Why Skills Connect Pro</span>
-          <h2 id="why-skills-connect-pro-title">A clearer way to get local work done.</h2>
-          <p>Less noise, more context and a guided connection from the first description to the final choice.</p>
+          <span className={styles.sectionKicker}>Built around the project</span>
+          <h2 id="why-skills-connect-pro-title">Why Skills Connect Pro?</h2>
+          <p>More than a directory: a guided way to describe the work, protect your details and make a better-informed connection.</p>
         </div>
+
         <div data-home-why-grid>
-          {whyPoints.map((point) => (
-            <article key={point.number} data-home-why-card>
-              <span data-home-why-number>{point.number}</span>
-              <h3>{point.title}</h3>
-              <p>{point.text}</p>
+          {whyPoints.map(({ number, title, text, icon: Icon }) => (
+            <article key={number} data-home-why-card>
+              <span data-home-why-icon><Icon size={27} /></span>
+              <span data-home-why-number>{number}</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
             </article>
           ))}
+        </div>
+
+        <div data-home-why-proof>
+          <div data-home-why-proof-copy>
+            <strong>Built around the job—not just a listing.</strong>
+            <span>Describe the work once, keep the context together and decide who you want to connect with.</span>
+          </div>
+          <div data-home-why-proof-stats>
+            {whyStats.map((stat) => (
+              <div key={stat.label}>
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
