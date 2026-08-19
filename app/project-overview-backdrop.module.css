@@ -1,0 +1,100 @@
+.backdropShell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #050505;
+}
+
+.backdropShell::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: clamp(38rem, 78vw, 60rem);
+  background:
+    linear-gradient(180deg, rgba(5,5,5,.06) 0%, rgba(5,5,5,.16) 46%, #050505 98%),
+    linear-gradient(90deg, rgba(5,5,5,.54) 0%, rgba(5,5,5,.34) 32%, rgba(5,5,5,.08) 72%, rgba(5,5,5,.18) 100%),
+    url('/artisans/build.png') center 30% / cover no-repeat;
+  filter: saturate(1.03) contrast(1.06) brightness(1.08);
+  opacity: 1;
+  pointer-events: none;
+}
+
+.backdropShell::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% 7%, rgba(245,197,24,.075), transparent 24rem),
+    radial-gradient(circle at 90% 18%, rgba(245,197,24,.025), transparent 24rem),
+    linear-gradient(180deg, transparent 0 40rem, rgba(5,5,5,.74) 55rem, #050505 70rem);
+  pointer-events: none;
+}
+
+.backdropShell > :global(main) {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+:global(html[data-scp-theme='light']) .backdropShell {
+  background: #f3eee4;
+}
+
+:global(html[data-scp-theme='light']) .backdropShell::before {
+  background:
+    linear-gradient(180deg, rgba(243,238,228,.04) 0%, rgba(243,238,228,.18) 48%, #f3eee4 98%),
+    linear-gradient(90deg, rgba(243,238,228,.58) 0%, rgba(243,238,228,.38) 32%, rgba(243,238,228,.10) 70%, rgba(243,238,228,.20) 100%),
+    url('/artisans/build.png') center 30% / cover no-repeat;
+  filter: saturate(.92) contrast(1.01) brightness(1.03);
+  opacity: .9;
+}
+
+:global(html[data-scp-theme='light']) .backdropShell::after {
+  background:
+    radial-gradient(circle at 10% 7%, rgba(245,197,24,.075), transparent 24rem),
+    radial-gradient(circle at 88% 20%, rgba(47,103,74,.05), transparent 25rem),
+    linear-gradient(180deg, transparent 0 40rem, rgba(243,238,228,.72) 55rem, #f3eee4 70rem);
+}
+
+@media (max-width: 760px) {
+  .backdropShell::before {
+    height: 42rem;
+    background:
+      linear-gradient(180deg, rgba(5,5,5,.05) 0%, rgba(5,5,5,.18) 50%, #050505 98%),
+      linear-gradient(90deg, rgba(5,5,5,.46) 0%, rgba(5,5,5,.26) 44%, rgba(5,5,5,.10) 100%),
+      url('/artisans/build.png') 58% 18% / cover no-repeat;
+    filter: saturate(1.06) contrast(1.06) brightness(1.12);
+    opacity: 1;
+  }
+
+  .backdropShell::after {
+    background:
+      radial-gradient(circle at 15% 5%, rgba(245,197,24,.06), transparent 18rem),
+      linear-gradient(180deg, transparent 0 29rem, rgba(5,5,5,.68) 39rem, #050505 50rem);
+  }
+
+  :global(html[data-scp-theme='light']) .backdropShell::before {
+    background:
+      linear-gradient(180deg, rgba(243,238,228,.06) 0%, rgba(243,238,228,.22) 50%, #f3eee4 98%),
+      linear-gradient(90deg, rgba(243,238,228,.50) 0%, rgba(243,238,228,.30) 46%, rgba(243,238,228,.12) 100%),
+      url('/artisans/build.png') 58% 18% / cover no-repeat;
+    filter: saturate(.94) contrast(1.02) brightness(1.04);
+    opacity: .94;
+  }
+
+  :global(html[data-scp-theme='light']) .backdropShell::after {
+    background:
+      radial-gradient(circle at 15% 5%, rgba(245,197,24,.06), transparent 18rem),
+      linear-gradient(180deg, transparent 0 29rem, rgba(243,238,228,.72) 39rem, #f3eee4 50rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdropShell::before,
+  .backdropShell::after { transition: none; }
+}

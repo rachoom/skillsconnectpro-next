@@ -271,10 +271,11 @@ export default function CustomerProjectPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#080d0b] text-white">
-        <div className="text-center">
-          <Loader2 className="mx-auto animate-spin text-amber-300" size={36} />
-          <p className="mt-4 text-sm text-zinc-400">Opening your project…</p>
+      <main className={styles.loadingPage}>
+        <div className={styles.loadingCard}>
+          <div className={styles.loadingIcon}><Loader2 className="animate-spin" size={30} /></div>
+          <strong>Opening your project</strong>
+          <p>Preparing the latest provider activity…</p>
         </div>
       </main>
     );
@@ -282,11 +283,11 @@ export default function CustomerProjectPage() {
 
   if (error && !feed) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#080d0b] px-5 text-white">
-        <section className="max-w-md rounded-3xl border border-red-400/30 bg-red-500/10 p-7 text-center">
-          <AlertTriangle className="mx-auto text-red-300" size={38} />
-          <h1 className="mt-4 text-2xl font-black">Project unavailable</h1>
-          <p className="mt-3 text-sm leading-6 text-red-100/80">{error}</p>
+      <main className={styles.loadingPage}>
+        <section className={styles.errorCard}>
+          <AlertTriangle size={34} />
+          <h1>Project unavailable</h1>
+          <p>{error}</p>
         </section>
       </main>
     );
@@ -303,8 +304,8 @@ export default function CustomerProjectPage() {
     : null;
 
   return (
-    <main className={`${styles.page} min-h-screen bg-[#080d0b] px-4 py-8 text-white md:px-8`}>
-      <div className="mx-auto max-w-5xl">
+    <main className={styles.page}>
+      <div className={styles.shell}>
         <div className={styles.overviewBar}>
           <div>
             <span>Customer workspace</span>
@@ -312,144 +313,166 @@ export default function CustomerProjectPage() {
           </div>
           <div className={styles.liveState}><i /> Live updates</div>
         </div>
-        <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-8">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-amber-300">
-                <ShieldCheck size={16} /> Skills Connect Pro project
+
+        <header className={styles.projectHero}>
+          <div className={styles.heroGrid}>
+            <div className={styles.heroCopy}>
+              <div className={styles.heroEyebrow}>
+                <span><ShieldCheck size={17} /></span>
+                Ongoing project
               </div>
-              <h1 className="mt-3 text-3xl font-black md:text-4xl">{project.title}</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">{project.customerDescription}</p>
+              <h1>{project.title}</h1>
+              <p>{project.customerDescription}</p>
+
+              <div className={styles.projectMeta}>
+                <span>{project.category}</span>
+                <span>{project.urgency}</span>
+                <span>{project.status.replaceAll('_', ' ')}</span>
+                <span><MapPin size={13} /> {project.suburb || project.city || project.locationText}</span>
+              </div>
+
+              <div className={styles.heroFoot}>
+                <span>Created {formatDate(project.createdAt)}</span>
+                {lastUpdated && <span>Updated {lastUpdated.toLocaleTimeString('en-ZA')}</span>}
+              </div>
             </div>
-            <button
-              onClick={() => void loadFeed()}
-              className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider"
-            >
-              <RefreshCw size={14} /> Refresh
-            </button>
+
+            <aside className={styles.matchingPanel}>
+              <div className={styles.matchingOrb}>
+                <span><Users size={25} /></span>
+              </div>
+              <p className={styles.matchingKicker}>Matching in progress</p>
+              <strong>
+                {feed.matching.invitationsSent > 0
+                  ? `${feed.matching.invitationsSent} provider${feed.matching.invitationsSent === 1 ? '' : 's'} contacted`
+                  : 'Finding suitable providers'}
+              </strong>
+              <p className={styles.matchingCopy}>
+                {feed.matching.validResponsesReceived > 0
+                  ? `${feed.matching.validResponsesReceived} response${feed.matching.validResponsesReceived === 1 ? '' : 's'} ready to review.`
+                  : 'We are contacting suitable local providers. This page updates automatically.'}
+              </p>
+              <button type="button" onClick={() => void loadFeed()} className={styles.refreshButton}>
+                <RefreshCw size={15} /> Refresh now
+              </button>
+            </aside>
           </div>
-          <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider">
-            <span className="rounded-lg bg-white/10 px-3 py-2">{project.category}</span>
-            <span className="rounded-lg bg-white/10 px-3 py-2">{project.urgency}</span>
-            <span className="rounded-lg bg-white/10 px-3 py-2">{project.status.replaceAll('_', ' ')}</span>
-            <span className="flex items-center gap-1 rounded-lg bg-white/10 px-3 py-2"><MapPin size={13} /> {project.suburb || project.city || project.locationText}</span>
-          </div>
-          {lastUpdated && <p className="mt-4 text-[11px] text-zinc-600">Updated {lastUpdated.toLocaleTimeString('en-ZA')}</p>}
         </header>
 
         {error && (
-          <div className="mt-5 flex gap-3 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">
-            <AlertTriangle className="shrink-0" size={18} /> {error}
+          <div className={styles.inlineError}>
+            <AlertTriangle size={18} /> {error}
           </div>
         )}
 
-        <section className="mt-6 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
-            <Users className="text-amber-300" size={20} />
-            <p className="mt-3 text-3xl font-black">{feed.matching.invitationsSent}</p>
-            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">Providers invited</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
-            <Clock3 className="text-amber-300" size={20} />
-            <p className="mt-3 text-3xl font-black">{feed.matching.providersReviewing}</p>
-            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">Currently reviewing</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
-            <CheckCircle2 className="text-emerald-400" size={20} />
-            <p className="mt-3 text-3xl font-black">{feed.matching.validResponsesReceived}</p>
-            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">Responses received</p>
-          </div>
+        <section className={styles.metricsGrid} aria-label="Project matching status">
+          <article className={styles.metricCard}>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><Users size={19} /></span><small>01</small></div>
+            <strong>{feed.matching.invitationsSent}</strong>
+            <h2>Providers invited</h2>
+            <p>Invitations sent to suitable local providers.</p>
+          </article>
+          <article className={styles.metricCard}>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={19} /></span><small>02</small></div>
+            <strong>{feed.matching.providersReviewing}</strong>
+            <h2>Currently reviewing</h2>
+            <p>Providers actively considering your project.</p>
+          </article>
+          <article className={`${styles.metricCard} ${styles.metricSuccess}`}>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><CheckCircle2 size={19} /></span><small>03</small></div>
+            <strong>{feed.matching.validResponsesReceived}</strong>
+            <h2>Responses received</h2>
+            <p>Provider options ready for you to compare.</p>
+          </article>
         </section>
 
         {selectedResponse && !contactsReleased && (
-          <section className="mt-6 rounded-3xl border border-amber-300/30 bg-amber-400/10 p-6">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-start gap-4">
-                <UserRoundCheck className="mt-1 shrink-0 text-amber-300" size={28} />
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wider text-amber-300">Provider selected</p>
-                  <h2 className="mt-2 text-2xl font-black">{selectedName}</h2>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-400">
-                    Confirm this provider to exchange contact details. Your controls for starting, completing or cancelling the job will become available immediately after you connect.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowReleaseConfirm(true)}
-                className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-xs font-black uppercase tracking-wider text-black"
-              >
-                <LockKeyhole size={16} /> Confirm & connect
-              </button>
+          <section className={`${styles.actionCard} ${styles.actionSelected}`}>
+            <div className={styles.actionIcon}><UserRoundCheck size={27} /></div>
+            <div className={styles.actionCopy}>
+              <span>Provider selected</span>
+              <h2>{selectedName}</h2>
+              <p>
+                Confirm this provider to exchange contact details. Job-status controls become available immediately after you connect.
+              </p>
             </div>
+            <button onClick={() => setShowReleaseConfirm(true)} className={styles.primaryAction}>
+              <LockKeyhole size={16} /> Confirm & connect
+            </button>
           </section>
         )}
 
         {contactsReleased && releasedProvider && (
           <>
-            <section className="mt-6 rounded-3xl border border-emerald-400/35 bg-emerald-500/10 p-6">
-              <div className="flex items-start gap-4">
-                <CheckCircle2 className="mt-1 shrink-0 text-emerald-300" size={30} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black uppercase tracking-wider text-emerald-300">You are connected</p>
-                  <h2 className="mt-2 text-2xl font-black">{releasedProvider.name}</h2>
-                  <p className="mt-2 text-sm text-emerald-50/70">Contact details have been released only to you and the selected provider.</p>
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {releasedProvider.phone && (
-                      <a href={`tel:${releasedProvider.phone}`} className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-[#102018]">
-                        <Phone size={17} /> Call {releasedProvider.phone}
-                      </a>
-                    )}
-                    {whatsappHref && (
-                      <a href={whatsappHref} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-black text-[#071d10]">
-                        <MessageCircle size={17} /> WhatsApp provider
-                      </a>
-                    )}
-                  </div>
-                  {releasedProvider.email && <p className="mt-4 text-xs text-zinc-400">Email: {releasedProvider.email}</p>}
+            <section className={`${styles.actionCard} ${styles.actionConnected}`}>
+              <div className={styles.actionIcon}><CheckCircle2 size={28} /></div>
+              <div className={styles.actionCopy}>
+                <span>You are connected</span>
+                <h2>{releasedProvider.name}</h2>
+                <p>Contact details have been released only to you and the selected provider.</p>
+                <div className={styles.contactActions}>
+                  {releasedProvider.phone && (
+                    <a href={`tel:${releasedProvider.phone}`} className={styles.callButton}>
+                      <Phone size={17} /> Call {releasedProvider.phone}
+                    </a>
+                  )}
+                  {whatsappHref && (
+                    <a href={whatsappHref} target="_blank" rel="noreferrer" className={styles.whatsappButton}>
+                      <MessageCircle size={17} /> WhatsApp provider
+                    </a>
+                  )}
                 </div>
+                {releasedProvider.email && <small>Email: {releasedProvider.email}</small>}
               </div>
             </section>
 
-            <section className="mt-4 rounded-3xl border border-amber-300/30 bg-white/[0.035] p-5 md:p-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wider text-amber-300">Manage job status</p>
-                  <h2 className="mt-2 text-xl font-black">Keep the project record up to date</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                    Mark when work starts, confirm the provider’s completion report, cancel the project or report a problem.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={openJobControls}
-                  className="flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 text-sm font-black text-black"
-                >
-                  <Wrench size={17} /> Open job controls
-                </button>
+            <section className={`${styles.actionCard} ${styles.jobControlsCard}`}>
+              <div className={styles.actionIcon}><Wrench size={25} /></div>
+              <div className={styles.actionCopy}>
+                <span>Manage job status</span>
+                <h2>Keep the project record up to date</h2>
+                <p>Mark when work starts, confirm completion, cancel the project or report a problem.</p>
               </div>
+              <button type="button" onClick={openJobControls} className={styles.primaryAction}>
+                <Wrench size={17} /> Open job controls
+              </button>
             </section>
           </>
         )}
 
-        <section className="mt-8">
-          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+        <section className={styles.responsesSection}>
+          <div className={styles.sectionHeading}>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Rolling responses</p>
-              <h2 className="mt-2 text-2xl font-black">Available provider options</h2>
+              <span>Rolling responses</span>
+              <h2>Available provider options</h2>
+              <p>Compare real responses as suitable providers reply to your project.</p>
             </div>
-            <p className="text-xs text-zinc-500">Response target: {formatDate(project.responseTargetAt)}</p>
+            <div className={styles.responseTarget}>
+              <Clock3 size={15} />
+              <span>Response target</span>
+              <strong>{formatDate(project.responseTargetAt)}</strong>
+            </div>
           </div>
 
           {feed.responses.length === 0 ? (
-            <div className="mt-5 rounded-3xl border border-dashed border-white/10 bg-white/[0.025] py-20 text-center">
-              <Wrench className="mx-auto text-zinc-700" size={42} />
-              <h3 className="mt-4 text-lg font-black">Providers are being contacted</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
-                Responses will appear here as providers confirm availability. This page refreshes automatically every 15 seconds.
+            <div className={styles.emptyState}>
+              <div className={styles.emptyVisual}>
+                <span><Wrench size={28} /></span>
+                <i />
+              </div>
+              <span>Live matching</span>
+              <h3>Providers are being contacted</h3>
+              <p>
+                Responses will appear here as providers confirm availability. You do not need to keep refreshing — this page updates every 15 seconds.
               </p>
+              <div className={styles.emptySteps}>
+                <span><b>1</b> Request shared</span>
+                <span><b>2</b> Providers reviewing</span>
+                <span><b>3</b> Responses arrive here</span>
+              </div>
             </div>
           ) : (
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className={styles.providerGrid}>
               {feed.responses.map((response) => {
                 const name = providerName(response.provider);
                 const category = providerString(response.provider, 'category');
@@ -461,79 +484,71 @@ export default function CustomerProjectPage() {
                 const hasEstimate = response.estimateMin !== null || response.estimateMax !== null;
 
                 return (
-                  <article
-                    key={response.id}
-                    className={`rounded-3xl border p-5 ${selected ? 'border-emerald-400 bg-emerald-500/10' : 'border-white/10 bg-white/[0.035]'}`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
+                  <article key={response.id} className={`${styles.providerCard} ${selected ? styles.providerSelected : ''}`}>
+                    <div className={styles.providerHeader}>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xl font-black">{name}</h3>
-                          {verified && <ShieldCheck className="text-emerald-400" size={17} />}
+                        <div className={styles.providerNameRow}>
+                          <h3>{name}</h3>
+                          {verified && <ShieldCheck size={17} />}
                         </div>
-                        <p className="mt-1 text-xs font-bold uppercase tracking-wider text-amber-300">{category || 'Service provider'}</p>
-                        {location && <p className="mt-2 flex items-center gap-1 text-xs text-zinc-500"><MapPin size={12} /> {location}</p>}
+                        <p className={styles.providerCategory}>{category || 'Service provider'}</p>
+                        {location && <p className={styles.providerLocation}><MapPin size={12} /> {location}</p>}
                       </div>
                       {rating !== null && rating > 0 ? (
-                        <span className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold">
-                          <Star size={12} className="fill-current text-amber-300" /> {rating.toFixed(1)}
-                        </span>
+                        <span className={styles.ratingPill}><Star size={12} /> {rating.toFixed(1)}</span>
                       ) : (
-                        <span className="rounded-lg bg-white/10 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                          New provider
-                        </span>
+                        <span className={styles.newPill}>New provider</span>
                       )}
                     </div>
 
-                    <div className={`mt-5 grid gap-3 text-sm ${showSiteVisitFee ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                      <div className="rounded-2xl bg-black/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Provider response</p>
-                        <p className="mt-1 font-bold">{responseTypeLabel(response.responseType)}</p>
+                    <div className={styles.providerDetailGrid}>
+                      <div>
+                        <span>Provider response</span>
+                        <strong>{responseTypeLabel(response.responseType)}</strong>
                       </div>
                       {showSiteVisitFee && (
-                        <div className="rounded-2xl bg-black/20 p-3">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Site visit fee</p>
-                          <p className="mt-1 font-bold">
+                        <div>
+                          <span>Site visit fee</span>
+                          <strong>
                             {response.siteVisitFee === null
                               ? 'No fee supplied'
                               : formatMoney(response.siteVisitFee, response.estimateCurrency)}
-                          </p>
+                          </strong>
                         </div>
                       )}
                     </div>
 
                     {hasEstimate && (
-                      <div className="mt-3 rounded-2xl bg-black/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Estimated job price</p>
-                        <p className="mt-1 font-bold">
+                      <div className={styles.providerInfoPanel}>
+                        <span>Estimated job price</span>
+                        <strong>
                           {formatMoney(response.estimateMin, response.estimateCurrency)} – {formatMoney(response.estimateMax, response.estimateCurrency)}
-                        </p>
-                        <p className="mt-2 text-[10px] leading-4 text-zinc-500">
-                          Preliminary estimate only. The final price may change after inspection and agreement with you.
-                        </p>
+                        </strong>
+                        <p>Preliminary estimate only. Final price may change after inspection and agreement.</p>
                       </div>
                     )}
 
                     {response.arrivalWindowStart && (
-                      <div className="mt-3 rounded-2xl bg-black/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Available to arrive</p>
-                        <p className="mt-1 text-sm font-bold">
+                      <div className={styles.providerInfoPanel}>
+                        <span>Available to arrive</span>
+                        <strong>
                           {formatDate(response.arrivalWindowStart)}
                           {response.arrivalWindowEnd ? ` – ${formatDate(response.arrivalWindowEnd)}` : ''}
-                        </p>
+                        </strong>
                       </div>
                     )}
+
                     {response.providerMessage && (
-                      <div className="mt-4 rounded-2xl border border-white/5 bg-black/20 p-4">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Message from provider</p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-300">“{response.providerMessage}”</p>
+                      <div className={styles.providerMessage}>
+                        <span>Message from provider</span>
+                        <p>“{response.providerMessage}”</p>
                       </div>
                     )}
 
                     <button
                       disabled={contactsReleased || selected || selectingResponseId !== null}
                       onClick={() => void selectProvider(response.id)}
-                      className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-xs font-black uppercase tracking-wider text-black disabled:opacity-45"
+                      className={styles.selectProviderButton}
                     >
                       {selectingResponseId === response.id ? <Loader2 className="animate-spin" size={16} /> : selected ? <CheckCircle2 size={16} /> : <UserRoundCheck size={16} />}
                       {selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
@@ -545,40 +560,52 @@ export default function CustomerProjectPage() {
           )}
         </section>
 
-        <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.025] p-6">
-          <h2 className="font-black">Project activity</h2>
-          <div className="mt-4 space-y-3">
-            {feed.timeline.map((event) => (
-              <div key={event.id} className="flex gap-3 border-l border-white/10 pl-4">
-                <div>
-                  <p className="text-sm font-bold capitalize">{event.eventType.replaceAll('_', ' ')}</p>
-                  {event.message && <p className="mt-1 text-xs text-zinc-500">{event.message}</p>}
-                  <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-700">{formatDate(event.createdAt)}</p>
-                </div>
-              </div>
-            ))}
+        <section className={styles.activityCard}>
+          <div className={styles.activityHeading}>
+            <div>
+              <span>Project activity</span>
+              <h2>Your project journey</h2>
+            </div>
+            <small>Latest activity updates automatically</small>
           </div>
+
+          {feed.timeline.length > 0 ? (
+            <div className={styles.timeline}>
+              {feed.timeline.map((event, index) => (
+                <div key={event.id} className={styles.timelineItem}>
+                  <div className={styles.timelineMarker}>
+                    <span>{index + 1}</span>
+                  </div>
+                  <div>
+                    <p>{event.eventType.replaceAll('_', ' ')}</p>
+                    {event.message && <small>{event.message}</small>}
+                    <time>{formatDate(event.createdAt)}</time>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.timelineEmpty}>Project activity will appear here as the request progresses.</div>
+          )}
         </section>
       </div>
 
       {showReleaseConfirm && selectedResponse && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-4 backdrop-blur-sm sm:items-center">
-          <section className="w-full max-w-lg rounded-3xl border border-amber-300/30 bg-[#111713] p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
+        <div className={styles.modalBackdrop}>
+          <section className={styles.modalCard}>
+            <div className={styles.modalHeader}>
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">Final confirmation</p>
-                <h2 className="mt-2 text-2xl font-black">Connect with {selectedName}?</h2>
+                <span>Final confirmation</span>
+                <h2>Connect with {selectedName}?</h2>
               </div>
-              <button onClick={() => setShowReleaseConfirm(false)} className="rounded-xl border border-white/10 p-2 text-zinc-400" aria-label="Close confirmation">
-                <X size={18} />
-              </button>
+              <button onClick={() => setShowReleaseConfirm(false)} aria-label="Close confirmation"><X size={18} /></button>
             </div>
-            <div className="mt-5 rounded-2xl bg-white/[0.04] p-4 text-sm leading-6 text-zinc-300">
+            <div className={styles.modalBody}>
               Skills Connect Pro will share your name, phone number and project location only with this provider. Their phone and WhatsApp details will then appear on this page. Other provider invitations will be closed, and your job-status controls will become available.
             </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <button onClick={() => setShowReleaseConfirm(false)} className="rounded-xl border border-white/15 px-4 py-3 text-sm font-bold text-zinc-200">Not yet</button>
-              <button disabled={releasingContact} onClick={() => void releaseContact()} className="flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-sm font-black text-black disabled:opacity-50">
+            <div className={styles.modalActions}>
+              <button onClick={() => setShowReleaseConfirm(false)} className={styles.secondaryModalAction}>Not yet</button>
+              <button disabled={releasingContact} onClick={() => void releaseContact()} className={styles.primaryAction}>
                 {releasingContact ? <Loader2 className="animate-spin" size={17} /> : <LockKeyhole size={17} />}
                 Share & connect
               </button>
