@@ -56,15 +56,18 @@
 }
 
 /*
- * The logo artwork contains white lettering, so in light mode give just the
- * brand mark a small smoked-glass island while keeping the outer header light.
+ * Keep the homepage logo floating directly on the transparent hero navigation
+ * in light mode too. The dusk image already provides enough contrast, so the
+ * old smoked-glass island is intentionally removed.
  */
 :global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
-  border: 1px solid rgba(255,255,255,.18) !important;
-  background: linear-gradient(145deg,rgba(18,20,17,.72),rgba(22,20,15,.55)) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 10px 24px -20px rgba(0,0,0,.7) !important;
-  backdrop-filter: blur(12px) saturate(125%);
-  -webkit-backdrop-filter: blur(12px) saturate(125%);
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 :global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
@@ -97,7 +100,7 @@
 
 @media (max-width: 639px) {
   :global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
-    padding: .18rem .38rem !important;
-    border-radius: .72rem !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
   }
 }
