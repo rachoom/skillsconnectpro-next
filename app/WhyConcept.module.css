@@ -1,0 +1,149 @@
+.scope {}
+
+.scope :global([data-home-why]) {
+  width: min(calc(100% - 2rem), 76rem);
+  margin: 0 auto;
+  padding: 5.6rem 0 5.1rem;
+  color: #f7f7f3;
+}
+
+.scope :global([data-home-why-heading]) {
+  display: grid;
+  max-width: 48rem;
+  margin-bottom: 3.2rem;
+}
+
+.scope :global([data-home-why-heading] > span) {
+  color: #f5c518 !important;
+  font-size: .66rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .18em !important;
+}
+
+.scope :global([data-home-why-heading] h2) {
+  max-width: 13ch;
+  margin-top: .7rem;
+  color: #fff !important;
+  font-size: clamp(2.65rem,6vw,4.65rem);
+  font-weight: 840;
+  line-height: .98;
+  letter-spacing: -.052em;
+  text-wrap: balance;
+}
+
+.scope :global([data-home-why-heading] p) {
+  max-width: 37rem;
+  margin-top: 1rem;
+  color: rgba(255,255,255,.58) !important;
+  font-size: .96rem;
+  line-height: 1.7;
+}
+
+.scope :global([data-home-why-grid]) {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: clamp(1.5rem,4vw,4rem);
+}
+
+.scope :global([data-home-why-card]) {
+  position: relative;
+  min-width: 0;
+  padding: 1.55rem 0 0;
+  border-top: 1px solid rgba(255,255,255,.20);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.scope :global([data-home-why-number]) {
+  display: block;
+  color: #f5c518 !important;
+  font-size: .75rem;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+
+.scope :global([data-home-why-card] h3) {
+  max-width: 16rem;
+  margin-top: 2.5rem;
+  color: #fff !important;
+  font-size: 1.18rem;
+  font-weight: 820;
+  line-height: 1.22;
+  letter-spacing: -.025em;
+}
+
+.scope :global([data-home-why-card] p) {
+  max-width: 19rem;
+  margin-top: .7rem;
+  color: rgba(255,255,255,.56) !important;
+  font-size: .84rem;
+  line-height: 1.7;
+}
+
+:global(html[data-scp-theme='light']) .scope :global([data-home-why]) {
+  color: #151a17;
+}
+
+:global(html[data-scp-theme='light']) .scope :global([data-home-why-heading] h2),
+:global(html[data-scp-theme='light']) .scope :global([data-home-why-card] h3) {
+  color: #151a17 !important;
+  text-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global([data-home-why-heading] p),
+:global(html[data-scp-theme='light']) .scope :global([data-home-why-card] p) {
+  color: #626964 !important;
+  text-shadow: none !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global([data-home-why-card]) {
+  border-top-color: rgba(21,26,23,.20);
+}
+
+@media (max-width: 639px) {
+  .scope :global([data-home-why]) {
+    width: min(calc(100% - 1.5rem), 76rem);
+    padding: 4.1rem 0 3.9rem;
+  }
+
+  .scope :global([data-home-why-heading]) {
+    margin-bottom: 2.4rem;
+  }
+
+  .scope :global([data-home-why-heading] h2) {
+    max-width: 11ch;
+    font-size: clamp(2.35rem,10.5vw,3.25rem);
+  }
+
+  .scope :global([data-home-why-heading] p) {
+    max-width: 20rem;
+    font-size: .86rem;
+  }
+
+  .scope :global([data-home-why-grid]) {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .scope :global([data-home-why-card]) {
+    display: grid;
+    grid-template-columns: 2.7rem minmax(0,1fr);
+    column-gap: 1rem;
+    padding-top: 1.25rem;
+  }
+
+  .scope :global([data-home-why-number]) {
+    grid-row: 1 / span 2;
+    padding-top: .15rem;
+  }
+
+  .scope :global([data-home-why-card] h3) {
+    margin-top: 0;
+    font-size: 1.08rem;
+  }
+
+  .scope :global([data-home-why-card] p) {
+    margin-top: .45rem;
+    font-size: .8rem;
+  }
+}
