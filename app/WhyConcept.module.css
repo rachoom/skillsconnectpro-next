@@ -1,149 +1,288 @@
 .scope {}
 
+/* Premium white credibility band directly below the hero. */
 .scope :global([data-home-why]) {
-  width: min(calc(100% - 2rem), 76rem);
-  margin: 0 auto;
-  padding: 5.6rem 0 5.1rem;
-  color: #f7f7f3;
+  width: 100%;
+  margin: 0;
+  padding: 4.4rem max(1rem, calc((100vw - 76rem) / 2)) 4.2rem;
+  background: #f7f5ef;
+  color: #151816;
+  border-bottom: 1px solid rgba(25,28,25,.08);
 }
 
 .scope :global([data-home-why-heading]) {
   display: grid;
-  max-width: 48rem;
-  margin-bottom: 3.2rem;
+  justify-items: center;
+  max-width: 52rem;
+  margin: 0 auto 2.7rem;
+  text-align: center;
 }
 
 .scope :global([data-home-why-heading] > span) {
-  color: #f5c518 !important;
-  font-size: .66rem !important;
+  color: #8a6500 !important;
+  font-size: .64rem !important;
   font-weight: 900 !important;
   letter-spacing: .18em !important;
+  text-transform: uppercase;
 }
 
 .scope :global([data-home-why-heading] h2) {
-  max-width: 13ch;
-  margin-top: .7rem;
-  color: #fff !important;
-  font-size: clamp(2.65rem,6vw,4.65rem);
-  font-weight: 840;
-  line-height: .98;
-  letter-spacing: -.052em;
-  text-wrap: balance;
+  position: relative;
+  margin-top: .6rem;
+  padding-bottom: .9rem;
+  color: #151816 !important;
+  font-size: clamp(2.15rem,4vw,3.25rem);
+  font-weight: 880;
+  line-height: 1;
+  letter-spacing: -.045em;
+  text-shadow: none !important;
+}
+
+.scope :global([data-home-why-heading] h2)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 4.5rem;
+  height: 2px;
+  transform: translateX(-50%);
+  background: #f5c518;
 }
 
 .scope :global([data-home-why-heading] p) {
-  max-width: 37rem;
-  margin-top: 1rem;
-  color: rgba(255,255,255,.58) !important;
-  font-size: .96rem;
-  line-height: 1.7;
+  max-width: 42rem;
+  margin-top: .8rem;
+  color: #646861 !important;
+  font-size: .9rem;
+  line-height: 1.65;
+  text-shadow: none !important;
 }
 
 .scope :global([data-home-why-grid]) {
   display: grid;
-  grid-template-columns: repeat(3,minmax(0,1fr));
-  gap: clamp(1.5rem,4vw,4rem);
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  gap: .8rem;
+  width: min(100%,76rem);
+  margin: 0 auto;
 }
 
 .scope :global([data-home-why-card]) {
-  position: relative;
+  display: flex;
   min-width: 0;
-  padding: 1.55rem 0 0;
-  border-top: 1px solid rgba(255,255,255,.20);
-  background: transparent !important;
-  box-shadow: none !important;
+  min-height: 12.8rem;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #dfd6c2;
+  border-radius: 1rem;
+  background: linear-gradient(180deg,#fffdf7,#faf6ed) !important;
+  padding: 1.2rem 1rem;
+  color: #171917;
+  text-align: center;
+  box-shadow: 0 18px 36px -30px rgba(46,36,17,.28) !important;
+}
+
+.scope :global([data-home-why-icon]) {
+  display: inline-flex;
+  width: 3.35rem;
+  height: 3.35rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fff8db;
+  color: #171917 !important;
+  box-shadow: inset 0 0 0 1px rgba(245,197,24,.58);
+}
+
+.scope :global([data-home-why-icon] svg) {
+  stroke-width: 1.75;
 }
 
 .scope :global([data-home-why-number]) {
-  display: block;
-  color: #f5c518 !important;
-  font-size: .75rem;
+  margin-top: .7rem;
+  color: #9b7200 !important;
+  font-size: .6rem;
   font-weight: 900;
-  letter-spacing: .18em;
+  letter-spacing: .16em;
 }
 
 .scope :global([data-home-why-card] h3) {
-  max-width: 16rem;
-  margin-top: 2.5rem;
-  color: #fff !important;
-  font-size: 1.18rem;
-  font-weight: 820;
+  margin-top: .45rem;
+  color: #171917 !important;
+  font-size: .9rem;
+  font-weight: 850;
   line-height: 1.22;
-  letter-spacing: -.025em;
+  letter-spacing: -.018em;
+  text-shadow: none !important;
 }
 
 .scope :global([data-home-why-card] p) {
-  max-width: 19rem;
-  margin-top: .7rem;
-  color: rgba(255,255,255,.56) !important;
-  font-size: .84rem;
-  line-height: 1.7;
+  margin-top: .5rem;
+  color: #686b65 !important;
+  font-size: .7rem;
+  line-height: 1.5;
+  text-shadow: none !important;
 }
 
+.scope :global([data-home-why-proof]) {
+  display: grid;
+  grid-template-columns: minmax(0,1.1fr) minmax(0,1.35fr);
+  gap: 1.4rem;
+  width: min(100%,72rem);
+  margin: 1.35rem auto 0;
+  border: 1px solid rgba(245,197,24,.22);
+  border-radius: 1.2rem;
+  background: linear-gradient(135deg,#171b18,#0c0f0d) !important;
+  padding: 1.35rem 1.5rem;
+  color: #fff;
+  box-shadow: 0 24px 50px -38px rgba(0,0,0,.7);
+}
+
+.scope :global([data-home-why-proof-copy]) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.scope :global([data-home-why-proof-copy] strong) {
+  color: #fff !important;
+  font-size: .92rem;
+  font-weight: 850;
+  letter-spacing: -.015em;
+}
+
+.scope :global([data-home-why-proof-copy] span) {
+  margin-top: .35rem;
+  color: rgba(255,255,255,.62) !important;
+  font-size: .72rem;
+  line-height: 1.5;
+}
+
+.scope :global([data-home-why-proof-stats]) {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+}
+
+.scope :global([data-home-why-proof-stats] > div) {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: 0;
+  padding: .35rem .8rem;
+  text-align: center;
+}
+
+.scope :global([data-home-why-proof-stats] > div + div) {
+  border-left: 1px solid rgba(255,255,255,.15);
+}
+
+.scope :global([data-home-why-proof-stats] strong) {
+  color: #f5c518 !important;
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.scope :global([data-home-why-proof-stats] span) {
+  max-width: 10rem;
+  margin-top: .35rem;
+  color: rgba(255,255,255,.65) !important;
+  font-size: .66rem;
+  line-height: 1.35;
+}
+
+/* The white section is intentional in both site themes, matching the approved concept. */
+:global(html[data-scp-theme='dark']) .scope :global([data-home-why]),
 :global(html[data-scp-theme='light']) .scope :global([data-home-why]) {
-  color: #151a17;
+  background: #f7f5ef !important;
+  color: #151816 !important;
 }
 
-:global(html[data-scp-theme='light']) .scope :global([data-home-why-heading] h2),
-:global(html[data-scp-theme='light']) .scope :global([data-home-why-card] h3) {
-  color: #151a17 !important;
-  text-shadow: none !important;
-}
+@media (max-width: 899px) {
+  .scope :global([data-home-why-grid]) {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
 
-:global(html[data-scp-theme='light']) .scope :global([data-home-why-heading] p),
-:global(html[data-scp-theme='light']) .scope :global([data-home-why-card] p) {
-  color: #626964 !important;
-  text-shadow: none !important;
-}
-
-:global(html[data-scp-theme='light']) .scope :global([data-home-why-card]) {
-  border-top-color: rgba(21,26,23,.20);
+  .scope :global([data-home-why-card]:nth-child(4)),
+  .scope :global([data-home-why-card]:nth-child(5)) {
+    min-height: 11.8rem;
+  }
 }
 
 @media (max-width: 639px) {
   .scope :global([data-home-why]) {
-    width: min(calc(100% - 1.5rem), 76rem);
-    padding: 4.1rem 0 3.9rem;
+    padding: 3.2rem .75rem 3rem;
   }
 
   .scope :global([data-home-why-heading]) {
-    margin-bottom: 2.4rem;
+    margin-bottom: 1.8rem;
+    padding-inline: .45rem;
   }
 
   .scope :global([data-home-why-heading] h2) {
-    max-width: 11ch;
-    font-size: clamp(2.35rem,10.5vw,3.25rem);
+    font-size: clamp(2rem,10vw,2.7rem);
   }
 
   .scope :global([data-home-why-heading] p) {
-    max-width: 20rem;
-    font-size: .86rem;
+    max-width: 22rem;
+    font-size: .82rem;
   }
 
   .scope :global([data-home-why-grid]) {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: .65rem;
   }
 
   .scope :global([data-home-why-card]) {
-    display: grid;
-    grid-template-columns: 2.7rem minmax(0,1fr);
-    column-gap: 1rem;
-    padding-top: 1.25rem;
+    min-height: 11.5rem;
+    border-radius: .85rem;
+    padding: 1rem .7rem;
   }
 
-  .scope :global([data-home-why-number]) {
-    grid-row: 1 / span 2;
-    padding-top: .15rem;
+  .scope :global([data-home-why-card]:last-child) {
+    grid-column: 1 / -1;
+    width: calc(50% - .325rem);
+    justify-self: center;
+  }
+
+  .scope :global([data-home-why-icon]) {
+    width: 2.9rem;
+    height: 2.9rem;
+  }
+
+  .scope :global([data-home-why-icon] svg) {
+    width: 22px;
+    height: 22px;
   }
 
   .scope :global([data-home-why-card] h3) {
-    margin-top: 0;
-    font-size: 1.08rem;
+    font-size: .8rem;
   }
 
   .scope :global([data-home-why-card] p) {
-    margin-top: .45rem;
-    font-size: .8rem;
+    font-size: .65rem;
+  }
+
+  .scope :global([data-home-why-proof]) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: .85rem;
+    border-radius: 1rem;
+    padding: 1.1rem;
+  }
+
+  .scope :global([data-home-why-proof-copy]) {
+    text-align: center;
+  }
+
+  .scope :global([data-home-why-proof-stats] > div) {
+    padding-inline: .4rem;
+  }
+
+  .scope :global([data-home-why-proof-stats] strong) {
+    font-size: 1.35rem;
+  }
+
+  .scope :global([data-home-why-proof-stats] span) {
+    font-size: .58rem;
   }
 }
