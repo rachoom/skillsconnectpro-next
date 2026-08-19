@@ -15,24 +15,28 @@ export const LandingScrollReveal = () => {
     const collect = (selector: string, kind: RevealKind, staggerMs = 0) => {
       Array.from(document.querySelectorAll<HTMLElement>(selector)).forEach((element, index) => {
         element.dataset.scrollReveal = kind;
-        element.style.setProperty('--scroll-delay', `${staggerMs ? Math.min(index, 5) * staggerMs : 0}ms`);
+        element.style.setProperty('--scroll-delay', `${staggerMs ? Math.min(index, 6) * staggerMs : 0}ms`);
+        element.style.setProperty('--scroll-x', kind === 'item' ? `${index % 2 === 0 ? -10 : 10}px` : '0px');
         element.removeAttribute('data-scroll-visible');
         targets.push(element);
       });
     };
 
     // Headings and explanatory copy.
+    collect('[data-home-why-heading]', 'heading');
     collect('#services > div:first-child', 'heading');
     collect('#how-it-works > div:first-child', 'heading');
     collect('#support > div:first-child', 'heading');
 
     // Repeated cards/items reveal in short cascades as each group enters view.
+    collect('[data-home-why-card]', 'item', 90);
     collect('#services a[href^="/get-help?service="]', 'item', 65);
     collect('main > section:nth-of-type(3) > div > div', 'item', 80);
     collect('#how-it-works article', 'item', 80);
     collect('#support details', 'item', 70);
 
     // Larger conversion blocks should arrive as complete composed surfaces.
+    collect('[data-home-why-proof]', 'block');
     collect('main > section:nth-of-type(5)', 'block');
     collect('main > section:nth-of-type(6)', 'block');
     collect('#support > div:last-child', 'block');
