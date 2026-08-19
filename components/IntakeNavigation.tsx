@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Home, LifeBuoy } from 'lucide-react';
+import { ChevronLeft, House, MessageCircleQuestion } from 'lucide-react';
 
 export const IntakeNavigation = () => {
   const goBack = () => {
@@ -15,25 +15,33 @@ export const IntakeNavigation = () => {
         <button
           type="button"
           onClick={goBack}
+          data-intake-nav-action="back"
           className="flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 text-xs font-black uppercase tracking-wider text-white/85"
         >
-          <ArrowLeft size={17} /> Back
+          <span data-intake-nav-icon aria-hidden="true"><ChevronLeft size={18} /></span>
+          <span data-intake-nav-label>Back</span>
         </button>
 
         <div className="flex items-center gap-2">
           <Link
             href="/"
+            data-intake-nav-action="home"
+            aria-label="Home"
             className="flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 text-xs font-black uppercase tracking-wider text-white/85"
           >
-            <Home size={17} /> <span className="hidden sm:inline">Home</span>
+            <span data-intake-nav-icon aria-hidden="true"><House size={17} /></span>
+            <span data-intake-nav-label>Home</span>
           </Link>
           <a
             href="https://wa.me/27697026088"
             target="_blank"
             rel="noreferrer"
+            data-intake-nav-action="help"
+            aria-label="Get help on WhatsApp"
             className="flex min-h-11 items-center gap-2 rounded-xl bg-[#f5c518] px-3 text-xs font-black uppercase tracking-wider text-black"
           >
-            <LifeBuoy size={17} /> <span className="hidden sm:inline">Help</span>
+            <span data-intake-nav-icon aria-hidden="true"><MessageCircleQuestion size={17} /></span>
+            <span data-intake-nav-label>Help</span>
           </a>
         </div>
       </div>
