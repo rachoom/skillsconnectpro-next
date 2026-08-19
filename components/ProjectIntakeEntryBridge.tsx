@@ -15,18 +15,38 @@ function setControlledTextareaValue(element: HTMLTextAreaElement, value: string)
 const normalise = (value: string | null | undefined) =>
   String(value || '').replace(/\s+/g, ' ').trim();
 
+const normaliseServicePrefill = (value: string) => {
+  const key = value.toLowerCase();
+
+  if (
+    key === 'building & renovations' ||
+    key === 'building and renovations' ||
+    key === 'building & renovation' ||
+    key === 'building and renovation'
+  ) {
+    return 'Cleaning';
+  }
+
+  if (key === 'carpentry' || key === 'carpenter' || key === 'carpenters') {
+    return 'Mechanics';
+  }
+
+  return value;
+};
+
 /**
  * Bridges homepage/provider discovery routes into the guided intake without
  * duplicating the intake engine. It also routes assessment calls through the
  * current primary-service taxonomy so Mechanics is treated as a first-class
- * category while legacy Building/Carpentry requests fall back safely to the
- * General Contractor lane.
+ * category while legacy Building/Carpentry card links resolve to their new
+ * promoted lanes before the request text is shown to the customer.
  */
 export const ProjectIntakeEntryBridge = () => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const service = normalise(searchParams.get('service'));
+    const requestedService = normalise(searchParams.get('service'));
+    const service = normaliseServicePrefill(requestedService);
     const providerName = normalise(searchParams.get('providerName'));
     const providerId = Number(searchParams.get('providerId'));
     const mode = normalise(searchParams.get('mode')).toLowerCase();
