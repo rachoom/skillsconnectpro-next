@@ -87,6 +87,7 @@ async function refreshLatestQueuedManualWave(projectId: string): Promise<Created
     projectId,
     waveNumber,
     targets,
+    notifyAdminDispatch: false,
   });
 }
 

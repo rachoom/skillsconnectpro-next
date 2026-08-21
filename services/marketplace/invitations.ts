@@ -4,6 +4,7 @@ import { getInvitationResponseDeadline } from './routing';
 import { createTokenPair } from './tokens';
 import { projectStatusAfterInvitation } from './invitationStatusPolicy.js';
 import { dispatchProviderInvitations } from './whatsappDelivery';
+import { notifyAdminManualDispatchQueued } from './adminDispatchAlerts';
 
 export interface ProviderInvitationTarget {
   providerId: number;
@@ -83,6 +84,7 @@ export async function createProviderInvitations(input: {
   projectId: string;
   targets: ProviderInvitationTarget[];
   waveNumber?: number;
+  notifyAdminDispatch?: boolean;
 }): Promise<CreatedProviderInvitation[]> {
   if (!input.projectId) throw new Error('projectId is required.');
   if (!Array.isArray(input.targets) || input.targets.length === 0) {
@@ -260,6 +262,23 @@ export async function createProviderInvitations(input: {
   const deliveryByInvitationId = new Map(
     deliveryResults.map((delivery) => [delivery.invitationId, delivery]),
   );
+  const manualInvitationCount = deliveryResults.filter((delivery) => delivery.status === 'manual').length;
+
+  if (manualInvitationCount > 0 && input.notifyAdminDispatch !== false) {
+    try {
+      const alertResult = await notifyAdminManualDispatchQueued({
+        projectId: input.projectId,
+        projectTitle: project.title,
+        manualInvitationCount,
+      });
+
+      if (alertResult.status === 'failed') {
+        console.error('Admin WhatsApp dispatch alert failed:', alertResult.reason);
+      }
+    } catch (alertError) {
+      console.error('Admin WhatsApp dispatch alert failed:', alertError);
+    }
+  }
 
   return createdInvitations.map((invitation) => {
     const delivery = deliveryByInvitationId.get(invitation.invitationId);
