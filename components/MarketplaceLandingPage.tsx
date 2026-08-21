@@ -151,7 +151,7 @@ export const MarketplaceLandingPage = () => {
                 Show us the job <ArrowRight size={19} />
               </Link>
               <Link href="/estimator" className={styles.heroSecondaryButton}>
-                <Calculator size={19} /> Home Improvement Calculator
+                <Calculator size={19} /> AI Home Improvement Calculator
               </Link>
             </div>
 
