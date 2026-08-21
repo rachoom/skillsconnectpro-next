@@ -56,18 +56,15 @@
 }
 
 /*
- * Keep the homepage logo floating directly on the transparent hero navigation
- * in light mode too. The dusk image already provides enough contrast, so the
- * old smoked-glass island is intentionally removed.
+ * The logo artwork contains white lettering, so in light mode give just the
+ * brand mark a small smoked-glass island while keeping the outer header light.
  */
 :global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  background: linear-gradient(145deg,rgba(18,20,17,.72),rgba(22,20,15,.55)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 10px 24px -20px rgba(0,0,0,.7) !important;
+  backdrop-filter: blur(12px) saturate(125%);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
 }
 
 :global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] > div:first-child > div:last-child > a[href='/join']) {
@@ -98,9 +95,38 @@
   color: rgba(255,255,255,.92) !important;
 }
 
+/* The support action stays a high-contrast conversion surface in light mode. */
+:global(html[data-scp-theme='light']) .scope :global(#support [class*='supportCard']) {
+  border-color: rgba(245,197,24,.46) !important;
+  background:
+    radial-gradient(circle at 100% 0,rgba(245,197,24,.16),transparent 13rem),
+    linear-gradient(145deg,#1b563c,#103825) !important;
+  color: #fffdf7 !important;
+  box-shadow: 0 26px 58px -36px rgba(18,63,44,.52), inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(#support [class*='supportCard'] strong) {
+  color: #fffdf7 !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(#support [class*='supportCard'] span) {
+  color: #e5f2e8 !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(#support [class*='supportCard'] > svg) {
+  color: #ffd84d !important;
+  stroke: #ffd84d !important;
+}
+
+:global(html[data-scp-theme='light']) .scope :global(#support [class*='supportCard'] a) {
+  border-color: #ffd84d !important;
+  background: #f5c518 !important;
+  color: #122016 !important;
+}
+
 @media (max-width: 639px) {
   :global(html[data-scp-theme='light']) .scope :global(nav[aria-label='Primary navigation'] a[aria-label='Skills Connect Pro home']) {
-    padding: 0 !important;
-    border-radius: 0 !important;
+    padding: .18rem .38rem !important;
+    border-radius: .72rem !important;
   }
 }

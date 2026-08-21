@@ -52,18 +52,11 @@
 /* Mobile motion uses a shorter distance and duration so the experience stays quick. */
 @media (max-width: 639px) {
   .scope[data-scroll-ready='true'] :global([data-scroll-reveal]) {
-    transform: translate3d(0, 20px, 0) scale(.994);
-    filter: blur(2.5px);
-    transition-duration: 560ms, 620ms, 420ms;
-  }
-
-  .scope[data-scroll-ready='true'] :global([data-scroll-reveal='item']) {
-    transform: translate3d(0, 17px, 0) scale(.986);
-  }
-
-  .scope[data-scroll-ready='true'] :global([data-scroll-reveal][data-scroll-visible='true']) {
-    transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+    will-change: auto;
   }
 }
 

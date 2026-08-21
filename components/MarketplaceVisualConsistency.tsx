@@ -140,12 +140,17 @@ export const MarketplaceVisualConsistency = () => {
       }
 
       html[data-scp-theme='light'] body[data-scp-surface='home'] [class*='trustStrip'] {
-        border-color: rgba(52, 82, 61, .13) !important;
-        background: #dfeadf !important;
+        border-color: rgba(245, 197, 24, .3) !important;
+        background: linear-gradient(135deg, #1d5b40, #123f2d) !important;
       }
 
-      html[data-scp-theme='light'] body[data-scp-surface='home'] [class*='trustStrip'] * {
-        color: #314639 !important;
+      html[data-scp-theme='light'] body[data-scp-surface='home'] [class*='trustStrip'] span {
+        color: #fffdf7 !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='home'] [class*='trustStrip'] svg {
+        color: #ffd84d !important;
+        stroke: #ffd84d !important;
       }
 
       html[data-scp-theme='light'] body[data-scp-surface='home'] [class*='choiceSection'],

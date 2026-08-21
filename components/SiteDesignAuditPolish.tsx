@@ -203,7 +203,7 @@ export const SiteDesignAuditPolish = () => {
         min-height: 62px;
       }
 
-      body[data-scp-surface='home'] [class*='hero'] {
+      body[data-scp-surface='home'] main > section:first-of-type {
         min-height: auto;
         padding-top: 3.25rem;
         padding-bottom: 3.25rem;
@@ -213,8 +213,9 @@ export const SiteDesignAuditPolish = () => {
         font-size: clamp(2.65rem, 13vw, 4rem) !important;
       }
 
-      body[data-scp-surface='home'] [class*='section'],
-      body[data-scp-surface='home'] [class*='tradeSection'] {
+      body[data-scp-surface='home'] main > section#services,
+      body[data-scp-surface='home'] main > section#how-it-works,
+      body[data-scp-surface='home'] main > section#support {
         padding-top: 3.25rem;
         padding-bottom: 3.25rem;
       }
