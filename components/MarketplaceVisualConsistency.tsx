@@ -153,6 +153,34 @@ export const MarketplaceVisualConsistency = () => {
         stroke: #ffd84d !important;
       }
 
+      html[data-scp-theme='light'] body[data-scp-surface='home'] #support [class*='supportCard'] {
+        border-color: rgba(245, 197, 24, .46) !important;
+        background:
+          radial-gradient(circle at 100% 0, rgba(245, 197, 24, .16), transparent 13rem),
+          linear-gradient(145deg, #1b563c, #103825) !important;
+        color: #fffdf7 !important;
+        box-shadow: 0 26px 58px -36px rgba(18, 63, 44, .52), inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='home'] #support [class*='supportCard'] strong {
+        color: #fffdf7 !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='home'] #support [class*='supportCard'] span {
+        color: #e5f2e8 !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='home'] #support [class*='supportCard'] > svg {
+        color: #ffd84d !important;
+        stroke: #ffd84d !important;
+      }
+
+      html[data-scp-theme='light'] body[data-scp-surface='home'] #support [class*='supportCard'] a {
+        border-color: #ffd84d !important;
+        background: #f5c518 !important;
+        color: #122016 !important;
+      }
+
       html[data-scp-theme='light'] body[data-scp-surface='home'] [class*='choiceSection'],
       html[data-scp-theme='light'] body[data-scp-surface='home'] [class*='providerSection'] {
         border-color: rgba(52, 82, 61, .17) !important;
