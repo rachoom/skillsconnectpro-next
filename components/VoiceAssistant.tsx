@@ -4,8 +4,8 @@ import { analyzeIntent } from '../services/aiService';
 
 declare global {
   interface Window {
-    webkitSpeechRecognition: any;
-    SpeechRecognition: any;
+    webkitSpeechRecognition?: any;
+    SpeechRecognition?: any;
   }
 }
 

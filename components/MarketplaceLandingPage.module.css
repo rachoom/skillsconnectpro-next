@@ -206,17 +206,31 @@
 
 .heroSecondaryButton {
   display: inline-flex;
+  width: 100%;
   min-height: 56px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255,255,255,.62);
+  gap: .6rem;
+  border: 1px solid rgba(255,255,255,.44);
   border-radius: 1rem;
-  background: rgba(8,8,8,.52);
+  background: linear-gradient(135deg,rgba(255,255,255,.14),rgba(13,33,23,.42));
   color: #fff;
   font-size: .84rem;
   font-weight: 900;
-  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2),0 14px 34px -22px rgba(0,0,0,.95);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition: transform 180ms ease,border-color 180ms ease,background 180ms ease,box-shadow 180ms ease;
 }
+
+.heroSecondaryButton:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245,197,24,.72);
+  background: linear-gradient(135deg,rgba(255,255,255,.18),rgba(47,103,74,.52));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26),0 18px 36px -20px rgba(245,197,24,.36);
+}
+
+.heroSecondaryButton svg { color: var(--gold); }
 
 .inputNote {
   max-width: 36rem;
