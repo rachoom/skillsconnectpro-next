@@ -17,7 +17,7 @@
   z-index: -4;
   object-fit: cover;
   object-position: center;
-  filter: saturate(.92) contrast(1.06) brightness(.72);
+  filter: saturate(.96) contrast(1.06) brightness(.84);
 }
 
 .backdrop {
@@ -25,9 +25,9 @@
   z-index: -3;
   inset: 0;
   background:
-    linear-gradient(180deg,rgba(5,6,5,.48),rgba(5,6,5,.72)),
+    linear-gradient(180deg,rgba(5,6,5,.3),rgba(5,6,5,.58)),
     radial-gradient(circle at 75% 35%,rgba(47,103,74,.23),transparent 32rem),
-    linear-gradient(90deg,rgba(4,5,4,.86),rgba(4,5,4,.4) 56%,rgba(4,5,4,.68));
+    linear-gradient(90deg,rgba(4,5,4,.72),rgba(4,5,4,.26) 56%,rgba(4,5,4,.5));
 }
 
 .glow {
@@ -288,15 +288,15 @@
 }
 
 :global(html[data-scp-theme='light']) .backgroundImage {
-  filter: saturate(.78) contrast(.98) brightness(1.02);
-  opacity: .58;
+  filter: saturate(.88) contrast(1.02) brightness(.94);
+  opacity: .92;
 }
 
 :global(html[data-scp-theme='light']) .backdrop {
   background:
-    linear-gradient(180deg,rgba(239,245,236,.32),rgba(225,237,227,.68)),
+    linear-gradient(180deg,rgba(239,245,236,.08),rgba(225,237,227,.4)),
     radial-gradient(circle at 75% 35%,rgba(47,103,74,.12),transparent 32rem),
-    linear-gradient(90deg,rgba(244,247,240,.62),rgba(234,240,232,.3) 56%,rgba(228,238,228,.58));
+    linear-gradient(90deg,rgba(244,247,240,.34),rgba(234,240,232,.1) 56%,rgba(228,238,228,.32));
 }
 
 :global(html[data-scp-theme='light']) .header {
@@ -338,7 +338,7 @@
   border-color: rgba(255,255,255,.7);
   background:
     radial-gradient(circle at 0 0,rgba(245,197,24,.11),transparent 18rem),
-    linear-gradient(145deg,rgba(255,253,247,.72),rgba(240,246,238,.54));
+    linear-gradient(145deg,rgba(255,253,247,.66),rgba(240,246,238,.46));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.9),0 30px 72px -48px rgba(23,56,39,.58);
 }
 
@@ -346,7 +346,7 @@
   border-color: rgba(245,197,24,.38);
   background:
     radial-gradient(circle at 100% 0,rgba(245,197,24,.12),transparent 18rem),
-    linear-gradient(145deg,rgba(22,62,43,.88),rgba(8,28,19,.92));
+    linear-gradient(145deg,rgba(22,62,43,.8),rgba(8,28,19,.86));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.12),0 36px 90px -48px rgba(23,56,39,.62);
   backdrop-filter: blur(30px) saturate(1.16);
   -webkit-backdrop-filter: blur(30px) saturate(1.16);
@@ -369,8 +369,8 @@
 
   :global(html[data-scp-theme='light']) .backdrop {
     background:
-      linear-gradient(180deg,rgba(238,245,237,.42),rgba(222,236,225,.7)),
-      linear-gradient(90deg,rgba(245,248,242,.58),rgba(232,241,232,.26));
+      linear-gradient(180deg,rgba(238,245,237,.16),rgba(222,236,225,.46)),
+      linear-gradient(90deg,rgba(245,248,242,.34),rgba(232,241,232,.08));
   }
 }
 
