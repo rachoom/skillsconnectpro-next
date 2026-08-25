@@ -50,6 +50,7 @@ export const ProjectIntakeEntryBridge = () => {
     const providerName = normalise(searchParams.get('providerName'));
     const providerId = Number(searchParams.get('providerId'));
     const mode = normalise(searchParams.get('mode')).toLowerCase();
+    const descriptionPrefill = normalise(searchParams.get('description'));
 
     let attempts = 0;
     const applyEntryContext = () => {
@@ -58,6 +59,7 @@ export const ProjectIntakeEntryBridge = () => {
 
       if (!description.value.trim()) {
         const parts = [
+          descriptionPrefill,
           providerName ? `I would like ${providerName} to be invited to respond to this job.` : '',
           service ? `I need help with ${service.toLowerCase()}.` : '',
         ].filter(Boolean);

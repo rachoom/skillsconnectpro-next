@@ -46,6 +46,8 @@ const surfaceInitialiser = `
                 ? 'join'
                 : path === '/estimator'
                   ? 'estimator'
+                  : path === '/assistant'
+                    ? 'assistant'
                   : '';
     if (surface) document.body.dataset.scpSurface = surface;
   })();

@@ -202,7 +202,7 @@
   gap: .65rem !important;
 }
 
-.scope :global(main > section:first-of-type a[href='/get-help']) {
+.scope :global(main > section:first-of-type a[href='/assistant']) {
   width: auto !important;
   min-width: 11.5rem !important;
   min-height: 49px !important;
@@ -211,7 +211,7 @@
   box-shadow: 0 12px 30px -20px rgba(245,197,24,.75) !important;
 }
 
-.scope :global(main > section:first-of-type a[href='#how-it-works']) {
+.scope :global(main > section:first-of-type a[href='/get-help']) {
   width: auto !important;
   min-width: 10.5rem !important;
   min-height: 49px !important;
@@ -238,7 +238,7 @@
   }
 
   .scope :global(nav[aria-label='Primary navigation'] button[aria-label='Toggle navigation']:hover),
-  .scope :global(main > section:first-of-type a[href='#how-it-works']:hover) {
+  .scope :global(main > section:first-of-type a[href='/get-help']:hover) {
     border-color: rgba(245,197,24,.65) !important;
     background: rgba(7,9,8,.58) !important;
   }
@@ -318,8 +318,8 @@
     gap: .45rem !important;
   }
 
-  .scope :global(main > section:first-of-type a[href='/get-help']),
-  .scope :global(main > section:first-of-type a[href='#how-it-works']) {
+  .scope :global(main > section:first-of-type a[href='/assistant']),
+  .scope :global(main > section:first-of-type a[href='/get-help']) {
     width: auto !important;
     min-width: 0 !important;
     min-height: 46px !important;
@@ -327,8 +327,8 @@
     font-size: .68rem !important;
   }
 
-  .scope :global(main > section:first-of-type a[href='/get-help']) { flex: 1 1 54%; }
-  .scope :global(main > section:first-of-type a[href='#how-it-works']) { flex: 1 1 46%; }
+  .scope :global(main > section:first-of-type a[href='/assistant']) { flex: 1 1 58%; }
+  .scope :global(main > section:first-of-type a[href='/get-help']) { flex: 1 1 42%; }
 }
 
 @media (min-width: 900px) {

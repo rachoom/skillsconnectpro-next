@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import {
   ArrowRight,
-  Calculator,
   CheckCircle2,
   ChevronDown,
   Hammer,
@@ -118,7 +117,8 @@ export const MarketplaceLandingPage = () => {
             <a href="#services" onClick={closeMenu}>Services</a>
             <a href="#how-it-works" onClick={closeMenu}>How it works</a>
             <Link href="/browse-providers" onClick={closeMenu}>Browse providers</Link>
-            <Link href="/estimator" onClick={closeMenu}>Cost estimator</Link>
+            <Link href="/assistant" onClick={closeMenu}>AI Home Improvement Assistant</Link>
+            <Link href="/estimator" onClick={closeMenu}>Project estimator</Link>
             <a href="#support" onClick={closeMenu}>Support</a>
             <Link href="/join" onClick={closeMenu}>Join as provider</Link>
           </div>
@@ -139,24 +139,24 @@ export const MarketplaceLandingPage = () => {
 
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
-            <div className={styles.eyebrow}><Sparkles size={15} /> Trusted local skills. One guided connection.</div>
-            <h1>Need the right service provider? <span>We&apos;ve got you.</span></h1>
+            <div className={styles.eyebrow}><Sparkles size={15} /> Home improvement, made easier</div>
+            <h1>Your AI <span>Home Improvement Assistant</span></h1>
             <p>
-              Tell us what you need. We&apos;ll turn it into a clear project, connect you with suitable local providers,
-              and help you compare responses with confidence.
+              Describe the job, show us a photo, or speak. Get practical guidance, a preliminary estimate,
+              and a tracked route to suitable local professionals in East Rand.
             </p>
 
             <div className={styles.heroButtons}>
-              <Link href="/get-help" className={styles.primaryButton}>
-                Show us the job <ArrowRight size={19} />
+              <Link href="/assistant" className={styles.primaryButton}>
+                Open the AI Assistant <ArrowRight size={19} />
               </Link>
-              <Link href="/estimator" className={styles.heroSecondaryButton}>
-                <Calculator size={19} /> AI Home Improvement Calculator
+              <Link href="/get-help" className={styles.heroSecondaryButton}>
+                Show us the job <ArrowRight size={19} />
               </Link>
             </div>
 
             <p className={styles.inputNote}>
-              Typing, photographs and voice input are all available inside the same guided form.
+              The assistant brings project planning, photographs, voice input, estimates and provider matching into one guided journey.
             </p>
 
             <div className={styles.heroAssurances}>
@@ -212,8 +212,8 @@ export const MarketplaceLandingPage = () => {
       <section id="how-it-works" className={styles.section}>
         <div className={styles.sectionHeading}>
           <span className={styles.sectionKicker}>One guided flow</span>
-          <h2>One request. Clear next steps.</h2>
-          <p>The customer does not have to choose between separate assistants. Every entry point leads into one managed job journey.</p>
+          <h2>One assistant. Clear next steps.</h2>
+          <p>Planning, estimating and provider matching remain connected to one managed project journey.</p>
         </div>
 
         <div className={styles.stepsGrid}>
@@ -278,9 +278,10 @@ export const MarketplaceLandingPage = () => {
           <p>A guided local home-services marketplace.</p>
         </div>
         <div className={styles.footerLinks}>
+          <Link href="/assistant">AI Home Improvement Assistant</Link>
           <Link href="/get-help">Show us the job</Link>
           <Link href="/browse-providers">Browse providers</Link>
-          <Link href="/estimator">Cost estimator</Link>
+          <Link href="/estimator">Project estimator</Link>
           <Link href="/join">Join as a provider</Link>
         </div>
         <p className={styles.footerNote}>Preliminary estimates are not final quotations. Customers choose and contract directly with independent providers.</p>

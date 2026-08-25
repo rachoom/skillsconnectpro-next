@@ -21,6 +21,8 @@ export const MarketplaceVisualConsistency = () => {
                 ? 'join'
                 : pathname === '/estimator'
                   ? 'estimator'
+                  : pathname === '/assistant'
+                    ? 'assistant'
                   : '';
 
     if (surface) document.body.dataset.scpSurface = surface;
