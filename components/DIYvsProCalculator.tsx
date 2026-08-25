@@ -59,8 +59,8 @@ const inferServiceFromText = (text: string): string => {
   return 'General Contractor';
 };
 
-export default function DIYvsProCalculator() {
-  const [input, setInput] = useState('');
+export default function DIYvsProCalculator({ initialDescription = '' }: { initialDescription?: string }) {
+  const [input, setInput] = useState(initialDescription);
   const [timeValue, setTimeValue] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -416,7 +416,7 @@ export default function DIYvsProCalculator() {
           <button onClick={handleCalculate} disabled={loading} className="w-full py-4 bg-brand-yellow text-black font-black uppercase tracking-widest rounded-xl hover:bg-white transition-all flex justify-center items-center gap-2 disabled:opacity-50 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
             {loading ? <><Loader2 className="animate-spin" size={20} /> Analyzing...</> : 'Analyze Project'}
           </button>
-          <Link href="/" className="w-full py-4 bg-white/5 text-white font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 border border-white/5 text-center transition-all backdrop-blur-md">← Back to Directory</Link>
+          <Link href="/assistant" className="w-full py-4 bg-white/5 text-white font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 border border-white/5 text-center transition-all backdrop-blur-md">← Back to Assistant</Link>
         </div>
 
         {result && (
@@ -518,7 +518,7 @@ export default function DIYvsProCalculator() {
               <span className="text-4xl font-black text-brand-yellow tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">R {result.trueCost.toLocaleString()}</span>
             </div>
             <Link
-              href={`/?openSearch=1&service=${encodeURIComponent(result.recommendedService || inferServiceFromText(input))}`}
+              href={`/get-help?service=${encodeURIComponent(result.recommendedService || inferServiceFromText(input))}&description=${encodeURIComponent(input)}`}
               className="mt-4 w-full py-3 bg-brand-yellow text-black font-black uppercase tracking-[0.12em] rounded-xl hover:bg-white transition-all text-center block"
             >
               Connect a Pro

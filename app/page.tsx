@@ -22,11 +22,11 @@ type Props = {
 const HERO_SOCIAL_IMAGE = 'https://images.unsplash.com/photo-1757359056339-22968344cce6?auto=format&fit=crop&w=1600&q=84';
 
 export const metadata: Metadata = {
-  title: 'Skills Connect Pro | Home Improvement & Local Services',
-  description: 'Tell us what needs fixing, improving or building. Skills Connect Pro prepares a clear project, connects you with suitable local professionals and helps you compare responses with confidence.',
+  title: 'Skills Connect Pro | AI Home Improvement Assistant',
+  description: 'Describe, photograph or speak about a home-improvement project. Get practical guidance, a preliminary estimate and a tracked route to suitable East Rand professionals.',
   openGraph: {
-    title: 'Skills Connect Pro | Home Improvement & Local Services',
-    description: 'From repairs and maintenance to renovations and improvements, start one guided home project and compare suitable local providers with confidence.',
+    title: 'Skills Connect Pro | AI Home Improvement Assistant',
+    description: 'Plan a home-improvement project, build a preliminary estimate and connect with suitable East Rand professionals through one guided assistant.',
     images: [{ url: HERO_SOCIAL_IMAGE, width: 1200, height: 630 }],
     type: 'website',
   },

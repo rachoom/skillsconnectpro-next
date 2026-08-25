@@ -149,7 +149,7 @@
 }
 
 /* Primary hero CTA */
-.scope :global(main > section:first-of-type a[href="/get-help"]) {
+.scope :global(main > section:first-of-type a[href="/assistant"]) {
   min-height: 56px;
   border: 1px solid rgba(255,221,83,.92);
   border-radius: 1rem;
@@ -160,7 +160,7 @@
     inset 0 1px 0 rgba(255,255,255,.55);
 }
 
-.scope :global(main > section:first-of-type a[href="/get-help"] svg) {
+.scope :global(main > section:first-of-type a[href="/assistant"] svg) {
   width: 25px;
   height: 25px;
   padding: 4px;
@@ -170,7 +170,7 @@
 }
 
 /* Input-method note */
-.scope :global(main > section:first-of-type a[href="/get-help"] + p),
+.scope :global(main > section:first-of-type a[href="/assistant"] + p),
 .scope :global(main > section:first-of-type div:nth-of-type(3) p:last-of-type) {
   color: rgba(255,250,240,.66);
 }
@@ -248,7 +248,7 @@
     background: rgba(245,197,24,.08);
   }
 
-  .scope :global(main > section:first-of-type a[href="/get-help"]:hover svg) {
+  .scope :global(main > section:first-of-type a[href="/assistant"]:hover svg) {
     transform: translateX(2px);
   }
 }
@@ -312,7 +312,7 @@
     line-height: 1.58;
   }
 
-  .scope :global(main > section:first-of-type a[href="/get-help"]) {
+  .scope :global(main > section:first-of-type a[href="/assistant"]) {
     width: 100%;
     min-height: 55px;
   }
