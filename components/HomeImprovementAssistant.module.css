@@ -12,24 +12,26 @@
 .page * { box-sizing: border-box; }
 
 .backgroundImage {
+  position: fixed !important;
+  inset: 0 !important;
   z-index: -4;
   object-fit: cover;
   object-position: center;
-  filter: saturate(.88) contrast(1.05) brightness(.68);
+  filter: saturate(.92) contrast(1.06) brightness(.72);
 }
 
 .backdrop {
-  position: absolute;
+  position: fixed;
   z-index: -3;
   inset: 0;
   background:
-    linear-gradient(180deg,rgba(5,6,5,.58),rgba(5,6,5,.78)),
+    linear-gradient(180deg,rgba(5,6,5,.48),rgba(5,6,5,.72)),
     radial-gradient(circle at 75% 35%,rgba(47,103,74,.23),transparent 32rem),
-    linear-gradient(90deg,rgba(4,5,4,.93),rgba(4,5,4,.5) 56%,rgba(4,5,4,.76));
+    linear-gradient(90deg,rgba(4,5,4,.86),rgba(4,5,4,.4) 56%,rgba(4,5,4,.68));
 }
 
 .glow {
-  position: absolute;
+  position: fixed;
   z-index: -2;
   width: 34rem;
   height: 34rem;
@@ -50,7 +52,8 @@
   gap: .75rem;
   border: 1px solid rgba(255,255,255,.16);
   border-radius: 1.1rem;
-  background: rgba(7,8,7,.68);
+  background:
+    linear-gradient(135deg,rgba(13,35,24,.78),rgba(6,10,8,.72));
   padding: .55rem .7rem;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08),0 24px 60px -40px #000;
   backdrop-filter: blur(20px) saturate(1.1);
@@ -85,7 +88,19 @@
   padding: 3.25rem 0 6.5rem;
 }
 
-.intro { max-width: 38rem; align-self: center; }
+.intro {
+  max-width: 38rem;
+  align-self: center;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at 0 0,rgba(245,197,24,.08),transparent 18rem),
+    linear-gradient(145deg,rgba(7,10,8,.62),rgba(7,8,7,.42));
+  padding: clamp(1.05rem,3vw,1.65rem);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09),0 30px 70px -48px #000;
+  backdrop-filter: blur(22px) saturate(1.12);
+  -webkit-backdrop-filter: blur(22px) saturate(1.12);
+}
 
 .eyebrow {
   display: inline-flex;
@@ -135,7 +150,7 @@
   border-radius: 1.6rem;
   background:
     radial-gradient(circle at 100% 0,rgba(245,197,24,.10),transparent 18rem),
-    linear-gradient(145deg,rgba(16,19,17,.78),rgba(5,6,5,.86));
+    linear-gradient(145deg,rgba(16,28,21,.76),rgba(5,8,6,.82));
   padding: 1rem;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.12),0 36px 90px -46px #000;
   backdrop-filter: blur(26px) saturate(1.12);
@@ -224,7 +239,7 @@
   .header { padding-inline: 1rem; }
   .logoLink img { width: 182px; }
   .location { display: inline-flex; }
-  .shell { padding-top: 4.5rem; }
+  .shell { padding-top: 3.5rem; }
   .assistantCard { padding: 1.25rem; }
   .assistantHeading h2 { font-size: 1.35rem; }
   .actionButton { min-height: 70px; padding-inline: .9rem; }
@@ -242,8 +257,12 @@
   .header { border-radius: .95rem; }
   .logoLink img { width: 132px; }
   .backLink { padding-inline: .65rem; }
-  .shell { padding-top: 2.4rem; }
-  .intro h1 { font-size: clamp(2.65rem,13vw,3.35rem); }
+  .shell { gap: .9rem; padding-top: 1.6rem; }
+  .intro { border-radius: 1.25rem; padding: .95rem; }
+  .intro h1 { font-size: clamp(2.25rem,11.4vw,2.9rem); }
+  .intro > p { font-size: .88rem; line-height: 1.58; }
+  .introPoints { margin-top: 1rem; }
+  .introPoints span { font-size: .72rem; }
   .assistantCard { padding: .8rem; border-radius: 1.35rem; }
   .assistantHeading { grid-template-columns: 42px 1fr; gap: .65rem; }
   .assistantMark { width: 42px; height: 42px; }
@@ -269,32 +288,34 @@
 }
 
 :global(html[data-scp-theme='light']) .backgroundImage {
-  filter: saturate(.72) contrast(.94) brightness(1.08);
-  opacity: .24;
+  filter: saturate(.78) contrast(.98) brightness(1.02);
+  opacity: .58;
 }
 
 :global(html[data-scp-theme='light']) .backdrop {
   background:
-    linear-gradient(180deg,rgba(244,247,240,.74),rgba(234,240,232,.94)),
-    radial-gradient(circle at 75% 35%,rgba(47,103,74,.16),transparent 32rem),
-    linear-gradient(90deg,rgba(244,247,240,.95),rgba(234,240,232,.72));
+    linear-gradient(180deg,rgba(239,245,236,.32),rgba(225,237,227,.68)),
+    radial-gradient(circle at 75% 35%,rgba(47,103,74,.12),transparent 32rem),
+    linear-gradient(90deg,rgba(244,247,240,.62),rgba(234,240,232,.3) 56%,rgba(228,238,228,.58));
 }
 
 :global(html[data-scp-theme='light']) .header {
-  border-color: rgba(23,56,39,.18);
-  background: rgba(255,253,247,.76);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.72),0 24px 60px -42px rgba(23,56,39,.38);
+  border-color: rgba(255,255,255,.24);
+  background:
+    radial-gradient(circle at 10% 0,rgba(245,197,24,.08),transparent 16rem),
+    linear-gradient(135deg,rgba(17,61,41,.88),rgba(5,22,15,.86));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14),0 24px 60px -42px rgba(7,30,20,.72);
 }
 
 :global(html[data-scp-theme='light']) .location {
-  border-color: rgba(118,80,0,.28);
-  color: #6b4a00;
+  border-color: rgba(245,197,24,.38);
+  color: #ffe16a;
 }
 
 :global(html[data-scp-theme='light']) .backLink {
-  border-color: rgba(23,56,39,.18);
-  background: rgba(255,255,255,.7);
-  color: #173827;
+  border-color: rgba(255,255,255,.2);
+  background: rgba(255,255,255,.08);
+  color: #fff;
 }
 
 :global(html[data-scp-theme='light']) .eyebrow {
@@ -313,10 +334,47 @@
 :global(html[data-scp-theme='light']) .introPoints span { color: #314639; }
 :global(html[data-scp-theme='light']) .introPoints svg { color: #765000; }
 
+:global(html[data-scp-theme='light']) .intro {
+  border-color: rgba(255,255,255,.7);
+  background:
+    radial-gradient(circle at 0 0,rgba(245,197,24,.11),transparent 18rem),
+    linear-gradient(145deg,rgba(255,253,247,.72),rgba(240,246,238,.54));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9),0 30px 72px -48px rgba(23,56,39,.58);
+}
+
 :global(html[data-scp-theme='light']) .assistantCard {
   border-color: rgba(245,197,24,.38);
   background:
     radial-gradient(circle at 100% 0,rgba(245,197,24,.12),transparent 18rem),
-    linear-gradient(145deg,rgba(22,62,43,.96),rgba(8,28,19,.98));
+    linear-gradient(145deg,rgba(22,62,43,.88),rgba(8,28,19,.92));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.12),0 36px 90px -48px rgba(23,56,39,.62);
+  backdrop-filter: blur(30px) saturate(1.16);
+  -webkit-backdrop-filter: blur(30px) saturate(1.16);
+}
+
+@media (max-width:899px) {
+  .shell { gap: 1.25rem; padding-top: 2.5rem; }
+  .intro { width: 100%; max-width: none; }
+  .intro h1 { max-width: 11ch; font-size: clamp(2.7rem,9vw,4.2rem); }
+}
+
+@media (max-width:639px) {
+  .header { min-height: 60px; margin-top: .45rem; padding: .45rem .6rem; }
+  .logoLink img { width: 136px; }
+  .shell { gap: 1rem; padding: 1.8rem 0 5.5rem; }
+  .intro { max-width: none; }
+  .intro h1 { max-width: 11ch; font-size: clamp(2.35rem,11vw,3.15rem); }
+  .assistantCard { border-radius: 1.35rem; }
+  .assurances { grid-template-columns: 1fr; }
+
+  :global(html[data-scp-theme='light']) .backdrop {
+    background:
+      linear-gradient(180deg,rgba(238,245,237,.42),rgba(222,236,225,.7)),
+      linear-gradient(90deg,rgba(245,248,242,.58),rgba(232,241,232,.26));
+  }
+}
+
+@media (max-width:420px) {
+  .shell { gap: .9rem; padding-top: 1.6rem; }
+  .intro h1 { font-size: clamp(2.25rem,11.4vw,2.9rem); }
 }
