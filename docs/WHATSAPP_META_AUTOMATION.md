@@ -8,6 +8,10 @@ Skills Connect Pro supports three WhatsApp Cloud API message paths:
 
 All outbound sends are disabled unless the related environment flags are enabled.
 
+Keep the customer, admin and provider switches separate during rollout. This
+allows customer confirmations and admin alerts to be tested before provider
+messages are fully automated.
+
 ## Required Meta setup
 
 Create a Meta Business WhatsApp app, connect a WhatsApp Business phone number, and configure these production environment variables:
