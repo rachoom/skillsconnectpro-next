@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Loader2, MessageCircle, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, CheckCircle2, Loader2, X } from 'lucide-react';
 
 const STORAGE_KEY = 'marketplaceAdminKey';
 
@@ -119,16 +119,18 @@ export default function WhatsAppReadinessControl() {
     return 'Setup needed';
   }, [readiness]);
 
-  if (!adminKey) return null;
+  const loadReadiness = useCallback(async () => {
+    const activeAdminKey = window.sessionStorage.getItem(STORAGE_KEY) ?? adminKey;
+    if (!activeAdminKey) return;
 
-  const loadReadiness = async () => {
+    setAdminKey(activeAdminKey);
     setOpen(true);
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch('/api/admin/whatsapp/readiness', {
-        headers: { 'x-marketplace-admin-key': adminKey },
+        headers: { 'x-marketplace-admin-key': activeAdminKey },
         cache: 'no-store',
       });
       const payload = (await response.json().catch(() => ({}))) as ReadinessPayload;
@@ -143,12 +145,25 @@ export default function WhatsAppReadinessControl() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminKey]);
+
+  useEffect(() => {
+    const handleOpenReadiness = () => {
+      void loadReadiness();
+    };
+
+    window.addEventListener('marketplace:open-whatsapp-readiness', handleOpenReadiness);
+
+    return () => {
+      window.removeEventListener('marketplace:open-whatsapp-readiness', handleOpenReadiness);
+    };
+  }, [loadReadiness]);
+
+  if (!adminKey || !open) return null;
 
   return (
-    <div className="fixed bottom-24 right-4 z-[65] max-w-[min(92vw,390px)] text-white">
-      {open && (
-        <div className="mb-3 rounded-2xl border border-white/10 bg-[#07100d]/95 p-3 shadow-2xl backdrop-blur">
+    <div className="fixed bottom-4 left-4 right-4 z-[90] max-h-[82vh] overflow-y-auto text-white sm:left-auto sm:max-w-[390px]">
+      <div className="rounded-2xl border border-white/10 bg-[#07100d]/95 p-3 shadow-2xl backdrop-blur">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
@@ -217,18 +232,7 @@ export default function WhatsAppReadinessControl() {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={() => void loadReadiness()}
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-300/40 bg-[#11130c]/95 px-4 py-3 text-xs font-black uppercase tracking-wider text-amber-100 shadow-2xl backdrop-blur transition hover:border-amber-200 disabled:opacity-60"
-      >
-        {loading ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} />}
-        {loading ? 'Checking...' : 'WhatsApp readiness'}
-      </button>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BellOff, BellRing, Loader2, Volume2 } from 'lucide-react';
+import { BellOff, BellRing, Loader2, MessageCircle, Volume2 } from 'lucide-react';
 
 type BrowserNotificationStatus = NotificationPermission | 'unsupported';
 type BrowserWindowWithWebkitAudio = Window & typeof globalThis & {
@@ -240,6 +240,10 @@ export default function AdminDispatchAlertMonitor() {
     showBrowserDispatchNotification,
   ]);
 
+  const openWhatsAppReadiness = useCallback(() => {
+    window.dispatchEvent(new Event('marketplace:open-whatsapp-readiness'));
+  }, []);
+
   if (!adminKeyAvailable) return null;
 
   return (
@@ -290,6 +294,14 @@ export default function AdminDispatchAlertMonitor() {
           {checkingQueue ? <Loader2 className="animate-spin" size={12} /> : 'Check'}
         </button>
       </div>
+      <button
+        type="button"
+        onClick={openWhatsAppReadiness}
+        className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-amber-100"
+      >
+        <MessageCircle size={12} />
+        WhatsApp readiness
+      </button>
     </aside>
   );
 }
