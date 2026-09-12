@@ -2,83 +2,148 @@
 
 import { useEffect } from 'react';
 
-const HERO_VIDEO_PARTS = Array.from(
-  { length: 8 },
-  (_, index) => `/media/hero-parts/part-${String(index).padStart(2, '0')}.bin`,
-);
+const HERO_STATIC_IMAGE =
+  'https://images.unsplash.com/photo-1757359056339-22968344cce6?auto=format&fit=crop&w=3200&q=92';
 
-type NetworkInformation = {
-  saveData?: boolean;
-};
-
-type NavigatorWithConnection = Navigator & {
-  connection?: NetworkInformation;
-};
-
+/**
+ * Keeps the homepage hero lightweight: the approved dusk-house visual is a
+ * static high-resolution image, while motion is concentrated in the final
+ * highlighted phrase of the hero headline.
+ *
+ * The export name is retained so the existing homepage integration does not
+ * need another compatibility layer.
+ */
 export function HeroVideoInjector() {
   useEffect(() => {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const saveData = (navigator as NavigatorWithConnection).connection?.saveData === true;
-    if (reduceMotion || saveData) return;
-
     const hero = document.querySelector<HTMLElement>('main > section:first-of-type');
-    if (!hero || hero.querySelector('[data-hero-video]')) return;
+    if (!hero) return;
+
+    const image = hero.querySelector<HTMLImageElement>('img');
+    const headline = hero.querySelector<HTMLHeadingElement>('h1');
+    const accent = headline?.querySelector<HTMLElement>('span') ?? null;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let cancelled = false;
-    let objectUrl: string | null = null;
+    let typingTimer = 0;
+    let cursorTimer = 0;
+    let imageObserver: MutationObserver | null = null;
 
-    const poster = hero.querySelector<HTMLImageElement>('img');
-    poster?.setAttribute('data-hero-poster', 'true');
+    const originalImage = image
+      ? {
+          src: image.getAttribute('src'),
+          srcset: image.getAttribute('srcset'),
+          alt: image.getAttribute('alt'),
+        }
+      : null;
 
-    const video = document.createElement('video');
-    video.setAttribute('data-hero-video', 'true');
-    video.autoplay = true;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.preload = 'auto';
-    video.tabIndex = -1;
-    video.setAttribute('aria-hidden', 'true');
-    video.setAttribute('muted', '');
-    video.setAttribute('playsinline', '');
-    video.setAttribute('disablepictureinpicture', '');
-
-    const markReady = () => video.setAttribute('data-hero-video-ready', 'true');
-    video.addEventListener('canplay', markReady, { once: true });
-
-    if (poster) poster.insertAdjacentElement('afterend', video);
-    else hero.prepend(video);
-
-    const loadVideo = async () => {
-      try {
-        const buffers = await Promise.all(
-          HERO_VIDEO_PARTS.map(async (src) => {
-            const response = await fetch(src, { cache: 'force-cache' });
-            if (!response.ok) throw new Error(`Failed to load ${src}`);
-            return response.arrayBuffer();
-          }),
-        );
-
-        if (cancelled) return;
-
-        objectUrl = URL.createObjectURL(new Blob(buffers, { type: 'video/mp4' }));
-        video.src = objectUrl;
-        await video.play();
-      } catch {
-        // Keep the dusk still visible if loading or autoplay is unavailable.
-      }
+    const applyStaticImage = () => {
+      if (!image) return;
+      if (image.getAttribute('src') !== HERO_STATIC_IMAGE) image.setAttribute('src', HERO_STATIC_IMAGE);
+      if (image.hasAttribute('srcset')) image.removeAttribute('srcset');
+      image.setAttribute('alt', 'A high-end modern home illuminated at dusk');
+      image.setAttribute('data-hero-static-house', 'true');
+      image.style.position = 'absolute';
+      image.style.inset = '0';
+      image.style.width = '100%';
+      image.style.height = '100%';
+      image.style.objectFit = 'cover';
     };
 
-    void loadVideo();
+    applyStaticImage();
+
+    if (image) {
+      imageObserver = new MutationObserver(() => {
+        if (cancelled) return;
+        if (image.getAttribute('src') !== HERO_STATIC_IMAGE || image.hasAttribute('srcset')) {
+          applyStaticImage();
+        }
+      });
+      imageObserver.observe(image, { attributes: true, attributeFilter: ['src', 'srcset'] });
+    }
+
+    const originalAccent = accent?.textContent?.trim() ?? '';
+    if (!accent || !originalAccent) {
+      return () => {
+        cancelled = true;
+        imageObserver?.disconnect();
+      };
+    }
+
+    headline?.setAttribute('aria-label', `${headline.textContent?.replace(originalAccent, '').trim()} ${originalAccent}`.trim());
+
+    const caret = document.createElement('span');
+    caret.setAttribute('aria-hidden', 'true');
+    caret.setAttribute('data-hero-accent-caret', 'true');
+    caret.textContent = '|';
+    caret.style.color = '#f5c518';
+    caret.style.fontWeight = '500';
+    caret.style.marginLeft = '.06em';
+    caret.style.textShadow = '0 0 14px rgba(245,197,24,.45)';
+    accent.insertAdjacentElement('afterend', caret);
+
+    if (reduceMotion) {
+      accent.textContent = originalAccent;
+      caret.remove();
+    } else {
+      let visible = 0;
+      let deleting = false;
+
+      const schedule = (delay: number) => {
+        window.clearTimeout(typingTimer);
+        typingTimer = window.setTimeout(tick, delay);
+      };
+
+      const tick = () => {
+        if (cancelled) return;
+
+        if (!deleting) {
+          visible = Math.min(originalAccent.length, visible + 1);
+          accent.textContent = originalAccent.slice(0, visible);
+          if (visible >= originalAccent.length) {
+            deleting = true;
+            schedule(1750);
+            return;
+          }
+          schedule(58);
+          return;
+        }
+
+        visible = Math.max(0, visible - 1);
+        accent.textContent = originalAccent.slice(0, visible);
+        if (visible <= 0) {
+          deleting = false;
+          schedule(520);
+          return;
+        }
+        schedule(32);
+      };
+
+      accent.textContent = '';
+      schedule(420);
+      cursorTimer = window.setInterval(() => {
+        if (!cancelled && caret.isConnected) {
+          caret.style.opacity = caret.style.opacity === '0' ? '1' : '0';
+        }
+      }, 520);
+    }
 
     return () => {
       cancelled = true;
-      video.removeEventListener('canplay', markReady);
-      video.pause();
-      video.remove();
-      poster?.removeAttribute('data-hero-poster');
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      window.clearTimeout(typingTimer);
+      window.clearInterval(cursorTimer);
+      imageObserver?.disconnect();
+      if (accent) accent.textContent = originalAccent;
+      caret.remove();
+
+      if (image && originalImage) {
+        if (originalImage.src) image.setAttribute('src', originalImage.src);
+        else image.removeAttribute('src');
+        if (originalImage.srcset) image.setAttribute('srcset', originalImage.srcset);
+        else image.removeAttribute('srcset');
+        if (originalImage.alt !== null) image.setAttribute('alt', originalImage.alt);
+        else image.removeAttribute('alt');
+        image.removeAttribute('data-hero-static-house');
+      }
     };
   }, []);
 
