@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { processAutomaticRouting } from '@/services/marketplace/automaticRouting';
-import { processCompletionTimeouts } from '@/services/marketplace/completionAutomation';
+import {
+  getCompletionGraceHours,
+  processCompletionTimeouts,
+  type CompletionTimeoutSummary,
+} from '@/services/marketplace/completionAutomation';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { hashOpaqueToken, safeTokenEquals } from '@/services/marketplace/tokens';
 
@@ -96,6 +100,35 @@ async function finishRun(input: {
   }
 }
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+async function processCompletionTimeoutsSafely(): Promise<CompletionTimeoutSummary> {
+  try {
+    return await processCompletionTimeouts();
+  } catch (error) {
+    const message = errorMessage(
+      error,
+      'Scheduled completion timeout processing failed.',
+    );
+    console.error('Scheduled completion timeout processing failed:', error);
+
+    return {
+      graceHours: getCompletionGraceHours(),
+      checked: 0,
+      completed: 0,
+      skipped: 0,
+      failures: [
+        {
+          projectId: 'completion-timeouts',
+          error: message,
+        },
+      ],
+    };
+  }
+}
+
 export async function GET(request: Request) {
   try {
     if (!(await isAuthorised(request))) {
@@ -112,7 +145,7 @@ export async function GET(request: Request) {
   const runId = await startRun();
 
   try {
-    const completionTimeouts = await processCompletionTimeouts();
+    const completionTimeouts = await processCompletionTimeoutsSafely();
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from('projects')
@@ -159,17 +192,24 @@ export async function GET(request: Request) {
       (total, summary) => total + summary.invitationsQueued,
       0,
     );
+    const completionFailures = completionTimeouts.failures.length;
+    const runErrors = [
+      completionFailures > 0
+        ? `${completionFailures} completion timeout operation(s) failed.`
+        : null,
+      failures.length > 0
+        ? `${failures.length} project routing operation(s) failed.`
+        : null,
+    ].filter(Boolean);
 
     await finishRun({
       runId,
-      status: failures.length > 0 ? 'failed' : 'completed',
+      status: runErrors.length > 0 ? 'failed' : 'completed',
       projectsProcessed: summaries.length,
       projectsFailed: failures.length,
       invitationsQueued,
       projectsAutoCompleted: completionTimeouts.completed,
-      errorMessage: failures.length > 0
-        ? `${failures.length} project routing operation(s) failed.`
-        : null,
+      errorMessage: runErrors.length > 0 ? runErrors.join(' ') : null,
     });
 
     return NextResponse.json({
