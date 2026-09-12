@@ -3,6 +3,12 @@ import {
   isPlausibleWhatsAppRecipient,
   normaliseWhatsAppRecipient,
 } from './whatsappPolicy.js';
+import {
+  bodyComponent,
+  getMetaWhatsAppConfiguration,
+  publicMarketplaceUrl,
+  sendMetaWhatsAppTemplate,
+} from './metaWhatsApp';
 
 type DispatchInvitation = {
   invitationId: string;
@@ -47,25 +53,20 @@ function configuration(): WhatsAppConfiguration | null {
   if (configuredDeliveryMode() !== 'automatic') return null;
   if (process.env.MARKETPLACE_WHATSAPP_AUTO_SEND !== 'true') return null;
 
-  const accessToken = process.env.META_WHATSAPP_ACCESS_TOKEN?.trim();
-  const phoneNumberId = process.env.META_WHATSAPP_PHONE_NUMBER_ID?.trim();
-  const graphApiVersion = process.env.META_WHATSAPP_GRAPH_API_VERSION?.trim();
+  const baseConfig = getMetaWhatsAppConfiguration('Provider WhatsApp delivery');
   const templateName = process.env.META_WHATSAPP_TEMPLATE_NAME?.trim();
   const templateLanguage = process.env.META_WHATSAPP_TEMPLATE_LANGUAGE?.trim();
 
-  if (!accessToken || !phoneNumberId || !graphApiVersion || !templateName || !templateLanguage) {
-    console.error('WhatsApp auto-send is enabled but its Meta Cloud API configuration is incomplete.');
+  if (!baseConfig || !templateName || !templateLanguage) {
+    console.error('WhatsApp auto-send is enabled but its provider template configuration is incomplete.');
     return null;
   }
 
   return {
-    accessToken,
-    phoneNumberId,
-    graphApiVersion,
+    ...baseConfig,
     templateName,
     templateLanguage,
-    publicSiteUrl: (process.env.MARKETPLACE_PUBLIC_URL || 'https://www.skillsconnectpro.co.za')
-      .replace(/\/+$/, ''),
+    publicSiteUrl: publicMarketplaceUrl(),
   };
 }
 
@@ -115,48 +116,26 @@ async function sendOne(
     return { invitationId: invitation.invitationId, status: 'failed', externalMessageId: null, reason };
   }
 
-  const response = await fetch(
-    `https://graph.facebook.com/${config.graphApiVersion}/${config.phoneNumberId}/messages`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: recipient,
-        type: 'template',
-        template: {
-          name: config.templateName,
-          language: { code: config.templateLanguage },
-          components: [{
-            type: 'body',
-            parameters: [
-              { type: 'text', text: invitation.providerName },
-              { type: 'text', text: project.category },
-              { type: 'text', text: project.location },
-              { type: 'text', text: project.title },
-              { type: 'text', text: new Date(invitation.responseDeadline).toLocaleString('en-ZA', { timeZone: 'Africa/Johannesburg' }) },
-              { type: 'text', text: providerOpportunityUrl(config, invitation.responseToken) },
-            ],
-          }],
-        },
-      }),
-    },
-  );
+  const delivery = await sendMetaWhatsAppTemplate({
+    config,
+    to: recipient,
+    templateName: config.templateName,
+    templateLanguage: config.templateLanguage,
+    components: [
+      bodyComponent([
+        invitation.providerName,
+        project.category,
+        project.location,
+        project.title,
+        new Date(invitation.responseDeadline).toLocaleString('en-ZA', { timeZone: 'Africa/Johannesburg' }),
+        providerOpportunityUrl(config, invitation.responseToken),
+      ]),
+    ],
+  });
 
-  const payload = await response.json().catch(() => ({})) as {
-    messages?: Array<{ id?: string }>;
-    error?: { code?: number; message?: string };
-  };
-  const externalMessageId = payload.messages?.[0]?.id ?? null;
-
-  if (!response.ok || !externalMessageId) {
-    const reason = payload.error?.message || `Meta WhatsApp request failed with status ${response.status}.`;
-    const errorCode = payload.error?.code ? String(payload.error.code) : String(response.status);
-    await recordAttempt({ invitation, status: 'failed', errorCode, errorMessage: reason });
+  if (delivery.status === 'failed') {
+    const reason = delivery.reason;
+    await recordAttempt({ invitation, status: 'failed', errorCode: delivery.errorCode, errorMessage: reason });
     await supabase
       .from('lead_invitations')
       .update({
@@ -170,14 +149,14 @@ async function sendOne(
   }
 
   const sentAt = new Date().toISOString();
-  await recordAttempt({ invitation, status: 'accepted', externalMessageId });
+  await recordAttempt({ invitation, status: 'accepted', externalMessageId: delivery.externalMessageId });
   const { error: updateError } = await supabase
     .from('lead_invitations')
     .update({
       status: 'sent',
       delivery_channel: 'whatsapp',
       delivery_provider: 'meta_cloud_api',
-      external_message_id: externalMessageId,
+      external_message_id: delivery.externalMessageId,
       delivery_attempted_at: sentAt,
       sent_at: sentAt,
       failure_reason: null,
@@ -188,7 +167,7 @@ async function sendOne(
     console.error('WhatsApp message was accepted but invitation state could not be updated:', updateError.message);
   }
 
-  return { invitationId: invitation.invitationId, status: 'sent', externalMessageId, reason: null };
+  return { invitationId: invitation.invitationId, status: 'sent', externalMessageId: delivery.externalMessageId, reason: null };
 }
 
 export async function dispatchProviderInvitations(input: {

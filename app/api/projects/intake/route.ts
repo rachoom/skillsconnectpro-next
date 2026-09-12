@@ -6,6 +6,7 @@ import {
 } from '@/services/marketplace/intakePolicy.js';
 import { createProviderInvitations } from '@/services/marketplace/invitations';
 import { createProject } from '@/services/marketplace/projects';
+import { sendCustomerProjectConfirmation } from '@/services/marketplace/customerWhatsAppNotifications';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import type { CreateProjectInput } from '@/types/marketplace';
 
@@ -217,6 +218,22 @@ export async function POST(request: Request) {
       : null;
     const input = parsePublicIntake(body);
     const { project, accessToken } = await createProject(input);
+
+    try {
+      const customerNotification = await sendCustomerProjectConfirmation({
+        projectId: project.id,
+        accessToken,
+        customerName: project.guestName,
+        customerPhone: project.guestPhone,
+        projectTitle: project.title,
+      });
+
+      if (customerNotification.status === 'failed') {
+        console.error('Customer WhatsApp confirmation failed:', customerNotification.reason);
+      }
+    } catch (notificationError) {
+      console.error('Customer WhatsApp confirmation failed:', notificationError);
+    }
 
     let routing: {
       action: string;

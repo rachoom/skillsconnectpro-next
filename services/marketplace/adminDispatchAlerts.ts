@@ -2,6 +2,12 @@ import {
   isPlausibleWhatsAppRecipient,
   normaliseWhatsAppRecipient,
 } from './whatsappPolicy.js';
+import {
+  bodyComponent,
+  getMetaWhatsAppConfiguration,
+  publicMarketplaceUrl,
+  sendMetaWhatsAppTemplate,
+} from './metaWhatsApp';
 
 type AdminDispatchAlertConfiguration = {
   accessToken: string;
@@ -23,9 +29,7 @@ function configuration(): AdminDispatchAlertConfiguration | null {
     return null;
   }
 
-  const accessToken = process.env.META_WHATSAPP_ACCESS_TOKEN?.trim();
-  const phoneNumberId = process.env.META_WHATSAPP_PHONE_NUMBER_ID?.trim();
-  const graphApiVersion = process.env.META_WHATSAPP_GRAPH_API_VERSION?.trim();
+  const baseConfig = getMetaWhatsAppConfiguration('Admin WhatsApp alerts');
   const recipient = process.env.MARKETPLACE_ADMIN_WHATSAPP_NUMBER?.trim();
   const templateName = process.env.META_WHATSAPP_ADMIN_ALERT_TEMPLATE_NAME?.trim();
   const templateLanguage =
@@ -33,36 +37,34 @@ function configuration(): AdminDispatchAlertConfiguration | null {
     process.env.META_WHATSAPP_TEMPLATE_LANGUAGE?.trim();
 
   if (
-    !accessToken ||
-    !phoneNumberId ||
-    !graphApiVersion ||
+    !baseConfig ||
     !recipient ||
     !templateName ||
     !templateLanguage
   ) {
-    console.error('Admin WhatsApp alerts are enabled but Meta Cloud API alert configuration is incomplete.');
+    console.error('Admin WhatsApp alerts are enabled but alert configuration is incomplete.');
     return null;
   }
 
   return {
-    accessToken,
-    phoneNumberId,
-    graphApiVersion,
+    ...baseConfig,
     recipient,
     templateName,
     templateLanguage,
-    publicSiteUrl: (process.env.MARKETPLACE_PUBLIC_URL || 'https://www.skillsconnectpro.co.za')
-      .replace(/\/+$/, ''),
+    publicSiteUrl: publicMarketplaceUrl(),
   };
 }
 
-export async function notifyAdminManualDispatchQueued(input: {
+export async function notifyAdminProviderDispatch(input: {
   projectId: string;
   projectTitle: string;
-  manualInvitationCount: number;
+  invitationsTotal: number;
+  sentCount: number;
+  failedCount: number;
+  manualCount: number;
 }): Promise<AdminDispatchAlertResult> {
-  if (input.manualInvitationCount <= 0) {
-    return { status: 'disabled', reason: 'No manual invitation dispatch is pending.' };
+  if (input.invitationsTotal <= 0) {
+    return { status: 'disabled', reason: 'No provider invitation dispatch was attempted.' };
   }
 
   const config = configuration();
@@ -82,47 +84,45 @@ export async function notifyAdminManualDispatchQueued(input: {
   }
 
   const adminUrl = `${config.publicSiteUrl}/marketplace-admin`;
-  const response = await fetch(
-    `https://graph.facebook.com/${config.graphApiVersion}/${config.phoneNumberId}/messages`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: recipient,
-        type: 'template',
-        template: {
-          name: config.templateName,
-          language: { code: config.templateLanguage },
-          components: [{
-            type: 'body',
-            parameters: [
-              { type: 'text', text: String(input.manualInvitationCount) },
-              { type: 'text', text: input.projectTitle },
-              { type: 'text', text: adminUrl },
-            ],
-          }],
-        },
-      }),
-    },
-  );
+  const summary = input.manualCount > 0
+    ? `${input.manualCount} provider invite(s) need manual WhatsApp send`
+    : `${input.sentCount} provider invite(s) sent automatically${input.failedCount > 0 ? `, ${input.failedCount} failed` : ''}`;
 
-  const payload = await response.json().catch(() => ({})) as {
-    messages?: Array<{ id?: string }>;
-    error?: { message?: string };
-  };
-  const externalMessageId = payload.messages?.[0]?.id ?? null;
+  const delivery = await sendMetaWhatsAppTemplate({
+    config,
+    to: recipient,
+    templateName: config.templateName,
+    templateLanguage: config.templateLanguage,
+    components: [
+      bodyComponent([
+        summary,
+        input.projectTitle,
+        adminUrl,
+      ]),
+    ],
+  });
 
-  if (!response.ok || !externalMessageId) {
+  if (delivery.status === 'failed') {
     return {
       status: 'failed',
-      reason: payload.error?.message || `Meta WhatsApp admin alert failed with status ${response.status}.`,
+      reason: delivery.reason,
     };
   }
 
-  return { status: 'sent', externalMessageId };
+  return { status: 'sent', externalMessageId: delivery.externalMessageId };
+}
+
+export async function notifyAdminManualDispatchQueued(input: {
+  projectId: string;
+  projectTitle: string;
+  manualInvitationCount: number;
+}): Promise<AdminDispatchAlertResult> {
+  return notifyAdminProviderDispatch({
+    projectId: input.projectId,
+    projectTitle: input.projectTitle,
+    invitationsTotal: input.manualInvitationCount,
+    sentCount: 0,
+    failedCount: 0,
+    manualCount: input.manualInvitationCount,
+  });
 }

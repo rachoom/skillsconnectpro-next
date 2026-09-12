@@ -8,6 +8,7 @@ import {
 } from '../../../types/marketplace';
 import { createProject } from '../../../services/marketplace/projects';
 import { processAutomaticRouting } from '../../../services/marketplace/automaticRouting';
+import { sendCustomerProjectConfirmation } from '../../../services/marketplace/customerWhatsAppNotifications';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -123,6 +124,22 @@ export async function POST(request: Request) {
 
     const input = parseCreateProjectInput(await request.json());
     const { project, accessToken } = await createProject(input);
+
+    try {
+      const customerNotification = await sendCustomerProjectConfirmation({
+        projectId: project.id,
+        accessToken,
+        customerName: project.guestName,
+        customerPhone: project.guestPhone,
+        projectTitle: project.title,
+      });
+
+      if (customerNotification.status === 'failed') {
+        console.error('Customer WhatsApp confirmation failed:', customerNotification.reason);
+      }
+    } catch (notificationError) {
+      console.error('Customer WhatsApp confirmation failed:', notificationError);
+    }
 
     let routing: {
       action: string;

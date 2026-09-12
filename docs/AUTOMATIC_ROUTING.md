@@ -17,6 +17,8 @@ Automatically selected invitations are created with the `admin` delivery channel
 
 The existing admin workflow can regenerate a queued provider's secure link, send it through WhatsApp and mark it as sent. A queued-but-unsent wave does not expand automatically.
 
+When Meta WhatsApp automation is enabled with `MARKETPLACE_WHATSAPP_DELIVERY_MODE=automatic` and `MARKETPLACE_WHATSAPP_AUTO_SEND=true`, the same routing engine sends the selected provider invitations through the WhatsApp Cloud API immediately. Accepted Meta sends are recorded as `sent`, and webhook delivery updates can later move them to `delivered` or `failed`.
+
 ## Expansion
 
 `GET /api/cron/marketplace-routing` checks open projects and expands a wave only when:
@@ -28,7 +30,7 @@ The existing admin workflow can regenerate a queued provider's secure link, send
 5. the current response deadline has elapsed; and
 6. the project remains below its invitation cap.
 
-The route requires `CRON_SECRET`. The pilot repository uses a plan-compatible daily production cron. Urgent pilot projects can be expanded immediately through the protected admin routing endpoint. When the deployment plan or an external scheduler supports a shorter cadence, the same route can be called every five minutes without changing the routing engine.
+The route requires `CRON_SECRET`. The repository declares an hourly production cron in `vercel.json`. Urgent pilot projects can still be expanded immediately through the protected admin routing endpoint. When the deployment plan or an external scheduler supports a shorter cadence, the same route can be called more frequently without changing the routing engine.
 
 Vercel Cron runs only on production deployments. The branch preview therefore tests automatic first-wave creation, scoring, caps and manual dispatch; scheduled expansion becomes active after production deployment and `CRON_SECRET` configuration.
 
@@ -44,6 +46,6 @@ Vercel Cron runs only on production deployments. The branch preview therefore te
 - The scheduled processor never returns raw provider tokens in its response.
 - Automatic routing can be disabled with `MARKETPLACE_AUTOROUTING_ENABLED=false`.
 
-## Next integration
+## WhatsApp automation
 
-The remaining automation boundary is outbound delivery. Once a compliant WhatsApp Business, SMS or email adapter is connected, the queued invitation can be dispatched immediately and marked `sent` without the current admin click-through.
+See `docs/WHATSAPP_META_AUTOMATION.md` for the required Meta credentials, webhook URL, approved-template parameters and activation order.

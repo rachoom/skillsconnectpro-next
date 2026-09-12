@@ -4,7 +4,7 @@ import { getInvitationResponseDeadline } from './routing';
 import { createTokenPair } from './tokens';
 import { projectStatusAfterInvitation } from './invitationStatusPolicy.js';
 import { dispatchProviderInvitations } from './whatsappDelivery';
-import { notifyAdminManualDispatchQueued } from './adminDispatchAlerts';
+import { notifyAdminProviderDispatch } from './adminDispatchAlerts';
 
 export interface ProviderInvitationTarget {
   providerId: number;
@@ -263,13 +263,18 @@ export async function createProviderInvitations(input: {
     deliveryResults.map((delivery) => [delivery.invitationId, delivery]),
   );
   const manualInvitationCount = deliveryResults.filter((delivery) => delivery.status === 'manual').length;
+  const sentInvitationCount = deliveryResults.filter((delivery) => delivery.status === 'sent').length;
+  const failedInvitationCount = deliveryResults.filter((delivery) => delivery.status === 'failed').length;
 
-  if (manualInvitationCount > 0 && input.notifyAdminDispatch !== false) {
+  if (deliveryResults.length > 0 && input.notifyAdminDispatch !== false) {
     try {
-      const alertResult = await notifyAdminManualDispatchQueued({
+      const alertResult = await notifyAdminProviderDispatch({
         projectId: input.projectId,
         projectTitle: project.title,
-        manualInvitationCount,
+        invitationsTotal: deliveryResults.length,
+        sentCount: sentInvitationCount,
+        failedCount: failedInvitationCount,
+        manualCount: manualInvitationCount,
       });
 
       if (alertResult.status === 'failed') {
