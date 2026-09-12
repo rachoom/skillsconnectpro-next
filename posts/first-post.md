@@ -1,5 +1,5 @@
 ---
-title: "How to Find a Reliable Plumber in the East Rand"
+title: "How to Find a Reliable Plumber in Ekurhuleni"
 date: "2026-03-29"
 excerpt: "Don't let a burst geyser ruin your weekend. Here is what to look for when hiring local kasi talent."
 ---
