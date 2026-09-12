@@ -30,7 +30,7 @@ When Meta WhatsApp automation is enabled with `MARKETPLACE_WHATSAPP_DELIVERY_MOD
 5. the current response deadline has elapsed; and
 6. the project remains below its invitation cap.
 
-The route requires `CRON_SECRET`. The repository declares an hourly production cron in `vercel.json`. Urgent pilot projects can still be expanded immediately through the protected admin routing endpoint. When the deployment plan or an external scheduler supports a shorter cadence, the same route can be called more frequently without changing the routing engine.
+The route requires `CRON_SECRET`. The repository declares a daily production cron in `vercel.json` so it remains compatible with Vercel Hobby cron limits. Urgent pilot projects can still be expanded immediately through the protected admin routing endpoint. When the deployment plan or an external scheduler supports a shorter cadence, the same route can be called more frequently without changing the routing engine.
 
 Vercel Cron runs only on production deployments. The branch preview therefore tests automatic first-wave creation, scoring, caps and manual dispatch; scheduled expansion becomes active after production deployment and `CRON_SECRET` configuration.
 
