@@ -12,6 +12,8 @@ Keep the customer, admin and provider switches separate during rollout. This
 allows customer confirmations and admin alerts to be tested before provider
 messages are fully automated.
 
+Provider delivery remains off until both provider delivery flags are enabled.
+
 ## Required Meta setup
 
 Create a Meta Business WhatsApp app, connect a WhatsApp Business phone number, and configure these production environment variables:
