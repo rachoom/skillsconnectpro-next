@@ -33,7 +33,7 @@ export const MarketplaceVisualConsistency = () => {
     };
   }, [pathname]);
 
-  return pathname === '/get-help' ? null : (
+  return ['/', '/assistant', '/get-help'].includes(pathname) ? null : (
     <style>{`
       html[data-scp-theme='dark'] {
         color-scheme: dark;

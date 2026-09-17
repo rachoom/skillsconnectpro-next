@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 
 export const ThemeSurfacePolish = () => {
   const pathname = usePathname();
-  if (pathname === '/get-help') return null;
+  if (['/', '/assistant', '/get-help'].includes(pathname)) return null;
 
   return (
   <style>{`

@@ -204,14 +204,14 @@ export const HomeImprovementAssistant = ({
       <section className={styles.shell}>
         <div className={styles.intro}>
           <span className={styles.eyebrow}><Sparkles size={15} /> Home improvement, made easier</span>
-          <h1>Your AI <span>Home Improvement Assistant</span></h1>
+          <h1>Let’s make your <span>next step clear.</span></h1>
           <p>
             Describe the job, show us a photo, or speak. Get practical guidance, a preliminary estimate,
             and a tracked route to suitable local professionals.
           </p>
           <div className={styles.introPoints}>
             <span><CheckCircle2 size={18} /> One guided project journey</span>
-            <span><CheckCircle2 size={18} /> AI only when the task needs it</span>
+            <span><CheckCircle2 size={18} /> Explore costs before you commit</span>
             <span><CheckCircle2 size={18} /> You choose who to connect with</span>
           </div>
         </div>
@@ -221,8 +221,8 @@ export const HomeImprovementAssistant = ({
             <span className={styles.assistantMark}><Sparkles size={24} /></span>
             <div>
               <p>Skills Connect Pro</p>
-              <h2 id="assistant-heading">Hi, I&apos;m your Home Improvement Assistant</h2>
-              <span>How can I help today?</span>
+              <h2 id="assistant-heading">Your Home Improvement Assistant</h2>
+              <span>Choose a starting point, or tell us what you need.</span>
             </div>
           </div>
 
@@ -288,7 +288,7 @@ export const HomeImprovementAssistant = ({
                 aria-label="Continue with this project"
                 disabled={isRouting}
               >
-                {isRouting ? <Loader2 size={20} className={styles.spinner} /> : <Send size={20} />}
+                {isRouting ? <Loader2 size={20} className={styles.spinner} /> : <Send size={18} />}<span>{isRouting ? 'Opening…' : 'Continue'}</span>
               </button>
             </div>
           </div>

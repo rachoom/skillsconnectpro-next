@@ -713,6 +713,44 @@ export const IntakeHeroAlignment = () => (
       }
     }
 
+    /* Align the opening request with the new landing and assistant workspace. */
+    body[data-scp-surface='intake'] {
+      --intake-panel: #141414;
+      --intake-field: #090909;
+      --intake-line: #383838;
+      --intake-line-strong: #777;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    body[data-scp-surface='intake'] main > div:has([data-intake-stage='describe']) {
+      width: min(calc(100% - 2rem), 48rem) !important;
+      padding-top: 1.5rem !important;
+    }
+    body[data-scp-surface='intake'] [data-intake-stage='describe'] {
+      border-radius: 1.4rem !important;
+      box-shadow: 0 24px 60px rgba(0,0,0,.12) !important;
+    }
+    body[data-scp-surface='intake'] [data-intake-quickstart-heading] h1 {
+      font-size: clamp(1.8rem, 5vw, 2.65rem) !important;
+      line-height: 1.15 !important;
+      font-weight: 600 !important;
+      letter-spacing: -.045em !important;
+    }
+    body[data-scp-surface='intake'] [data-intake-illustration] { display: none !important; }
+    body[data-scp-surface='intake'] [data-intake-quickstart-heading] { grid-template-columns: auto minmax(0,1fr) !important; }
+    body[data-scp-surface='intake'] [data-intake-composer]:focus-within {
+      border-color: #f5c518 !important;
+      box-shadow: 0 0 0 3px rgba(245,197,24,.16) !important;
+    }
+    body[data-scp-surface='intake'] [data-intake-composer] textarea { font-size: 16px !important; min-height: 160px; }
+    body[data-scp-surface='intake'] [data-intake-continue] {
+      border-radius: .8rem !important;
+      box-shadow: none !important;
+      font-size: .95rem !important;
+      font-weight: 700 !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
+    }
+    body[data-scp-surface='intake'] [data-entry-recommended='true'] { outline: 3px solid #f5c518; outline-offset: 3px; }
     @media (prefers-reduced-motion: reduce) {
       body[data-scp-surface='intake'] * {
         animation-duration: .01ms !important;

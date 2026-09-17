@@ -66,15 +66,17 @@ export const ProjectIntakeEntryBridge = () => {
         if (parts.length) setControlledTextareaValue(description, `${parts.join(' ')} `);
       }
 
-      const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('button'));
+      const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-intake-composer-tools] button'));
       const preferredButton = mode === 'photo'
-        ? buttons.find((button) => button.textContent?.toLowerCase().includes('add a photograph'))
+        ? buttons.find((button) => button.textContent?.toLowerCase().includes('photo'))
         : mode === 'voice'
-          ? buttons.find((button) => button.textContent?.toLowerCase().includes('speak instead'))
+          ? buttons.find((button) => button.textContent?.toLowerCase().includes('voice'))
           : null;
 
+      // Keep a plain visit calm: do not open the keyboard or jump past the heading.
+      if (!mode && !descriptionPrefill && !service && !providerName) return true;
       const target = preferredButton || description;
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
       window.setTimeout(() => target.focus({ preventScroll: true }), 450);
       if (preferredButton) {
         preferredButton.dataset.entryRecommended = 'true';

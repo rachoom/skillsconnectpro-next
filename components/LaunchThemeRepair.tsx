@@ -33,7 +33,7 @@ export const LaunchThemeRepair = () => {
     return () => observer.disconnect();
   }, [pathname]);
 
-  if (pathname === '/get-help') return null;
+  if (['/', '/assistant', '/get-help'].includes(pathname)) return null;
 
   return (
     <style>{`
