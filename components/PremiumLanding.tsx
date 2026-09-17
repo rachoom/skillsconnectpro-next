@@ -7,14 +7,14 @@ import { ArrowRight, Camera, Car, Check, ChevronDown, MapPin, Menu, MessageCircl
 import styles from './PremiumLanding.module.css';
 
 const services = [
-  { label: 'Plumbing', icon: Wrench, detail: 'Leaks, taps & pipes' },
-  { label: 'Electrical', icon: Zap, detail: 'Power, lights & repairs' },
-  { label: 'Cleaning', icon: Sparkles, detail: 'A fresh start at home' },
-  { label: 'Painting', icon: Paintbrush, detail: 'Inside & outside' },
-  { label: 'Roofing', icon: House, detail: 'Repairs & maintenance' },
-  { label: 'Tiling', icon: Grid2X2, detail: 'Floors & walls' },
-  { label: 'Mechanics', icon: Car, detail: 'Vehicle service & repairs' },
-  { label: 'General maintenance', icon: Wrench, detail: 'The everyday fixes' },
+  { label: 'Plumbing', icon: Wrench, detail: 'Leaks, taps & pipes', image: '/artisans/Cards/Plumbing.png' },
+  { label: 'Electrical', icon: Zap, detail: 'Power, lights & repairs', image: '/artisans/Cards/Electrician.png' },
+  { label: 'Cleaning', icon: Sparkles, detail: 'A fresh start at home', image: '/artisans/Cards/Cleaners.png' },
+  { label: 'Painting', icon: Paintbrush, detail: 'Inside & outside', image: '/artisans/Cards/Painter.png' },
+  { label: 'Roofing', icon: House, detail: 'Repairs & maintenance', image: '/artisans/hero-welder.jpg' },
+  { label: 'Tiling', icon: Grid2X2, detail: 'Floors & walls', image: '/artisans/Cards/Tilers.png' },
+  { label: 'Mechanics', icon: Car, detail: 'Vehicle service & repairs', image: '/artisans/Cards/Mechanic.png' },
+  { label: 'General maintenance', icon: Wrench, detail: 'The everyday fixes', image: '/artisans/Cards/General Artisan.png' },
 ];
 const steps = [
   { title: 'Tell us what you need', text: 'A few words, a photo or your voice. We help turn the problem into a clear project brief.' },
@@ -73,7 +73,11 @@ export function PremiumLanding() {
     </section>
     <section id="services" className={styles.section}>
       <div className={styles.headingRow}><div><span className={styles.kicker}>THE RIGHT SKILLS, CLOSE TO HOME</span><h2>What’s on your to-do list?</h2></div><Link href="/get-help">Not sure? Describe the job <ArrowRight size={17} /></Link></div>
-      <div className={styles.serviceGrid}>{services.map(({ label, icon: Icon, detail }) => <Link key={label} href={`/get-help?service=${encodeURIComponent(label)}`} className={styles.serviceTile}><Icon size={24} className={styles.serviceIcon} /><strong>{label}</strong><small>{detail}</small><ArrowRight size={17} className={styles.tileArrow} /></Link>)}</div>
+      <div className={styles.serviceGrid}>{services.map(({ label, icon: Icon, detail, image }) => <Link key={label} href={`/get-help?service=${encodeURIComponent(label)}`} className={styles.serviceTile}>
+        <Image src={image} alt="" fill sizes="(max-width: 760px) 50vw, (max-width: 1240px) 25vw, 290px" className={styles.serviceImage} />
+        <span className={styles.serviceShade} aria-hidden="true" />
+        <Icon size={24} className={styles.serviceIcon} /><strong>{label}</strong><small>{detail}</small><ArrowRight size={17} className={styles.tileArrow} />
+      </Link>)}</div>
     </section>
     <section id="how-it-works" className={`${styles.section} ${styles.process}`}>
       <div className={styles.headingRow}><div><span className={styles.kicker}>LESS BACK-AND-FORTH. MORE PROGRESS.</span><h2>A clear path from idea to done.</h2></div><p>One project. Everything stays together.</p></div>
