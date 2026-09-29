@@ -189,7 +189,9 @@ export function getWhatsAppAutomationReadiness(): WhatsAppAutomationReadiness {
 
   const readyForCustomerAdminTest =
     base.configured &&
+    customer.enabled &&
     customer.configured &&
+    admin.enabled &&
     admin.configured &&
     webhook.configured;
   const readyForProviderAutoSend =
