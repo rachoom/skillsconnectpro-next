@@ -60,12 +60,7 @@ Template parameters:
 Suggested provider template body:
 
 ```text
-Hi {{1}}, Skills Connect Pro has a {{2}} request in {{3}}: {{4}}.
-
-Please review and respond before {{5}}:
-{{6}}
-
-By responding, you confirm that you are an independent provider, that any quote or inspection remains your responsibility, and that customer contact details must only be used for this job.
+Hi {{1}}, a new {{2}} job is available in {{3}}: {{4}}. View the details and respond by {{5}}: {{6}} — Skills Connect Pro
 ```
 
 ## Customer confirmation / waiver
@@ -89,12 +84,7 @@ Template parameters:
 Suggested customer template body:
 
 ```text
-Hi {{1}}, your Skills Connect Pro request has been received: {{2}}.
-
-Track provider responses here:
-{{3}}
-
-Reminder: Skills Connect Pro shares your project brief with suitable independent providers. Your contact details stay private until you choose to connect with a provider. Providers remain independent and may need to inspect, quote and agree work terms directly with you.
+Hi {{1}}, your Skills Connect Pro request for {{2}} has been received. Track provider responses here: {{3}}. Your contact details stay private until you choose to connect with a provider. Providers are independent and will agree the work and price with you directly.
 ```
 
 ## Admin summary alert
