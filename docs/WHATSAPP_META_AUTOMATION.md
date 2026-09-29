@@ -109,10 +109,7 @@ Template parameters:
 Suggested admin template body:
 
 ```text
-Skills Connect Pro update: {{1}} for {{2}}.
-
-Open the admin console:
-{{3}}
+Skills Connect Pro update: {{1}} for {{2}}. Open the admin console: {{3}} for details.
 ```
 
 ## Activation order
