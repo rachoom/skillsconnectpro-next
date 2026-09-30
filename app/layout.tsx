@@ -56,11 +56,11 @@ const surfaceInitialiser = `
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.skillsconnectpro.co.za'),
   manifest: '/manifest.json',
-  title: 'Skills Connect Pro | Your Local Home-Services Assistant',
-  description: 'Describe, photograph or speak about a home-service job. Skills Connect Pro prepares a clear request, invites suitable local providers and helps you manage the job from start to finish.',
+  title: 'Skills Connect Pro | Mzansi Skilled Services',
+  description: 'Describe, photograph or speak about the service you need. Skills Connect Pro helps customers across Ekurhuleni reach suitable local providers through one guided marketplace.',
   openGraph: {
-    title: 'Skills Connect Pro | Your Local Home-Services Assistant',
-    description: 'Show us the job, compare provider responses and manage the work through one guided local marketplace.',
+    title: 'Skills Connect Pro | Mzansi Skilled Services',
+    description: 'From mechanics and artisans to everyday services, show us the job and connect with suitable local providers across Ekurhuleni.',
     url: 'https://www.skillsconnectpro.co.za',
     siteName: 'Skills Connect Pro',
     images: [
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
         url: '/artisans/hero-welder.jpg',
         width: 1200,
         height: 630,
-        alt: 'Skills Connect Pro guided local home-services marketplace',
+        alt: 'Skills Connect Pro Mzansi skilled-services marketplace',
       },
     ],
     locale: 'en_ZA',
@@ -76,8 +76,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Skills Connect Pro | Your Local Home-Services Assistant',
-    description: 'Describe the job, compare provider responses and manage the work through one guided service.',
+    title: 'Skills Connect Pro | Mzansi Skilled Services',
+    description: 'Describe the job, compare suitable responses and connect with local service providers across Ekurhuleni.',
     images: ['/artisans/hero-welder.jpg'],
   },
 };
