@@ -122,27 +122,22 @@
 .spotlight {
   position: relative;
   isolation: isolate;
-  min-height: 720px;
-  padding: 76px 28px 0;
+  min-height: 920px;
+  padding: 56px 28px 0;
   overflow: hidden;
-  background: #07100d;
+  background:
+    radial-gradient(circle at 78% 16%, rgba(245, 197, 24, .09), transparent 28rem),
+    radial-gradient(circle at 8% 48%, rgba(10, 122, 77, .12), transparent 30rem),
+    #050907;
   color: #fff;
 }
 .heroImage {
-  z-index: -4;
+  z-index: 0;
   object-fit: cover;
-  object-position: center 45%;
-  filter: saturate(1.02) contrast(1.06);
+  object-position: 58% center;
+  filter: saturate(1.12) contrast(1.04);
   transform: scale(1.025);
   animation: heroDrift 16s ease-in-out infinite alternate;
-}
-.scrim {
-  position: absolute;
-  inset: 0;
-  z-index: -3;
-  background:
-    linear-gradient(90deg, rgba(3, 8, 6, .97) 0%, rgba(3, 8, 6, .83) 39%, rgba(3, 8, 6, .36) 73%, rgba(3, 8, 6, .72) 100%),
-    linear-gradient(0deg, rgba(4, 9, 7, .95), transparent 58%);
 }
 .techGrid {
   position: absolute;
@@ -182,16 +177,66 @@
 }
 .spotlightInner {
   width: min(1184px, 100%);
-  min-height: 560px;
+  min-height: 490px;
   margin: auto;
-  padding-bottom: 60px;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
-  gap: 66px;
-  align-items: center;
+  grid-template-columns: minmax(0, .88fr) minmax(480px, 1.12fr);
+  gap: 48px;
+  align-items: stretch;
 }
-.pitch { max-width: 630px; }
-.pitch { animation: heroContentIn .8s cubic-bezier(.2, .72, .25, 1) both; }
+.pitch {
+  max-width: 545px;
+  padding: 35px 0 32px;
+  align-self: center;
+  animation: heroContentIn .8s cubic-bezier(.2, .72, .25, 1) both;
+}
+.heroVisual {
+  position: relative;
+  min-height: 490px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .17);
+  border-radius: 28px;
+  background: #142019;
+  box-shadow: 0 32px 90px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .18);
+  animation: heroPanelIn .9s .1s cubic-bezier(.2, .72, .25, 1) both;
+}
+.visualShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(2, 7, 5, .06), rgba(2, 7, 5, .05) 48%, rgba(2, 7, 5, .72) 100%),
+    linear-gradient(90deg, rgba(2, 7, 5, .2), transparent 35%);
+}
+.visualBadge {
+  position: absolute;
+  left: 22px;
+  bottom: 22px;
+  z-index: 2;
+  min-width: 205px;
+  padding: 17px 18px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 17px;
+  background: rgba(4, 12, 8, .68);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+.visualBadge > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c4cec8;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+.visualBadge strong {
+  margin-top: 11px;
+  display: block;
+  font-size: 20px;
+  line-height: 1.16;
+  letter-spacing: -.03em;
+}
 .location {
   width: fit-content;
   min-height: 34px;
@@ -211,9 +256,9 @@
 }
 .location svg { color: #51d08b; }
 .pitch h1 {
-  max-width: 650px;
+  max-width: 545px;
   margin: 23px 0;
-  font-size: clamp(46px, 5.7vw, 78px);
+  font-size: clamp(46px, 5.2vw, 68px);
   font-weight: 650;
   line-height: .99;
   letter-spacing: -.058em;
@@ -270,18 +315,28 @@
 .heroProof span { display: inline-flex; align-items: center; gap: 7px; }
 .heroProof svg { color: #61d798; }
 
+.actionZone {
+  width: min(1184px, 100%);
+  margin: 38px auto 0;
+  padding-bottom: 34px;
+  display: grid;
+  grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
 .launchpad {
   scroll-margin-top: 104px;
-  padding: 26px;
+  padding: 25px;
   border: 1px solid rgba(255, 255, 255, .28);
-  border-radius: 25px;
+  border-radius: 22px;
   background:
     radial-gradient(circle at 100% 0%, rgba(245, 197, 24, .1), transparent 17rem),
     linear-gradient(145deg, rgba(13, 22, 18, .87), rgba(5, 11, 8, .7));
   box-shadow: 0 28px 90px rgba(0, 0, 0, .46), inset 0 1px 0 rgba(255, 255, 255, .22);
   -webkit-backdrop-filter: blur(22px) saturate(130%);
   backdrop-filter: blur(22px) saturate(130%);
-  animation: heroPanelIn .9s .12s cubic-bezier(.2, .72, .25, 1) both;
+  animation: heroPanelIn .9s .2s cubic-bezier(.2, .72, .25, 1) both;
 }
 .panelLabel {
   display: flex;
@@ -305,15 +360,15 @@
   animation: livePulse 2.5s ease-in-out infinite;
 }
 .launchpad h2 {
-  margin: 22px 0 8px;
+  margin: 19px 0 7px;
   font-size: clamp(24px, 3vw, 31px);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -.045em;
 }
-.launchpad > p { margin-bottom: 21px; color: #c2cbc5; font-size: 12px; line-height: 1.6; }
+.launchpad > p { margin-bottom: 18px; color: #c2cbc5; font-size: 12px; line-height: 1.6; }
 .commandBar {
-  min-height: 79px;
+  min-height: 77px;
   padding: 13px;
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
@@ -339,30 +394,42 @@
 .commandBar strong { font-size: 13px; line-height: 1.35; }
 .commandBar small { margin-top: 4px; color: #aeb8b1; font-size: 10px; line-height: 1.4; }
 .commandTools { display: inline-flex; align-items: center; gap: 10px; color: #d9dfdb; }
+
+.serviceLauncher {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+  animation: heroPanelIn .9s .28s cubic-bezier(.2, .72, .25, 1) both;
+}
+.launcherHeading { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.launcherHeading > span { color: #65d99c; font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+.launcherHeading > strong { color: #dce2de; font-size: 12px; font-weight: 600; }
 .quickGrid {
-  margin-top: 11px;
+  margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 .quickGrid a {
   --card-accent: #f5c518;
   --card-glow: rgba(245, 197, 24, .15);
   position: relative;
   isolation: isolate;
-  min-height: 74px;
-  padding: 12px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
+  min-height: 80px;
+  padding: 13px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 9px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--card-accent) 45%, transparent);
   border-radius: 12px;
   background: linear-gradient(145deg, var(--card-glow), rgba(255, 255, 255, .055));
   color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), 0 10px 22px rgba(0, 0, 0, .14);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   line-height: 1.3;
   animation: quickCardIn .65s cubic-bezier(.2, .72, .25, 1) both;
@@ -384,32 +451,42 @@
   box-shadow: 0 0 34px var(--card-accent);
 }
 .quickGrid svg {
-  width: 31px;
-  height: 31px;
+  width: 34px;
+  height: 34px;
   padding: 7px;
   border-radius: 9px;
   background: color-mix(in srgb, var(--card-accent) 18%, transparent);
   color: var(--card-accent);
   filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .22));
 }
+.quickGrid a > svg:last-child {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .64);
+  filter: none;
+}
 .assistantAction {
-  min-height: 68px;
-  margin-top: 11px;
-  padding: 11px 13px;
+  width: fit-content;
+  min-height: 52px;
+  margin-top: 13px;
+  padding: 8px 12px 8px 9px;
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 18px;
+  grid-template-columns: 34px minmax(0, 1fr) 16px;
   align-items: center;
   gap: 11px;
   border: 1px solid rgba(82, 214, 142, .47);
-  border-radius: 13px;
+  border-radius: 999px;
   background: linear-gradient(100deg, rgba(7, 115, 67, .38), rgba(11, 44, 31, .2) 70%, rgba(245, 197, 24, .07));
   color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 12px 26px rgba(0, 0, 0, .14);
   animation: quickCardIn .7s .48s cubic-bezier(.2, .72, .25, 1) both;
 }
 .aiMark {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   border-radius: 11px;
@@ -417,11 +494,11 @@
   color: #bff7d6;
 }
 .assistantAction small, .assistantAction strong { display: block; }
-.assistantAction small { margin-bottom: 4px; color: #64d99b; font-size: 8px; font-weight: 700; letter-spacing: .12em; }
-.assistantAction strong { font-size: 12px; line-height: 1.35; }
+.assistantAction small { margin-bottom: 2px; color: #64d99b; font-size: 7px; font-weight: 700; letter-spacing: .12em; }
+.assistantAction strong { font-size: 11px; line-height: 1.3; }
 .panelFoot {
-  margin-top: 15px;
-  padding-top: 14px;
+  margin-top: 14px;
+  padding-top: 13px;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -433,7 +510,7 @@
 .journey {
   width: min(1184px, 100%);
   margin: auto;
-  padding: 22px 0;
+  padding: 21px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -812,9 +889,14 @@
 
 @media (max-width: 1000px) {
   .desktopNav { gap: 16px; }
-  .spotlight { padding-top: 56px; }
-  .spotlightInner { grid-template-columns: minmax(0, 1fr) minmax(350px, .86fr); gap: 28px; }
+  .spotlight { padding-top: 44px; }
+  .spotlightInner { min-height: 450px; grid-template-columns: minmax(0, .9fr) minmax(390px, 1.1fr); gap: 25px; }
+  .pitch { padding-block: 22px; }
+  .pitch h1 { font-size: clamp(44px, 5.8vw, 58px); }
+  .heroVisual { min-height: 450px; border-radius: 23px; }
+  .actionZone { grid-template-columns: 1fr; }
   .launchpad { padding: 22px; }
+  .serviceLauncher { padding: 21px; }
   .navInner { gap: 12px; }
   .mzansiCopy { padding: 40px; }
 }
@@ -827,26 +909,28 @@
   .join { min-height: 42px; padding: 9px 11px; font-size: 10px; }
   .join svg { display: none; }
 
-  .spotlight { min-height: auto; padding: 31px 18px 0; }
-  .heroImage { object-position: 48% 24%; }
-  .scrim {
-    background:
-      linear-gradient(180deg, rgba(3, 8, 6, .78) 0%, rgba(3, 8, 6, .67) 27%, rgba(3, 8, 6, .9) 55%, #040806 100%),
-      linear-gradient(90deg, rgba(3, 8, 6, .76), transparent);
-  }
+  .spotlight { min-height: auto; padding: 26px 18px 0; }
   .techGrid { opacity: .13; background-size: 44px 44px; -webkit-mask-image: linear-gradient(#000, transparent 62%); mask-image: linear-gradient(#000, transparent 62%); }
-  .spotlightInner { min-height: auto; grid-template-columns: 1fr; gap: 29px; padding-bottom: 29px; }
+  .spotlightInner { min-height: auto; grid-template-columns: 1fr; gap: 24px; }
+  .pitch { max-width: none; padding: 8px 0 0; }
   .location { min-height: 32px; font-size: 8px; }
   .pitch h1 { margin: 18px 0; font-size: clamp(39px, 11.8vw, 55px); line-height: 1.01; letter-spacing: -.056em; }
   .pitch > p { max-width: 540px; font-size: 13px; line-height: 1.72; }
   .pitchLinks { margin-top: 22px; }
   .pitchLinks a { flex: 1 1 150px; min-height: 48px; padding-inline: 13px; }
   .heroProof { margin-top: 19px; gap: 12px; font-size: 10px; }
+  .heroVisual { min-height: 310px; border-radius: 21px; }
+  .heroImage { object-position: 58% center; }
+  .visualBadge { left: 15px; bottom: 15px; min-width: 175px; padding: 14px; }
+  .visualBadge strong { font-size: 17px; }
+  .actionZone { margin-top: 20px; padding-bottom: 27px; grid-template-columns: 1fr; gap: 13px; }
   .launchpad { border-radius: 21px; }
   .panelLabel { font-size: 8px; }
   .launchpad h2 { margin-top: 18px; font-size: 25px; }
+  .serviceLauncher { padding: 18px; border-radius: 20px; }
   .quickGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .quickGrid a { min-height: 68px; }
+  .quickGrid a { min-height: 72px; grid-template-columns: 31px minmax(0, 1fr); }
+  .quickGrid a > svg:last-child { display: none; }
   .journey { padding: 19px 0; gap: 7px; font-size: 9px; }
   .journey span { flex-direction: column; align-items: flex-start; gap: 6px; line-height: 1.4; }
   .journey > svg { width: 11px; }
@@ -897,8 +981,12 @@
   .commandBar { grid-template-columns: 38px minmax(0, 1fr) auto; gap: 9px; padding: 10px; }
   .commandIcon { width: 38px; height: 38px; }
   .commandTools svg:not(:last-child) { display: none; }
+  .serviceLauncher { padding: 16px; }
+  .launcherHeading { align-items: flex-start; flex-direction: column; gap: 5px; }
   .quickGrid { grid-template-columns: 1fr; }
-  .quickGrid a { min-height: 48px; padding: 10px 12px; flex-direction: row; align-items: center; justify-content: flex-start; }
+  .quickGrid a { min-height: 54px; padding: 9px 11px; grid-template-columns: 34px minmax(0, 1fr) 14px; }
+  .quickGrid a > svg:last-child { display: block; }
+  .assistantAction { width: 100%; }
   .journey { font-size: 8px; }
   .serviceGrid { grid-template-columns: 1fr 1fr; }
   .serviceTile { min-height: 171px; padding: 15px; }

@@ -122,15 +122,6 @@ export function PremiumLanding() {
       </nav>
 
       <section className={styles.spotlight} aria-labelledby="home-heading">
-        <Image
-          src="/mzansi-services-hero-v2.webp"
-          alt="South African skilled service providers"
-          fill
-          priority
-          sizes="100vw"
-          className={styles.heroImage}
-        />
-        <div className={styles.scrim} />
         <div className={styles.techGrid} aria-hidden="true" />
 
         <div className={styles.spotlightInner}>
@@ -151,6 +142,24 @@ export function PremiumLanding() {
             </div>
           </div>
 
+          <div className={styles.heroVisual}>
+            <Image
+              src="/mzansi-services-hero-v2.webp"
+              alt="South African mechanics and skilled service providers in Ekurhuleni"
+              fill
+              priority
+              sizes="(max-width: 760px) 100vw, 56vw"
+              className={styles.heroImage}
+            />
+            <div className={styles.visualShade} aria-hidden="true" />
+            <div className={styles.visualBadge}>
+              <span><span className={styles.liveDot} /> EKURHULENI · LIVE</span>
+              <strong>Local skill.<br />Mzansi energy.</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.actionZone}>
           <div id="start-request" className={styles.launchpad}>
             <div className={styles.panelLabel}>
               <span><span className={styles.liveDot} /> SKILLS CONNECT PRO</span>
@@ -165,19 +174,29 @@ export function PremiumLanding() {
               <span className={styles.commandTools} aria-hidden="true"><Camera size={17} /><Mic size={17} /><ArrowRight size={18} /></span>
             </Link>
 
+            <div className={styles.panelFoot}><Check size={15} /> You choose who to connect with.</div>
+          </div>
+
+          <div className={styles.serviceLauncher} aria-label="Quick service choices">
+            <div className={styles.launcherHeading}>
+              <span>POPULAR STARTING POINTS</span>
+              <strong>Choose a service</strong>
+            </div>
             <div className={styles.quickGrid} aria-label="Popular service requests">
               {quickStarts.map(({ label, icon: Icon, href }) => (
-                <Link key={label} href={href}><Icon size={17} /><span>{label}</span></Link>
+                <Link key={label} href={href}>
+                  <Icon size={17} />
+                  <span>{label}</span>
+                  <ArrowRight size={15} />
+                </Link>
               ))}
             </div>
 
             <Link href="/assistant" className={styles.assistantAction}>
               <span className={styles.aiMark}><Sparkles size={19} /></span>
-              <span><small>FEATURED SMART TOOL</small><strong>AI Home Improvement Assistant</strong></span>
+              <span><small>SMART PLANNING TOOL</small><strong>AI Home Improvement Assistant</strong></span>
               <ArrowRight size={18} />
             </Link>
-
-            <div className={styles.panelFoot}><Check size={15} /> You choose who to connect with.</div>
           </div>
         </div>
 
