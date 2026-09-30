@@ -131,8 +131,10 @@
 .heroImage {
   z-index: -4;
   object-fit: cover;
-  object-position: center 38%;
-  filter: saturate(.88) contrast(1.06);
+  object-position: center 45%;
+  filter: saturate(1.02) contrast(1.06);
+  transform: scale(1.025);
+  animation: heroDrift 16s ease-in-out infinite alternate;
 }
 .scrim {
   position: absolute;
@@ -154,6 +156,30 @@
   -webkit-mask-image: linear-gradient(90deg, #000, transparent 68%);
   mask-image: linear-gradient(90deg, #000, transparent 68%);
 }
+.techGrid::before,
+.techGrid::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(1px);
+  opacity: .55;
+}
+.techGrid::before {
+  width: 270px;
+  height: 270px;
+  top: 8%;
+  right: 8%;
+  border: 1px solid rgba(34, 124, 199, .42);
+  box-shadow: 0 0 80px rgba(34, 124, 199, .14), inset 0 0 55px rgba(34, 124, 199, .08);
+}
+.techGrid::after {
+  width: 150px;
+  height: 150px;
+  right: 31%;
+  bottom: 13%;
+  border: 1px solid rgba(213, 43, 30, .32);
+  box-shadow: 0 0 60px rgba(213, 43, 30, .1);
+}
 .spotlightInner {
   width: min(1184px, 100%);
   min-height: 560px;
@@ -165,6 +191,7 @@
   align-items: center;
 }
 .pitch { max-width: 630px; }
+.pitch { animation: heroContentIn .8s cubic-bezier(.2, .72, .25, 1) both; }
 .location {
   width: fit-content;
   min-height: 34px;
@@ -254,6 +281,7 @@
   box-shadow: 0 28px 90px rgba(0, 0, 0, .46), inset 0 1px 0 rgba(255, 255, 255, .22);
   -webkit-backdrop-filter: blur(22px) saturate(130%);
   backdrop-filter: blur(22px) saturate(130%);
+  animation: heroPanelIn .9s .12s cubic-bezier(.2, .72, .25, 1) both;
 }
 .panelLabel {
   display: flex;
@@ -274,6 +302,7 @@
   border-radius: 999px;
   background: #3ee58d;
   box-shadow: 0 0 0 4px rgba(62, 229, 141, .12), 0 0 16px rgba(62, 229, 141, .7);
+  animation: livePulse 2.5s ease-in-out infinite;
 }
 .launchpad h2 {
   margin: 22px 0 8px;
@@ -290,10 +319,12 @@
   grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  border: 1px solid rgba(255, 255, 255, .19);
+  border: 1px solid rgba(245, 197, 24, .34);
   border-radius: 15px;
-  background: rgba(255, 255, 255, .075);
+  background: linear-gradient(110deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .055));
   color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 12px 30px rgba(0, 0, 0, .17);
+  animation: commandGlow 5s ease-in-out infinite;
 }
 .commandIcon {
   width: 42px;
@@ -315,20 +346,52 @@
   gap: 8px;
 }
 .quickGrid a {
-  min-height: 64px;
-  padding: 11px 9px;
+  --card-accent: #f5c518;
+  --card-glow: rgba(245, 197, 24, .15);
+  position: relative;
+  isolation: isolate;
+  min-height: 74px;
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-  border: 1px solid rgba(255, 255, 255, .12);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 45%, transparent);
   border-radius: 12px;
-  background: rgba(255, 255, 255, .04);
-  color: #e5e9e6;
+  background: linear-gradient(145deg, var(--card-glow), rgba(255, 255, 255, .055));
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), 0 10px 22px rgba(0, 0, 0, .14);
   font-size: 10px;
+  font-weight: 600;
   line-height: 1.3;
+  animation: quickCardIn .65s cubic-bezier(.2, .72, .25, 1) both;
 }
-.quickGrid svg { color: var(--gold); }
+.quickGrid a:nth-child(1) { --card-accent: #f5c518; --card-glow: rgba(245, 197, 24, .17); animation-delay: .25s; }
+.quickGrid a:nth-child(2) { --card-accent: #3f9ad8; --card-glow: rgba(35, 116, 178, .19); animation-delay: .33s; }
+.quickGrid a:nth-child(3) { --card-accent: #ef6a4c; --card-glow: rgba(213, 62, 39, .17); animation-delay: .41s; }
+.quickGrid a::after {
+  content: "";
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  right: -24px;
+  top: -25px;
+  z-index: -1;
+  border-radius: 999px;
+  background: var(--card-accent);
+  opacity: .11;
+  box-shadow: 0 0 34px var(--card-accent);
+}
+.quickGrid svg {
+  width: 31px;
+  height: 31px;
+  padding: 7px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--card-accent) 18%, transparent);
+  color: var(--card-accent);
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .22));
+}
 .assistantAction {
   min-height: 68px;
   margin-top: 11px;
@@ -337,10 +400,12 @@
   grid-template-columns: 40px minmax(0, 1fr) 18px;
   align-items: center;
   gap: 11px;
-  border: 1px solid rgba(82, 214, 142, .27);
+  border: 1px solid rgba(82, 214, 142, .47);
   border-radius: 13px;
-  background: linear-gradient(90deg, rgba(7, 91, 54, .25), rgba(255, 255, 255, .035));
+  background: linear-gradient(100deg, rgba(7, 115, 67, .38), rgba(11, 44, 31, .2) 70%, rgba(245, 197, 24, .07));
   color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 12px 26px rgba(0, 0, 0, .14);
+  animation: quickCardIn .7s .48s cubic-bezier(.2, .72, .25, 1) both;
 }
 .aiMark {
   width: 40px;
@@ -382,17 +447,26 @@
 .journey > svg { color: #6f7b74; }
 
 .mzansiStatement {
+  position: relative;
   width: min(1184px, calc(100% - 56px));
   min-height: 460px;
   margin: 72px auto 0;
   display: grid;
   grid-template-columns: 1.02fr .98fr;
   overflow: hidden;
-  border: 1px solid rgba(95, 217, 151, .24);
+  border: 1px solid rgba(255, 226, 106, .66);
   border-radius: 25px;
-  background: #053a25;
-  color: #fff;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, .22);
+  background: linear-gradient(135deg, #ffd52f, #f3ba08 66%, #dc9e00);
+  color: #11160f;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .24), 0 12px 38px rgba(245, 197, 24, .12);
+}
+.mzansiStatement::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 3;
+  width: 6px;
+  background: linear-gradient(180deg, #d52b1e 0 24%, #067a46 24% 64%, #1670b8 64% 86%, #111 86% 100%);
 }
 .mzansiCopy {
   position: relative;
@@ -410,7 +484,7 @@
   z-index: -1;
   width: 360px;
   aspect-ratio: 1;
-  border: 55px solid rgba(245, 197, 24, .1);
+  border: 55px solid rgba(4, 75, 44, .12);
   transform: rotate(45deg);
 }
 .greenKicker {
@@ -419,6 +493,7 @@
   font-weight: 700;
   letter-spacing: .14em;
 }
+.mzansiCopy .greenKicker { color: #087148; }
 .mzansiCopy h2 {
   margin: 17px 0;
   font-size: clamp(38px, 4.7vw, 58px);
@@ -426,17 +501,17 @@
   line-height: 1.02;
   letter-spacing: -.052em;
 }
-.mzansiCopy > p { max-width: 520px; color: #d7e7dd; font-size: 14px; line-height: 1.8; }
+.mzansiCopy > p { max-width: 520px; color: #29280f; font-size: 14px; line-height: 1.8; }
 .mzansiPoints { margin-top: 24px; display: grid; gap: 12px; }
-.mzansiPoints span { display: flex; align-items: center; gap: 9px; color: #f1f8f3; font-size: 12px; }
-.mzansiPoints svg { padding: 2px; border-radius: 50%; background: var(--gold); color: #063721; }
+.mzansiPoints span { display: flex; align-items: center; gap: 9px; color: #15190f; font-size: 12px; font-weight: 600; }
+.mzansiPoints svg { padding: 2px; border-radius: 50%; background: #087148; color: #fff; }
 .mzansiVisual { position: relative; min-height: 420px; overflow: hidden; }
 .mzansiVisual > img { object-fit: cover; }
 .mzansiVisual::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #053a25 0%, transparent 35%), linear-gradient(0deg, rgba(0, 0, 0, .5), transparent 60%);
+  background: linear-gradient(90deg, #efb706 0%, transparent 36%), linear-gradient(0deg, rgba(0, 0, 0, .54), transparent 62%);
 }
 .networkCard {
   position: absolute;
@@ -660,12 +735,60 @@
 .footer > div a { padding: 12px 0; color: var(--muted); font-size: 11px; }
 .footer p { width: 100%; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; line-height: 1.7; }
 
+@keyframes heroDrift {
+  from { transform: scale(1.025) translate3d(0, 0, 0); }
+  to { transform: scale(1.055) translate3d(-.45%, -.25%, 0); }
+}
+
+@keyframes heroContentIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroPanelIn {
+  from { opacity: 0; transform: translateY(24px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes quickCardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes livePulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 4px rgba(62, 229, 141, .12), 0 0 16px rgba(62, 229, 141, .55); }
+  50% { transform: scale(1.12); box-shadow: 0 0 0 7px rgba(62, 229, 141, .06), 0 0 22px rgba(62, 229, 141, .8); }
+}
+
+@keyframes commandGlow {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 12px 30px rgba(0, 0, 0, .17); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 14px 34px rgba(245, 197, 24, .1); }
+}
+
+@keyframes sectionReveal {
+  from { opacity: .18; transform: translateY(34px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@supports (animation-timeline: view()) {
+  .mzansiStatement,
+  .serviceGrid,
+  .stepGrid,
+  .planning,
+  .faqs,
+  .provider {
+    animation: sectionReveal linear both;
+    animation-timeline: view();
+    animation-range: entry 4% cover 27%;
+  }
+}
+
 @media (hover: hover) {
   .join:hover { border-color: var(--gold); background: rgba(245, 197, 24, .14); }
   .pitchLinks a:first-child:hover, .primary:hover { background: #ffda3d; transform: translateY(-2px); }
   .pitchLinks a:last-child:hover { border-color: rgba(245, 197, 24, .55); }
   .commandBar:hover, .assistantAction:hover { border-color: rgba(245, 197, 24, .55); transform: translateY(-2px); }
-  .quickGrid a:hover { border-color: rgba(245, 197, 24, .38); background: rgba(255, 255, 255, .075); }
+  .quickGrid a:hover { border-color: var(--card-accent); background: linear-gradient(145deg, var(--card-glow), rgba(255, 255, 255, .1)); }
   .serviceTile:hover { border-color: rgba(245, 197, 24, .6); transform: translateY(-4px); }
   .serviceTile:hover .serviceImage { transform: scale(1.045); }
 }
@@ -733,7 +856,7 @@
   .mzansiCopy h2 { font-size: 39px; }
   .mzansiCopy > p { font-size: 13px; }
   .mzansiVisual { min-height: 270px; }
-  .mzansiVisual::after { background: linear-gradient(180deg, #053a25, transparent 26%), linear-gradient(0deg, rgba(0, 0, 0, .55), transparent 65%); }
+  .mzansiVisual::after { background: linear-gradient(180deg, #efb706, transparent 26%), linear-gradient(0deg, rgba(0, 0, 0, .55), transparent 65%); }
   .networkCard { right: 17px; bottom: 17px; }
 
   .section { padding: 51px 18px; }

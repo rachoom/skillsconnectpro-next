@@ -123,7 +123,7 @@ export function PremiumLanding() {
 
       <section className={styles.spotlight} aria-labelledby="home-heading">
         <Image
-          src="/artisans/hero-welder.jpg"
+          src="/mzansi-services-hero-v2.webp"
           alt="South African skilled service providers"
           fill
           priority
