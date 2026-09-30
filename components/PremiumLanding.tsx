@@ -122,6 +122,15 @@ export function PremiumLanding() {
       </nav>
 
       <section className={styles.spotlight} aria-labelledby="home-heading">
+        <Image
+          src="/mzansi-services-hero-v2.webp"
+          alt="South African mechanics and skilled service providers in Ekurhuleni"
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroImage}
+        />
+        <div className={styles.scrim} aria-hidden="true" />
         <div className={styles.techGrid} aria-hidden="true" />
 
         <div className={styles.spotlightInner}>
@@ -132,56 +141,24 @@ export function PremiumLanding() {
               From mechanics and artisans to everyday services, tell us what you need by text, photo or voice.
               We help you reach suitable local providers and move the work forward.
             </p>
-            <div className={styles.pitchLinks}>
-              <Link href="/get-help">Show us the job <ArrowRight size={18} /></Link>
-              <Link href="/browse-providers">Browse providers</Link>
+            <div id="start-request" className={styles.requestHub}>
+              <span className={styles.requestLabel}><Wrench size={14} /> WHAT DO YOU NEED DONE?</span>
+            <Link href="/get-help" className={styles.commandBar}>
+              <span className={styles.commandIcon}><Wrench size={20} /></span>
+              <span><strong>Describe the job...</strong><small>Type, speak or show us a photo</small></span>
+              <span className={styles.commandTools} aria-hidden="true"><Camera size={17} /><Mic size={17} /><ArrowRight size={18} /></span>
+            </Link>
             </div>
             <div className={styles.heroProof} aria-label="Marketplace benefits">
               <span><ShieldCheck size={17} /> Details stay private</span>
               <span><Network size={17} /> Ekurhuleni provider network</span>
             </div>
           </div>
-
-          <div className={styles.heroVisual}>
-            <Image
-              src="/mzansi-services-hero-v2.webp"
-              alt="South African mechanics and skilled service providers in Ekurhuleni"
-              fill
-              priority
-              sizes="(max-width: 760px) 100vw, 56vw"
-              className={styles.heroImage}
-            />
-            <div className={styles.visualShade} aria-hidden="true" />
-            <div className={styles.visualBadge}>
-              <span><span className={styles.liveDot} /> EKURHULENI · LIVE</span>
-              <strong>Local skill.<br />Mzansi energy.</strong>
-            </div>
-          </div>
         </div>
 
-        <div className={styles.actionZone}>
-          <div id="start-request" className={styles.launchpad}>
-            <div className={styles.panelLabel}>
-              <span><span className={styles.liveDot} /> SKILLS CONNECT PRO</span>
-              <span>EKURHULENI · LIVE</span>
-            </div>
-            <h2>What do you need done?</h2>
-            <p>Start with the need. We&apos;ll help organise the next step.</p>
-
-            <Link href="/get-help" className={styles.commandBar}>
-              <span className={styles.commandIcon}><Wrench size={20} /></span>
-              <span><strong>Describe the job...</strong><small>Type, speak or show us a photo</small></span>
-              <span className={styles.commandTools} aria-hidden="true"><Camera size={17} /><Mic size={17} /><ArrowRight size={18} /></span>
-            </Link>
-
-            <div className={styles.panelFoot}><Check size={15} /> You choose who to connect with.</div>
-          </div>
-
-          <div className={styles.serviceLauncher} aria-label="Quick service choices">
-            <div className={styles.launcherHeading}>
-              <span>POPULAR STARTING POINTS</span>
-              <strong>Choose a service</strong>
-            </div>
+        <div className={styles.quickDock} aria-label="Quick service choices">
+          <div className={styles.dockServices}>
+            <span className={styles.dockLabel}>POPULAR SERVICES</span>
             <div className={styles.quickGrid} aria-label="Popular service requests">
               {quickStarts.map(({ label, icon: Icon, href }) => (
                 <Link key={label} href={href}>
@@ -191,13 +168,13 @@ export function PremiumLanding() {
                 </Link>
               ))}
             </div>
-
-            <Link href="/assistant" className={styles.assistantAction}>
-              <span className={styles.aiMark}><Sparkles size={19} /></span>
-              <span><small>SMART PLANNING TOOL</small><strong>AI Home Improvement Assistant</strong></span>
-              <ArrowRight size={18} />
-            </Link>
           </div>
+
+          <Link href="/assistant" className={styles.assistantAction}>
+            <span className={styles.aiMark}><Sparkles size={19} /></span>
+            <span><small>SMART PLANNING TOOL</small><strong>AI Home Improvement Assistant</strong></span>
+            <ArrowRight size={18} />
+          </Link>
         </div>
 
         <div className={styles.journey}>
