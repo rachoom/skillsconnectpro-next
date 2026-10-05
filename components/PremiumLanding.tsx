@@ -180,7 +180,7 @@ export function PremiumLanding() {
           </div>
         </div>
         <div className={styles.mzansiVisual}>
-          <Image src="/artisans/autorep.png" alt="Vehicle repair workshop representing local service businesses" fill sizes="(max-width: 760px) 100vw, 48vw" />
+          <Image src="/artisans/autorep.png" alt="Vehicle repair workshop representing local service businesses" fill sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1280px) 48vw, 584px" />
           <div className={styles.networkCard}>
             <span><span className={styles.liveDot} /> LOCAL NETWORK</span>
             <strong>Rooted in Mzansi.<br />Built around you.</strong>
@@ -196,7 +196,7 @@ export function PremiumLanding() {
         <div className={styles.serviceGrid}>
           {services.map(({ label, icon: Icon, detail, image }) => (
             <Link key={label} href={`/get-help?service=${encodeURIComponent(label)}`} className={styles.serviceTile}>
-              <Image src={image} alt="" fill sizes="(max-width: 760px) 50vw, (max-width: 1240px) 25vw, 290px" className={styles.serviceImage} />
+              <Image src={image} alt="" fill sizes="(max-width: 640px) calc((100vw - 52px) / 2), (max-width: 900px) calc((100vw - 80px) / 2), (max-width: 1280px) calc((100vw - 112px) / 4), 292px" className={styles.serviceImage} />
               <span className={styles.serviceShade} aria-hidden="true" />
               <Icon size={24} className={styles.serviceIcon} />
               <strong>{label}</strong>
@@ -225,7 +225,7 @@ export function PremiumLanding() {
 
       <section className={styles.planning}>
         <div className={styles.planningImage}>
-          <Image src="/calculator-planning-desk.jpg" alt="Tools and plans for a home improvement project" fill sizes="(max-width: 760px) 100vw, 45vw" />
+          <Image src="/calculator-planning-desk.jpg" alt="Tools and plans for a home improvement project" fill sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1280px) 48vw, 584px" />
           <span className={styles.imageTag}><Sparkles size={14} /> AI-ASSISTED PLANNING</span>
         </div>
         <div className={styles.planningCopy}>
