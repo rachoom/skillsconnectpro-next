@@ -15,7 +15,6 @@ import {
   Menu,
   MessageCircle,
   Mic,
-  Network,
   Paintbrush,
   ShieldCheck,
   Sparkles,
@@ -58,19 +57,13 @@ const questions = [
   ['When are my contact details shared?', 'Your contact details stay private until you choose a provider and confirm the connection.'],
 ];
 
-const quickStarts = [
-  { label: 'Vehicle & mechanics', icon: Car, href: '/get-help?service=Mechanics' },
-  { label: 'Home & property', icon: House, href: '/get-help?service=General%20maintenance' },
-  { label: 'Cleaning services', icon: Sparkles, href: '/get-help?service=Cleaning' },
-];
-
 export function PremiumLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-design="premium-2026">
       <a className={styles.skip} href="#start-request">Skip to request a service</a>
 
       <nav
@@ -91,7 +84,7 @@ export function PremiumLanding() {
           <div className={styles.desktopNav}>
             <a href="#services">Services</a>
             <a href="#how-it-works">How it works</a>
-            <Link href="/assistant">AI home assistant</Link>
+            <Link href="/assistant">AI Project Assistant</Link>
             <Link href="/browse-providers">Find a provider</Link>
           </div>
           <div className={styles.navActions}>
@@ -103,7 +96,7 @@ export function PremiumLanding() {
               aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
               aria-expanded={menuOpen}
               aria-controls="landing-navigation"
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => setMenuOpen((open) => !open)}
             >
               {menuOpen ? <X /> : <Menu />}
             </button>
@@ -114,7 +107,7 @@ export function PremiumLanding() {
             <a href="#services" onClick={closeMenu}>Explore services</a>
             <a href="#how-it-works" onClick={closeMenu}>How it works</a>
             <Link href="/browse-providers" onClick={closeMenu}>Find a provider</Link>
-            <Link href="/assistant" onClick={closeMenu}>AI Home Improvement Assistant</Link>
+            <Link href="/assistant" onClick={closeMenu}>AI Project Assistant</Link>
             <Link href="/estimator" onClick={closeMenu}>Project estimator</Link>
             <a href="#support" onClick={closeMenu}>Help & support</a>
           </div>
@@ -124,70 +117,58 @@ export function PremiumLanding() {
       <section className={styles.spotlight} aria-labelledby="home-heading">
         <Image
           src="/mzansi-services-hero-v2.webp"
-          alt="South African mechanics and skilled service providers in Ekurhuleni"
-          fill
-          priority
-          sizes="100vw"
-          className={styles.heroImage}
+          alt="Mechanics, electricians, plumbers, builders and cleaners representing local skills"
+          fill priority sizes="100vw" className={styles.heroImage}
         />
         <div className={styles.scrim} aria-hidden="true" />
-        <div className={styles.techGrid} aria-hidden="true" />
-
         <div className={styles.spotlightInner}>
           <div className={styles.pitch}>
-            <span className={styles.location}><MapPin size={14} /> NOW SERVING EKURHULENI · BUILT FOR MZANSI</span>
-            <h1 id="home-heading">Mzansi&apos;s skills.<br /><span>One smart connection.</span></h1>
-            <p>
-              From mechanics and artisans to everyday services, tell us what you need by text, photo or voice.
-              We help you reach suitable local providers and move the work forward.
-            </p>
+            <span className={styles.location}><MapPin size={14} aria-hidden="true" /> STARTING IN EKURHULENI. BUILT FOR MZANSI.</span>
+            <h1 id="home-heading">The right skills.<br /><span>For the job at hand.</span></h1>
+            <p>Car trouble. A leaking tap. A home that needs care. Connect with suitable local service providers through one simple request.</p>
             <div id="start-request" className={styles.requestHub}>
-              <span className={styles.requestLabel}><Wrench size={14} /> WHAT DO YOU NEED DONE?</span>
-            <Link href="/get-help" className={styles.commandBar}>
-              <span className={styles.commandIcon}><Wrench size={20} /></span>
-              <span><strong>Describe the job...</strong><small>Type, speak or show us a photo</small></span>
-              <span className={styles.commandTools} aria-hidden="true"><Camera size={17} /><Mic size={17} /><ArrowRight size={18} /></span>
-            </Link>
+              <span className={styles.requestLabel}>WHAT DO YOU NEED DONE?</span>
+              <Link href="/get-help" className={styles.commandBar}>
+                <span className={styles.commandIcon}><Wrench size={22} aria-hidden="true" /></span>
+                <span><strong>Describe your job</strong><small>Type, speak or add a photo in the next step</small></span>
+                <ArrowRight size={22} aria-hidden="true" />
+              </Link>
+              <div className={styles.inputHint} aria-hidden="true"><Camera size={14} /><span>Photo</span><Mic size={14} /><span>Voice</span><span className={styles.hintDivider} />Start in your own words</div>
             </div>
+            <Link href="/browse-providers" className={styles.secondary}>Prefer to explore? Browse providers <ArrowRight size={16} aria-hidden="true" /></Link>
             <div className={styles.heroProof} aria-label="Marketplace benefits">
-              <span><ShieldCheck size={17} /> Details stay private</span>
-              <span><Network size={17} /> Ekurhuleni provider network</span>
+              <span><ShieldCheck size={16} aria-hidden="true" /> Private until you choose</span>
+              <span><Check size={16} aria-hidden="true" /> You control the connection</span>
             </div>
           </div>
-        </div>
-
-        <div className={styles.quickDock} aria-label="Quick service choices">
-          <div className={styles.dockServices}>
-            <span className={styles.dockLabel}>POPULAR SERVICES</span>
-            <div className={styles.quickGrid} aria-label="Popular service requests">
-              {quickStarts.map(({ label, icon: Icon, href }) => (
-                <Link key={label} href={href}>
-                  <Icon size={17} />
-                  <span>{label}</span>
-                  <ArrowRight size={15} />
-                </Link>
-              ))}
+          <aside className={styles.connectionCard} aria-label="How your request works">
+            <span className={styles.cardEyebrow}><span className={styles.liveDot} aria-hidden="true" /> LOCAL SKILLS. ONE CONNECTION.</span>
+            <strong>A clear path to<br />getting it done.</strong>
+            <div className={styles.connectionSteps}>
+              <span><b>01</b> Describe the job</span>
+              <span><b>02</b> Compare responses</span>
+              <span><b>03</b> Choose your provider</span>
             </div>
-          </div>
-
-          <Link href="/assistant" className={styles.assistantAction}>
-            <span className={styles.aiMark}><Sparkles size={19} /></span>
-            <span><small>SMART PLANNING TOOL</small><strong>AI Home Improvement Assistant</strong></span>
-            <ArrowRight size={18} />
-          </Link>
+          </aside>
         </div>
+        <div className={styles.journey} aria-label="Available service categories">
+          <span>MECHANICS</span><span>HOME & PROPERTY</span><span>CLEANING</span><span>EVERYDAY MAINTENANCE</span>
+          <a href="#services">Explore services <ArrowRight size={14} aria-hidden="true" /></a>
+        </div>
+      </section>
 
-        <div className={styles.journey}>
-          <span><b>01</b> Tell us the need</span><ArrowRight size={16} />
-          <span><b>02</b> Compare responses</span><ArrowRight size={16} />
-          <span><b>03</b> Connect & get it done</span>
+      <section className={styles.assistantBand} aria-labelledby="assistant-heading">
+        <div className={styles.assistantBandInner}>
+          <span className={styles.aiMark}><Sparkles size={24} aria-hidden="true" /></span>
+          <div><span className={styles.kicker}>A LITTLE CLARITY BEFORE YOU START</span><h2 id="assistant-heading">Big idea? Start with a smarter plan.</h2><p>Explore your home project with the AI Project Assistant.</p></div>
+          <Link href="/assistant" className={styles.outlineButton}>Try the AI Project Assistant <ArrowRight size={18} aria-hidden="true" /></Link>
         </div>
       </section>
 
       <section className={styles.mzansiStatement} aria-labelledby="mzansi-heading">
         <div className={styles.mzansiCopy}>
           <span className={styles.greenKicker}>MZANSI CONNECT · STARTING IN EKURHULENI</span>
-          <h2 id="mzansi-heading">From the corner<br />to the cloud.</h2>
+          <h2 id="mzansi-heading">Great local skills.<br />A better way to connect.</h2>
           <p>
             Skills Connect Pro brings local skill into one guided digital marketplace—making service providers
             easier to discover and giving customers a clearer, safer way to start. Built in Ekurhuleni, with a model designed to grow across Mzansi.
@@ -199,10 +180,10 @@ export function PremiumLanding() {
           </div>
         </div>
         <div className={styles.mzansiVisual}>
-          <Image src="/artisans/autorep.png" alt="Modern vehicle repair workshop" fill sizes="(max-width: 760px) 100vw, 48vw" />
+          <Image src="/artisans/autorep.png" alt="Vehicle repair workshop representing local service businesses" fill sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1280px) 48vw, 584px" />
           <div className={styles.networkCard}>
             <span><span className={styles.liveDot} /> LOCAL NETWORK</span>
-            <strong>Real skills.<br />Ready to connect.</strong>
+            <strong>Rooted in Mzansi.<br />Built around you.</strong>
           </div>
         </div>
       </section>
@@ -215,7 +196,7 @@ export function PremiumLanding() {
         <div className={styles.serviceGrid}>
           {services.map(({ label, icon: Icon, detail, image }) => (
             <Link key={label} href={`/get-help?service=${encodeURIComponent(label)}`} className={styles.serviceTile}>
-              <Image src={image} alt="" fill sizes="(max-width: 760px) 50vw, (max-width: 1240px) 25vw, 290px" className={styles.serviceImage} />
+              <Image src={image} alt="" fill sizes="(max-width: 640px) calc((100vw - 52px) / 2), (max-width: 900px) calc((100vw - 80px) / 2), (max-width: 1280px) calc((100vw - 112px) / 4), 292px" className={styles.serviceImage} />
               <span className={styles.serviceShade} aria-hidden="true" />
               <Icon size={24} className={styles.serviceIcon} />
               <strong>{label}</strong>
@@ -229,7 +210,7 @@ export function PremiumLanding() {
       <section id="how-it-works" className={`${styles.section} ${styles.process}`}>
         <div className={styles.headingRow}>
           <div><span className={styles.kicker}>LESS SEARCHING. MORE PROGRESS.</span><h2>A smarter route from need to done.</h2></div>
-          <p>One request. The next steps stay together.</p>
+          <p>Describe it. Compare. Choose. We keep the steps together.</p>
         </div>
         <div className={styles.stepGrid}>
           {steps.map((step, index) => (
@@ -244,17 +225,17 @@ export function PremiumLanding() {
 
       <section className={styles.planning}>
         <div className={styles.planningImage}>
-          <Image src="/calculator-planning-desk.jpg" alt="Tools and plans for a home improvement project" fill sizes="(max-width: 760px) 100vw, 45vw" />
+          <Image src="/calculator-planning-desk.jpg" alt="Tools and plans for a home improvement project" fill sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1280px) 48vw, 584px" />
           <span className={styles.imageTag}><Sparkles size={14} /> AI-ASSISTED PLANNING</span>
         </div>
         <div className={styles.planningCopy}>
           <span className={styles.kicker}><Sparkles size={15} /> SPECIALIST TOOL · HOME IMPROVEMENT</span>
           <h2>Plan the job before you price the job.</h2>
           <p>
-            Use the AI Home Improvement Assistant to clarify the work, analyse a project photo and explore a
+            Use the AI Project Assistant to clarify the work, analyse a project photo and explore a
             preliminary estimate—then move into the provider marketplace when you are ready.
           </p>
-          <Link href="/assistant" className={styles.primary}>Open the AI assistant <ArrowRight size={18} /></Link>
+          <Link href="/assistant" className={styles.primary}>Explore the AI Project Assistant <ArrowRight size={18} /></Link>
           <small>Planning guidance and estimates are preliminary. Final prices are agreed directly with your provider.</small>
         </div>
       </section>
@@ -284,7 +265,7 @@ export function PremiumLanding() {
 
       <footer className={styles.footer}>
         <Link href="/" className={styles.brand} aria-label="Skills Connect Pro home"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={220} height={58} /></Link>
-        <div><Link href="/get-help">Request a service</Link><Link href="/browse-providers">Find a provider</Link><Link href="/assistant">AI home assistant</Link></div>
+        <div><Link href="/get-help">Request a service</Link><Link href="/browse-providers">Find a provider</Link><Link href="/assistant">AI Project Assistant</Link></div>
         <p>Starting in Ekurhuleni. Built to grow across Mzansi. Customers contract directly with independent providers.</p>
       </footer>
     </main>
