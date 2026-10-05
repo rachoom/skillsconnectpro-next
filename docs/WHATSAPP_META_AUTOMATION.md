@@ -123,3 +123,15 @@ Skills Connect Pro update: {{1}} for {{2}}. Open the admin console: {{3}} for de
 7. Enable full provider automation with `MARKETPLACE_WHATSAPP_DELIVERY_MODE=automatic` and `MARKETPLACE_WHATSAPP_AUTO_SEND=true`.
 
 The delivery code records provider message attempts in `lead_invitation_delivery_attempts`. Meta webhook status updates then keep `lead_invitations` aligned with delivered or failed provider messages.
+
+## Controlled production test — 5 October 2026
+
+The first live end-to-end WhatsApp test is intentionally constrained:
+
+- customer confirmations enabled;
+- admin alerts enabled;
+- provider delivery remains `manual`;
+- provider auto-send remains `false`;
+- automatic provider routing is disabled for the test.
+
+This isolates customer/admin message delivery and webhook handling before provider automation is enabled.
