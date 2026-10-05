@@ -132,6 +132,6 @@ The first live end-to-end WhatsApp test is intentionally constrained:
 - admin alerts enabled;
 - provider delivery remains `manual`;
 - provider auto-send remains `false`;
-- automatic provider routing is disabled for the test.
+- automatic provider routing is enabled so the test can queue a provider wave and exercise the admin alert, while provider WhatsApp delivery remains manual.
 
 This isolates customer/admin message delivery and webhook handling before provider automation is enabled.
