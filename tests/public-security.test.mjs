@@ -117,3 +117,37 @@ test('scheduler requires a bearer credential and verifies the stored hash', asyn
   })), false);
   assert.equal(queried, true);
 });
+
+function controlledTestRoute(authorised, configured = true, blocked = null) {
+  let sentTo = null;
+  const route = loadSource('../app/api/admin/whatsapp/test/route.ts', {
+    '@/services/marketplace/adminAuth': { requireMarketplaceAdmin: () => { if (!authorised) throw new Error('Denied'); } },
+    '@/services/marketplace/cronAuth': { isCronAuthorised: async () => false },
+    '@/services/marketplace/whatsappPolicy.js': { normaliseWhatsAppRecipient: value => value || '', isPlausibleWhatsAppRecipient: value => value === 'approved-test-recipient' },
+    '@/services/marketplace/whatsappReadiness': { getWhatsAppAutomationReadiness: () => ({ provider: { configured: true, templateName: 'test-template', templateLanguage: 'en' } }) },
+    '@/services/marketplace/metaWhatsApp': {
+      getMetaWhatsAppConfiguration: () => ({}), publicMarketplaceUrl: () => 'https://site.example', bodyComponent: values => values,
+      sendMetaWhatsAppTemplate: async input => { sentTo = input.to; return { status: 'sent', externalMessageId: 'test-message' }; },
+    },
+    '@/services/publicRequestGuard': { enforcePublicRequestLimit: async () => blocked },
+  }, configured ? { MARKETPLACE_CONTROLLED_TEST_WHATSAPP_NUMBER: 'approved-test-recipient' } : {});
+  return { route, sentTo: () => sentTo };
+}
+test('controlled delivery test requires authentication and explicit recipient configuration', async () => {
+  const denied = controlledTestRoute(false);
+  assert.equal((await denied.route.POST(request('{}'))).status, 401);
+  assert.equal(denied.sentTo(), null);
+  const unconfigured = controlledTestRoute(true, false);
+  assert.equal((await unconfigured.route.POST(request('{}'))).status, 503);
+  assert.equal(unconfigured.sentTo(), null);
+});
+test('controlled test ignores caller-supplied recipients and sends only to the configured recipient', async () => {
+  const configured = controlledTestRoute(true);
+  assert.equal((await configured.route.POST(request('{"recipient":"attacker-recipient"}'))).status, 200);
+  assert.equal(configured.sentTo(), 'approved-test-recipient');
+});
+test('controlled delivery rate cap blocks repeated sends', async () => {
+  const configured = controlledTestRoute(true, true, new Response('{}', { status: 429 }));
+  assert.equal((await configured.route.POST(request('{}'))).status, 429);
+  assert.equal(configured.sentTo(), null);
+});
