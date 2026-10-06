@@ -1,3 +1,4 @@
+import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { NextResponse } from 'next/server';
 import { processAutomaticRouting } from '@/services/marketplace/automaticRouting';
 import {
@@ -207,12 +208,14 @@ async function queuePreferredProvider(input: {
 
 export async function POST(request: Request) {
   try {
+    const blocked = await enforcePublicRequestLimit(request, 'project_intake', 5);
+    if (blocked) return blocked;
     const contentLength = Number(request.headers.get('content-length') ?? 0);
     if (contentLength > 1_000_000) {
       return NextResponse.json({ error: 'Project information is too large.' }, { status: 413 });
     }
 
-    const body = await request.json();
+    const body = await readBoundedJson(request, 1000000);
     const preferredProviderId = body && typeof body === 'object' && !Array.isArray(body)
       ? positiveInteger((body as Record<string, unknown>).preferredProviderId)
       : null;
@@ -297,6 +300,8 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
+    const invalid = publicRequestError(error);
+    if (invalid) return invalid;
     const message = error instanceof Error ? error.message : 'Unable to create the project.';
     const isServiceError = message.startsWith('Unable to create project:') || message.includes('SUPABASE_');
     console.error('POST /api/projects/intake failed:', error);

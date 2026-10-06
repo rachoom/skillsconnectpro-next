@@ -6,7 +6,8 @@ import {
   type CompletionTimeoutSummary,
 } from '@/services/marketplace/completionAutomation';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
-import { hashOpaqueToken, safeTokenEquals } from '@/services/marketplace/tokens';
+import { isCronAuthorised } from '@/services/marketplace/cronAuth';
+import { getWhatsAppAutomationReadiness } from '@/services/marketplace/whatsappReadiness';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,37 +19,6 @@ const OPEN_PROJECT_STATUSES = [
   'matching',
   'responses_received',
 ];
-
-function bearerToken(request: Request): string {
-  const authorization = request.headers.get('authorization') || '';
-  return authorization.toLowerCase().startsWith('bearer ')
-    ? authorization.slice(7).trim()
-    : '';
-}
-
-async function isAuthorised(request: Request): Promise<boolean> {
-  const suppliedToken = bearerToken(request);
-  if (suppliedToken.length < 20) return false;
-
-  const environmentSecret = process.env.CRON_SECRET;
-  if (environmentSecret && safeTokenEquals(hashOpaqueToken(environmentSecret), suppliedToken)) {
-    return true;
-  }
-
-  const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
-    .from('marketplace_cron_credentials')
-    .select('id')
-    .eq('id', 'marketplace-routing')
-    .eq('token_hash', hashOpaqueToken(suppliedToken))
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Unable to verify scheduled marketplace access: ${error.message}`);
-  }
-
-  return Boolean(data);
-}
 
 async function startRun(): Promise<string | null> {
   const supabase = getSupabaseAdmin();
@@ -131,7 +101,7 @@ async function processCompletionTimeoutsSafely(): Promise<CompletionTimeoutSumma
 
 export async function GET(request: Request) {
   try {
-    if (!(await isAuthorised(request))) {
+    if (!(await isCronAuthorised(request))) {
       return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 });
     }
   } catch (error) {
@@ -140,6 +110,10 @@ export async function GET(request: Request) {
       { error: 'Scheduled marketplace authentication is unavailable.' },
       { status: 503 },
     );
+  }
+
+  if (new URL(request.url).searchParams.get('readiness') === '1') {
+    return NextResponse.json({ readiness: getWhatsAppAutomationReadiness() }, { headers: { 'Cache-Control': 'private, no-store' } });
   }
 
   const runId = await startRun();

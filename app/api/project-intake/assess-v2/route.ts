@@ -1,3 +1,4 @@
+import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -311,12 +312,14 @@ export async function POST(request: NextRequest) {
   let questionsAlreadyAsked = 0;
 
   try {
+    const blocked = await enforcePublicRequestLimit(request, 'assessment', 30);
+    if (blocked) return blocked;
     const contentLength = Number(request.headers.get('content-length') ?? 0);
     if (contentLength > 4_000_000) {
       return NextResponse.json({ error: 'The intake payload is too large.' }, { status: 413 });
     }
 
-    const body = await request.json() as Record<string, unknown>;
+    const body = await readBoundedJson(request, 4000000) as Record<string, unknown>;
     description = cleanText(body.description);
     image = cleanText(body.image, 3_000_000);
     answers = cleanAnswers(body.answers);
@@ -414,6 +417,8 @@ Rules:
       questionsAlreadyAsked,
     );
   } catch (error) {
+    const invalid = publicRequestError(error);
+    if (invalid) return invalid;
     console.error('POST /api/project-intake/assess-v2 failed:', error);
 
     if (description) {

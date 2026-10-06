@@ -1,3 +1,4 @@
+import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
@@ -5,18 +6,20 @@ export const maxDuration = 60; // Allow maximum processing time
 
 export async function POST(req: Request) {
   try {
+    const blocked = await enforcePublicRequestLimit(req, 'estimate', 20);
+    if (blocked) return blocked;
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "Missing API Key" }, { status: 500 });
 
     const ai = new GoogleGenAI({ apiKey: apiKey as string });
-    const body = await req.json();
-    const prompt = body.prompt || "General project";
-    const imageStr = body.image || "";
-    const qaHistory = Array.isArray(body.qaHistory) ? body.qaHistory : [];
+    const body = await readBoundedJson(req, 1600000);
+    const prompt = typeof body.prompt === "string" ? body.prompt.slice(0, 8000) : "General project";
+    const imageStr = typeof body.image === "string" ? body.image : "";
+    const qaHistory = Array.isArray(body.qaHistory) ? body.qaHistory.slice(0, 9) : [];
     const qaContext = qaHistory
       .map((item: any) => {
-        const question = String(item?.question || '').trim();
-        const answer = String(item?.answer || '').trim();
+        const question = String(item?.question || '').trim().slice(0, 500);
+        const answer = String(item?.answer || '').trim().slice(0, 1000);
         if (!question || !answer) return null;
         return `- ${question}: ${answer}`;
       })
@@ -46,7 +49,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ estimate: responseText });
 
   } catch (error: any) {
+    const invalid = publicRequestError(error);
+    if (invalid) return invalid;
     console.error("Backend Error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "AI service is temporarily unavailable. Please try again." }, { status: 500 });
   }
 }

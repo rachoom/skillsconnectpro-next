@@ -1,3 +1,4 @@
+import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { NextRequest, NextResponse } from 'next/server';
 import { POST as assessV2 } from '../assess-v2/route';
 import {
@@ -142,9 +143,9 @@ function mechanicsAssessment(body: Record<string, unknown>) {
 export async function POST(request: NextRequest) {
   let body: Record<string, unknown> = {};
   try {
-    body = await request.clone().json() as Record<string, unknown>;
-  } catch {
-    // The existing V2 route will return the canonical validation error.
+    body = await readBoundedJson(request.clone(), 4_000_000) as Record<string, unknown>;
+  } catch (error) {
+    return publicRequestError(error) || NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
   }
 
   const description = cleanText(body.description);
@@ -155,6 +156,9 @@ export async function POST(request: NextRequest) {
   ].join(' ');
 
   if (isMechanicsRequest(combined)) {
+    if (description.length < 10) return NextResponse.json({ error: 'Please describe the job in a little more detail.' }, { status: 400 });
+    const blocked = await enforcePublicRequestLimit(request, 'assessment', 30);
+    if (blocked) return blocked;
     return mechanicsAssessment(body);
   }
 

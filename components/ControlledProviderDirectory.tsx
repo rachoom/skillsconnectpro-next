@@ -17,7 +17,6 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
-import { supabase } from '../services/supabase';
 import styles from './ControlledProviderDirectory.module.css';
 
 type Provider = {
@@ -62,35 +61,29 @@ export const ControlledProviderDirectory = () => {
 
     const loadProviders = async () => {
       setLoading(true);
-      const { data, error: queryError } = await supabase
-        .from('artisans')
-        .select('id, name, first_name, last_name, category, location, image_url, verified, status, bio, marketplace_rating, marketplace_review_count')
-        .neq('status', 'inactive')
-        .order('verified', { ascending: false })
-        .order('marketplace_review_count', { ascending: false })
-        .limit(120);
-
-      if (!active) return;
-      if (queryError) {
-        setError('Provider profiles are temporarily unavailable. Please use the guided request instead.');
-        setProviders([]);
-      } else {
-        setProviders((data || []) as Provider[]);
+      try {
+        const response = await fetch('/api/providers');
+        if (!response.ok) throw new Error('Provider directory unavailable.');
+        const { providers: data } = await response.json();
+        if (active) {
+          setProviders(data || []); setError('');
+          const requestedId = Number(new URLSearchParams(window.location.search).get('provider'));
+          const requested = (data || []).find((item: Provider) => item.id === requestedId);
+          if (requested) setSelected(requested);
+        }
+      } catch {
+        if (active) {
+          setError('Provider profiles are temporarily unavailable. Please use the guided request instead.');
+          setProviders([]);
+        }
       }
+      if (!active) return;
       setLoading(false);
     };
 
     void loadProviders();
     return () => { active = false; };
   }, []);
-
-  useEffect(() => {
-    if (!providers.length) return;
-    const requestedId = Number(new URLSearchParams(window.location.search).get('provider'));
-    if (!Number.isInteger(requestedId)) return;
-    const provider = providers.find((item) => item.id === requestedId);
-    if (provider) setSelected(provider);
-  }, [providers]);
 
   const categories = useMemo(() => {
     const values = providers

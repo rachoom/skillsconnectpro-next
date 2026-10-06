@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import matter from '../../../services/blogFrontmatter';
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 import { Facebook, MessageCircle } from 'lucide-react';
