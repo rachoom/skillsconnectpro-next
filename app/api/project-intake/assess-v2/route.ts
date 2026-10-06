@@ -329,9 +329,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY
-      || process.env.NEXT_PUBLIC_GEMINI_KEY
-      || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       return intakeResponse(
