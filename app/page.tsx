@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import ClientWrapper from './ClientWrapper';
 import { PremiumLanding } from '../components/PremiumLanding';
 
 type Props = {
@@ -24,17 +23,15 @@ export default async function Page({ searchParams }: Props) {
   const params = await searchParams;
   const profileId = typeof params.profile === 'string' ? params.profile : null;
   const claimId = typeof params.claim === 'string' ? params.claim : null;
+  const inviteId = typeof params.invite === 'string' ? params.invite : null;
 
   // Old public profile links now enter the controlled provider-discovery layer
   // instead of exposing direct provider contact details.
   if (profileId) redirect(`/browse-providers?provider=${encodeURIComponent(profileId)}`);
 
-  // The new public provider CTA uses the focused, mobile-first join experience.
-  if (claimId === 'join') redirect('/join');
-
-  // Preserve existing individual claim links while the dedicated provider
-  // account portal is prepared for launch.
-  if (claimId) return <ClientWrapper />;
+  // Numeric legacy claim IDs do not prove profile ownership. Route all old
+  // claim links through the reviewed provider application flow.
+  if (claimId || inviteId) redirect('/join');
 
   return <PremiumLanding />;
 }
