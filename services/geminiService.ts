@@ -1,28 +1,21 @@
-import { GoogleGenAI } from '@google/genai';
-
 export async function getGeminiResponse(prompt: string) {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error('Missing GEMINI_API_KEY');
-
-  const ai = new GoogleGenAI({ apiKey: key });
-  const res = await ai.models.generateContent({
-    model: 'gemini-1.5-flash-8b',
-    contents: prompt,
+  const response = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
   });
-
-  return res.text;
+  if (!response.ok) throw new Error('AI service is unavailable.');
+  const data = await response.json();
+  return data.result as string | undefined;
 }
 
 export async function getConstructionEstimate(prompt: string) {
-  const key = process.env.GEMINI_API_KEY;
-  const ai = new GoogleGenAI({ apiKey: key as string });
-  
-  const res = await ai.models.generateContent({
-    model: 'gemini-1.5-flash-8b',
-    contents: `Act as a construction estimator. Analyze: "${prompt}". Return JSON with: materialsTotal, toolsNeeded, laborTotal, riskBuffer.`,
-    config: { responseMimeType: "application/json" }
+  const response = await fetch('/api/estimate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
   });
-  
-  const responseText = res.text ?? '{}';
-  return JSON.parse(responseText.replace(/```json|```/g, '').trim());
+  if (!response.ok) throw new Error('Estimate service is unavailable.');
+  const data = await response.json();
+  return JSON.parse(data.estimate ?? '{}');
 }
