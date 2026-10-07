@@ -216,7 +216,7 @@ export async function getCustomerLifecycleState(projectId: string, accessToken: 
 export async function getProviderLifecycleState(token: string) {
   const opportunity = await getProviderOpportunity(token);
   if (!opportunity) throw new Error('Provider opportunity not found.');
-  if (!opportunity.customerContact) {
+  if (!opportunity.customerContact && opportunity.project.status !== 'cancelled') {
     throw new Error('Job controls become available after the customer selects and connects with you.');
   }
 
