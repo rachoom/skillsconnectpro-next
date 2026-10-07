@@ -400,19 +400,19 @@ export default function CustomerProjectPage() {
         <section className={styles.metricsGrid} aria-label="Project matching status">
           <article className={styles.metricCard}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><Users size={19} /></span><small>01</small></div>
-            <strong>{feed.matching.invitationsSent}</strong>
+            <strong key={`invited-${feed.matching.invitationsSent}`} className={styles.metricValue}>{feed.matching.invitationsSent}</strong>
             <h2>Providers invited</h2>
             <p>Invitations sent to suitable local providers.</p>
           </article>
           <article className={`${styles.metricCard} ${feed.matching.providersReviewing > 0 && !hasResponses ? styles.metricReviewing : ''}`}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={19} /></span><small>02</small></div>
-            <strong>{feed.matching.providersReviewing}</strong>
+            <strong key={`reviewing-${feed.matching.providersReviewing}`} className={styles.metricValue}>{feed.matching.providersReviewing}</strong>
             <h2>Currently reviewing</h2>
             <p>Providers actively considering your project.</p>
           </article>
           <article className={`${styles.metricCard} ${styles.metricSuccess} ${hasResponses && !hasSelection ? styles.metricResponseReady : ''}`}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><CheckCircle2 size={19} /></span><small>03</small></div>
-            <strong>{feed.matching.validResponsesReceived}</strong>
+            <strong key={`responses-${feed.matching.validResponsesReceived}`} className={styles.metricValue}>{feed.matching.validResponsesReceived}</strong>
             <h2>Responses received</h2>
             <p>Provider options ready for you to compare.</p>
           </article>
