@@ -681,3 +681,146 @@
 :global(html[data-scp-theme='light']) .scope [data-provider-response-form] > div:first-child p {
   color: #6f6f68 !important;
 }
+
+
+/* === Strategic isiZulu guidance === */
+.scope [data-vernac],
+.scope [data-vernac-choice],
+.scope [data-vernac-time],
+.scope [data-vernac-submit],
+.scope [data-vernac-inline] {
+  font-family: inherit;
+  text-transform: none !important;
+}
+
+.scope [data-vernac] {
+  display: block;
+  margin-top: .22rem;
+  color: #c7a947 !important;
+  font-size: .66rem;
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: .015em;
+}
+
+.scope [data-vernac]::before {
+  content: 'isiZulu · ';
+  color: #8f8f87;
+  font-size: .57rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.scope [data-vernac-inline] {
+  color: #bca85b !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+.scope [data-vernac-choice] {
+  display: block;
+  margin-top: .42rem;
+  padding-top: .38rem;
+  border-top: 1px solid rgba(255,255,255,.065);
+  color: color-mix(in srgb, var(--choice-accent) 68%, #d7d7d0) !important;
+  font-size: .62rem;
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: .005em;
+}
+
+.scope [data-provider-option][data-selected='true'] [data-vernac-choice] {
+  color: color-mix(in srgb, var(--choice-accent) 82%, white) !important;
+}
+
+.scope [data-provider-time] {
+  display: inline-grid !important;
+  justify-items: center;
+  align-content: center;
+  gap: .1rem;
+  line-height: 1.15;
+}
+
+.scope [data-vernac-time] {
+  display: block;
+  max-width: 9rem;
+  color: #8f8f88 !important;
+  font-size: .54rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+}
+
+.scope [data-provider-time][data-selected='true'] [data-vernac-time] {
+  color: #cdbb74 !important;
+}
+
+.scope [data-submit-copy] {
+  display: grid;
+  justify-items: center;
+  gap: .12rem;
+  line-height: 1.05;
+}
+
+.scope [data-vernac-submit] {
+  color: rgba(17,17,17,.68) !important;
+  font-size: .56rem;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: none !important;
+}
+
+.scope [data-provider-response-form] > button:last-of-type {
+  min-height: 4rem;
+}
+
+@media (max-width: 639px) {
+  .scope [data-provider-option] {
+    min-height: 6.45rem !important;
+  }
+
+  .scope [data-vernac-choice] {
+    font-size: .59rem;
+  }
+
+  .scope [data-vernac-inline] {
+    display: inline;
+    font-size: .88em;
+  }
+
+  .scope [data-provider-time] {
+    min-height: 3.05rem !important;
+    padding-inline: .75rem !important;
+  }
+}
+
+:global(html[data-scp-theme='light']) .scope [data-vernac] {
+  color: #7e650d !important;
+}
+
+:global(html[data-scp-theme='light']) .scope [data-vernac]::before {
+  color: #8a8a82;
+}
+
+:global(html[data-scp-theme='light']) .scope [data-vernac-inline] {
+  color: #7a650f !important;
+}
+
+:global(html[data-scp-theme='light']) .scope [data-vernac-choice] {
+  border-top-color: rgba(20,20,17,.07);
+  color: color-mix(in srgb, var(--choice-accent) 55%, #585850) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope [data-provider-option][data-selected='true'] [data-vernac-choice] {
+  color: color-mix(in srgb, var(--choice-accent) 68%, #34342e) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope [data-vernac-time] {
+  color: #797972 !important;
+}
+
+:global(html[data-scp-theme='light']) .scope [data-provider-time][data-selected='true'] [data-vernac-time] {
+  color: #725b0a !important;
+}
