@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
 import type { ProviderResponseType } from '../../types/marketplace';
 import { hashOpaqueToken } from './tokens';
+import { isContactAccessActive } from './contactAccessPolicy.js';
 
 export interface ProviderOpportunity {
   invitationId: string;
@@ -24,6 +25,7 @@ export interface ProviderOpportunity {
     safetyNotes: string[];
     materials: unknown[];
     professionalInspectionRequired: boolean;
+    status: string;
   };
   providerSnapshot: Record<string, unknown>;
   customerContact: {
@@ -110,7 +112,7 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
   const { data: projectData, error: projectError } = await supabase
     .from('projects')
     .select(
-      'id, guest_name, guest_phone, guest_email, title, customer_description, ai_summary, likely_issue, category, urgency, service_level, location_text, suburb, city, preferred_date, estimated_min, estimated_max, estimate_currency, safety_notes, materials, professional_inspection_required',
+      'id, status, guest_name, guest_phone, guest_email, title, customer_description, ai_summary, likely_issue, category, urgency, service_level, location_text, suburb, city, preferred_date, estimated_min, estimated_max, estimate_currency, safety_notes, materials, professional_inspection_required',
     )
     .eq('id', invitation.project_id)
     .single();
@@ -138,7 +140,7 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
     status: selectedAndReleased ? 'contact_released' : invitation.status,
     responseDeadline: invitation.response_deadline,
     providerSnapshot: invitation.provider_snapshot ?? {},
-    customerContact: selectedAndReleased && customerPhone
+    customerContact: selectedAndReleased && isContactAccessActive(projectData.status, matchData?.contact_released_at) && customerPhone
       ? {
           name: projectData.guest_name?.trim() || 'Customer',
           phone: customerPhone,
@@ -165,6 +167,7 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
       safetyNotes: projectData.safety_notes ?? [],
       materials: projectData.materials ?? [],
       professionalInspectionRequired: projectData.professional_inspection_required,
+      status: projectData.status,
     },
   };
 }
