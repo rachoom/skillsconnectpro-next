@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   Camera,
@@ -57,10 +57,31 @@ const questions = [
   ['When are my contact details shared?', 'Your contact details stay private until you choose a provider and confirm the connection.'],
 ];
 
+const mzansiPhrases = [
+  { language: 'isiZulu', phrase: 'Siyakuxhumanisa.' },
+  { language: 'Sesotho', phrase: 'Re a u hokahanya.' },
+  { language: 'isiXhosa', phrase: 'Siyakudibanisa.' },
+  { language: 'Afrikaans', phrase: 'Ons verbind jou.' },
+];
+
 export function PremiumLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [languageIndex, setLanguageIndex] = useState(0);
   const menuButton = useRef<HTMLButtonElement>(null);
   const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (reducedMotion.matches) return;
+
+    const timer = window.setInterval(() => {
+      setLanguageIndex((current) => (current + 1) % mzansiPhrases.length);
+    }, 3600);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const activePhrase = mzansiPhrases[languageIndex];
 
   return (
     <main className={styles.page} data-design="premium-2026">
@@ -124,6 +145,15 @@ export function PremiumLanding() {
         <div className={styles.spotlightInner}>
           <div className={styles.pitch}>
             <span className={styles.location}><MapPin size={14} aria-hidden="true" /> STARTING IN EKURHULENI. BUILT FOR MZANSI.</span>
+            <div className={styles.languageCarousel} aria-hidden="true">
+              <span className={styles.languageLabel}>{activePhrase.language}</span>
+              <span key={languageIndex} className={styles.languagePhrase}>{activePhrase.phrase}</span>
+              <span className={styles.languageDots}>
+                {mzansiPhrases.map((item, index) => (
+                  <i key={item.language} data-active={index === languageIndex ? 'true' : 'false'} />
+                ))}
+              </span>
+            </div>
             <h1 id="home-heading">The right skills.<br /><span>For the job at hand.</span></h1>
             <p>Car trouble. A leaking tap. A home that needs care. Connect with suitable local service providers through one simple request.</p>
             <div id="start-request" className={styles.requestHub}>
