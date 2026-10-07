@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
+import { providerAutoSendApplies, reserveProviderSendBudget } from './dispatchSafeguards';
 import {
   isPlausibleWhatsAppRecipient,
   normaliseWhatsAppRecipient,
@@ -20,6 +21,8 @@ type DispatchInvitation = {
 };
 
 type ProjectDeliveryContext = {
+  id: string;
+  createdAt: string;
   title: string;
   category: string;
   location: string;
@@ -106,6 +109,21 @@ async function sendOne(
   const supabase = getSupabaseAdmin();
   const recipient = normaliseWhatsAppRecipient(invitation.deliveryAddress);
 
+  const { data: claimed, error: claimError } = await supabase.from('lead_invitations')
+    .update({ delivery_attempted_at: new Date().toISOString(), delivery_provider: 'meta_cloud_api' })
+    .eq('id', invitation.invitationId).eq('status', 'queued')
+    .is('sent_at', null).is('delivery_attempted_at', null).select('id').maybeSingle();
+  if (claimError) throw new Error('Unable to claim provider delivery safely.');
+  if (!claimed) return { invitationId: invitation.invitationId, status: 'manual', externalMessageId: null,
+    reason: 'Delivery was already attempted or the invitation is no longer queued.' };
+
+  if (!(await reserveProviderSendBudget(invitation.providerId))) {
+    const reason = 'Controlled provider send limit reached; administrator review is required.';
+    await supabase.from('lead_invitations').update({ status: 'failed', failure_reason: reason }).eq('id', invitation.invitationId);
+    await recordAttempt({ invitation, status: 'failed', errorCode: 'send_limit', errorMessage: reason });
+    return { invitationId: invitation.invitationId, status: 'failed', externalMessageId: null, reason };
+  }
+
   if (!isPlausibleWhatsAppRecipient(recipient)) {
     const reason = 'Provider does not have a valid WhatsApp recipient number.';
     await recordAttempt({ invitation, status: 'failed', errorCode: 'invalid_recipient', errorMessage: reason });
@@ -153,7 +171,6 @@ async function sendOne(
   const { error: updateError } = await supabase
     .from('lead_invitations')
     .update({
-      status: 'sent',
       delivery_channel: 'whatsapp',
       delivery_provider: 'meta_cloud_api',
       external_message_id: delivery.externalMessageId,
@@ -167,6 +184,9 @@ async function sendOne(
     console.error('WhatsApp message was accepted but invitation state could not be updated:', updateError.message);
   }
 
+  await supabase.from('lead_invitations').update({ status: 'sent' })
+    .eq('id', invitation.invitationId).eq('status', 'queued');
+
   return { invitationId: invitation.invitationId, status: 'sent', externalMessageId: delivery.externalMessageId, reason: null };
 }
 
@@ -176,8 +196,9 @@ export async function dispatchProviderInvitations(input: {
 }): Promise<InvitationDeliveryResult[]> {
   const mode = configuredDeliveryMode();
   const config = configuration();
-  if (!config) {
-    const reason = mode === 'automatic'
+  if (!config || !providerAutoSendApplies(input.project.createdAt)) {
+    const reason = config && !providerAutoSendApplies(input.project.createdAt)
+      ? 'Automatic sending applies only to requests created after activation.' : mode === 'automatic'
       ? 'Automatic WhatsApp delivery is not enabled or Meta Cloud API configuration is incomplete.'
       : 'Manual WhatsApp delivery mode is active.';
 
@@ -190,7 +211,7 @@ export async function dispatchProviderInvitations(input: {
   }
 
   const results: InvitationDeliveryResult[] = [];
-  for (const invitation of input.invitations) {
+  for (const invitation of input.invitations.slice(0, 3)) {
     try {
       results.push(await sendOne(config, input.project, invitation));
     } catch (error) {
@@ -206,7 +227,7 @@ export async function dispatchProviderInvitations(input: {
           delivery_provider: 'meta_cloud_api',
           delivery_attempted_at: new Date().toISOString(),
         })
-        .eq('id', invitation.invitationId);
+        .eq('id', invitation.invitationId).eq('status', 'queued');
       results.push({ invitationId: invitation.invitationId, status: 'failed', externalMessageId: null, reason });
     }
   }

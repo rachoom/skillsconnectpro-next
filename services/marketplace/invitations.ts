@@ -5,6 +5,7 @@ import { createTokenPair } from './tokens';
 import { projectStatusAfterInvitation } from './invitationStatusPolicy.js';
 import { dispatchProviderInvitations } from './whatsappDelivery';
 import { notifyAdminProviderDispatch } from './adminDispatchAlerts';
+import { withMarketplaceLease } from './dispatchSafeguards';
 
 export interface ProviderInvitationTarget {
   providerId: number;
@@ -33,6 +34,7 @@ type ProjectRoutingRow = {
   title: string;
   category: string;
   location_text: string;
+  created_at: string;
 };
 
 type ProjectMatchRow = {
@@ -44,6 +46,8 @@ type ProjectMatchRow = {
 type ExistingInvitationRow = {
   provider_id: number;
   status: string;
+  sent_at: string | null;
+  delivery_attempted_at: string | null;
 };
 
 const ROUTING_CLOSED_PROJECT_STATUSES = new Set([
@@ -86,12 +90,21 @@ export async function createProviderInvitations(input: {
   waveNumber?: number;
   notifyAdminDispatch?: boolean;
 }): Promise<CreatedProviderInvitation[]> {
+  return withMarketplaceLease(`invitations:${input.projectId}`, () => createInvitationsLocked(input));
+}
+
+async function createInvitationsLocked(input: {
+  projectId: string;
+  targets: ProviderInvitationTarget[];
+  waveNumber?: number;
+  notifyAdminDispatch?: boolean;
+}): Promise<CreatedProviderInvitation[]> {
   if (!input.projectId) throw new Error('projectId is required.');
   if (!Array.isArray(input.targets) || input.targets.length === 0) {
     throw new Error('At least one provider target is required.');
   }
-  if (input.targets.length > 10) {
-    throw new Error('A maximum of 10 providers may be invited in one wave.');
+  if (input.targets.length > 3) {
+    throw new Error('A maximum of 3 providers may be invited in one wave.');
   }
 
   const uniqueProviderIds = new Set<number>();
@@ -110,7 +123,7 @@ export async function createProviderInvitations(input: {
   const [projectResult, matchResult, existingInvitationResult] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, urgency, status, consent_to_share, title, category, location_text')
+      .select('id, urgency, status, consent_to_share, title, category, location_text, created_at')
       .eq('id', input.projectId)
       .single(),
     supabase
@@ -120,9 +133,8 @@ export async function createProviderInvitations(input: {
       .maybeSingle(),
     supabase
       .from('lead_invitations')
-      .select('provider_id, status')
-      .eq('project_id', input.projectId)
-      .in('provider_id', providerIds),
+      .select('provider_id, status, sent_at, delivery_attempted_at')
+      .eq('project_id', input.projectId),
   ]);
 
   if (projectResult.error) {
@@ -147,7 +159,7 @@ export async function createProviderInvitations(input: {
   assertRoutingOpen(project, match);
 
   const finalInvitation = existingInvitations.find((invitation) =>
-    RESPONSE_FINAL_INVITATION_STATUSES.has(invitation.status),
+    uniqueProviderIds.has(invitation.provider_id) && RESPONSE_FINAL_INVITATION_STATUSES.has(invitation.status),
   );
   if (finalInvitation) {
     throw new Error(
@@ -155,10 +167,27 @@ export async function createProviderInvitations(input: {
     );
   }
 
+  const providerResult = await supabase.from('artisans')
+    .select('id, phone, status, approval_status').in('id', providerIds);
+  if (providerResult.error) throw new Error('Unable to verify provider eligibility.');
+  const eligible = new Map((providerResult.data ?? []).filter(provider =>
+    provider.status === 'active' && provider.approval_status !== 'rejected').map(provider => [provider.id, provider]));
+  let remaining = Math.max(0, 6 - existingInvitations.length);
+  const safeTargets = input.targets.filter(target => {
+    if (!eligible.has(target.providerId)) return false;
+    const existing = existingInvitations.find(row => row.provider_id === target.providerId);
+    // Once a send was attempted, never rotate its token or automatically resend.
+    if (existing) return existing.status === 'queued' && !existing.sent_at && !existing.delivery_attempted_at;
+    if (remaining <= 0) return false;
+    remaining -= 1;
+    return true;
+  }).map(target => ({ ...target, deliveryAddress: eligible.get(target.providerId)!.phone }));
+  if (safeTargets.length === 0) return [];
+
   const deadline = getInvitationResponseDeadline(project.urgency).toISOString();
   const waveNumber = input.waveNumber ?? 1;
 
-  const prepared = input.targets.map((target) => {
+  const prepared = safeTargets.map((target) => {
     const tokenPair = createTokenPair();
     const deliveryChannel = target.deliveryChannel ?? 'web';
 
@@ -241,6 +270,8 @@ export async function createProviderInvitations(input: {
   }));
   const deliveryResults = await dispatchProviderInvitations({
     project: {
+      id: project.id,
+      createdAt: project.created_at,
       title: project.title,
       category: project.category,
       location: project.location_text,

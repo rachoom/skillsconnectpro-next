@@ -84,6 +84,7 @@ export async function sendMetaWhatsAppTemplate(input: {
     `https://graph.facebook.com/${input.config.graphApiVersion}/${input.config.phoneNumberId}/messages`,
     {
       method: 'POST',
+      signal: AbortSignal.timeout(8_000),
       headers: {
         Authorization: `Bearer ${input.config.accessToken}`,
         'Content-Type': 'application/json',

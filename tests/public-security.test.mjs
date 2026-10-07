@@ -121,6 +121,11 @@ test('scheduler requires a bearer credential and verifies the stored hash', asyn
 function controlledTestRoute(authorised, configured = true, blocked = null) {
   let sentTo = null;
   const route = loadSource('../app/api/admin/whatsapp/test/route.ts', {
+    '@/services/supabaseAdmin': { getSupabaseAdmin: () => ({ from: () => {
+      const query = { insert: () => query, select: () => query, single: async () => ({ data: { id: 'test-ledger-id' }, error: null }),
+        update: () => query, eq: async () => ({ error: null }) };
+      return query;
+    } }) },
     '@/services/marketplace/adminAuth': { requireMarketplaceAdmin: () => { if (!authorised) throw new Error('Denied'); } },
     '@/services/marketplace/cronAuth': { isCronAuthorised: async () => false },
     '@/services/marketplace/whatsappPolicy.js': { normaliseWhatsAppRecipient: value => value || '', isPlausibleWhatsAppRecipient: value => value === 'approved-test-recipient' },

@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
       { key: 'Referrer-Policy', value: 'no-referrer' },
       { key: 'Content-Security-Policy', value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" },
       { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=(self)' },
-    ] }, ...['/api/projects/:path*', '/api/provider-opportunities/:path*', '/project/:path*', '/provider-opportunity/:path*'].map(source => ({
+    ] }, ...['/api/admin/:path*', '/api/cron/:path*', '/api/projects/:path*', '/api/provider-opportunities/:path*', '/project/:path*', '/provider-opportunity/:path*'].map(source => ({
       source, headers: [{ key: 'Cache-Control', value: 'private, no-store, max-age=0' }],
     }))];
   },
