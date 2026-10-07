@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import matter from '../../services/blogFrontmatter';
 import Link from 'next/link';
 import BlogListingClient from './BlogListingClient';
 

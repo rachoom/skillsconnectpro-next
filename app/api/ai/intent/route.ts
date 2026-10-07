@@ -1,3 +1,4 @@
+import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 
@@ -16,7 +17,9 @@ function cleanJson(text: string) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as Record<string, unknown>;
+    const blocked = await enforcePublicRequestLimit(request, 'ai_intent', 20);
+    if (blocked) return blocked;
+    const body = await readBoundedJson(request, 1600000) as Record<string, unknown>;
     const type = body.type;
     const ai = model();
 
@@ -48,6 +51,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: 'Unsupported AI request.' }, { status: 400 });
   } catch (error) {
+    const invalid = publicRequestError(error);
+    if (invalid) return invalid;
     console.error('POST /api/ai/intent failed:', error);
     return NextResponse.json({ error: 'AI request failed.' }, { status: 500 });
   }

@@ -40,7 +40,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid webhook signature.' }, { status: 401 });
   }
 
-  const payload = JSON.parse(rawBody) as {
+  let parsed: unknown;
+  try { parsed = JSON.parse(rawBody); }
+  catch { return NextResponse.json({ error: 'Invalid webhook payload.' }, { status: 400 }); }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return NextResponse.json({ error: 'Invalid webhook payload.' }, { status: 400 });
+  }
+  const payload = parsed as {
     entry?: Array<{
       changes?: Array<{
         value?: {
@@ -85,7 +91,7 @@ export async function POST(request: Request) {
     if (update.status === 'sent') {
       invitationUpdate.status = 'sent';
       invitationUpdate.sent_at = occurredAt;
-    } else if (update.status === 'delivered') {
+    } else if (update.status === 'delivered' || update.status === 'read') {
       invitationUpdate.status = 'delivered';
       invitationUpdate.delivered_at = occurredAt;
     } else if (update.status === 'failed') {
@@ -97,7 +103,10 @@ export async function POST(request: Request) {
       await supabase
         .from('lead_invitations')
         .update(invitationUpdate)
-        .eq('external_message_id', update.id);
+        .eq('external_message_id', update.id)
+        // Late or duplicate delivery receipts must not undo provider responses.
+        .in('status', update.status === 'sent' || update.status === 'failed'
+          ? ['queued', 'sent'] : ['queued', 'sent', 'delivered']);
     }
   }
 

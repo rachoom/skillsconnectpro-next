@@ -1,11 +1,9 @@
 // src/components/QuickOnboard.tsx
 import React, { useState, useRef } from 'react';
 import { extractBusinessCard } from '../services/aiOnboardingService';
-import { supabase } from '../services/supabase';
 import { Loader2, UploadCloud, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => void }> = ({ isDarkMode, onComplete }) => {
-  const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,7 +90,6 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsProcessing(true);
     setStatus('scanning');
 
     try {
@@ -104,22 +101,18 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
         setErrorMessage(aiResult.reason === 'invalid_image_type' 
           ? "We couldn't detect a business card or flyer. Please try a clearer photo." 
           : "Network error. Please try again.");
-        setIsProcessing(false);
         return;
       }
 
-      // It passed the AI Bouncer! Push to Supabase "Pending" Table
-      const { error } = await supabase.from('artisan_applications').insert([{
-        first_name: aiResult.name || 'Unknown',
-        last_name: '', // Split logic can be added, or keep business name in first_name
-        trade: aiResult.trade || 'General',
-        phone: aiResult.phone || 'No phone detected',
-        location: aiResult.location || 'East Rand',
-        status: 'pending',
-        bio: 'Auto-extracted from business card upload.'
-      }]);
-
-      if (error) throw error;
+      const response = await fetch('/api/onboarding/apply', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: aiResult.name, trade: aiResult.trade,
+          phone: aiResult.phone, location: aiResult.location }),
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || 'Unable to submit application.');
+      }
 
       setStatus('success');
       setTimeout(onComplete, 4000); // Send them back to home after reading success
@@ -127,9 +120,7 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
     } catch (err) {
       console.error(err);
       setStatus('error');
-      setErrorMessage("Something went wrong saving your profile.");
-    } finally {
-      setIsProcessing(false);
+      setErrorMessage(err instanceof Error ? err.message : 'Unable to save your application.');
     }
   };
 
@@ -165,7 +156,7 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
         {status === 'success' && (
           <div className="flex flex-col items-center py-10 animate-fade-in">
             <CheckCircle className="w-20 h-20 text-green-500 mb-6" />
-            <h3 className="text-2xl font-black uppercase tracking-tighter mb-2">Profile Created!</h3>
+            <h3 className="text-2xl font-black uppercase tracking-tighter mb-2">Application Submitted!</h3>
             <p className="text-gray-400">Our team will verify your details and make you live shortly.</p>
           </div>
         )}

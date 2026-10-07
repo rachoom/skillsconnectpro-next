@@ -1,3 +1,4 @@
+import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 
@@ -13,7 +14,9 @@ Return ONLY JSON in one of these forms:
 
 export async function POST(request: Request) {
   try {
-    const { image, mimeType = 'image/jpeg' } = await request.json() as { image?: unknown; mimeType?: unknown };
+    const blocked = await enforcePublicRequestLimit(request, 'card_extraction', 5);
+    if (blocked) return blocked;
+    const { image, mimeType = 'image/jpeg' } = await readBoundedJson(request, 1600000) as { image?: unknown; mimeType?: unknown };
     const data = String(image ?? '');
     if (!data || data.length > 1_500_000) return NextResponse.json({ error: 'Invalid image.' }, { status: 400 });
 
@@ -32,6 +35,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(JSON.parse((response.text ?? '{}').replace(/^```json\s*|\s*```$/gi, '').trim()));
   } catch (error) {
+    const invalid = publicRequestError(error);
+    if (invalid) return invalid;
     console.error('POST /api/onboarding/extract-card failed:', error);
     return NextResponse.json({ error: 'Could not process the business card.' }, { status: 500 });
   }

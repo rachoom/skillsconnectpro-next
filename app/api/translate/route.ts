@@ -1,10 +1,13 @@
+import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
-    const { text, targetLanguage = 'en' } = await request.json() as { text?: unknown; targetLanguage?: unknown };
+    const blocked = await enforcePublicRequestLimit(request, 'translation', 60);
+    if (blocked) return blocked;
+    const { text, targetLanguage = 'en' } = await readBoundedJson(request, 30000) as { text?: unknown; targetLanguage?: unknown };
     const value = String(text ?? '').trim();
     const target = String(targetLanguage ?? 'en').trim();
     const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
@@ -24,6 +27,8 @@ export async function POST(request: Request) {
     if (!response.ok || !translation) return NextResponse.json({ error: 'Translation failed.' }, { status: 502 });
     return NextResponse.json({ translation });
   } catch (error) {
+    const invalid = publicRequestError(error);
+    if (invalid) return invalid;
     console.error('POST /api/translate failed:', error);
     return NextResponse.json({ error: 'Translation failed.' }, { status: 500 });
   }
