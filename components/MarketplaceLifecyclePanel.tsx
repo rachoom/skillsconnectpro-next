@@ -352,7 +352,9 @@ export const MarketplaceLifecyclePanel = () => {
               <XCircle className={customerMode ? 'text-red-300' : 'text-[#A6323B]'} size={31} />
               <div>
                 <h3 className="text-xl font-black">Project cancelled</h3>
-                <p className={`mt-2 text-sm ${mutedClass}`}>The cancellation has been saved in the permanent job record.</p>
+                <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
+                  The cancellation has been saved in the permanent job record. Shared contact details are no longer shown on the marketplace screens.
+                </p>
               </div>
             </div>
           </div>
