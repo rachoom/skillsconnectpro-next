@@ -269,6 +269,10 @@ export default function CustomerProjectPage() {
     else window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
   };
 
+  const openProviderResponses = () => {
+    document.getElementById('provider-responses')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   if (loading) {
     return (
       <main className={styles.loadingPage}>
@@ -295,6 +299,9 @@ export default function CustomerProjectPage() {
 
   if (!feed) return null;
   const project = feed.project;
+  const responseCount = feed.matching.validResponsesReceived;
+  const hasResponses = responseCount > 0;
+  const hasSelection = Boolean(feed.match?.providerResponseId);
   const releasedProvider = feed.releasedContact?.provider ?? null;
   const selectedName = selectedResponse ? providerName(selectedResponse.provider) : 'the selected provider';
   const whatsappHref = releasedProvider?.whatsapp
@@ -337,24 +344,49 @@ export default function CustomerProjectPage() {
               </div>
             </div>
 
-            <aside className={styles.matchingPanel}>
+            <aside
+              className={`${styles.matchingPanel} ${hasResponses ? styles.matchingReady : styles.matchingSearching}`}
+              aria-live="polite"
+            >
               <div className={styles.matchingOrb}>
-                <span><Users size={25} /></span>
+                <i className={styles.matchingSpinner} aria-hidden="true" />
+                <span>{hasResponses ? <CheckCircle2 size={25} /> : <Users size={25} />}</span>
               </div>
-              <p className={styles.matchingKicker}>Matching in progress</p>
+              <p className={styles.matchingKicker}>{hasResponses ? 'Response ready' : 'Matching in progress'}</p>
               <strong>
-                {feed.matching.invitationsSent > 0
-                  ? `${feed.matching.invitationsSent} provider${feed.matching.invitationsSent === 1 ? '' : 's'} contacted`
-                  : 'Finding suitable providers'}
+                {hasResponses
+                  ? `${responseCount} provider response${responseCount === 1 ? '' : 's'} ready`
+                  : feed.matching.invitationsSent > 0
+                    ? `${feed.matching.invitationsSent} provider${feed.matching.invitationsSent === 1 ? '' : 's'} contacted`
+                    : 'Finding suitable providers'}
               </strong>
               <p className={styles.matchingCopy}>
-                {feed.matching.validResponsesReceived > 0
-                  ? `${feed.matching.validResponsesReceived} response${feed.matching.validResponsesReceived === 1 ? '' : 's'} ready to review.`
-                  : 'We are contacting suitable local providers. This page updates automatically.'}
+                {hasResponses
+                  ? 'A provider has replied. Compare the response below and choose when you are ready.'
+                  : feed.matching.providersReviewing > 0
+                    ? `${feed.matching.providersReviewing} provider${feed.matching.providersReviewing === 1 ? ' is' : 's are'} reviewing your request now.`
+                    : 'We are contacting suitable local providers. This page updates automatically.'}
               </p>
-              <button type="button" onClick={() => void loadFeed()} className={styles.refreshButton}>
-                <RefreshCw size={15} /> Refresh now
-              </button>
+
+              {!hasResponses && (
+                <>
+                  <div className={styles.matchingProgress} aria-hidden="true"><span /></div>
+                  <div className={styles.matchingActivity}>
+                    <span className={styles.activityDot} /><span className={styles.activityDot} /><span className={styles.activityDot} />
+                    <em>Working in the background</em>
+                  </div>
+                </>
+              )}
+
+              {hasResponses && !hasSelection ? (
+                <button type="button" onClick={openProviderResponses} className={`${styles.refreshButton} ${styles.reviewResponsesButton}`}>
+                  <CheckCircle2 size={16} /> Review {responseCount} response{responseCount === 1 ? '' : 's'}
+                </button>
+              ) : (
+                <button type="button" onClick={() => void loadFeed()} className={styles.refreshButton}>
+                  <RefreshCw size={15} /> Refresh now
+                </button>
+              )}
             </aside>
           </div>
         </header>
@@ -372,13 +404,13 @@ export default function CustomerProjectPage() {
             <h2>Providers invited</h2>
             <p>Invitations sent to suitable local providers.</p>
           </article>
-          <article className={styles.metricCard}>
+          <article className={`${styles.metricCard} ${feed.matching.providersReviewing > 0 && !hasResponses ? styles.metricReviewing : ''}`}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={19} /></span><small>02</small></div>
             <strong>{feed.matching.providersReviewing}</strong>
             <h2>Currently reviewing</h2>
             <p>Providers actively considering your project.</p>
           </article>
-          <article className={`${styles.metricCard} ${styles.metricSuccess}`}>
+          <article className={`${styles.metricCard} ${styles.metricSuccess} ${hasResponses && !hasSelection ? styles.metricResponseReady : ''}`}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><CheckCircle2 size={19} /></span><small>03</small></div>
             <strong>{feed.matching.validResponsesReceived}</strong>
             <h2>Responses received</h2>
@@ -387,16 +419,16 @@ export default function CustomerProjectPage() {
         </section>
 
         {selectedResponse && !contactsReleased && (
-          <section className={`${styles.actionCard} ${styles.actionSelected}`}>
+          <section className={`${styles.actionCard} ${styles.actionSelected} ${styles.actionNeedsAttention}`}>
             <div className={styles.actionIcon}><UserRoundCheck size={27} /></div>
             <div className={styles.actionCopy}>
-              <span>Provider selected</span>
+              <span>Provider selected · Next step</span>
               <h2>{selectedName}</h2>
               <p>
                 Confirm this provider to exchange contact details. Job-status controls become available immediately after you connect.
               </p>
             </div>
-            <button onClick={() => setShowReleaseConfirm(true)} className={styles.primaryAction}>
+            <button onClick={() => setShowReleaseConfirm(true)} className={`${styles.primaryAction} ${styles.primaryAttention}`}>
               <LockKeyhole size={16} /> Confirm & connect
             </button>
           </section>
@@ -440,7 +472,7 @@ export default function CustomerProjectPage() {
           </>
         )}
 
-        <section className={styles.responsesSection}>
+        <section id="provider-responses" className={styles.responsesSection}>
           <div className={styles.sectionHeading}>
             <div>
               <span>Rolling responses</span>
@@ -454,6 +486,16 @@ export default function CustomerProjectPage() {
             </div>
           </div>
 
+          {feed.responses.length > 0 && !hasSelection && (
+            <div className={styles.responseAlert} role="status">
+              <span className={styles.responseAlertIcon}><CheckCircle2 size={18} /></span>
+              <div>
+                <strong>Provider response received</strong>
+                <span>Compare the details below, then select the provider you want to connect with.</span>
+              </div>
+            </div>
+          )}
+
           {feed.responses.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyVisual}>
@@ -465,6 +507,9 @@ export default function CustomerProjectPage() {
               <p>
                 Responses will appear here as providers confirm availability. You do not need to keep refreshing — this page updates every 15 seconds.
               </p>
+              <div className={styles.searchingStatus} aria-hidden="true">
+                <span /><span /><span /><em>Searching · contacting · listening for replies</em>
+              </div>
               <div className={styles.emptySteps}>
                 <span><b>1</b> Request shared</span>
                 <span><b>2</b> Providers reviewing</span>
@@ -473,7 +518,7 @@ export default function CustomerProjectPage() {
             </div>
           ) : (
             <div className={styles.providerGrid}>
-              {feed.responses.map((response) => {
+              {feed.responses.map((response, index) => {
                 const name = providerName(response.provider);
                 const category = providerString(response.provider, 'category');
                 const location = providerString(response.provider, 'location');
@@ -484,7 +529,7 @@ export default function CustomerProjectPage() {
                 const hasEstimate = response.estimateMin !== null || response.estimateMax !== null;
 
                 return (
-                  <article key={response.id} className={`${styles.providerCard} ${selected ? styles.providerSelected : ''}`}>
+                  <article key={response.id} className={`${styles.providerCard} ${selected ? styles.providerSelected : ''} ${!hasSelection && index === 0 ? styles.providerAttention : ''}`}>
                     <div className={styles.providerHeader}>
                       <div>
                         <div className={styles.providerNameRow}>
@@ -548,7 +593,7 @@ export default function CustomerProjectPage() {
                     <button
                       disabled={contactsReleased || selected || selectingResponseId !== null}
                       onClick={() => void selectProvider(response.id)}
-                      className={styles.selectProviderButton}
+                      className={`${styles.selectProviderButton} ${!hasSelection && index === 0 ? styles.selectProviderAttention : ''}`}
                     >
                       {selectingResponseId === response.id ? <Loader2 className="animate-spin" size={16} /> : selected ? <CheckCircle2 size={16} /> : <UserRoundCheck size={16} />}
                       {selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
