@@ -167,7 +167,7 @@ async function queuePreferredProvider(input: {
     || `${provider.first_name || ''} ${provider.last_name || ''}`.trim()
     || `Provider ${provider.id}`;
 
-  await createProviderInvitations({
+  const created = await createProviderInvitations({
     projectId: input.projectId,
     waveNumber: 1,
     targets: [{
@@ -186,6 +186,9 @@ async function queuePreferredProvider(input: {
       },
     }],
   });
+
+  if (created.length === 0) return { requested: true, queued: false,
+    reason: 'The selected provider requires review or the initial invitation wave is already full.' };
 
   const { error: eventError } = await supabase.from('project_status_events').insert({
     project_id: input.projectId,
@@ -248,7 +251,7 @@ export async function POST(request: Request) {
 
     if (process.env.MARKETPLACE_AUTOROUTING_ENABLED !== 'false') {
       try {
-        const result = await processAutomaticRouting({ projectId: project.id });
+        const result = await processAutomaticRouting({ projectId: project.id, preferredProviderId });
         routing = {
           action: result.action,
           waveNumber: result.waveNumber,
