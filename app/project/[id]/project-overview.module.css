@@ -881,3 +881,301 @@
   .page *::after,
   .modalBackdrop * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+
+/* === 2026-10 Customer workspace friendly polish === */
+@keyframes workspaceLivePulse {
+  0%, 100% { box-shadow: 0 0 0 .22rem rgba(85,211,139,.10); opacity: .86; }
+  50% { box-shadow: 0 0 0 .48rem rgba(85,211,139,.04); opacity: 1; }
+}
+
+@keyframes matchingHalo {
+  0%, 100% { transform: scale(.94); opacity: .25; }
+  50% { transform: scale(1.06); opacity: .62; }
+}
+
+.page {
+  --scp-radius-lg: 1.55rem;
+  --scp-radius-md: 1.12rem;
+  background:
+    radial-gradient(circle at 8% 2%, rgba(245,197,24,.11), transparent 30rem),
+    radial-gradient(circle at 92% 44%, rgba(245,197,24,.035), transparent 34rem),
+    linear-gradient(180deg,#070706 0%,#0b0905 52%,#070706 100%) !important;
+}
+
+.shell { max-width: 76rem; }
+
+.overviewBar {
+  min-height: 3.85rem;
+  border-radius: 1rem;
+  background: rgba(10,10,9,.72);
+  box-shadow: 0 16px 48px -38px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.055);
+}
+
+.liveState {
+  min-height: 2.3rem;
+  background: rgba(85,211,139,.045);
+  border-color: rgba(85,211,139,.16);
+}
+
+.liveState i { animation: workspaceLivePulse 2.2s ease-in-out infinite; }
+
+.projectHero {
+  border-radius: var(--scp-radius-lg);
+  background:
+    radial-gradient(circle at 78% 16%, rgba(245,197,24,.10), transparent 23rem),
+    linear-gradient(145deg, rgba(22,22,19,.98), rgba(8,8,7,.99));
+}
+
+.heroGrid { gap: 1rem; }
+
+.matchingPanel {
+  min-height: 13.2rem;
+  border-radius: var(--scp-radius-md);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(245,197,24,.11), transparent 8rem),
+    linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.015));
+}
+
+.matchingOrb {
+  width: 6rem;
+  height: 6rem;
+  isolation: isolate;
+}
+
+.matchingOrb::after {
+  content: '';
+  position: absolute;
+  inset: -.65rem;
+  z-index: -1;
+  border: 1px solid rgba(245,197,24,.18);
+  border-radius: inherit;
+  animation: matchingHalo 2.8s ease-in-out infinite;
+}
+
+.refreshButton {
+  min-height: 2.8rem;
+  border-radius: 999px;
+  background: rgba(245,197,24,.085);
+}
+
+.metricsGrid { gap: .65rem; }
+
+.metricCard {
+  min-height: 9rem;
+  border-radius: var(--scp-radius-md);
+  padding: .95rem;
+  background:
+    linear-gradient(160deg, rgba(24,24,21,.96), rgba(11,11,10,.98));
+}
+
+.metricCard > strong {
+  margin-top: .6rem;
+  font-size: 2.05rem;
+}
+
+.metricCard h2 {
+  font-size: .76rem;
+  letter-spacing: .045em;
+}
+
+.metricCard p {
+  font-size: .66rem;
+  line-height: 1.42;
+}
+
+.metricIcon {
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: .72rem;
+}
+
+.actionCard,
+.providerCard,
+.activityCard {
+  border-radius: var(--scp-radius-md);
+}
+
+.responsesSection { margin-top: 2rem; }
+
+.sectionHeading { margin-bottom: .85rem; }
+
+.responseTarget {
+  border-radius: 999px;
+  padding: .62rem .82rem;
+  background: rgba(245,197,24,.04);
+  border-color: rgba(245,197,24,.17);
+}
+
+.emptyState {
+  min-height: 19rem;
+  border-style: solid;
+  border-color: rgba(245,197,24,.17);
+  border-radius: 1.35rem;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(245,197,24,.09), transparent 11rem),
+    linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,.008));
+}
+
+.emptyVisual {
+  width: 5.45rem;
+  height: 5.45rem;
+}
+
+.emptySteps {
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: .35rem;
+  width: min(100%,34rem);
+}
+
+.emptySteps > span {
+  justify-content: center;
+  min-height: 3.2rem;
+  padding: .5rem;
+  text-align: center;
+}
+
+.providerCard {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(245,197,24,.045), transparent 12rem),
+    linear-gradient(150deg, rgba(22,22,19,.98), rgba(9,9,8,.98));
+}
+
+.providerDetailGrid > div,
+.providerInfoPanel {
+  background: rgba(255,255,255,.028);
+}
+
+.selectProviderButton,
+.primaryAction {
+  min-height: 3.15rem;
+  border-radius: .9rem;
+}
+
+@media (max-width: 559px) {
+  .page {
+    padding: .6rem .62rem 5.5rem;
+  }
+
+  .overviewBar {
+    top: .4rem;
+    margin-bottom: .7rem;
+  }
+
+  .projectHero {
+    border-radius: 1.25rem;
+  }
+
+  .heroGrid {
+    padding: .95rem;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(2rem,11vw,2.8rem);
+  }
+
+  .matchingPanel {
+    min-height: 11.8rem;
+    padding: .9rem;
+  }
+
+  .matchingOrb {
+    width: 5.25rem;
+    height: 5.25rem;
+    margin-bottom: .55rem;
+  }
+
+  .metricsGrid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(9.2rem, 72%);
+    grid-template-columns: none;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    scrollbar-width: none;
+    padding: .05rem .05rem .35rem;
+  }
+
+  .metricsGrid::-webkit-scrollbar { display: none; }
+
+  .metricCard {
+    min-height: 8.8rem;
+    scroll-snap-align: start;
+  }
+
+  .emptyState {
+    min-height: 17.5rem;
+    padding: 1.4rem .8rem;
+  }
+
+  .emptySteps {
+    grid-template-columns: 1fr;
+    max-width: 18rem;
+  }
+
+  .emptySteps > span {
+    justify-content: flex-start;
+    min-height: 2.65rem;
+    text-align: left;
+  }
+
+  .sectionHeading {
+    gap: .75rem;
+  }
+
+  .responseTarget {
+    width: 100%;
+  }
+
+  .primaryAction,
+  .selectProviderButton,
+  .callButton,
+  .whatsappButton {
+    width: 100%;
+    min-height: 3.25rem;
+  }
+}
+
+@media (min-width: 760px) {
+  .heroGrid {
+    grid-template-columns: minmax(0,1.7fr) minmax(16rem,.55fr);
+    align-items: stretch;
+  }
+
+  .matchingPanel {
+    min-height: 100%;
+  }
+
+  .metricCard {
+    min-height: 9.6rem;
+  }
+}
+
+:global(html[data-scp-theme='light']) .page {
+  background:
+    radial-gradient(circle at 8% 2%, rgba(245,197,24,.13), transparent 29rem),
+    linear-gradient(180deg,#f7f6f1,#f1efe7) !important;
+}
+
+:global(html[data-scp-theme='light']) .overviewBar {
+  background: rgba(255,255,255,.82);
+}
+
+:global(html[data-scp-theme='light']) .metricCard,
+:global(html[data-scp-theme='light']) .providerCard {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(245,197,24,.07), transparent 12rem),
+    linear-gradient(150deg,#fff,#faf9f4);
+}
+
+:global(html[data-scp-theme='light']) .matchingPanel {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(245,197,24,.14), transparent 8rem),
+    linear-gradient(180deg,#fff,rgba(255,255,255,.72));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveState i,
+  .matchingOrb::after { animation: none !important; }
+}
