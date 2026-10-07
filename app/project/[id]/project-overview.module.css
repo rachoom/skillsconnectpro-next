@@ -1179,3 +1179,323 @@
   .liveState i,
   .matchingOrb::after { animation: none !important; }
 }
+
+
+/* === Live marketplace motion states === */
+@keyframes matchingSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes matchingSweep {
+  0% { transform: translateX(-120%); }
+  55%, 100% { transform: translateX(420%); }
+}
+
+@keyframes activityBounce {
+  0%, 70%, 100% { transform: translateY(0); opacity: .35; }
+  35% { transform: translateY(-.22rem); opacity: 1; }
+}
+
+@keyframes responseWake {
+  0% { transform: translateY(.7rem) scale(.985); opacity: 0; }
+  70% { transform: translateY(-.08rem) scale(1.005); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+@keyframes responseHalo {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,197,24,.04), 0 24px 56px -44px rgba(0,0,0,.94); }
+  50% { box-shadow: 0 0 0 .32rem rgba(245,197,24,.085), 0 28px 64px -42px rgba(245,197,24,.22); }
+}
+
+@keyframes responseButtonBreath {
+  0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 14px 30px -20px rgba(245,197,24,.68); }
+  50% { transform: translateY(-1px) scale(1.012); box-shadow: 0 18px 38px -18px rgba(245,197,24,.88); }
+}
+
+@keyframes successRing {
+  0%, 100% { box-shadow: 0 0 0 .18rem rgba(85,211,139,.08); }
+  50% { box-shadow: 0 0 0 .52rem rgba(85,211,139,.025); }
+}
+
+@keyframes waitingRings {
+  0% { transform: scale(.84); opacity: .1; }
+  55% { opacity: .45; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+
+.matchingSpinner {
+  position: absolute;
+  inset: .05rem;
+  z-index: 1;
+  border: 3px solid transparent;
+  border-top-color: var(--scp-yellow);
+  border-right-color: rgba(245,197,24,.38);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.matchingSearching .matchingSpinner {
+  animation: matchingSpin 1.15s linear infinite;
+}
+
+.matchingReady {
+  border-color: rgba(85,211,139,.34);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(85,211,139,.13), transparent 8rem),
+    linear-gradient(180deg,rgba(85,211,139,.035),rgba(255,255,255,.012));
+  animation: responseWake .6s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.matchingReady .matchingSpinner {
+  display: none;
+}
+
+.matchingReady .matchingOrb {
+  background: conic-gradient(var(--scp-success) 0 100%);
+  box-shadow: 0 0 52px -22px rgba(85,211,139,.5);
+}
+
+.matchingReady .matchingOrb > span {
+  border-color: rgba(85,211,139,.3);
+  background: rgba(85,211,139,.09);
+  color: var(--scp-success) !important;
+  animation: successRing 2.2s ease-in-out infinite;
+}
+
+.matchingReady .matchingKicker {
+  color: var(--scp-success) !important;
+}
+
+.matchingProgress {
+  position: relative;
+  width: min(100%, 12.5rem);
+  height: .26rem;
+  margin-top: .85rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.075);
+}
+
+.matchingProgress span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--scp-yellow), transparent);
+  animation: matchingSweep 2.15s ease-in-out infinite;
+}
+
+.matchingActivity,
+.searchingStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .28rem;
+  margin-top: .62rem;
+  color: var(--scp-faint) !important;
+}
+
+.matchingActivity em,
+.searchingStatus em {
+  margin-left: .25rem;
+  color: inherit !important;
+  font-size: .58rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.activityDot,
+.searchingStatus > span {
+  width: .28rem;
+  height: .28rem;
+  border-radius: 999px;
+  background: var(--scp-yellow);
+  animation: activityBounce 1.2s ease-in-out infinite;
+}
+
+.activityDot:nth-child(2),
+.searchingStatus > span:nth-child(2) { animation-delay: .14s; }
+.activityDot:nth-child(3),
+.searchingStatus > span:nth-child(3) { animation-delay: .28s; }
+
+.reviewResponsesButton {
+  min-width: 12rem;
+  border-color: var(--scp-yellow) !important;
+  background: var(--scp-yellow) !important;
+  color: #090909 !important;
+  animation: responseButtonBreath 2s ease-in-out infinite;
+}
+
+.reviewResponsesButton * {
+  color: #090909 !important;
+}
+
+.metricReviewing {
+  border-color: rgba(245,197,24,.24);
+}
+
+.metricReviewing .metricIcon {
+  animation: workspaceLivePulse 2.1s ease-in-out infinite;
+}
+
+.metricResponseReady {
+  border-color: rgba(85,211,139,.34);
+  animation: responseWake .55s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.metricResponseReady > strong {
+  color: var(--scp-success) !important;
+}
+
+.metricResponseReady .metricIcon {
+  animation: successRing 2.1s ease-in-out infinite;
+}
+
+.responseAlert {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: .75rem;
+  align-items: center;
+  margin-bottom: .85rem;
+  border: 1px solid rgba(85,211,139,.3);
+  border-radius: 1rem;
+  padding: .75rem .85rem;
+  background:
+    linear-gradient(105deg,rgba(85,211,139,.095),rgba(85,211,139,.025));
+  animation: responseWake .58s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.responseAlertIcon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid rgba(85,211,139,.32);
+  border-radius: .72rem;
+  background: rgba(85,211,139,.09);
+  color: var(--scp-success) !important;
+  animation: successRing 2.2s ease-in-out infinite;
+}
+
+.responseAlert strong,
+.responseAlert span {
+  display: block;
+}
+
+.responseAlert strong {
+  color: var(--scp-text) !important;
+  font-size: .78rem;
+  font-weight: 950;
+}
+
+.responseAlert div > span {
+  margin-top: .2rem;
+  color: var(--scp-muted) !important;
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+.searchingStatus {
+  margin-top: .9rem;
+}
+
+.emptyVisual::before {
+  animation: waitingRings 2.4s ease-out infinite;
+}
+
+.emptyVisual::after {
+  animation: waitingRings 2.4s .8s ease-out infinite;
+}
+
+.providerAttention {
+  border-color: rgba(245,197,24,.35);
+  animation: responseWake .55s cubic-bezier(.2,.8,.2,1) both, responseHalo 2.5s 1s ease-in-out infinite;
+}
+
+.selectProviderAttention,
+.primaryAttention {
+  animation: responseButtonBreath 1.9s ease-in-out infinite;
+}
+
+.actionNeedsAttention {
+  position: relative;
+  overflow: hidden;
+  animation: responseWake .55s cubic-bezier(.2,.8,.2,1) both, responseHalo 2.6s .7s ease-in-out infinite;
+}
+
+.actionNeedsAttention::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -30%;
+  width: 18%;
+  transform: skewX(-20deg);
+  background: linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+  animation: matchingSweep 3.1s 1.1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (max-width: 559px) {
+  .matchingProgress {
+    width: min(100%, 10.5rem);
+  }
+
+  .matchingActivity em,
+  .searchingStatus em {
+    max-width: 13rem;
+    font-size: .54rem;
+    line-height: 1.35;
+  }
+
+  .reviewResponsesButton {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .responseAlert {
+    padding: .7rem;
+  }
+}
+
+:global(html[data-scp-theme='light']) .matchingReady {
+  border-color: rgba(27,124,77,.24);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(85,211,139,.15), transparent 8rem),
+    linear-gradient(180deg,#fff,rgba(85,211,139,.035));
+}
+
+:global(html[data-scp-theme='light']) .matchingProgress {
+  background: rgba(17,17,17,.08);
+}
+
+:global(html[data-scp-theme='light']) .responseAlert {
+  border-color: rgba(27,124,77,.22);
+  background: linear-gradient(105deg,rgba(85,211,139,.12),#fff);
+}
+
+:global(html[data-scp-theme='light']) .providerAttention {
+  border-color: rgba(163,121,0,.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matchingSpinner,
+  .matchingProgress span,
+  .activityDot,
+  .searchingStatus > span,
+  .metricReviewing .metricIcon,
+  .metricResponseReady,
+  .metricResponseReady .metricIcon,
+  .reviewResponsesButton,
+  .responseAlert,
+  .responseAlertIcon,
+  .emptyVisual::before,
+  .emptyVisual::after,
+  .providerAttention,
+  .selectProviderAttention,
+  .primaryAttention,
+  .actionNeedsAttention,
+  .actionNeedsAttention::after {
+    animation: none !important;
+  }
+}
