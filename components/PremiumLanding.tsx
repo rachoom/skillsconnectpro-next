@@ -156,6 +156,11 @@ export function PremiumLanding() {
             </div>
             <h1 id="home-heading">The right skills.<br /><span>For the job at hand.</span></h1>
             <p>Car trouble. A leaking tap. A home that needs care. Connect with suitable local service providers through one simple request.</p>
+            <Link href="/assistant" className={styles.mobileAssistantCta}>
+              <span className={styles.mobileAssistantIcon}><Sparkles size={20} aria-hidden="true" /></span>
+              <span><strong>Try the AI Project Assistant</strong><small>Plan · clarify · estimate</small></span>
+              <ArrowRight size={20} aria-hidden="true" />
+            </Link>
             <div id="start-request" className={styles.requestHub}>
               <span className={styles.requestLabel}>WHAT DO YOU NEED DONE?</span>
               <Link href="/get-help" className={styles.commandBar}>
@@ -210,7 +215,7 @@ export function PremiumLanding() {
           </div>
         </div>
         <div className={styles.mzansiVisual}>
-          <Image src="/artisans/autorep.png" alt="Vehicle repair workshop representing local service businesses" fill sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1280px) 48vw, 584px" />
+          <Image src="https://images.pexels.com/photos/5298215/pexels-photo-5298215.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="South African construction workers collaborating on a project" fill sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1280px) 48vw, 584px" />
           <div className={styles.networkCard}>
             <span><span className={styles.liveDot} /> LOCAL NETWORK</span>
             <strong>Rooted in Mzansi.<br />Built around you.</strong>
