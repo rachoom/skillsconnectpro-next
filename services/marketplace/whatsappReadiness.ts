@@ -220,7 +220,9 @@ export function getWhatsAppAutomationReadiness(): WhatsAppAutomationReadiness {
     nextSteps.push('Leave provider auto-send disabled until customer/admin alerts pass a controlled test.');
   }
   if (nextSteps.length === 0) {
-    nextSteps.push('Run a controlled customer job submission and confirm customer/admin WhatsApp delivery before enabling provider auto-send.');
+    nextSteps.push(providerAutoSendArmed
+      ? 'Provider auto-send is enabled. Monitor delivery receipts and complete a controlled customer/provider lifecycle test.'
+      : 'Run a controlled customer job submission and confirm customer/admin WhatsApp delivery before enabling provider auto-send.');
   }
 
   return {

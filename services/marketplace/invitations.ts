@@ -48,6 +48,7 @@ type ExistingInvitationRow = {
   status: string;
   sent_at: string | null;
   delivery_attempted_at: string | null;
+  wave_number: number;
 };
 
 const ROUTING_CLOSED_PROJECT_STATUSES = new Set([
@@ -133,7 +134,7 @@ async function createInvitationsLocked(input: {
       .maybeSingle(),
     supabase
       .from('lead_invitations')
-      .select('provider_id, status, sent_at, delivery_attempted_at')
+      .select('provider_id, status, sent_at, delivery_attempted_at, wave_number')
       .eq('project_id', input.projectId),
   ]);
 
@@ -173,13 +174,15 @@ async function createInvitationsLocked(input: {
   const eligible = new Map((providerResult.data ?? []).filter(provider =>
     provider.status === 'active' && provider.approval_status !== 'rejected').map(provider => [provider.id, provider]));
   let remaining = Math.max(0, 6 - existingInvitations.length);
+  let remainingWave = Math.max(0, 3 - existingInvitations.filter(row => row.wave_number === (input.waveNumber ?? 1)).length);
   const safeTargets = input.targets.filter(target => {
     if (!eligible.has(target.providerId)) return false;
     const existing = existingInvitations.find(row => row.provider_id === target.providerId);
     // Once a send was attempted, never rotate its token or automatically resend.
     if (existing) return existing.status === 'queued' && !existing.sent_at && !existing.delivery_attempted_at;
-    if (remaining <= 0) return false;
+    if (remaining <= 0 || remainingWave <= 0) return false;
     remaining -= 1;
+    remainingWave -= 1;
     return true;
   }).map(target => ({ ...target, deliveryAddress: eligible.get(target.providerId)!.phone }));
   if (safeTargets.length === 0) return [];

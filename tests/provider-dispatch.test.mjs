@@ -148,3 +148,27 @@ test('candidate discovery excludes rejected, inactive, unavailable and wrong-wor
   const result=await module.getProviderCandidates('project');assert.deepEqual(Array.from(result.candidates,x=>x.providerId),[1]);
   assert.equal(result.candidates[0].displayName,'Named provider');
 });
+
+test('partial queued wave recovers only invitations that have never had a delivery attempt',async()=>{
+  let recovered=[];
+  const data={projects:{id:'project',created_at:'2026-10-07T06:25:00Z',urgency:'planned',service_level:'free',status:'matching',consent_to_share:true},
+    provider_responses:[],project_matches:null,lead_invitations:[
+      {id:'sent',provider_id:1,wave_number:1,status:'sent',sent_at:'2026-10-07T06:25:00Z',response_deadline:'2099-01-01T00:00:00Z'},
+      {id:'unsent',provider_id:2,wave_number:1,status:'queued',sent_at:null,delivery_attempted_at:null},
+      {id:'uncertain',provider_id:3,wave_number:1,status:'queued',sent_at:null,delivery_attempted_at:'2026-10-07T06:25:00Z'},
+    ]};
+  const safeguards=load('../services/marketplace/dispatchSafeguards.ts',{'../supabaseAdmin':{}},activeEnv);
+  const module=load('../services/marketplace/automaticRouting.ts',{
+    '../supabaseAdmin':{getSupabaseAdmin:()=>({from:table=>{
+      const result={data:data[table],error:null};const q={};
+      for(const method of ['select','eq','order'])q[method]=()=>q;
+      q.single=q.maybeSingle=async()=>result;q.then=(yes,no)=>Promise.resolve(result).then(yes,no);return q;
+    }})},
+    './dispatchSafeguards':{...safeguards,withMarketplaceLease:async(_,operation)=>operation()},
+    './routing':load('../services/marketplace/routing.ts'),
+    './providerCandidates':{getProviderCandidates:async()=>{throw Error('Must not expand during recovery');}},
+    './invitations':{createProviderInvitations:async input=>{recovered=input.targets;return [{providerId:2}];}},
+  });
+  const result=await module.processAutomaticRouting({projectId:'project'});
+  assert.deepEqual(Array.from(recovered,x=>x.providerId),[2]);assert.equal(result.invitationsQueued,1);
+});

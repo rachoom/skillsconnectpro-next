@@ -156,6 +156,7 @@ function result(input: Omit<AutomaticRoutingResult, 'invitations'> & {
 export async function processAutomaticRouting(input: {
   projectId: string;
   force?: boolean;
+  preferredProviderId?: number | null;
 }): Promise<AutomaticRoutingResult> {
   try {
     return await withMarketplaceLease(`routing:${input.projectId}`, () => processRoutingLocked(input));
@@ -167,7 +168,7 @@ export async function processAutomaticRouting(input: {
   }
 }
 
-async function processRoutingLocked(input: { projectId: string; force?: boolean }): Promise<AutomaticRoutingResult> {
+async function processRoutingLocked(input: { projectId: string; force?: boolean; preferredProviderId?: number | null }): Promise<AutomaticRoutingResult> {
   if (!input.projectId) throw new Error('projectId is required.');
 
   const supabase = getSupabaseAdmin();
@@ -274,23 +275,23 @@ async function processRoutingLocked(input: { projectId: string; force?: boolean 
   );
   const outstandingDeadline = earliestDeadline(dispatchedLatestWaveInvitations);
 
-  if (
-    invitations.length > 0 &&
-    queuedButUnsent.length > 0 &&
-    dispatchedLatestWaveInvitations.length === 0 &&
-    !input.force
-  ) {
-    if (providerAutoSendApplies(project.created_at)) {
+    if (queuedButUnsent.length > 0 && providerAutoSendApplies(project.created_at)) {
       const recoverable = queuedButUnsent.filter(invitation => !invitation.delivery_attempted_at).slice(0, 3);
       if (recoverable.length) {
         const resumed = await createProviderInvitations({ projectId: project.id, waveNumber: highestWaveNumber,
           targets: recoverable.map(invitation => ({ providerId: invitation.provider_id,
             deliveryChannel: 'admin', deliveryAddress: invitation.delivery_address,
             providerSnapshot: invitation.provider_snapshot ?? {} })) });
-        return result({ ...common, waveNumber: highestWaveNumber, action: 'initial_wave_queued',
+        return result({ ...common, waveNumber: highestWaveNumber, action: 'initial_wave_queued', invitationsQueued: resumed.length,
           reason: 'The interrupted unsent provider wave was resumed safely.', invitations: resumed });
       }
     }
+  if (
+    invitations.length > 0 &&
+    queuedButUnsent.length > 0 &&
+    dispatchedLatestWaveInvitations.length === 0 &&
+    !input.force
+  ) {
     return result({
       ...common,
       waveNumber: highestWaveNumber,
@@ -325,7 +326,7 @@ async function processRoutingLocked(input: { projectId: string; force?: boolean 
       reason: 'The controlled invitation cap has been reached. Admin review is required.' });
   }
 
-  const candidateResult = await getProviderCandidates(project.id);
+  const candidateResult = await getProviderCandidates(project.id, invitations.length === 0 ? input.preferredProviderId : null);
   const availableCandidates = candidateResult.candidates.filter(
     (candidate) => !candidate.alreadyInvited,
   );

@@ -317,7 +317,7 @@ function scoreCandidate(input: {
   return { eligible: true, score, reasons };
 }
 
-export async function getProviderCandidates(projectId: string): Promise<{
+export async function getProviderCandidates(projectId: string, preferredProviderId?: number | null): Promise<{
   project: ProjectCandidateRow;
   candidates: ProviderCandidate[];
   routingClosed: boolean;
@@ -460,7 +460,8 @@ export async function getProviderCandidates(projectId: string): Promise<{
       };
     })
     .filter((candidate) => candidate.eligible)
-    .sort((left, right) => right.score - left.score || left.displayName.localeCompare(right.displayName))
+    .sort((left, right) => Number(right.providerId === preferredProviderId) - Number(left.providerId === preferredProviderId)
+      || right.score - left.score || left.displayName.localeCompare(right.displayName))
     .slice(0, 20)
     .map(({ eligible: _eligible, ...candidate }) => candidate);
 
