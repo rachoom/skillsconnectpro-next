@@ -5,6 +5,7 @@ import {
   type CreatedProviderInvitation,
 } from './invitations';
 import { getProviderCandidates } from './providerCandidates';
+import { MarketplaceBusyError, providerAutoSendApplies, withMarketplaceLease } from './dispatchSafeguards';
 import {
   getInitialWaveSize,
   getMaximumResponseCount,
@@ -17,6 +18,7 @@ type ProjectRoutingRow = {
   service_level: ProjectServiceLevel;
   status: string;
   consent_to_share: boolean;
+  created_at: string;
 };
 
 type InvitationRow = {
@@ -26,6 +28,9 @@ type InvitationRow = {
   status: string;
   sent_at: string | null;
   response_deadline: string | null;
+  delivery_attempted_at: string | null;
+  delivery_address: string | null;
+  provider_snapshot: Record<string, unknown> | null;
 };
 
 type ProviderResponseRow = {
@@ -50,7 +55,7 @@ export type AutomaticRoutingAction =
 
 export interface AutomaticRoutingResult {
   projectId: string;
-  action: AutomaticRoutingAction;
+  action: AutomaticRoutingAction | 'routing_busy';
   reason: string;
   waveNumber: number | null;
   invitationsQueued: number;
@@ -152,18 +157,29 @@ export async function processAutomaticRouting(input: {
   projectId: string;
   force?: boolean;
 }): Promise<AutomaticRoutingResult> {
+  try {
+    return await withMarketplaceLease(`routing:${input.projectId}`, () => processRoutingLocked(input));
+  } catch (error) {
+    if (!(error instanceof MarketplaceBusyError)) throw error;
+    return result({ projectId: input.projectId, action: 'routing_busy', reason: 'Provider routing is already being processed.',
+      waveNumber: null, invitationsQueued: 0, totalInvitations: 0, validResponses: 0,
+      targetResponses: 1, invitationCap: 6, nextCheckAt: null });
+  }
+}
+
+async function processRoutingLocked(input: { projectId: string; force?: boolean }): Promise<AutomaticRoutingResult> {
   if (!input.projectId) throw new Error('projectId is required.');
 
   const supabase = getSupabaseAdmin();
   const [projectResult, invitationResult, responseResult, matchResult] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, urgency, service_level, status, consent_to_share')
+      .select('id, urgency, service_level, status, consent_to_share, created_at')
       .eq('id', input.projectId)
       .single(),
     supabase
       .from('lead_invitations')
-      .select('id, provider_id, wave_number, status, sent_at, response_deadline')
+      .select('id, provider_id, wave_number, status, sent_at, response_deadline, delivery_attempted_at, delivery_address, provider_snapshot')
       .eq('project_id', input.projectId)
       .order('wave_number', { ascending: true })
       .order('created_at', { ascending: true }),
@@ -203,7 +219,7 @@ export async function processAutomaticRouting(input: {
     project.urgency,
     project.service_level,
   );
-  const invitationCap = getInvitationCap(project.urgency, project.service_level);
+  const invitationCap = Math.min(6, getInvitationCap(project.urgency, project.service_level));
   const highestWaveNumber = invitations.reduce(
     (maximum, invitation) => Math.max(maximum, invitation.wave_number || 1),
     0,
@@ -244,14 +260,6 @@ export async function processAutomaticRouting(input: {
     });
   }
 
-  if (invitations.length >= invitationCap) {
-    return result({
-      ...common,
-      action: 'invitation_cap_reached',
-      reason: 'The controlled invitation cap has been reached. Admin review is required.',
-    });
-  }
-
   const latestWaveInvitations = invitations.filter(
     (invitation) => invitation.wave_number === highestWaveNumber,
   );
@@ -272,6 +280,17 @@ export async function processAutomaticRouting(input: {
     dispatchedLatestWaveInvitations.length === 0 &&
     !input.force
   ) {
+    if (providerAutoSendApplies(project.created_at)) {
+      const recoverable = queuedButUnsent.filter(invitation => !invitation.delivery_attempted_at).slice(0, 3);
+      if (recoverable.length) {
+        const resumed = await createProviderInvitations({ projectId: project.id, waveNumber: highestWaveNumber,
+          targets: recoverable.map(invitation => ({ providerId: invitation.provider_id,
+            deliveryChannel: 'admin', deliveryAddress: invitation.delivery_address,
+            providerSnapshot: invitation.provider_snapshot ?? {} })) });
+        return result({ ...common, waveNumber: highestWaveNumber, action: 'initial_wave_queued',
+          reason: 'The interrupted unsent provider wave was resumed safely.', invitations: resumed });
+      }
+    }
     return result({
       ...common,
       waveNumber: highestWaveNumber,
@@ -301,6 +320,11 @@ export async function processAutomaticRouting(input: {
     });
   }
 
+  if (invitations.length >= invitationCap) {
+    return result({ ...common, action: 'invitation_cap_reached',
+      reason: 'The controlled invitation cap has been reached. Admin review is required.' });
+  }
+
   const candidateResult = await getProviderCandidates(project.id);
   const availableCandidates = candidateResult.candidates.filter(
     (candidate) => !candidate.alreadyInvited,
@@ -321,7 +345,7 @@ export async function processAutomaticRouting(input: {
   const remainingCapacity = invitationCap - invitations.length;
   const selectedCandidates = availableCandidates.slice(
     0,
-    Math.min(requestedWaveSize, remainingCapacity),
+    Math.min(3, requestedWaveSize, remainingCapacity),
   );
   const waveNumber = highestWaveNumber + 1;
 

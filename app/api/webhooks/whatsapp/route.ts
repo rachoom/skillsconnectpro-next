@@ -74,6 +74,12 @@ export async function POST(request: Request) {
     const error = update.errors?.[0];
     const errorMessage = error?.message || error?.title || null;
 
+    await supabase.from('marketplace_system_delivery_tests').update({ status: update.status,
+      error_code: error?.code ? String(error.code) : null,
+      error_message: errorMessage, updated_at: occurredAt }).eq('external_message_id', update.id)
+      .in('status', update.status === 'sent' || update.status === 'failed'
+        ? ['queued', 'sent'] : update.status === 'delivered' ? ['queued','sent','delivered'] : ['queued','sent','delivered','read']);
+
     await supabase
       .from('lead_invitation_delivery_attempts')
       .update({

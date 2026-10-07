@@ -113,7 +113,18 @@ export async function GET(request: Request) {
   }
 
   if (new URL(request.url).searchParams.get('readiness') === '1') {
-    return NextResponse.json({ readiness: getWhatsAppAutomationReadiness() }, { headers: { 'Cache-Control': 'private, no-store' } });
+    const readiness = getWhatsAppAutomationReadiness();
+    const control = await getSupabaseAdmin().rpc('marketplace_provider_dispatch_enabled');
+    if (control.error) return NextResponse.json({ error: 'Provider dispatch control is unavailable.' }, { status: 503 });
+    readiness.rollout.providerAutoSendArmed = readiness.rollout.providerAutoSendArmed && control.data === true;
+    return NextResponse.json({ readiness, dispatchControls: {
+      runtimeEnabled: control.data === true,
+      activationAt: process.env.MARKETPLACE_PROVIDER_AUTOMATION_START_AT || null,
+      maximumWaveSize: 3, maximumInvitationsPerProject: 6,
+      hourlyLimit: Number(process.env.MARKETPLACE_PROVIDER_HOURLY_LIMIT) || 20,
+      dailyLimit: Number(process.env.MARKETPLACE_PROVIDER_DAILY_LIMIT) || 60,
+      maximumInvitationsPerProviderDaily: 3,
+    } }, { headers: { 'Cache-Control': 'private, no-store' } });
   }
 
   const runId = await startRun();

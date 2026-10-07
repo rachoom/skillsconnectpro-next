@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
 import type { ProjectUrgency } from '../../types/marketplace';
+import { isPlausibleWhatsAppRecipient, normaliseWhatsAppRecipient } from './whatsappPolicy.js';
 
 export interface ProviderCandidate {
   providerId: number;
@@ -42,6 +43,7 @@ type ProjectMatchRow = {
 
 type ArtisanRow = {
   id: number;
+  name: string | null;
   first_name: string | null;
   last_name: string | null;
   category: string | null;
@@ -51,6 +53,8 @@ type ArtisanRow = {
   verified: boolean | null;
   rating: number | null;
   is_claimed: boolean | null;
+  status: string | null;
+  approval_status: string | null;
 };
 
 type AvailabilityRow = {
@@ -222,6 +226,14 @@ function scoreCandidate(input: {
   let score = 0;
   const reasons: string[] = [];
 
+  if (artisan.status !== 'active' || artisan.approval_status === 'rejected'
+    || !isPlausibleWhatsAppRecipient(normaliseWhatsAppRecipient(artisan.phone))
+    || availability?.availability_status === 'unavailable'
+    || (project.urgency === 'emergency' && availability?.accepts_emergency_jobs === false)
+    || (['planned', 'large_project'].includes(project.urgency) && availability?.accepts_planned_work === false)) {
+    return { eligible: false, score: -1000, reasons: ['Provider is not eligible for this opportunity'] };
+  }
+
   const providerValues = [artisan.category ?? '', ...(availability?.categories ?? [])];
   const exactTradeMatch = providerMatchesTrade(providerValues, projectSignals);
   const generalConstructionMatch =
@@ -361,7 +373,8 @@ export async function getProviderCandidates(projectId: string): Promise<{
   const [artisanResult, availabilityResult, invitationResult] = await Promise.all([
     supabase
       .from('artisans')
-      .select('id, first_name, last_name, category, location, phone, image_url, verified, rating, is_claimed')
+      .select('id, name, first_name, last_name, category, location, phone, image_url, verified, rating, is_claimed, status, approval_status')
+      .eq('status', 'active')
       .order('verified', { ascending: false })
       .order('rating', { ascending: false })
       .limit(250),
@@ -430,7 +443,7 @@ export async function getProviderCandidates(projectId: string): Promise<{
         providerId: artisan.id,
         firstName,
         lastName,
-        displayName: `${firstName} ${lastName}`.trim(),
+        displayName: artisan.name?.trim() || `${firstName} ${lastName}`.trim(),
         category: artisan.category?.trim() || 'Uncategorised',
         location: artisan.location?.trim() || 'Location not supplied',
         phone: artisan.phone,
