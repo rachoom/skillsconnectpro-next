@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
 import { getProjectByAccessToken, getProjectTimeline } from './projects';
+import { isContactAccessActive } from './contactAccessPolicy.js';
 
 const SAFE_PROVIDER_SNAPSHOT_FIELDS = [
   'name',
@@ -126,7 +127,7 @@ export async function getCustomerProjectResponseFeed(
     email: string | null;
   } | null = null;
 
-  if (matchResult.data?.contact_released_at) {
+  if (isContactAccessActive(project.status, matchResult.data?.contact_released_at)) {
     const { data: providerData, error: providerError } = await supabase
       .from('artisans')
       .select('id, name, first_name, last_name, phone, whatsapp, email')
