@@ -127,11 +127,12 @@ export async function getCustomerProjectResponseFeed(
     email: string | null;
   } | null = null;
 
-  if (isContactAccessActive(project.status, matchResult.data?.contact_released_at)) {
+  const releasedMatch = matchResult.data;
+  if (releasedMatch && isContactAccessActive(project.status, releasedMatch.contact_released_at)) {
     const { data: providerData, error: providerError } = await supabase
       .from('artisans')
       .select('id, name, first_name, last_name, phone, whatsapp, email')
-      .eq('id', matchResult.data.provider_id)
+      .eq('id', releasedMatch.provider_id)
       .single();
 
     if (providerError) {
