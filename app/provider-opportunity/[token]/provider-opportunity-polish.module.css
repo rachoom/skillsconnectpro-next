@@ -1,0 +1,304 @@
+.scope {
+  --provider-bg: #070706;
+  --provider-panel: rgba(17, 17, 15, .96);
+  --provider-panel-soft: rgba(25, 25, 21, .92);
+  --provider-line: rgba(255,255,255,.12);
+  --provider-line-gold: rgba(245,197,24,.34);
+  --provider-gold: #f5c518;
+  --provider-gold-soft: #ffe274;
+  --provider-text: #fff;
+  --provider-muted: #aaa9a2;
+  --provider-success: #57d68d;
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 12% -4%, rgba(245,197,24,.11), transparent 25rem),
+    radial-gradient(circle at 92% 36%, rgba(245,197,24,.045), transparent 32rem),
+    #070706 !important;
+  color: var(--provider-text) !important;
+}
+
+.scope * { box-sizing: border-box; }
+
+.scope > div {
+  width: min(100%, 72rem);
+}
+
+.scope header,
+.scope article,
+.scope form {
+  border-color: var(--provider-line) !important;
+  background:
+    linear-gradient(145deg, rgba(21,21,18,.98), rgba(10,10,9,.98)) !important;
+  box-shadow:
+    0 28px 72px -50px rgba(0,0,0,.95),
+    inset 0 1px 0 rgba(255,255,255,.045) !important;
+}
+
+.scope header {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--provider-line-gold) !important;
+}
+
+.scope header::after {
+  content: '';
+  position: absolute;
+  width: 13rem;
+  height: 13rem;
+  right: -5rem;
+  top: -6rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(245,197,24,.15), rgba(245,197,24,0) 70%);
+  pointer-events: none;
+}
+
+.scope h1,
+.scope h2,
+.scope strong {
+  color: var(--provider-text) !important;
+  letter-spacing: -.025em;
+}
+
+.scope p {
+  color: var(--provider-muted) !important;
+}
+
+.scope header > div:first-child,
+.scope header > div:first-child * {
+  position: relative;
+  z-index: 1;
+}
+
+.scope header [class*='uppercase'] {
+  color: var(--provider-gold-soft) !important;
+}
+
+.scope header [class*='rounded-full'] {
+  border-color: rgba(245,197,24,.34) !important;
+  background: rgba(245,197,24,.09) !important;
+  color: var(--provider-gold-soft) !important;
+}
+
+.scope article > div[class*='bg-'],
+.scope article details,
+.scope form > div[class*='bg-'],
+.scope form details {
+  border-color: rgba(255,255,255,.09) !important;
+  background: rgba(255,255,255,.035) !important;
+}
+
+.scope article [class*='text-[#'],
+.scope form [class*='text-[#'] {
+  color: var(--provider-muted) !important;
+}
+
+.scope article h2,
+.scope form h2,
+.scope article strong,
+.scope form strong {
+  color: var(--provider-text) !important;
+}
+
+.scope form {
+  border-color: var(--provider-line-gold) !important;
+}
+
+.scope form input,
+.scope form textarea {
+  min-height: 3.15rem;
+  border-color: rgba(255,255,255,.13) !important;
+  background: rgba(0,0,0,.38) !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.scope form textarea {
+  min-height: 6.5rem;
+  resize: vertical;
+}
+
+.scope form input::placeholder,
+.scope form textarea::placeholder {
+  color: rgba(255,255,255,.38) !important;
+}
+
+.scope button,
+.scope a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scope button {
+  min-height: 2.85rem;
+  transition: transform 180ms ease, border-color 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.scope form button[type='button'] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.scope form button[class*='ring-4'] {
+  box-shadow:
+    0 0 0 3px rgba(245,197,24,.22),
+    0 12px 26px -18px rgba(245,197,24,.55) !important;
+}
+
+.scope form > button:last-of-type {
+  position: sticky;
+  bottom: max(.75rem, env(safe-area-inset-bottom));
+  z-index: 12;
+  min-height: 3.55rem;
+  border-color: #e0ad05 !important;
+  background: linear-gradient(135deg, #ffdb39, #f5c518) !important;
+  color: #111 !important;
+  box-shadow: 0 18px 38px -18px rgba(245,197,24,.72) !important;
+}
+
+.scope form > button:last-of-type * {
+  color: #111 !important;
+}
+
+.scope a[href^='tel:'] {
+  min-height: 3.2rem;
+}
+
+.scope a[href*='wa.me'] {
+  min-height: 3.2rem;
+}
+
+.scope :focus-visible {
+  outline: 3px solid var(--provider-gold) !important;
+  outline-offset: 3px;
+}
+
+@media (max-width: 639px) {
+  .scope {
+    padding: .65rem .65rem 5rem !important;
+  }
+
+  .scope > div {
+    width: 100%;
+  }
+
+  .scope header,
+  .scope article,
+  .scope form {
+    border-width: 1px !important;
+    border-radius: 1.25rem !important;
+    padding: 1rem !important;
+  }
+
+  .scope header {
+    margin-bottom: .7rem !important;
+  }
+
+  .scope h1 {
+    font-size: clamp(1.9rem, 9vw, 2.55rem) !important;
+    line-height: 1.02 !important;
+  }
+
+  .scope form {
+    margin-top: .1rem;
+  }
+
+  .scope form > div[class*='grid-cols-2'] {
+    gap: .45rem !important;
+  }
+
+  .scope form button[type='button'] {
+    min-height: 3.25rem;
+    border-width: 1px !important;
+  }
+
+  .scope form input,
+  .scope form textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .scope {
+    padding: 1.25rem 1.35rem 6rem !important;
+  }
+
+  .scope header,
+  .scope article,
+  .scope form {
+    border-width: 1px !important;
+  }
+}
+
+@media (hover:hover) {
+  .scope button:hover,
+  .scope a[href^='tel:']:hover,
+  .scope a[href*='wa.me']:hover {
+    transform: translateY(-2px);
+  }
+}
+
+:global(html[data-scp-theme='light']) .scope {
+  --provider-bg: #f5f3ed;
+  --provider-panel: #fff;
+  --provider-panel-soft: #faf9f4;
+  --provider-line: rgba(21,21,18,.12);
+  --provider-line-gold: rgba(156,113,0,.3);
+  --provider-text: #171713;
+  --provider-muted: #66665f;
+  background:
+    radial-gradient(circle at 12% -4%, rgba(245,197,24,.14), transparent 24rem),
+    #f5f3ed !important;
+  color: var(--provider-text) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope header,
+:global(html[data-scp-theme='light']) .scope article,
+:global(html[data-scp-theme='light']) .scope form {
+  background: linear-gradient(145deg, #fff, #faf9f4) !important;
+  border-color: rgba(21,21,18,.12) !important;
+  box-shadow: 0 24px 60px -48px rgba(27,25,18,.35), inset 0 1px 0 #fff !important;
+}
+
+:global(html[data-scp-theme='light']) .scope header,
+:global(html[data-scp-theme='light']) .scope form {
+  border-color: rgba(156,113,0,.28) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope h1,
+:global(html[data-scp-theme='light']) .scope h2,
+:global(html[data-scp-theme='light']) .scope strong {
+  color: #171713 !important;
+}
+
+:global(html[data-scp-theme='light']) .scope p,
+:global(html[data-scp-theme='light']) .scope article [class*='text-[#'],
+:global(html[data-scp-theme='light']) .scope form [class*='text-[#'] {
+  color: #66665f !important;
+}
+
+:global(html[data-scp-theme='light']) .scope article > div[class*='bg-'],
+:global(html[data-scp-theme='light']) .scope article details,
+:global(html[data-scp-theme='light']) .scope form > div[class*='bg-'],
+:global(html[data-scp-theme='light']) .scope form details {
+  border-color: rgba(21,21,18,.09) !important;
+  background: rgba(21,21,18,.025) !important;
+}
+
+:global(html[data-scp-theme='light']) .scope form input,
+:global(html[data-scp-theme='light']) .scope form textarea {
+  border-color: rgba(21,21,18,.13) !important;
+  background: #fff !important;
+  color: #171713 !important;
+}
+
+:global(html[data-scp-theme='light']) .scope form input::placeholder,
+:global(html[data-scp-theme='light']) .scope form textarea::placeholder {
+  color: #9a9a91 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scope *,
+  .scope *::before,
+  .scope *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
