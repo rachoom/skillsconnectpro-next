@@ -1499,3 +1499,31 @@
     animation: none !important;
   }
 }
+
+
+/* === Live counter and connection cues === */
+@keyframes metricTick {
+  0% { transform: translateY(.3rem) scale(.94); opacity: .45; }
+  70% { transform: translateY(-.04rem) scale(1.04); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+.metricValue {
+  animation: metricTick .42s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.actionConnected {
+  animation: responseWake .58s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.actionConnected .actionIcon {
+  animation: successRing 2.35s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metricValue,
+  .actionConnected,
+  .actionConnected .actionIcon {
+    animation: none !important;
+  }
+}
