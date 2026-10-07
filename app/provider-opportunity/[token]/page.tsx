@@ -23,6 +23,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import polish from './provider-opportunity-polish.module.css';
 
 type Opportunity = {
   invitationId: string;
@@ -249,11 +250,11 @@ export default function ProviderOpportunityPage() {
   };
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#9FCB8A] text-[#203020]"><div className="rounded-3xl bg-[#FFF6D8] p-8 text-center shadow-xl shadow-[#355332]/20"><Loader2 className="mx-auto animate-spin text-[#B67B00]" size={36} /><p className="mt-4 text-sm font-bold">Opening project opportunity…</p></div></main>;
+    return <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] text-[#203020]`}><div className="rounded-3xl bg-[#FFF6D8] p-8 text-center shadow-xl shadow-[#355332]/20"><Loader2 className="mx-auto animate-spin text-[#B67B00]" size={36} /><p className="mt-4 text-sm font-bold">Opening project opportunity…</p></div></main>;
   }
 
   if (error && !opportunity) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5 text-[#2D1F1F]"><section className="max-w-md rounded-3xl border-2 border-[#C95D65] bg-[#FFDDE2] p-7 text-center shadow-xl shadow-[#355332]/20"><AlertTriangle className="mx-auto text-[#A6323B]" size={36} /><h1 className="mt-4 text-2xl font-black">Opportunity unavailable</h1><p className="mt-3 text-sm leading-6 text-[#6E3439]">{error}</p></section></main>;
+    return <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5 text-[#2D1F1F]`}><section className="max-w-md rounded-3xl border-2 border-[#C95D65] bg-[#FFDDE2] p-7 text-center shadow-xl shadow-[#355332]/20"><AlertTriangle className="mx-auto text-[#A6323B]" size={36} /><h1 className="mt-4 text-2xl font-black">Opportunity unavailable</h1><p className="mt-3 text-sm leading-6 text-[#6E3439]">{error}</p></section></main>;
   }
 
   if (!opportunity) return null;
@@ -263,7 +264,7 @@ export default function ProviderOpportunityPage() {
     const contact = opportunity.customerContact;
     const whatsappHref = `https://wa.me/${whatsappNumber(contact.phone)}?text=${encodeURIComponent(`Hi ${contact.name}, this is ${providerName} from Skills Connect Pro regarding your project: ${project.title}.`)}`;
     return (
-      <main className="min-h-screen bg-[#9FCB8A] px-4 py-6 text-[#203020] md:px-8 md:py-10">
+      <main className={`${polish.scope} min-h-screen bg-[#9FCB8A] px-4 py-6 text-[#203020] md:px-8 md:py-10`}>
         <div className="mx-auto max-w-3xl space-y-4">
           <header className="rounded-[1.75rem] border-2 border-[#D3A826] bg-[#FFF0A8] p-6 shadow-xl shadow-[#355332]/20 md:p-8">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div>
@@ -296,7 +297,7 @@ export default function ProviderOpportunityPage() {
   }
 
   if (submitted) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5 text-[#173B28]"><section className="max-w-lg rounded-3xl border-2 border-[#55A979] bg-[#E6F8DF] p-8 text-center shadow-xl shadow-[#355332]/20"><CheckCircle2 className="mx-auto text-[#21885A]" size={46} /><h1 className="mt-5 text-3xl font-black">Response received</h1><p className="mt-3 text-sm leading-6 text-[#355D43]">Thank you, {providerName}. Skills Connect Pro has added your response to the customer&apos;s project.</p></section></main>;
+    return <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5 text-[#173B28]`}><section className="max-w-lg rounded-3xl border-2 border-[#55A979] bg-[#E6F8DF] p-8 text-center shadow-xl shadow-[#355332]/20"><CheckCircle2 className="mx-auto text-[#21885A]" size={46} /><h1 className="mt-5 text-3xl font-black">Response received</h1><p className="mt-3 text-sm leading-6 text-[#355D43]">Thank you, {providerName}. Skills Connect Pro has added your response to the customer&apos;s project.</p></section></main>;
   }
 
   const responseOptions = responseOptionsForUrgency(project.urgency);
@@ -305,7 +306,7 @@ export default function ProviderOpportunityPage() {
   const submitLabel = form.responseType === 'declined' ? 'Send decline' : form.responseType === 'need_information' ? 'Send question' : 'Send response';
 
   return (
-    <main className="min-h-screen bg-[#9FCB8A] px-4 py-5 text-[#203020] md:px-8 md:py-8">
+    <main className={`${polish.scope} min-h-screen bg-[#9FCB8A] px-4 py-5 text-[#203020] md:px-8 md:py-8`}>
       <div className="mx-auto max-w-4xl">
         <header className="mb-4 rounded-[1.75rem] border-2 border-[#D3A826] bg-[#FFF0A8] p-5 shadow-xl shadow-[#355332]/20 md:p-7">
           <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div><span className="rounded-full border border-[#D3A826] bg-[#FFE067] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#4A3600]">Quick reply · about 1 minute</span></div>
