@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../services/supabase';
 import { ShieldCheck, UserX, Send } from 'lucide-react';
 
 // --- INTERFACES ---
@@ -64,51 +63,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-
-      // A. Fetch Pending Applications
-      const { data: apps, error: appError } = await supabase
-        .from('artisan_applications')
-        .select('*')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-      
-      if (appError) console.error("App Fetch Error:", appError);
-      setApplications(apps || []);
-
-      // ⚡ B. Fetch Live Artisans who haven't claimed their profile yet
-      const { data: unclaimed, error: unclaimedError } = await supabase
-        .from('artisans')
-        .select('id, first_name, last_name, category, phone, is_claimed')
-        .eq('is_claimed', false)
-        .order('id', { ascending: false });
-      
-      if (unclaimedError) console.error("Unclaimed Fetch Error:", unclaimedError);
-      setUnclaimedArtisans(unclaimed || []);
-
-      // C. Fetch Service Suggestions
-      const { data: suggs, error: suggError } = await supabase
-        .from('service_suggestions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (suggError) console.error("Suggestion Fetch Error:", suggError);
-      setSuggestions(suggs || []);
-
-      // D. Fetch Pending Reviews
-      const { data: revs, error: revError } = await supabase
-        .from('artisan_reviews')
-        .select('*')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-
-      if (revError) console.error("Review Fetch Error:", revError);
-      setReviews(revs || []);
-
+      const response = await fetch('/api/provider-admin/dashboard', { cache: 'no-store' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 401) window.location.assign('/admin-dashboard');
+        throw new Error(payload.error || 'Unable to load admin data.');
+      }
+      setApplications(payload.applications || []);
+      setUnclaimedArtisans(payload.unclaimedArtisans || []);
+      setSuggestions(payload.suggestions || []);
+      setReviews(payload.reviews || []);
     } catch (err) {
       console.error('Unexpected error fetching dashboard data:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const dashboardAction = async (action: string, body: Record<string, unknown> = {}) => {
+    const response = await fetch('/api/provider-admin/dashboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...body }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 401) window.location.assign('/admin-dashboard');
+      throw new Error(payload.error || 'Admin action failed.');
+    }
+    return payload;
   };
 
   useEffect(() => {
@@ -167,61 +150,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const saveEdit = async () => {
     if (!editingId || !editForm) return;
     try {
-      const { error } = await supabase
-        .from('artisan_applications')
-        .update({
-          first_name: editForm.first_name, 
-          last_name: editForm.last_name,   
+      await dashboardAction('update_application', {
+        id: editingId,
+        changes: {
+          first_name: editForm.first_name,
+          last_name: editForm.last_name,
           trade: editForm.trade,
           location: editForm.location,
           phone: editForm.phone,
           bio: editForm.bio,
-          institution: editForm.institution
-        })
-        .eq('id', editingId);
+          institution: editForm.institution,
+        },
+      });
 
-      if (error) throw error;
-
-      setApplications(prev => prev.map(app => 
+      setApplications(prev => prev.map(app =>
         app.id === editingId ? { ...app, ...editForm } as Application : app
       ));
       setEditingId(null);
     } catch (err) {
-      alert("Failed to save changes.");
+      alert(err instanceof Error ? err.message : 'Failed to save changes.');
     }
   };
 
   const handleApproveApp = async (app: Application) => {
     const fullName = `${app.first_name} ${app.last_name}`;
     if (!confirm(`Approve ${fullName}? This will add them to the live site.`)) return;
-    
+
     setProcessingId(app.id);
     try {
-      
-      // 1. Insert into live artisans table
-      const { error: insertError } = await supabase.from('artisans').insert([{
-        first_name: app.first_name,
-        last_name: app.last_name,
-        category: app.trade,
-        location: app.location,
-        phone: app.phone,
-        bio: app.bio,
-        verified: true,
-        rating: 5.0, 
-        is_claimed: false, // ⚡ THE LEGAL FLAG: Pushes to DB as unclaimed!
-        image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=400' 
-      }]);
-
-      if (insertError) throw insertError;
-
-      // 2. Mark application as approved
-      await supabase.from('artisan_applications').update({ status: 'approved' }).eq('id', app.id);
-      
-      // ⚡ 3. Refresh Data so they immediately appear in the VIP Claim list
-      fetchData();
-    } catch (err: any) {
+      await dashboardAction('approve_application', { id: app.id });
+      await fetchData();
+    } catch (err) {
       console.error(err);
-      alert(err.code === '23505' ? "Phone number already exists!" : "Approval failed: " + err.message);
+      const message = err instanceof Error ? err.message : 'Approval failed.';
+      alert(message.includes('duplicate') ? 'Phone number already exists!' : message);
     } finally {
       setProcessingId(null);
     }
@@ -231,10 +193,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     if (!confirm('Reject this application?')) return;
     setProcessingId(id);
     try {
-      await supabase.from('artisan_applications').update({ status: 'rejected' }).eq('id', id);
+      await dashboardAction('reject_application', { id });
       setApplications(prev => prev.filter(item => item.id !== id));
     } catch (err) {
       console.error(err);
+      alert(err instanceof Error ? err.message : 'Unable to reject application.');
     } finally {
       setProcessingId(null);
     }
@@ -243,31 +206,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   // --- 4. REVIEW LOGIC ---
   const approveReview = async (id: number) => {
     try {
-      await supabase.from('artisan_reviews').update({ status: 'approved' }).eq('id', id);
+      await dashboardAction('approve_review', { id });
       setReviews(prev => prev.filter(r => r.id !== id));
     } catch (err) {
-      console.error("Error approving review:", err);
+      console.error('Error approving review:', err);
+      alert(err instanceof Error ? err.message : 'Unable to approve review.');
     }
   };
 
   const deleteReview = async (id: number) => {
-    if(!confirm("Delete this review permanently?")) return;
+    if(!confirm('Delete this review permanently?')) return;
     try {
-      await supabase.from('artisan_reviews').delete().eq('id', id);
+      await dashboardAction('delete_review', { id });
       setReviews(prev => prev.filter(r => r.id !== id));
     } catch (err) {
-      console.error("Error deleting review:", err);
+      console.error('Error deleting review:', err);
+      alert(err instanceof Error ? err.message : 'Unable to delete review.');
     }
   };
 
   // --- 5. SUGGESTION LOGIC ---
   const deleteSuggestion = async (id: number) => {
-    if(!confirm("Delete this message?")) return;
+    if(!confirm('Delete this message?')) return;
     try {
-      await supabase.from('service_suggestions').delete().eq('id', id);
+      await dashboardAction('delete_suggestion', { id });
       setSuggestions(prev => prev.filter(s => s.id !== id));
     } catch (err) {
-      console.error("Error deleting suggestion:", err);
+      console.error('Error deleting suggestion:', err);
+      alert(err instanceof Error ? err.message : 'Unable to delete suggestion.');
     }
   };
 
