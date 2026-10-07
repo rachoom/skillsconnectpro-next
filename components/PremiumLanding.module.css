@@ -283,3 +283,118 @@
 @media (prefers-reduced-motion: reduce) {
   .page *, .page *::before, .page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+
+/* === Mzansi hero language carousel === */
+@keyframes mzansiPhraseIn {
+  from {
+    opacity: 0;
+    transform: translateY(.38rem);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.languageCarousel {
+  width: fit-content;
+  min-height: 2rem;
+  margin-top: .65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .68rem;
+  padding: .42rem .62rem .42rem .5rem;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 999px;
+  background: rgba(8,8,8,.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.languageLabel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.15rem;
+  padding: .14rem .38rem;
+  border-radius: 999px;
+  background: rgba(245,197,24,.11);
+  color: #f6d85c;
+  font-size: .56rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.languagePhrase {
+  color: #f2f2ee;
+  font-size: .76rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: .005em;
+  animation: mzansiPhraseIn .55s cubic-bezier(.2,.7,.2,1) both;
+}
+
+.languageDots {
+  display: inline-flex;
+  align-items: center;
+  gap: .24rem;
+  margin-left: .08rem;
+}
+
+.languageDots i {
+  width: .22rem;
+  height: .22rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,.22);
+  transition: width 220ms ease, background 220ms ease, opacity 220ms ease;
+}
+
+.languageDots i[data-active='true'] {
+  width: .7rem;
+  background: var(--gold);
+}
+
+@media (max-width: 640px) {
+  .languageCarousel {
+    min-height: 1.85rem;
+    margin-top: .55rem;
+    gap: .52rem;
+    padding: .36rem .52rem .36rem .42rem;
+  }
+
+  .languageLabel {
+    font-size: .5rem;
+  }
+
+  .languagePhrase {
+    font-size: .69rem;
+  }
+
+  .languageDots {
+    gap: .2rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .languageDots {
+    display: none;
+  }
+
+  .languageCarousel {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .languagePhrase {
+    animation: none !important;
+  }
+
+  .languageDots i {
+    transition: none !important;
+  }
+}
