@@ -214,7 +214,11 @@ export default function CustomerProjectPage() {
     () => feed?.responses.find((response) => response.id === selectedResponseId) ?? null,
     [feed, selectedResponseId],
   );
-  const contactsReleased = Boolean(feed?.match?.contactReleasedAt && feed?.releasedContact?.provider);
+  const contactsReleased = Boolean(
+    feed?.project.status !== 'cancelled' &&
+    feed?.match?.contactReleasedAt &&
+    feed?.releasedContact?.provider,
+  );
 
   const selectProvider = async (responseId: string) => {
     setSelectingResponseId(responseId);
@@ -302,7 +306,7 @@ export default function CustomerProjectPage() {
   const responseCount = feed.matching.validResponsesReceived;
   const hasResponses = responseCount > 0;
   const hasSelection = Boolean(feed.match?.providerResponseId);
-  const releasedProvider = feed.releasedContact?.provider ?? null;
+  const releasedProvider = project.status === 'cancelled' ? null : feed.releasedContact?.provider ?? null;
   const selectedName = selectedResponse ? providerName(selectedResponse.provider) : 'the selected provider';
   const whatsappHref = releasedProvider?.whatsapp
     ? `https://wa.me/${whatsappNumber(releasedProvider.whatsapp)}?text=${encodeURIComponent(
