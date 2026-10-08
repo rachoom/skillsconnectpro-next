@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, UserX, Send } from 'lucide-react';
+import { ShieldCheck, UserX, Send, ChevronDown } from 'lucide-react';
 
 // --- INTERFACES ---
 interface Application {
@@ -54,6 +54,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [vipClaimsOpen, setVipClaimsOpen] = useState(false);
 
   // Edit Mode State (for Applications)
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -348,38 +349,64 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
             )}
         </section>
 
-        {/* ⚡ NEW SECTION: VIP CLAIM INVITES */}
+        {/* VIP CLAIM INVITES — collapsed by default so moderation stays easy to reach */}
         <section className="pt-8 border-t border-white/10">
-            <div className="flex items-center gap-4 mb-8">
-                <h2 className="text-2xl font-bold text-white">Awaiting VIP Claim</h2>
-                <span className="bg-[#128C7E] text-white text-xs font-black px-2 py-1 rounded-full">{unclaimedArtisans.length}</span>
-            </div>
-            {unclaimedArtisans.length === 0 ? (
-                <div className="text-center py-12 bg-zinc-900/50 rounded-3xl border border-white/5 border-dashed">
-                    <p className="text-gray-500 text-sm">All live profiles have been claimed!</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {unclaimedArtisans.map((artisan) => (
-                        <div key={artisan.id} className="bg-zinc-900 border border-white/5 rounded-2xl p-5 hover:border-[#128C7E]/50 transition-all flex flex-col justify-between group">
-                            <div className="mb-6">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <UserX size={14} className="text-zinc-500" />
-                                  <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Auto-Scanned Profile</span>
-                                </div>
-                                <h3 className="text-lg font-bold text-white leading-tight">{artisan.first_name} {artisan.last_name}</h3>
-                                <p className="text-brand-yellow text-xs font-bold uppercase tracking-widest mt-1">{artisan.category}</p>
-                                <p className="text-gray-400 text-sm mt-3 flex items-center gap-2">📞 {artisan.phone}</p>
-                            </div>
-                            
-                            <button 
-                                onClick={() => sendVipInvite(artisan.phone, artisan.first_name, artisan.id)}
-                                className="w-full py-3 bg-[#128C7E]/10 hover:bg-[#128C7E] text-[#128C7E] hover:text-white border border-[#128C7E]/30 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-                            >
-                                <Send size={16} /> Send VIP Invite
-                            </button>
+            <button
+                type="button"
+                onClick={() => setVipClaimsOpen(open => !open)}
+                aria-expanded={vipClaimsOpen}
+                aria-controls="vip-claim-list"
+                className="group w-full rounded-2xl border border-white/10 bg-zinc-900/60 px-5 py-5 text-left transition hover:border-[#128C7E]/40 hover:bg-zinc-900 md:px-6"
+            >
+                <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Awaiting VIP Claim</h2>
+                            <span className="bg-[#128C7E] text-white text-xs font-black px-2.5 py-1 rounded-full">{unclaimedArtisans.length}</span>
                         </div>
-                    ))}
+                        <p className="mt-2 text-sm leading-6 text-zinc-500">
+                            {unclaimedArtisans.length === 0
+                              ? 'No provider profiles are waiting for a claim invite.'
+                              : 'Provider profiles waiting for a VIP claim invite. Expand only when you need to work this queue.'}
+                        </p>
+                    </div>
+                    <span className="flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-white">
+                        {vipClaimsOpen ? 'Hide profiles' : 'Show profiles'}
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${vipClaimsOpen ? 'rotate-180' : ''}`} />
+                    </span>
+                </div>
+            </button>
+
+            {vipClaimsOpen && (
+                <div id="vip-claim-list" className="mt-5 animate-fade-in">
+                    {unclaimedArtisans.length === 0 ? (
+                        <div className="text-center py-10 bg-zinc-900/50 rounded-3xl border border-white/5 border-dashed">
+                            <p className="text-gray-500 text-sm">No profiles are currently awaiting a VIP claim.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {unclaimedArtisans.map((artisan) => (
+                                <div key={artisan.id} className="bg-zinc-900 border border-white/5 rounded-2xl p-5 hover:border-[#128C7E]/50 transition-all flex flex-col justify-between group">
+                                    <div className="mb-6">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <UserX size={14} className="text-zinc-500" />
+                                          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Auto-Scanned Profile</span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-white leading-tight">{artisan.first_name} {artisan.last_name}</h3>
+                                        <p className="text-brand-yellow text-xs font-bold uppercase tracking-widest mt-1">{artisan.category}</p>
+                                        <p className="text-gray-400 text-sm mt-3 flex items-center gap-2">📞 {artisan.phone}</p>
+                                    </div>
+
+                                    <button
+                                        onClick={() => sendVipInvite(artisan.phone, artisan.first_name, artisan.id)}
+                                        className="w-full py-3 bg-[#128C7E]/10 hover:bg-[#128C7E] text-[#128C7E] hover:text-white border border-[#128C7E]/30 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Send size={16} /> Send VIP Invite
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </section>
