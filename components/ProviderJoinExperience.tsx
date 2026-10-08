@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,6 +9,22 @@ import { QuickOnboard } from './QuickOnboard';
 
 export const ProviderJoinExperience = () => {
   const router = useRouter();
+
+  useEffect(() => {
+    // Mobile visitors from WhatsApp should land on the photo onboarding action.
+    // Leave desktop and links targeting another page anchor unchanged.
+    if (window.innerWidth >= 1024) return;
+    if (window.location.hash && window.location.hash !== '#provider-camera-assistant') return;
+
+    const timer = window.setTimeout(() => {
+      document.getElementById('provider-camera-assistant')?.scrollIntoView({
+        behavior: 'auto',
+        block: 'center',
+      });
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(47,103,74,0.28),transparent_30rem),radial-gradient(circle_at_90%_30%,rgba(245,197,24,0.12),transparent_24rem),#120b07] px-4 py-6 text-white sm:px-6 sm:py-10">
