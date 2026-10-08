@@ -126,7 +126,7 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
 
   return (
     <div className={`min-h-[70vh] flex flex-col items-center justify-center p-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-      <div className={`max-w-md w-full p-8 rounded-[3rem] shadow-2xl border text-center ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
+      <div id="provider-camera-assistant" className={`max-w-md w-full p-8 rounded-[3rem] shadow-2xl border text-center ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
         
         {status === 'idle' && (
           <div className="animate-fade-in-up">
