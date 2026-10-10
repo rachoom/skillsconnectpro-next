@@ -280,6 +280,14 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
       return;
     }
 
+    // Apply this common request locally as well as exposing the assistant for broader changes.
+    // That makes a phrase like “remove the tools cost” deterministic for the customer.
+    if (/(remove|exclude|without|no)[^.!?]{0,40}tools?/i.test(instruction) || /tools?[^.!?]{0,40}(remove|exclude|without|no)/i.test(instruction)) {
+      removeTools();
+      setRefinementInstruction('');
+      return;
+    }
+
     const promptText = `${input.trim()}. Customer refinement instruction: ${instruction}`;
     await fetchEstimate(promptText, [{
       question: 'Customer refinement instruction',
