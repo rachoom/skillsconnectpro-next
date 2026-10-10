@@ -64,6 +64,7 @@ type ProjectFeed = {
     estimateCurrency: string;
     safetyNotes: string[];
     createdAt: string;
+    media: Array<{ path: string; url?: string; type: string; alt?: string; createdAt?: string }>;
   };
   matching: {
     invitationsSent: number;
@@ -334,6 +335,23 @@ export default function CustomerProjectPage() {
               </div>
               <h1>{project.title}</h1>
               <p>{project.customerDescription}</p>
+
+              {project.media?.some((item) => item.url) && (
+                <figure style={{ margin: '1.25rem 0 0', border: '1px solid rgba(255,255,255,.15)', borderRadius: '1rem', padding: '.75rem', background: 'rgba(0,0,0,.16)' }}>
+                  <figcaption style={{ marginBottom: '.6rem', fontSize: '.7rem', fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', opacity: .72 }}>
+                    Uploaded reference image
+                  </figcaption>
+                  {project.media.filter((item) => item.url).map((item) => (
+                    <img
+                      key={item.path}
+                      src={item.url}
+                      alt={item.alt || 'Uploaded project reference'}
+                      loading="lazy"
+                      style={{ display: 'block', width: '100%', maxHeight: '28rem', objectFit: 'contain', borderRadius: '.75rem', background: '#111' }}
+                    />
+                  ))}
+                </figure>
+              )}
 
               <div className={styles.projectMeta}>
                 <span>{project.category}</span>
