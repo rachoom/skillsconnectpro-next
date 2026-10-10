@@ -56,6 +56,7 @@ type Opportunity = {
     safetyNotes: string[];
     materials: unknown[];
     professionalInspectionRequired: boolean;
+    media: Array<{ path: string; url?: string; type: string; alt?: string; createdAt?: string }>;
   };
 };
 
@@ -290,6 +291,14 @@ export default function ProviderOpportunityPage() {
           <article className="rounded-[1.75rem] border-2 border-[#7CAD6E] bg-[#FFF9E8] p-6 shadow-lg shadow-[#355332]/15">
             <div className="flex items-center gap-3"><Wrench className="text-[#B07800]" size={19} /><h2 className="text-lg font-black">Project brief</h2></div>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#3E493A]">{project.customerDescription}</p>
+            {project.media?.some((item) => item.url) && (
+              <figure className="mt-4 overflow-hidden rounded-2xl border-2 border-[#B8CFAE] bg-[#F3F8ED] p-3">
+                <figcaption className="mb-2 text-[10px] font-black uppercase tracking-wider text-[#52644E]">Customer reference image</figcaption>
+                {project.media.filter((item) => item.url).map((item) => (
+                  <img key={item.path} src={item.url} alt={item.alt || 'Customer project reference'} loading="lazy" className="max-h-[28rem] w-full rounded-xl object-contain" />
+                ))}
+              </figure>
+            )}
             <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wider"><span className="rounded-xl bg-[#EAF3DE] px-3 py-2">{project.category}</span><span className="rounded-xl bg-[#FFE067] px-3 py-2">{project.urgency}</span><span className="rounded-xl bg-[#EAF3DE] px-3 py-2">{project.serviceArea}</span></div>
           </article>
         </div>
