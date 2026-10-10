@@ -2,7 +2,7 @@
 
 import NextImage from 'next/image';
 import Link from 'next/link';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -77,6 +77,28 @@ type QuestionProgress = {
 type FieldErrors = Partial<Record<'location' | 'name' | 'phone' | 'email' | 'consent', string>>;
 type ConfirmStage = 'brief' | 'location' | 'contact' | 'review';
 
+type ImportedEstimateContext = {
+  description?: string;
+  image?: string | null;
+  service?: string;
+  estimate?: {
+    materials?: number;
+    tools?: number;
+    laborHours?: number;
+    laborTotal?: number;
+    trueCost?: number;
+    materialsList?: Array<{
+      name?: string;
+      quantity?: string;
+      unitCost?: number;
+      total?: number;
+    }>;
+    laborNotes?: string;
+    recommendedService?: string;
+    estimateType?: 'standardized' | 'refined';
+  };
+};
+
 type SpeechResultEvent = {
   results: ArrayLike<ArrayLike<{ transcript: string }>>;
 };
@@ -117,6 +139,49 @@ function formatMoney(value: number | null): string {
     currency: 'ZAR',
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function importedEstimateAssessment(
+  context: ImportedEstimateContext,
+  description: string,
+): IntakeAssessment {
+  const estimate = context.estimate ?? {};
+  const service = context.service?.trim() || estimate.recommendedService?.trim() || 'General Contractor';
+  const materials = Array.isArray(estimate.materialsList)
+    ? estimate.materialsList
+        .map((item) => ({
+          name: String(item?.name || 'Estimated material').trim(),
+          quantity: 1,
+          unit: String(item?.quantity || 'unit').trim(),
+          estimatedUnitPrice: typeof item?.unitCost === 'number' ? item.unitCost : undefined,
+          estimatedTotal: typeof item?.total === 'number' ? item.total : undefined,
+        }))
+        .filter((item) => item.name)
+    : [];
+  const materialTotal = typeof estimate.materials === 'number'
+    ? estimate.materials
+    : materials.reduce((sum, item) => sum + (item.estimatedTotal || 0), 0);
+  const tools = typeof estimate.tools === 'number' ? estimate.tools : 0;
+  const labor = typeof estimate.laborTotal === 'number' ? estimate.laborTotal : 0;
+  const total = typeof estimate.trueCost === 'number' ? estimate.trueCost : materialTotal + tools + labor;
+  const range = total > 0 ? Math.round(total * 0.1) : 0;
+
+  return {
+    title: service + ' project',
+    summary: 'Your AI Project Assistant estimate has been carried into this request. Confirm the work area and contact details to connect with a suitable ' + service.toLowerCase() + '.',
+    likelyIssue: description,
+    category: service,
+    urgency: 'planned',
+    confidence: 0.75,
+    professionalInspectionRequired: true,
+    safetyNotes: ['A provider should confirm quantities, site conditions and final scope before work begins.'],
+    estimatedMin: total > 0 ? Math.max(0, total - range) : null,
+    estimatedMax: total > 0 ? total + range : null,
+    materials,
+    clarifyingQuestions: [],
+    estimateType: estimate.estimateType === 'refined' ? 'refined' : 'standardized',
+    model: 'project-estimator',
+  };
 }
 
 function validEmail(value: string): boolean {
@@ -192,8 +257,41 @@ export const ProjectIntakeV2: React.FC = () => {
   const [isWorking, setIsWorking] = useState(false);
   const [error, setError] = useState('');
   const [usedFallback, setUsedFallback] = useState(false);
+  const [connectMode, setConnectMode] = useState(false);
   const [customerUrl, setCustomerUrl] = useState('');
   const [createdTitle, setCreatedTitle] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode')?.toLowerCase() !== 'connect') return;
+
+    let context: ImportedEstimateContext = {};
+    try {
+      const stored = window.sessionStorage.getItem('scp-connect-context');
+      if (stored) context = JSON.parse(stored) as ImportedEstimateContext;
+      window.sessionStorage.removeItem('scp-connect-context');
+    } catch {
+      // The URL description remains a safe fallback when storage is unavailable.
+    }
+
+    const importedDescription = String(context.description || params.get('description') || '').trim();
+    if (!importedDescription) return;
+
+    const importedImage = typeof context.image === 'string' ? context.image : '';
+    setConnectMode(true);
+    setDescription(importedDescription);
+    setImageData(importedImage);
+    setImagePreview(importedImage);
+    setAssessment(importedEstimateAssessment(context, importedDescription));
+    setAnswerHistory([]);
+    setQuestionCount(0);
+    setQuestionProgress(null);
+    setConfirmStage('brief');
+    setStep('confirm');
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
+  }, []);
 
   const resolvedLocation = customLocation.trim() || location;
   const requiredAnsweredCount = useMemo(() => {
@@ -446,6 +544,7 @@ export const ProjectIntakeV2: React.FC = () => {
     setFieldErrors({});
     setError('');
     setUsedFallback(false);
+    setConnectMode(false);
     setCustomerUrl('');
   };
 
@@ -625,6 +724,13 @@ export const ProjectIntakeV2: React.FC = () => {
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">{assessment.title}</h1>
                 <p className="mt-3 text-sm leading-6 text-[#59655a]">{assessment.summary}</p>
                 <span data-intake-category className="mt-4 inline-flex rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">{assessment.category}</span>
+
+                {connectMode && (
+                  <div data-intake-connect-mode className="mt-5 flex items-start gap-3 rounded-2xl border border-[#d3a826] bg-[#fff5c7] p-4 text-sm leading-6 text-[#4a3600]">
+                    <CheckCircle2 className="mt-0.5 shrink-0" size={19} />
+                    <span><strong>Your estimate is already loaded.</strong> We skipped the earlier project questions. Just confirm where the work is and how the provider can reach you.</span>
+                  </div>
+                )
 
                 {imagePreview && (
                   <div data-intake-reference-image className="mt-5 overflow-hidden rounded-2xl border-2 border-[#c8c7bb] bg-white p-3">
