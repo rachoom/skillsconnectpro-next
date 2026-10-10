@@ -70,13 +70,17 @@ export const ProjectIntakeEntryBridge = () => {
       }
 
       const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-intake-composer-tools] button'));
-      const imageInput = document.querySelector<HTMLInputElement>('input[type="file"][accept*="image"]');
-      if (galleryMode) imageInput?.removeAttribute('capture');
-      const preferredButton = mode === 'photo' || galleryMode
-        ? buttons.find((button) => button.textContent?.toLowerCase().includes('photo'))
-        : mode === 'voice'
-          ? buttons.find((button) => button.textContent?.toLowerCase().includes('voice'))
-          : null;
+      const cameraButton = document.querySelector<HTMLButtonElement>('[data-intake-photo-action="camera"]')
+        || buttons.find((button) => button.textContent?.toLowerCase().includes('take photo'));
+      const galleryButton = document.querySelector<HTMLButtonElement>('[data-intake-photo-action="gallery"]')
+        || buttons.find((button) => button.textContent?.toLowerCase().includes('choose photo'));
+      const preferredButton = galleryMode
+        ? galleryButton
+        : mode === 'photo'
+          ? cameraButton
+          : mode === 'voice'
+            ? buttons.find((button) => button.textContent?.toLowerCase().includes('voice'))
+            : null;
 
       // Keep a plain visit calm: do not open the keyboard or jump past the heading.
       if (!mode && !descriptionPrefill && !service && !providerName) return true;
