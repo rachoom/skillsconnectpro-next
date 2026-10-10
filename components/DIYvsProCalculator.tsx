@@ -68,6 +68,7 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
   const [clarifyingAnswers, setClarifyingAnswers] = useState<Record<number, string>>({});
   const [showAdvancedRate, setShowAdvancedRate] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [refinementInstruction, setRefinementInstruction] = useState('');
   
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -266,6 +267,27 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
     });
   };
 
+  const removeTools = () => {
+    setResult((current) => current
+      ? { ...current, tools: 0, trueCost: current.materials + current.laborTotal }
+      : current);
+  };
+
+  const handleRefineWithInstruction = async () => {
+    const instruction = refinementInstruction.trim();
+    if (!instruction) {
+      alert('Tell the assistant what you would like to change first.');
+      return;
+    }
+
+    const promptText = `${input.trim()}. Customer refinement instruction: ${instruction}`;
+    await fetchEstimate(promptText, [{
+      question: 'Customer refinement instruction',
+      answer: instruction,
+    }]);
+    setRefinementInstruction('');
+  };
+
   const handleDownloadPdf = () => {
     if (!result) return;
 
@@ -431,6 +453,29 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
                 {result.estimateType === 'refined' ? 'Refined with project details' : 'Standardized baseline estimate'}
               </div>
 
+              <div className="rounded-2xl border border-brand-yellow/35 bg-gradient-to-br from-brand-yellow/10 via-black/35 to-black/50 p-4 sm:p-5 space-y-3 shadow-[0_12px_32px_rgba(0,0,0,0.28)]">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-yellow">Want to change something?</p>
+                  <p className="mt-1 text-sm text-gray-200">Tell the assistant in plain language. For example: “Remove the tools cost” or “Use basic IBR roofing.”</p>
+                </div>
+                <textarea
+                  value={refinementInstruction}
+                  onChange={(event) => setRefinementInstruction(event.target.value)}
+                  rows={2}
+                  placeholder="Describe the change you want..."
+                  aria-label="Describe a change to this estimate"
+                  className="w-full resize-none rounded-xl border border-white/15 bg-black/45 px-3 py-3 text-sm text-white outline-none transition focus:border-brand-yellow/70 focus:ring-1 focus:ring-brand-yellow/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleRefineWithInstruction()}
+                  disabled={loading || !refinementInstruction.trim()}
+                  className="w-full rounded-xl border border-brand-yellow/50 bg-brand-yellow/10 py-3 text-xs font-black uppercase tracking-[0.11em] text-brand-yellow transition hover:bg-brand-yellow hover:text-black disabled:opacity-50"
+                >
+                  {loading ? 'Updating estimate...' : 'Apply my change'}
+                </button>
+              </div>
+
               {result.clarifyingQuestions.length > 0 && (
                 <div className="rounded-2xl border border-brand-yellow/35 bg-gradient-to-br from-brand-yellow/10 via-black/35 to-black/50 p-4 sm:p-5 space-y-4 shadow-[0_12px_32px_rgba(0,0,0,0.28)]">
                   <div>
@@ -504,8 +549,7 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
                 </div>
               </div>
               <div className="flex justify-between items-center"><span>Materials Total</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.materials.toLocaleString()}</span></div>
-              <div className="flex justify-between items-center"><span>Tools Needed</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.tools.toLocaleString()}</span></div>
-              <div className="flex justify-between items-center"><span>Labor ({result.laborHours}h {timeValue ? `@ R${timeValue}/hr` : '@ standard rate'})</span><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.laborTotal.toLocaleString()}</span></div>
+              <div className="flex justify-between items-center"><span>Tools Needed</span><span className="flex items-center gap-2"><span className="font-mono text-white bg-white/10 px-2 py-1 rounded">R {result.tools.toLocaleString()}</span>{result.tools > 0 && <button type="button" onClick={removeTools} aria-label="Remove tools from estimate" title="Remove tools from estimate" className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/5 text-gray-400 transition-colors hover:border-red-400/50 hover:bg-red-500/15 hover:text-red-300"><Trash2 size={15} /></button>}</span></div>
               {result.laborNotes && (
                 <div className="rounded-lg border border-brand-yellow/20 bg-brand-yellow/5 px-3 py-2 text-xs text-gray-200">
                   <span className="text-brand-yellow font-semibold">Labor note:</span> {result.laborNotes}
@@ -518,11 +562,25 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
               <span className="text-4xl font-black text-brand-yellow tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">R {result.trueCost.toLocaleString()}</span>
             </div>
             <Link
-              href={`/get-help?service=${encodeURIComponent(result.recommendedService || inferServiceFromText(input))}&description=${encodeURIComponent(input)}`}
+              href={`/get-help?mode=connect&service=${encodeURIComponent(result.recommendedService || inferServiceFromText(input))}&description=${encodeURIComponent(input)}`}
+              onClick={() => {
+                try {
+                  window.sessionStorage.setItem('scp-connect-context', JSON.stringify({
+                    description: input.trim(),
+                    image,
+                    service: result.recommendedService || inferServiceFromText(input),
+                    estimate: result,
+                  }));
+                } catch {
+                  // Continue with the URL description if session storage is unavailable.
+                }
+              }}
+              aria-label="Connect with a professional using this project estimate"
               className="mt-4 w-full py-3 bg-brand-yellow text-black font-black uppercase tracking-[0.12em] rounded-xl hover:bg-white transition-all text-center block"
             >
               Connect a Pro
             </Link>
+            <p className="mt-2 text-center text-[11px] leading-5 text-gray-400">Your estimate, answers and uploaded photo will be carried into the request—no need to start over.</p>
             <button
               onClick={handleDownloadPdf}
               className="mt-6 w-full py-3 bg-white/5 text-brand-yellow font-black uppercase tracking-[0.12em] rounded-xl hover:bg-brand-yellow hover:text-black border border-brand-yellow/40 transition-all"
