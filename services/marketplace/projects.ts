@@ -3,6 +3,7 @@ import type {
   CreateProjectInput,
   Project,
   ProjectMaterial,
+  ProjectMedia,
   ProjectStatusEvent,
 } from '../../types/marketplace';
 import { getProjectResponseTarget } from './routing';
@@ -38,6 +39,7 @@ type ProjectRow = {
   professional_inspection_required: boolean;
   safety_notes: string[];
   materials: ProjectMaterial[];
+  media: ProjectMedia[];
   assessment_payload: Record<string, unknown>;
   source_channel: Project['sourceChannel'];
   consent_to_share: boolean;
@@ -119,6 +121,7 @@ export function mapProjectRow(row: ProjectRow): Project {
     professionalInspectionRequired: row.professional_inspection_required,
     safetyNotes: row.safety_notes ?? [],
     materials: row.materials ?? [],
+    media: row.media ?? [],
     assessmentPayload: row.assessment_payload ?? {},
     sourceChannel: row.source_channel,
     consentToShare: row.consent_to_share,
@@ -164,6 +167,7 @@ export async function createProject(input: CreateProjectInput): Promise<CreatedP
     professional_inspection_required: input.professionalInspectionRequired ?? true,
     safety_notes: input.safetyNotes ?? [],
     materials: input.materials ?? [],
+    media: input.media ?? [],
     assessment_payload: input.assessmentPayload ?? {},
     source_channel: input.sourceChannel ?? 'web',
     consent_to_share: input.consentToShare ?? false,
@@ -238,4 +242,22 @@ export async function getProjectTimeline(projectId: string): Promise<ProjectStat
     eventData: row.event_data ?? {},
     createdAt: row.created_at,
   }));
+}
+
+
+export async function updateProjectMedia(
+  projectId: string,
+  media: ProjectMedia[],
+): Promise<Project> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('projects')
+    .update({ media })
+    .eq('id', projectId)
+    .select('*')
+    .single();
+
+  if (error) throw new Error(`Unable to update project media: ${error.message}`);
+  if (!data) throw new Error('Unable to update project media: no row returned.');
+  return mapProjectRow(data as ProjectRow);
 }
