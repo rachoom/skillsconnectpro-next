@@ -57,7 +57,9 @@ export const ProjectIntakeEntryBridge = () => {
       const description = document.getElementById('job-description');
       if (!(description instanceof HTMLTextAreaElement)) return false;
 
-      if (!description.value.trim()) {
+      // Connect mode is hydrated by ProjectIntakeV2 from the saved estimate context.
+      // Do not append a second service sentence or overwrite the imported brief here.
+      if (mode !== 'connect' && !description.value.trim()) {
         const parts = [
           descriptionPrefill,
           providerName ? `I would like ${providerName} to be invited to respond to this job.` : '',
