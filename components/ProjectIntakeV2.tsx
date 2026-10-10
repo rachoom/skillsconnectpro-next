@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Camera,
+  Image as ImageIcon,
   Check,
   CheckCircle2,
   CircleDollarSign,
@@ -230,7 +231,8 @@ function focusField(id: string) {
 }
 
 export const ProjectIntakeV2: React.FC = () => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const [step, setStep] = useState<'describe' | 'clarify' | 'confirm' | 'done'>('describe');
@@ -258,7 +260,6 @@ export const ProjectIntakeV2: React.FC = () => {
   const [error, setError] = useState('');
   const [usedFallback, setUsedFallback] = useState(false);
   const [connectMode, setConnectMode] = useState(false);
-  const [photoEntryMode, setPhotoEntryMode] = useState<'camera' | 'gallery'>('camera');
   const [customerUrl, setCustomerUrl] = useState('');
   const [createdTitle, setCreatedTitle] = useState('');
 
@@ -267,7 +268,6 @@ export const ProjectIntakeV2: React.FC = () => {
 
     const params = new URLSearchParams(window.location.search);
     const requestedMode = params.get('mode')?.toLowerCase();
-    if (requestedMode === 'gallery') setPhotoEntryMode('gallery');
     if (requestedMode !== 'connect') return;
 
     let context: ImportedEstimateContext = {};
@@ -617,17 +617,28 @@ export const ProjectIntakeV2: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      aria-label={photoEntryMode === 'gallery' ? 'Choose a project image from your device' : 'Take or choose a project photo'}
+                      data-intake-photo-action="camera"
+                      onClick={() => cameraInputRef.current?.click()}
+                      aria-label="Take a new project photo"
                     >
                       <Camera size={18} aria-hidden="true" />
-                      <span>{photoEntryMode === 'gallery' ? 'Choose photo' : 'Photo'}</span>
+                      <span>Take photo</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-intake-photo-action="gallery"
+                      onClick={() => galleryInputRef.current?.click()}
+                      aria-label="Choose a project image from your device"
+                    >
+                      <ImageIcon size={18} aria-hidden="true" />
+                      <span>Choose photo</span>
                     </button>
                   </div>
                   <span data-intake-character-count>{description.length.toLocaleString()} / 4,000</span>
                 </div>
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleImage} className="hidden" />
+              <input ref={cameraInputRef} data-intake-photo-input="camera" type="file" accept="image/*" capture="environment" onChange={handleImage} className="hidden" />
+              <input ref={galleryInputRef} data-intake-photo-input="gallery" type="file" accept="image/*" onChange={handleImage} className="hidden" />
 
               {imagePreview && (
                 <div data-intake-photo-preview className="relative">
