@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from '../supabaseAdmin';
 import type { ProviderResponseType } from '../../types/marketplace';
 import { hashOpaqueToken } from './tokens';
 import { isContactAccessActive } from './contactAccessPolicy.js';
+import { createProjectMediaSignedUrls } from './projectMedia';
 
 export interface ProviderOpportunity {
   invitationId: string;
@@ -24,6 +25,7 @@ export interface ProviderOpportunity {
     estimateCurrency: string;
     safetyNotes: string[];
     materials: unknown[];
+    media: Array<{ path: string; url?: string; type: 'image'; alt?: string; createdAt?: string }>;
     professionalInspectionRequired: boolean;
     status: string;
   };
@@ -112,7 +114,7 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
   const { data: projectData, error: projectError } = await supabase
     .from('projects')
     .select(
-      'id, status, guest_name, guest_phone, guest_email, title, customer_description, ai_summary, likely_issue, category, urgency, service_level, location_text, suburb, city, preferred_date, estimated_min, estimated_max, estimate_currency, safety_notes, materials, professional_inspection_required',
+      'id, status, guest_name, guest_phone, guest_email, title, customer_description, ai_summary, likely_issue, category, urgency, service_level, location_text, suburb, city, preferred_date, estimated_min, estimated_max, estimate_currency, safety_notes, materials, media, professional_inspection_required',
     )
     .eq('id', invitation.project_id)
     .single();
@@ -133,6 +135,9 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
 
   const serviceArea = projectData.suburb || projectData.city || projectData.location_text;
   const customerPhone = projectData.guest_phone?.trim() || '';
+  const media = await createProjectMediaSignedUrls(
+    Array.isArray(projectData.media) ? projectData.media : [],
+  );
 
   return {
     invitationId: invitation.id,
@@ -166,6 +171,7 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
       estimateCurrency: projectData.estimate_currency,
       safetyNotes: projectData.safety_notes ?? [],
       materials: projectData.materials ?? [],
+      media,
       professionalInspectionRequired: projectData.professional_inspection_required,
       status: projectData.status,
     },
