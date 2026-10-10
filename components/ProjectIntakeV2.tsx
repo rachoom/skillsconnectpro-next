@@ -393,6 +393,7 @@ export const ProjectIntakeV2: React.FC = () => {
           professionalInspectionRequired: assessment.professionalInspectionRequired,
           safetyNotes: assessment.safetyNotes,
           materials: assessment.materials,
+          image: imageData,
           assessmentPayload: {
             clarifyingAnswers: answerHistory,
             questionsAsked: questionCount,
@@ -624,6 +625,22 @@ export const ProjectIntakeV2: React.FC = () => {
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">{assessment.title}</h1>
                 <p className="mt-3 text-sm leading-6 text-[#59655a]">{assessment.summary}</p>
                 <span data-intake-category className="mt-4 inline-flex rounded-full bg-[#dfe8d6] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#435446]">{assessment.category}</span>
+
+                {imagePreview && (
+                  <div data-intake-reference-image className="mt-5 overflow-hidden rounded-2xl border-2 border-[#c8c7bb] bg-white p-3">
+                    <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#667064]">
+                      <Camera size={16} /> Uploaded reference image
+                    </div>
+                    <NextImage
+                      src={imagePreview}
+                      alt="Customer-uploaded project reference"
+                      width={1200}
+                      height={900}
+                      unoptimized
+                      className="max-h-[28rem] w-full rounded-xl object-contain"
+                    />
+                  </div>
+                )}
 
                 {usedFallback && <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-bold text-amber-900">A structured trade checklist was used because live AI assessment was unavailable.</div>}
                 {assessment.safetyNotes.length > 0 && <div data-intake-safety className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
