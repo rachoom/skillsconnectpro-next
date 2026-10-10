@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Camera,
+  Image as ImageIcon,
   Check,
   CheckCircle2,
   CircleDollarSign,
@@ -122,7 +123,8 @@ function compressImage(file: File): Promise<{ data: string; preview: string }> {
 }
 
 export const ProjectIntake: React.FC = () => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const [step, setStep] = useState<'describe' | 'clarify' | 'confirm' | 'done'>('describe');
@@ -389,12 +391,17 @@ export const ProjectIntake: React.FC = () => {
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${isListening ? 'bg-red-500 text-white' : 'bg-[#667764] text-white'}`}><Mic size={21} /></span>
                   <span><strong className="block text-sm">{isListening ? 'Listening…' : 'Speak instead'}</strong><small className="text-[#667064]">Use your own words</small></span>
                 </button>
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="flex min-h-20 items-center gap-4 rounded-2xl border-2 border-[#aeb9a9] bg-[#e8eee2] p-4 text-left">
+                <button type="button" data-intake-photo-action="camera" onClick={() => cameraInputRef.current?.click()} className="flex min-h-20 items-center gap-4 rounded-2xl border-2 border-[#aeb9a9] bg-[#e8eee2] p-4 text-left">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#667764] text-white"><Camera size={21} /></span>
-                  <span><strong className="block text-sm">Add a photograph</strong><small className="text-[#667064]">Camera or gallery</small></span>
+                  <span><strong className="block text-sm">Take a photo</strong><small className="text-[#667064]">Use your camera</small></span>
+                </button>
+                <button type="button" data-intake-photo-action="gallery" onClick={() => galleryInputRef.current?.click()} className="flex min-h-20 items-center gap-4 rounded-2xl border-2 border-[#aeb9a9] bg-[#e8eee2] p-4 text-left">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#667764] text-white"><ImageIcon size={21} /></span>
+                  <span><strong className="block text-sm">Choose a photo</strong><small className="text-[#667064]">Use an existing image</small></span>
                 </button>
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleImage} className="hidden" />
+              <input ref={cameraInputRef} data-intake-photo-input="camera" type="file" accept="image/*" capture="environment" onChange={handleImage} className="hidden" />
+              <input ref={galleryInputRef} data-intake-photo-input="gallery" type="file" accept="image/*" onChange={handleImage} className="hidden" />
 
               {imagePreview && (
                 <div className="relative rounded-2xl bg-[#dfe8d6] p-3">
