@@ -258,6 +258,7 @@ export const ProjectIntakeV2: React.FC = () => {
   const [error, setError] = useState('');
   const [usedFallback, setUsedFallback] = useState(false);
   const [connectMode, setConnectMode] = useState(false);
+  const [photoEntryMode, setPhotoEntryMode] = useState<'camera' | 'gallery'>('camera');
   const [customerUrl, setCustomerUrl] = useState('');
   const [createdTitle, setCreatedTitle] = useState('');
 
@@ -265,7 +266,9 @@ export const ProjectIntakeV2: React.FC = () => {
     if (typeof window === 'undefined') return;
 
     const params = new URLSearchParams(window.location.search);
-    if (params.get('mode')?.toLowerCase() !== 'connect') return;
+    const requestedMode = params.get('mode')?.toLowerCase();
+    if (requestedMode === 'gallery') setPhotoEntryMode('gallery');
+    if (requestedMode !== 'connect') return;
 
     let context: ImportedEstimateContext = {};
     try {
@@ -612,9 +615,13 @@ export const ProjectIntakeV2: React.FC = () => {
                       <Mic size={18} aria-hidden="true" />
                       <span>{isListening ? 'Listening…' : 'Voice'}</span>
                     </button>
-                    <button type="button" onClick={() => fileInputRef.current?.click()}>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      aria-label={photoEntryMode === 'gallery' ? 'Choose a project image from your device' : 'Take or choose a project photo'}
+                    >
                       <Camera size={18} aria-hidden="true" />
-                      <span>Photo</span>
+                      <span>{photoEntryMode === 'gallery' ? 'Choose photo' : 'Photo'}</span>
                     </button>
                   </div>
                   <span data-intake-character-count>{description.length.toLocaleString()} / 4,000</span>
