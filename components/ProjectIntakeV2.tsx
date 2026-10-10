@@ -772,7 +772,7 @@ export const ProjectIntakeV2: React.FC = () => {
                 {assessment.floorPlan && <FloorPlanPreview plan={assessment.floorPlan} />}
 
                 {usedFallback && <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-bold text-amber-900">A structured trade checklist was used because live AI assessment was unavailable.</div>}
-                {assessment.safetyNotes.length > 0 && <div data-intake-safety className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
+                {assessment.safetyNotes.length > 0 && <div data-intake-safety className="mt-5 rounded-2xl border-2 border-[#b84b4b] bg-[#2b1717] p-4 text-sm !text-[#ffe2e2]"><strong className="flex items-center gap-2 !text-[#ffd0d0]"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2 !text-[#ffe2e2]">• {note}</p>)}</div>}
 
                 <div data-intake-summary className="mt-6 grid gap-3 sm:grid-cols-3">
                   <SummaryCard icon={<Clock3 size={20} />} label="Urgency" value={assessment.urgency.replace('_', ' ')} />
