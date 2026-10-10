@@ -7,7 +7,7 @@ import {
 } from '@/services/marketplace/intakePolicy.js';
 import { createProviderInvitations } from '@/services/marketplace/invitations';
 import { createProject, updateProjectMedia } from '@/services/marketplace/projects';
-import { storeProjectImage } from '@/services/marketplace/projectMedia';
+import { createProjectMediaSignedUrls, storeProjectImage } from '@/services/marketplace/projectMedia';
 import { sendCustomerProjectConfirmation } from '@/services/marketplace/customerWhatsAppNotifications';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import type { CreateProjectInput } from '@/types/marketplace';
@@ -311,15 +311,20 @@ export async function POST(request: Request) {
       }
     }
 
+    const projectForResponse = {
+      ...project,
+      media: await createProjectMediaSignedUrls(project.media),
+    };
+
     return NextResponse.json(
       {
         project: {
-          ...project,
+          ...projectForResponse,
           guestPhone: undefined,
           guestEmail: undefined,
         },
         accessToken,
-        mediaStored: project.media.length > 0,
+        mediaStored: projectForResponse.media.length > 0,
         mediaWarning,
         routing,
         preferredProvider,
