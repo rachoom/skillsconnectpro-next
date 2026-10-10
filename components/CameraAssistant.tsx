@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, X, Loader2, ScanLine, ArrowRight, MapPin } from 'lucide-react';
+import { Camera, Image as ImageIcon, X, Loader2, ScanLine, ArrowRight, MapPin } from 'lucide-react';
 import { analyzeImageIntent } from '../services/aiService';
 
 interface CameraAssistantProps {
@@ -14,10 +14,15 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState('');
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleCameraClick = () => {
-    fileInputRef.current?.click();
+    cameraInputRef.current?.click();
+  };
+
+  const handleGalleryClick = () => {
+    galleryInputRef.current?.click();
   };
 
   // ==========================================
@@ -102,30 +107,50 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
     setImagePreview(null);
     setAiAnalysis({ trade: '', problem: '' });
     setUserLocation('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   return (
     <>
-      <input 
-        type="file" 
-        accept="image/*" 
-        capture="environment" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        ref={cameraInputRef}
+        onChange={handleFileChange}
         className="hidden"
-        aria-label="Capture a photo for AI service detection"
+        aria-label="Take a new photo for AI service detection"
+      />
+      <input
+        type="file"
+        accept="image/*"
+        ref={galleryInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        aria-label="Choose a photo for AI service detection"
       />
 
       {/* Unified Yellow Outlined Camera Button */}
       {!showResult && (
-        <button 
-          onClick={handleCameraClick}
-          className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-[90] h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group"
-          aria-label="Open camera assistant"
-        >
-          <Camera className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
-        </button>
+        <div className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-[90] flex items-center gap-2">
+          <button
+            onClick={handleCameraClick}
+            className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group"
+            aria-label="Take a photo for AI service detection"
+            title="Take photo"
+          >
+            <Camera className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+          </button>
+          <button
+            onClick={handleGalleryClick}
+            className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl border-2 border-brand-yellow bg-gradient-to-b from-brand-yellow/20 to-brand-yellow/5 text-brand-yellow shadow-[0_8px_20px_rgba(250,204,21,0.22)] hover:bg-brand-yellow hover:text-black hover:shadow-[0_10px_24px_rgba(250,204,21,0.35)] active:translate-y-[1px] transition-all flex items-center justify-center group"
+            aria-label="Choose a photo for AI service detection"
+            title="Choose photo"
+          >
+            <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
       )}
 
       {/* AI VISION MODAL */}
@@ -219,12 +244,20 @@ export const CameraAssistant: React.FC<CameraAssistantProps> = ({ onSearch, onLo
                     </button>
                   </>
                 ) : (
-                  <button 
-                    onClick={handleCameraClick}
-                    className="w-full h-16 rounded-xl flex items-center justify-center gap-3 bg-zinc-800 text-white font-bold uppercase tracking-wider hover:bg-zinc-700"
-                  >
-                    <Camera size={20} /> Retake Photo
-                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={handleCameraClick}
+                      className="h-16 rounded-xl flex items-center justify-center gap-2 bg-zinc-800 text-white font-bold uppercase tracking-wider hover:bg-zinc-700"
+                    >
+                      <Camera size={20} /> Take photo
+                    </button>
+                    <button
+                      onClick={handleGalleryClick}
+                      className="h-16 rounded-xl flex items-center justify-center gap-2 bg-zinc-800 text-white font-bold uppercase tracking-wider hover:bg-zinc-700"
+                    >
+                      <ImageIcon size={20} /> Choose photo
+                    </button>
+                  </div>
                 )}
               </div>
             )}
