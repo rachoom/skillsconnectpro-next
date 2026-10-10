@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
 import { getProjectByAccessToken, getProjectTimeline } from './projects';
 import { isContactAccessActive } from './contactAccessPolicy.js';
+import { createProjectMediaSignedUrls } from './projectMedia';
 
 const SAFE_PROVIDER_SNAPSHOT_FIELDS = [
   'name',
@@ -47,6 +48,10 @@ export async function getCustomerProjectResponseFeed(
 ) {
   const project = await getProjectByAccessToken(projectId, accessToken);
   if (!project) return null;
+  const projectWithMedia = {
+    ...project,
+    media: await createProjectMediaSignedUrls(project.media),
+  };
 
   const supabase = getSupabaseAdmin();
   const [invitationResult, responseResult, matchResult, timeline] = await Promise.all([
@@ -150,7 +155,7 @@ export async function getCustomerProjectResponseFeed(
 
   return {
     project: {
-      ...project,
+      ...projectWithMedia,
       guestPhone: null,
       guestEmail: null,
     },
