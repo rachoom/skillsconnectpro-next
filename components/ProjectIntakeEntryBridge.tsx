@@ -50,6 +50,7 @@ export const ProjectIntakeEntryBridge = () => {
     const providerName = normalise(searchParams.get('providerName'));
     const providerId = Number(searchParams.get('providerId'));
     const mode = normalise(searchParams.get('mode')).toLowerCase();
+    const galleryMode = mode === 'gallery';
     const descriptionPrefill = normalise(searchParams.get('description'));
 
     let attempts = 0;
@@ -69,7 +70,9 @@ export const ProjectIntakeEntryBridge = () => {
       }
 
       const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-intake-composer-tools] button'));
-      const preferredButton = mode === 'photo'
+      const imageInput = document.querySelector<HTMLInputElement>('input[type="file"][accept*="image"]');
+      if (galleryMode) imageInput?.removeAttribute('capture');
+      const preferredButton = mode === 'photo' || galleryMode
         ? buttons.find((button) => button.textContent?.toLowerCase().includes('photo'))
         : mode === 'voice'
           ? buttons.find((button) => button.textContent?.toLowerCase().includes('voice'))
