@@ -323,7 +323,7 @@ function fallbackAssessment(description: string, answers: IntakeAnswer[]): Intak
     estimatedMax,
     materials: [],
     floorPlan,
-    clarifyingQuestions, answers.length >= MINIMUM_INITIAL_QUESTIONS
+    clarifyingQuestions: answers.length >= MINIMUM_INITIAL_QUESTIONS
       ? []
       : buildBaselineQuestions(category, description),
     estimateType: answers.length > 0 ? 'refined' : 'standardized',
