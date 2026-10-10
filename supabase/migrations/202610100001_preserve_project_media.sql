@@ -4,14 +4,14 @@ alter table public.projects
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
-  'project-media',
-  'project-media',
+  'project-media-private',
+  'project-media-private',
   true,
   2097152,
   array['image/jpeg', 'image/png', 'image/webp']
 )
 on conflict (id) do update
 set
-  public = true,
+  public = false,
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
