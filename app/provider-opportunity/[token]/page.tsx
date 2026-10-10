@@ -331,6 +331,14 @@ export default function ProviderOpportunityPage() {
             <article data-provider-job-card className="rounded-[1.75rem] border-2 border-[#7CAD6E] bg-[#FFF9E8] p-5 shadow-lg shadow-[#355332]/15 md:p-6">
               <div className="flex items-center gap-3"><Wrench className="text-[#B07800]" size={19} /><div><h2 className="text-lg font-black">Job overview</h2><span data-vernac>Imininingwane yomsebenzi</span></div></div>
               <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#3E493A]">{project.customerDescription}</p>
+              {project.media?.some((item) => item.url) && (
+                <figure className="mt-4 overflow-hidden rounded-2xl border-2 border-[#B8CFAE] bg-[#F3F8ED] p-3">
+                  <figcaption className="mb-2 text-[10px] font-black uppercase tracking-wider text-[#52644E]">Customer reference image</figcaption>
+                  {project.media.filter((item) => item.url).map((item) => (
+                    <img key={item.path} src={item.url} alt={item.alt || 'Customer project reference'} loading="lazy" className="max-h-[28rem] w-full rounded-xl object-contain" />
+                  ))}
+                </figure>
+              )}
               <div className="mt-4 grid gap-2 sm:grid-cols-2"><div data-job-fact className="rounded-2xl bg-[#EAF3DE] p-3.5"><p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#60705A]"><CalendarClock size={13} /> Preferred time <span data-vernac-inline>· Isikhathi esithandwayo</span></p><p className="mt-1.5 text-sm font-bold">{formatDate(project.preferredDate)}</p></div><div data-job-fact className="rounded-2xl bg-[#EAF3DE] p-3.5"><p className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">Customer estimate <span data-vernac-inline>· Isilinganiso sekhasimende</span></p><p className="mt-1.5 text-sm font-bold">{project.estimatedMin === null && project.estimatedMax === null ? 'Not supplied' : `${formatMoney(project.estimatedMin, project.estimateCurrency)} – ${formatMoney(project.estimatedMax, project.estimateCurrency)}`}</p></div></div>
               {project.aiSummary && <details className="mt-4 rounded-2xl border border-[#B8CFAE] bg-[#F3F8ED] p-4"><summary className="cursor-pointer text-xs font-black uppercase tracking-wider text-[#52644E]">View preliminary assessment</summary><p className="mt-3 text-sm leading-6 text-[#3E493A]">{project.aiSummary}</p></details>}
               {project.likelyIssue && <p className="mt-4 text-sm text-[#4F5D4A]"><strong className="text-[#203020]">Likely issue:</strong> {project.likelyIssue}</p>}
