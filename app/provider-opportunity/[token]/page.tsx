@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   AlertTriangle,
+  ArrowRight,
   Banknote,
   CalendarClock,
   CalendarDays,
@@ -17,6 +19,7 @@ import {
   MessageCircle,
   Phone,
   ShieldCheck,
+  Sparkles,
   Sun,
   Wrench,
   XCircle,
@@ -27,9 +30,17 @@ import polish from './provider-opportunity-polish.module.css';
 
 type Opportunity = {
   invitationId: string;
-  providerId: number;
+  providerId: string;
   status: string;
   responseDeadline: string | null;
+  leadAccess: {
+    freeLeadLimit: number;
+    freeLeadsUsed: number;
+    freeLeadsRemaining: number;
+    hasPaidAccess: boolean;
+    locked: boolean;
+    activePlan: { code: string; type: 'subscription' | 'lead_pack'; remaining?: number } | null;
+  };
   providerSnapshot: Record<string, unknown>;
   customerContact: {
     name: string;
@@ -261,6 +272,7 @@ export default function ProviderOpportunityPage() {
 
   if (!opportunity) return null;
   const project = opportunity.project;
+  const leadLocked = opportunity.leadAccess.locked;
 
   if (opportunity.customerContact) {
     const contact = opportunity.customerContact;
@@ -320,7 +332,7 @@ export default function ProviderOpportunityPage() {
     <main className={`${polish.scope} min-h-screen bg-[#9FCB8A] px-4 py-5 text-[#203020] md:px-8 md:py-8`}>
       <div className="mx-auto max-w-4xl">
         <header data-provider-header className="mb-4 rounded-[1.75rem] border-2 border-[#D3A826] bg-[#FFF0A8] p-5 shadow-xl shadow-[#355332]/20 md:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div><span className="rounded-full border border-[#D3A826] bg-[#FFE067] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#4A3600]">Quick reply · about 1 minute</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div><span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider ${leadLocked ? 'border-[#8B5B00] bg-[#3B2C08] text-[#FFE689]' : 'border-[#D3A826] bg-[#FFE067] text-[#4A3600]'}`}>{leadLocked ? 'New lead · unlock to respond' : 'Quick reply · about 1 minute'}</span></div>
           <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">{project.title}</h1>
           <p className="mt-2 text-sm leading-6 text-[#4F5D4A]">Hi {providerName}. Can you assist with this job? <span data-vernac-inline>· Ungakwazi yini ukwenza lo msebenzi?</span></p>
           <div data-opportunity-meta className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wider"><span className="rounded-xl bg-[#FFFFFF]/80 px-3 py-2">{project.category}</span><span className="rounded-xl bg-[#FFD45C] px-3 py-2 text-[#4A3500]">{project.urgency}</span><span className="flex items-center gap-1 rounded-xl bg-[#FFFFFF]/80 px-3 py-2"><MapPin size={13} /> {project.serviceArea}</span></div>
@@ -328,7 +340,8 @@ export default function ProviderOpportunityPage() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_390px]">
           <section className="space-y-4">
-            <article data-provider-job-card className="rounded-[1.75rem] border-2 border-[#7CAD6E] bg-[#FFF9E8] p-5 shadow-lg shadow-[#355332]/15 md:p-6">
+            {leadLocked && <article data-provider-lead-preview className="rounded-[1.75rem] border-2 border-[#B58D21] bg-[#FFF9E8] p-5 shadow-lg shadow-[#355332]/15 md:p-6"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-2xl bg-[#FFE067] text-[#5E4300]"><LockKeyhole size={19} /></span><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#987300]">Opportunity preview</p><h2 className="text-lg font-black">A new local job is waiting</h2></div></div><p className="mt-4 text-sm leading-6 text-[#4F5D4A]">You can see the job category, urgency and service area. Unlock your lead access to view the full brief, images and customer response options.</p><div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wider"><span className="rounded-xl bg-[#EAF3DE] px-3 py-2">{project.category}</span><span className="rounded-xl bg-[#FFE067] px-3 py-2 text-[#4A3500]">{project.urgency}</span><span className="flex items-center gap-1 rounded-xl bg-[#FFFFFF]/80 px-3 py-2"><MapPin size={13} /> {project.serviceArea}</span></div></article>}
+            {!leadLocked && <article data-provider-job-card className="rounded-[1.75rem] border-2 border-[#7CAD6E] bg-[#FFF9E8] p-5 shadow-lg shadow-[#355332]/15 md:p-6">
               <div className="flex items-center gap-3"><Wrench className="text-[#B07800]" size={19} /><div><h2 className="text-lg font-black">Job overview</h2><span data-vernac>Imininingwane yomsebenzi</span></div></div>
               <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#3E493A]">{project.customerDescription}</p>
               {project.media?.some((item) => item.url) && (
@@ -343,11 +356,11 @@ export default function ProviderOpportunityPage() {
               {project.aiSummary && <details className="mt-4 rounded-2xl border border-[#B8CFAE] bg-[#F3F8ED] p-4"><summary className="cursor-pointer text-xs font-black uppercase tracking-wider text-[#52644E]">View preliminary assessment</summary><p className="mt-3 text-sm leading-6 text-[#3E493A]">{project.aiSummary}</p></details>}
               {project.likelyIssue && <p className="mt-4 text-sm text-[#4F5D4A]"><strong className="text-[#203020]">Likely issue:</strong> {project.likelyIssue}</p>}
               <p className="mt-4 flex items-center gap-2 text-xs text-[#65735E]"><Clock3 size={14} /> Reply by {formatDate(opportunity.responseDeadline)}</p>
-            </article>
-            {project.safetyNotes.length > 0 && <article className="rounded-[1.75rem] border-2 border-[#D9A52D] bg-[#FFF0B8] p-5"><h2 className="font-black text-[#5F4300]">Safety notes</h2><ul className="mt-3 space-y-2 text-sm text-[#6F5414]">{project.safetyNotes.map((note) => <li key={note}>• {note}</li>)}</ul></article>}
+            </article>}
+            {!leadLocked && project.safetyNotes.length > 0 && <article className="rounded-[1.75rem] border-2 border-[#D9A52D] bg-[#FFF0B8] p-5"><h2 className="font-black text-[#5F4300]">Safety notes</h2><ul className="mt-3 space-y-2 text-sm text-[#6F5414]">{project.safetyNotes.map((note) => <li key={note}>• {note}</li>)}</ul></article>}
           </section>
 
-          <form data-provider-response-form onSubmit={submitResponse} className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
+          {leadLocked ? <aside data-provider-lead-lock className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#201a08] p-5 text-[#FFF9E8] shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5"><div className="flex items-start justify-between gap-3"><span className="flex size-11 items-center justify-center rounded-2xl bg-[#FFD45C] text-[#4A3500]"><Sparkles size={21} /></span><span className="rounded-full border border-[#FFE067]/40 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#FFE067]">Lead access paused</span></div><h2 className="mt-5 text-2xl font-black leading-tight">Your first {opportunity.leadAccess.freeLeadLimit} leads opened the door. Keep it open.</h2><p className="mt-3 text-sm leading-6 text-[#E7DDBA]">Choose a provider plan to unlock this opportunity and keep responding to new customer work.</p><div className="mt-5 rounded-2xl border border-[#FFE067]/25 bg-white/5 p-4"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#FFE067]">Your free lead access</p><div className="mt-2 flex items-end justify-between"><strong className="text-3xl font-black">{opportunity.leadAccess.freeLeadsUsed}<span className="text-base text-[#E7DDBA]"> / {opportunity.leadAccess.freeLeadLimit}</span></strong><span className="text-xs font-bold text-[#E7DDBA]">Free leads used</span></div></div><div className="mt-4 grid grid-cols-3 gap-2"><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Starter<br /><strong>R49</strong></span><span className="rounded-xl bg-[#FFD45C] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Growth<br /><strong>R99</strong></span><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Pro<br /><strong>R199</strong></span></div><Link href={`/provider-plans?provider=${encodeURIComponent(opportunity.providerId)}`} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FFD45C] px-4 py-3.5 text-sm font-black text-[#342600]">Unlock this lead <ArrowRight size={18} /></Link><Link href="/provider-plans" className="mt-3 flex items-center justify-center text-xs font-bold text-[#FFE689] underline underline-offset-4">Compare every provider plan</Link></aside> : <form data-provider-response-form onSubmit={submitResponse} className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
             <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-black">Respond to this opportunity</h2><span data-vernac>Phendula ngaleli thuba lomsebenzi</span><p className="mt-1 text-xs leading-5 text-[#6E765F]">Choose your availability. Pricing and a note are optional.</p></div><MessageCircle className="mt-1 text-[#B07800]" size={21} /></div>
             <div className="mt-4 grid grid-cols-2 gap-2">{responseOptions.map((option) => { const Icon = option.icon; const active = form.responseType === option.value; return <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} type="button" key={option.value} onClick={() => chooseResponse(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm transition ${option.tone} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : 'hover:-translate-y-0.5'}`}>{active && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}<Icon size={18} /><span className="mt-2 block pr-4 text-sm font-black leading-tight">{option.title}</span><span className="mt-1 block text-[10px] leading-4 text-[#4D5949]">{option.helper}</span><span data-vernac-choice>{option.isiZulu}</span></button>; })}</div>
             <button data-provider-decline data-selected={form.responseType === 'declined' ? 'true' : 'false'} type="button" onClick={() => chooseResponse('declined')} className={`mt-2 flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 text-left ${form.responseType === 'declined' ? 'border-[#B95C69] bg-[#FFC8D2] text-[#6E2430] ring-4 ring-[#6E2430]/15' : 'border-[#D7A5AD] bg-[#FFE5E9] text-[#74404A]'}`}><span className="flex items-center gap-2 text-sm font-bold"><XCircle size={17} /><span>Not available for this job <span data-vernac-inline>· Angitholakali kulo msebenzi</span></span></span><span className="text-[10px] uppercase tracking-wider">Decline</span></button>
@@ -358,7 +371,7 @@ export default function ProviderOpportunityPage() {
             <label className="mt-4 block"><span className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">Message to customer — optional <span data-vernac-inline>· Umlayezo oya ekhasimendeni</span></span><textarea value={form.providerMessage} onChange={(event) => setForm({ ...form, providerMessage: event.target.value })} placeholder={form.responseType === 'need_information' ? 'What do you need to know?' : 'Add a quick note or question'} className="mt-1.5 min-h-20 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none focus:border-[#D2A326]" /></label>
             {error && <p className="mt-3 rounded-xl border border-[#C95D65] bg-[#FFDDE2] p-3 text-sm text-[#8E3039]">{error}</p>}
             <button disabled={submitting} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md disabled:opacity-50 ${form.responseType === 'declined' ? 'border-[#96515C] bg-[#FFC8D2] text-[#64212C]' : 'border-[#C18A00] bg-[#FFC21A] text-[#2E2200]'}`}>{submitting ? <Loader2 className="animate-spin" size={17} /> : <CheckCircle2 size={17} />}<span data-submit-copy><span>{submitLabel}</span><span data-vernac-submit>{submitIsiZulu}</span></span></button>
-          </form>
+          </form>}
         </div>
       </div>
     </main>

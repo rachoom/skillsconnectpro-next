@@ -3,12 +3,30 @@ import type { ProviderResponseType } from '../../types/marketplace';
 import { hashOpaqueToken } from './tokens';
 import { isContactAccessActive } from './contactAccessPolicy.js';
 import { createProjectMediaSignedUrls } from './projectMedia';
+import { buildProviderLeadAccess, parseFreeLeadLimit } from './providerLeadAccessPolicy.js';
+
+type ProviderLeadAccess = {
+  freeLeadLimit: number;
+  freeLeadsUsed: number;
+  freeLeadsRemaining: number;
+  hasPaidAccess: boolean;
+  locked: boolean;
+  activePlan: {
+    id?: string;
+    code: string;
+    type: 'subscription' | 'lead_pack';
+    remaining?: number;
+    qualifiedLeadsUsed?: number;
+    qualifiedLeadsLimit?: number;
+  } | null;
+};
 
 export interface ProviderOpportunity {
   invitationId: string;
-  providerId: number;
+  providerId: string;
   status: string;
   responseDeadline: string | null;
+  leadAccess: ProviderLeadAccess;
   project: {
     id: string;
     title: string;
@@ -55,11 +73,21 @@ export interface SubmitProviderResponseInput {
 type InvitationTokenRow = {
   id: string;
   project_id: string;
-  provider_id: number;
+  provider_id: string;
   status: string;
   response_deadline: string | null;
   response_token_expires_at: string | null;
   provider_snapshot: Record<string, unknown> | null;
+};
+
+type SubscriptionEntitlementRow = {
+  id: string;
+  plan_code: string;
+  status: string;
+  qualified_leads_used: number;
+  qualified_leads_limit: number | null;
+  starts_at: string;
+  ends_at: string | null;
 };
 
 function ensureTokenActive(invitation: InvitationTokenRow): void {
@@ -88,6 +116,56 @@ async function findInvitationByToken(token: string): Promise<InvitationTokenRow 
 
   if (error) throw new Error(`Unable to load provider opportunity: ${error.message}`);
   return data as InvitationTokenRow | null;
+}
+
+async function loadProviderLeadAccess(
+  providerId: string,
+  currentInvitationId: string,
+): Promise<ProviderLeadAccess> {
+  const supabase = getSupabaseAdmin();
+  const [{ count, error: countError }, { data: entitlementData, error: entitlementError }] = await Promise.all([
+    supabase
+      .from('lead_invitations')
+      .select('id', { count: 'exact', head: true })
+      .eq('provider_id', providerId)
+      .neq('id', currentInvitationId)
+      .in('status', ['sent', 'delivered', 'viewed', 'accepted']),
+    supabase
+      .from('subscription_entitlements')
+      .select('id, plan_code, status, qualified_leads_used, qualified_leads_limit, starts_at, ends_at')
+      .eq('subject_type', 'provider')
+      .eq('subject_id', providerId)
+      .in('status', ['trial', 'active'])
+      .order('created_at', { ascending: false }),
+  ]);
+
+  if (countError) throw new Error(`Unable to check provider lead access: ${countError.message}`);
+  if (entitlementError) throw new Error(`Unable to check provider plan: ${entitlementError.message}`);
+
+  return buildProviderLeadAccess({
+    usedFreeLeads: count ?? 0,
+    freeLeadLimit: parseFreeLeadLimit(process.env.PROVIDER_FREE_LEAD_LIMIT),
+    entitlements: (entitlementData ?? []) as SubscriptionEntitlementRow[],
+  }) as ProviderLeadAccess;
+}
+
+async function consumeLeadPackCredit(access: ProviderLeadAccess): Promise<void> {
+  if (access.activePlan?.type !== 'lead_pack' || !access.activePlan.id) return;
+
+  const used = access.activePlan.qualifiedLeadsUsed ?? 0;
+  const limit = access.activePlan.qualifiedLeadsLimit ?? 0;
+  if (used >= limit) throw new Error('Your lead pack has no remaining credits.');
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('subscription_entitlements')
+    .update({ qualified_leads_used: used + 1 })
+    .eq('id', access.activePlan.id)
+    .eq('qualified_leads_used', used)
+    .select('id')
+    .maybeSingle();
+
+  if (error) throw new Error(`Unable to use lead credit: ${error.message}`);
+  if (!data) throw new Error('That lead credit was just used. Please reopen this opportunity.');
 }
 
 export async function getProviderOpportunity(token: string): Promise<ProviderOpportunity | null> {
@@ -135,15 +213,27 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
 
   const serviceArea = projectData.suburb || projectData.city || projectData.location_text;
   const customerPhone = projectData.guest_phone?.trim() || '';
-  const media = await createProjectMediaSignedUrls(
-    Array.isArray(projectData.media) ? projectData.media : [],
-  );
+  const leadAccess = selectedAndReleased
+    ? {
+        freeLeadLimit: parseFreeLeadLimit(process.env.PROVIDER_FREE_LEAD_LIMIT),
+        freeLeadsUsed: 0,
+        freeLeadsRemaining: 0,
+        hasPaidAccess: true,
+        locked: false,
+        activePlan: null,
+      }
+    : await loadProviderLeadAccess(invitation.provider_id, invitation.id);
+  const projectUnlocked = selectedAndReleased || !leadAccess.locked;
+  const media = projectUnlocked
+    ? await createProjectMediaSignedUrls(Array.isArray(projectData.media) ? projectData.media : [])
+    : [];
 
   return {
     invitationId: invitation.id,
     providerId: invitation.provider_id,
     status: selectedAndReleased ? 'contact_released' : invitation.status,
     responseDeadline: invitation.response_deadline,
+    leadAccess,
     providerSnapshot: invitation.provider_snapshot ?? {},
     customerContact: selectedAndReleased && isContactAccessActive(projectData.status, matchData?.contact_released_at) && customerPhone
       ? {
@@ -158,19 +248,19 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
     project: {
       id: projectData.id,
       title: projectData.title,
-      customerDescription: projectData.customer_description,
-      aiSummary: projectData.ai_summary,
-      likelyIssue: projectData.likely_issue,
+      customerDescription: projectUnlocked ? projectData.customer_description : 'Choose a provider plan to unlock the full job brief and respond to this customer.',
+      aiSummary: projectUnlocked ? projectData.ai_summary : null,
+      likelyIssue: projectUnlocked ? projectData.likely_issue : null,
       category: projectData.category,
       urgency: projectData.urgency,
       serviceLevel: projectData.service_level,
       serviceArea,
-      preferredDate: projectData.preferred_date,
-      estimatedMin: projectData.estimated_min,
-      estimatedMax: projectData.estimated_max,
+      preferredDate: projectUnlocked ? projectData.preferred_date : null,
+      estimatedMin: projectUnlocked ? projectData.estimated_min : null,
+      estimatedMax: projectUnlocked ? projectData.estimated_max : null,
       estimateCurrency: projectData.estimate_currency,
-      safetyNotes: projectData.safety_notes ?? [],
-      materials: projectData.materials ?? [],
+      safetyNotes: projectUnlocked ? projectData.safety_notes ?? [] : [],
+      materials: projectUnlocked ? projectData.materials ?? [] : [],
       media,
       professionalInspectionRequired: projectData.professional_inspection_required,
       status: projectData.status,
@@ -194,6 +284,10 @@ export async function submitProviderResponse(
   ensureTokenActive(invitation);
 
   if (!input.responseType) throw new Error('responseType is required.');
+  const leadAccess = await loadProviderLeadAccess(invitation.provider_id, invitation.id);
+  if (leadAccess.locked && input.responseType !== 'declined') {
+    throw new Error('This opportunity is locked. Choose a provider plan to unlock and respond to more leads.');
+  }
   assertOptionalMoney(input.siteVisitFee, 'siteVisitFee');
   assertOptionalMoney(input.estimateMin, 'estimateMin');
   assertOptionalMoney(input.estimateMax, 'estimateMax');
@@ -236,6 +330,16 @@ export async function submitProviderResponse(
 
   if (responseError) throw new Error(`Unable to save provider response: ${responseError.message}`);
   if (!responseData) throw new Error('Unable to save provider response: no row returned.');
+
+  if (!declined) {
+    try {
+      await consumeLeadPackCredit(leadAccess);
+    } catch (creditError) {
+      // The provider response is already durable. Keep the customer workflow
+      // intact and surface the reconciliation failure for operational follow-up.
+      console.error('Provider response saved but lead-pack credit was not consumed:', creditError);
+    }
+  }
 
   const { error: invitationError } = await supabase
     .from('lead_invitations')

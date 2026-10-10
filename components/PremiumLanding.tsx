@@ -107,6 +107,7 @@ export function PremiumLanding() {
             <a href="#how-it-works">How it works</a>
             <Link href="/assistant">AI Project Assistant</Link>
             <Link href="/browse-providers">Find a provider</Link>
+            <Link href="/provider-plans">Provider plans</Link>
           </div>
           <div className={styles.navActions}>
             <Link href="/join" className={styles.join}>Join as provider <ArrowRight size={15} /></Link>
@@ -130,6 +131,7 @@ export function PremiumLanding() {
             <Link href="/browse-providers" onClick={closeMenu}>Find a provider</Link>
             <Link href="/assistant" onClick={closeMenu}>AI Project Assistant</Link>
             <Link href="/estimator" onClick={closeMenu}>Project estimator</Link>
+            <Link href="/provider-plans" onClick={closeMenu}>Provider plans</Link>
             <a href="#support" onClick={closeMenu}>Help & support</a>
           </div>
         )}
@@ -294,13 +296,13 @@ export function PremiumLanding() {
       </section>
 
       <section className={styles.provider}>
-        <div><span className={styles.greenKicker}>FOR MZANSI&apos;S SKILLED PROFESSIONALS</span><h2>Good at what you do?</h2><p>Join the local provider network and put your skills where customers can find them.</p></div>
-        <Link href="/join" className={styles.primary}>Join as provider <ArrowRight size={18} /></Link>
+        <div><span className={styles.greenKicker}>FOR MZANSI&apos;S SKILLED PROFESSIONALS</span><h2>Good at what you do?</h2><p>Join the local provider network and put your skills where customers can find them. Your first three customer opportunities are on us.</p></div>
+        <div className={styles.providerActions}><Link href="/provider-plans" className={styles.providerPlans}>View provider plans</Link><Link href="/join" className={styles.primary}>Join as provider <ArrowRight size={18} /></Link></div>
       </section>
 
       <footer className={styles.footer}>
         <Link href="/" className={styles.brand} aria-label="Skills Connect Pro home"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={220} height={58} /></Link>
-        <div><Link href="/get-help">Request a service</Link><Link href="/browse-providers">Find a provider</Link><Link href="/assistant">AI Project Assistant</Link></div>
+        <div><Link href="/get-help">Request a service</Link><Link href="/browse-providers">Find a provider</Link><Link href="/assistant">AI Project Assistant</Link><Link href="/provider-plans">Provider plans</Link></div>
         <p>Starting in Ekurhuleni. Built to grow across Mzansi. Customers contract directly with independent providers.</p>
       </footer>
     </main>
