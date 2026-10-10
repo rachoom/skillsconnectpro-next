@@ -250,7 +250,7 @@ function normaliseAssessment(value: unknown, model: string): IntakeAssessment {
       : estimatedMax,
     materials,
     floorPlan,
-    clarifyingQuestions:
+    clarifyingQuestions,
     estimateType: record.estimateType === 'refined' ? 'refined' : 'standardized',
     model,
   };
@@ -323,7 +323,7 @@ function fallbackAssessment(description: string, answers: IntakeAnswer[]): Intak
     estimatedMax,
     materials: [],
     floorPlan,
-    clarifyingQuestions: answers.length >= MINIMUM_INITIAL_QUESTIONS
+    clarifyingQuestions, answers.length >= MINIMUM_INITIAL_QUESTIONS
       ? []
       : buildBaselineQuestions(category, description),
     estimateType: answers.length > 0 ? 'refined' : 'standardized',
