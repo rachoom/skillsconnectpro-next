@@ -31,6 +31,24 @@ type IntakeMaterial = {
   notes?: string;
 };
 
+type FloorPlanRoom = {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  notes?: string;
+};
+
+type FloorPlan = {
+  title: string;
+  overallLength: number;
+  overallWidth: number;
+  rooms: FloorPlanRoom[];
+  assumptions: string[];
+};
+
 type IntakeAssessment = {
   title: string;
   summary: string;
@@ -43,6 +61,7 @@ type IntakeAssessment = {
   estimatedMin: number | null;
   estimatedMax: number | null;
   materials: IntakeMaterial[];
+  floorPlan?: FloorPlan;
   clarifyingQuestions: IntakePolicyQuestion[];
   estimateType: 'standardized' | 'refined';
   model: string;
@@ -96,6 +115,55 @@ function cleanQuestionCount(value: unknown): number {
 function safeNumber(value: unknown): number | null {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return null;
   return Math.round(value);
+}
+
+function safeDimension(value: unknown, fallback: number, minimum = 0.5, maximum = 50): number {
+  const number = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  return Math.max(minimum, Math.min(maximum, number));
+}
+
+function isFloorPlanRequest(text: string): boolean {
+  return /floor\s*plan|house\s*plan|architectural\s*plan|building\s*plan|room\s+layout|layout\s+plan|plan\s+layout|new\s+(?:building|house|structure|construction)|outbuilding|extension\s+plan|sketch\s+plan/i.test(text);
+}
+
+function normaliseFloorPlan(value: unknown): FloorPlan | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  const overallLength = safeDimension(record.overallLength, 6);
+  const overallWidth = safeDimension(record.overallWidth, 2.5);
+  const rawRooms = Array.isArray(record.rooms) ? record.rooms : [];
+  const rooms = rawRooms
+    .map((item, index): FloorPlanRoom | null => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+      const room = item as Record<string, unknown>;
+      const name = cleanText(room.name, 80);
+      if (!name) return null;
+      const roomWidth = safeDimension(room.width, overallLength / 2);
+      const roomHeight = safeDimension(room.height, overallWidth);
+      const x = Math.max(0, Math.min(overallLength - roomWidth, safeDimension(room.x, 0, 0, overallLength)));
+      const y = Math.max(0, Math.min(overallWidth - roomHeight, safeDimension(room.y, 0, 0, overallWidth)));
+      return {
+        id: cleanText(room.id, 60) || `room-${index + 1}`,
+        name,
+        x,
+        y,
+        width: Math.min(roomWidth, overallLength),
+        height: Math.min(roomHeight, overallWidth),
+        notes: cleanText(room.notes, 200) || undefined,
+      };
+    })
+    .filter((item): item is FloorPlanRoom => Boolean(item))
+    .slice(0, 8);
+  if (!rooms.length) return undefined;
+  return {
+    title: cleanText(record.title, 120) || 'Preliminary floor-plan concept',
+    overallLength,
+    overallWidth,
+    rooms,
+    assumptions: Array.isArray(record.assumptions)
+      ? record.assumptions.map((item) => cleanText(item, 240)).filter(Boolean).slice(0, 6)
+      : [],
+  };
 }
 
 function normaliseUrgency(value: unknown): IntakeAssessment['urgency'] {
@@ -152,6 +220,8 @@ function normaliseAssessment(value: unknown, model: string): IntakeAssessment {
     .filter((item): item is IntakePolicyQuestion => Boolean(item))
     .slice(0, MAXIMUM_QUESTIONS_PER_ROUND);
 
+  const floorPlan = normaliseFloorPlan(record.floorPlan);
+
   const requestedCategory = cleanText(record.category, 80);
   const category = CATEGORY_OPTIONS.find(
     (option) => option.toLowerCase() === requestedCategory.toLowerCase(),
@@ -179,9 +249,28 @@ function normaliseAssessment(value: unknown, model: string): IntakeAssessment {
       ? estimatedMin
       : estimatedMax,
     materials,
-    clarifyingQuestions,
+    floorPlan,
+    clarifyingQuestions:
     estimateType: record.estimateType === 'refined' ? 'refined' : 'standardized',
     model,
+  };
+}
+
+function defaultFloorPlan(): FloorPlan {
+  return {
+    title: 'Compact two-room building concept',
+    overallLength: 6,
+    overallWidth: 2.5,
+    rooms: [
+      { id: 'bedroom', name: 'Bedroom', x: 0, y: 0, width: 2.5, height: 2.5 },
+      { id: 'toilet', name: 'Toilet', x: 2.5, y: 0, width: 1.2, height: 1.5 },
+      { id: 'kitchen-lounge', name: 'Kitchen + lounge', x: 3.7, y: 0, width: 2.3, height: 2.5 },
+    ],
+    assumptions: [
+      'Compact 6.0 m × 2.5 m concept based on the available description.',
+      'Room positions and dimensions must be checked against the actual site and structure.',
+      'A qualified draughtsperson or architect must prepare any submission or construction drawing.',
+    ],
   };
 }
 
@@ -210,6 +299,7 @@ function fallbackAssessment(description: string, answers: IntakeAnswer[]): Intak
     'General Contractor': [1_500, 25_000],
   };
   const [estimatedMin, estimatedMax] = ranges[category] ?? [1_500, 25_000];
+  const floorPlan = isFloorPlanRequest(combinedText) ? defaultFloorPlan() : undefined;
   const answerSummary = answers.length
     ? ` Customer details: ${answers.map((item) => `${item.question} ${item.answer}`).join('; ')}.`
     : '';
@@ -232,6 +322,7 @@ function fallbackAssessment(description: string, answers: IntakeAnswer[]): Intak
     estimatedMin,
     estimatedMax,
     materials: [],
+    floorPlan,
     clarifyingQuestions: answers.length >= MINIMUM_INITIAL_QUESTIONS
       ? []
       : buildBaselineQuestions(category, description),
@@ -352,6 +443,9 @@ export async function POST(request: NextRequest) {
     const questionInstruction = firstRound
       ? `Ask between ${MINIMUM_INITIAL_QUESTIONS} and ${Math.min(MAXIMUM_QUESTIONS_PER_ROUND, hardRemaining)} useful, job-specific clarification questions.`
       : 'Ask another question only when essential information is genuinely still missing. Otherwise return an empty clarifyingQuestions array.';
+    const floorPlanInstruction = isFloorPlanRequest(description + ' ' + answers.map((item) => item.answer).join(' '))
+      ? 'This is a floor-plan or new-construction request. Return a floorPlan object with a coherent dimensioned layout.'
+      : 'This is not a floor-plan request. Return floorPlan as null.';
 
     const prompt = `You are the structured intake assistant for Skills Connect Pro, a South African home-services marketplace.
 
@@ -380,6 +474,7 @@ Return ONLY valid JSON with this exact shape:
   "estimatedMin": 0,
   "estimatedMax": 0,
   "materials": [{"name":"Item","quantity":1,"unit":"item","estimatedUnitPrice":0,"estimatedTotal":0,"notes":"Optional"}],
+  "floorPlan": null,
   "clarifyingQuestions": [{"id":"short-id","question":"Question","options":["Option"],"required":true}],
   "estimateType": "standardized | refined"
 }
@@ -394,7 +489,10 @@ Rules:
 7. Do not recommend DIY work for dangerous electrical, gas, structural or major plumbing hazards.
 8. Return null for estimatedMin and estimatedMax when a meaningful range cannot be given.
 9. Materials are preliminary possibilities, not shopping instructions. Return an empty array when uncertain.
-10. Keep language clear, practical and suitable for customers with varied literacy levels.`;
+10. Keep language clear, practical and suitable for customers with varied literacy levels.
+11. ${floorPlanInstruction}
+12. When returning a floorPlan, use metres and keep every room rectangle inside the overallLength × overallWidth boundary. Room rectangles must not overlap. Include 2–8 rooms with x, y, width and height measured from the top-left corner.
+13. A floorPlan is a clean concept visual only; never claim it is approved, structurally certified or ready for construction.`;
 
     const contents: Array<string | { inlineData: { mimeType: string; data: string } }> = [prompt];
     if (image) {
