@@ -27,6 +27,7 @@ import {
   isLikelyStreetAddress,
   phoneValidationMessage,
 } from '../services/marketplace/intakePolicy.js';
+import { FloorPlanPreview, type FloorPlan } from './FloorPlanPreview';
 
 type ProjectUrgency = 'emergency' | 'urgent' | 'planned' | 'large_project';
 
@@ -63,6 +64,7 @@ type IntakeAssessment = {
   estimatedMin: number | null;
   estimatedMax: number | null;
   materials: IntakeMaterial[];
+  floorPlan?: FloorPlan;
   clarifyingQuestions: IntakeQuestion[];
   estimateType: 'standardized' | 'refined';
   model: string;
@@ -500,6 +502,7 @@ export const ProjectIntakeV2: React.FC = () => {
             questionsAsked: questionCount,
             estimateType: assessment.estimateType,
             model: assessment.model,
+            floorPlan: assessment.floorPlan ?? null,
             photoUsed: Boolean(imageData),
             intakeVersion: 'guided-web-v2',
           },
@@ -765,6 +768,8 @@ export const ProjectIntakeV2: React.FC = () => {
                     />
                   </div>
                 )}
+
+                {assessment.floorPlan && <FloorPlanPreview plan={assessment.floorPlan} />}
 
                 {usedFallback && <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-bold text-amber-900">A structured trade checklist was used because live AI assessment was unavailable.</div>}
                 {assessment.safetyNotes.length > 0 && <div data-intake-safety className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><strong className="flex items-center gap-2"><AlertTriangle size={18} /> Safety first</strong>{assessment.safetyNotes.map((note) => <p key={note} className="mt-2">• {note}</p>)}</div>}
