@@ -42,6 +42,14 @@ export interface ProjectMaterial {
   notes?: string;
 }
 
+export interface ProjectMedia {
+  path: string;
+  url?: string;
+  type: 'image';
+  alt?: string;
+  createdAt?: string;
+}
+
 export interface ProjectAssessmentPayload {
   alternateIssues?: Array<{
     issue: string;
@@ -83,6 +91,7 @@ export interface Project {
   professionalInspectionRequired: boolean;
   safetyNotes: string[];
   materials: ProjectMaterial[];
+  media: ProjectMedia[];
   assessmentPayload: ProjectAssessmentPayload;
   sourceChannel: ProjectSourceChannel;
   consentToShare: boolean;
@@ -116,6 +125,7 @@ export interface CreateProjectInput {
   professionalInspectionRequired?: boolean;
   safetyNotes?: string[];
   materials?: ProjectMaterial[];
+  media?: ProjectMedia[];
   assessmentPayload?: ProjectAssessmentPayload;
   sourceChannel?: ProjectSourceChannel;
   consentToShare?: boolean;
