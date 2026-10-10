@@ -6,7 +6,8 @@ import {
   phoneValidationMessage,
 } from '@/services/marketplace/intakePolicy.js';
 import { createProviderInvitations } from '@/services/marketplace/invitations';
-import { createProject } from '@/services/marketplace/projects';
+import { createProject, updateProjectMedia } from '@/services/marketplace/projects';
+import { storeProjectImage } from '@/services/marketplace/projectMedia';
 import { sendCustomerProjectConfirmation } from '@/services/marketplace/customerWhatsAppNotifications';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import type { CreateProjectInput } from '@/types/marketplace';
@@ -223,7 +224,28 @@ export async function POST(request: Request) {
       ? positiveInteger((body as Record<string, unknown>).preferredProviderId)
       : null;
     const input = parsePublicIntake(body);
-    const { project, accessToken } = await createProject(input);
+    const imageData = body && typeof body === 'object' && !Array.isArray(body)
+      ? text((body as Record<string, unknown>).image, 3_000_000)
+      : '';
+    const { project: createdProject, accessToken } = await createProject(input);
+    let project = createdProject;
+    let mediaWarning: string | null = null;
+
+    if (imageData) {
+      try {
+        const storedMedia = await storeProjectImage(
+          project.id,
+          imageData,
+          `Customer reference image for ${project.title}`,
+        );
+        if (storedMedia) {
+          project = await updateProjectMedia(project.id, [storedMedia]);
+        }
+      } catch (imageError) {
+        mediaWarning = 'The project was created, but the reference image could not be saved.';
+        console.error('Project created but reference image storage failed:', imageError);
+      }
+    }
 
     try {
       const customerNotification = await sendCustomerProjectConfirmation({
@@ -297,6 +319,8 @@ export async function POST(request: Request) {
           guestEmail: undefined,
         },
         accessToken,
+        mediaStored: project.media.length > 0,
+        mediaWarning,
         routing,
         preferredProvider,
       },
