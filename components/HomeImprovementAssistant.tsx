@@ -93,7 +93,7 @@ const inferIntent = (prompt: string): AssistantIntent => {
   return 'plan';
 };
 
-const destinationFor = (intent: AssistantIntent, prompt = '') => {
+const destinationFor = (intent: AssistantIntent, prompt = '', entryMode = '') => {
   const encodedPrompt = encodeURIComponent(prompt.trim());
   const description = encodedPrompt ? `&description=${encodedPrompt}` : '';
 
@@ -101,7 +101,10 @@ const destinationFor = (intent: AssistantIntent, prompt = '') => {
     return encodedPrompt ? `/estimator?description=${encodedPrompt}` : '/estimator';
   }
 
-  if (intent === 'photo') return `/get-help?mode=photo${description}`;
+  if (intent === 'photo') {
+    const photoMode = entryMode === 'gallery' ? 'gallery' : 'photo';
+    return `/get-help?mode=${photoMode}${description}`;
+  }
   if (intent === 'find') return `/get-help?mode=match${description}`;
   return `/get-help?mode=plan${description}`;
 };
@@ -122,11 +125,11 @@ export const HomeImprovementAssistant = ({
 
   const selectedAction = actions.find((action) => action.intent === selectedIntent) || null;
 
-  const continueTo = (intent: AssistantIntent, currentPrompt = prompt) => {
+  const continueTo = (intent: AssistantIntent, currentPrompt = prompt, entryMode = '') => {
     setSelectedIntent(intent);
     setStatus('Preparing the right next step…');
     setIsRouting(true);
-    router.push(destinationFor(intent, currentPrompt));
+    router.push(destinationFor(intent, currentPrompt, entryMode));
   };
 
   const handleAction = (intent: AssistantIntent) => {
@@ -263,10 +266,10 @@ export const HomeImprovementAssistant = ({
             />
             <div className={styles.composerTools}>
               <div className={styles.inputMethods}>
-                <button type="button" onClick={() => continueTo('photo')} title="Take a project photo" aria-label="Take a project photo" disabled={isRouting}>
+                <button type="button" onClick={() => continueTo('photo', prompt, 'camera')} title="Take a project photo" aria-label="Take a project photo" disabled={isRouting}>
                   <Camera size={19} />
                 </button>
-                <button type="button" onClick={() => continueTo('photo')} title="Upload a project image" aria-label="Upload a project image" disabled={isRouting}>
+                <button type="button" onClick={() => continueTo('photo', prompt, 'gallery')} title="Choose a project image from your device" aria-label="Choose a project image from your device" disabled={isRouting}>
                   <ImageIcon size={19} />
                 </button>
                 <button
