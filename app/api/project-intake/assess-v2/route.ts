@@ -444,7 +444,7 @@ export async function POST(request: NextRequest) {
       ? `Ask between ${MINIMUM_INITIAL_QUESTIONS} and ${Math.min(MAXIMUM_QUESTIONS_PER_ROUND, hardRemaining)} useful, job-specific clarification questions.`
       : 'Ask another question only when essential information is genuinely still missing. Otherwise return an empty clarifyingQuestions array.';
     const floorPlanInstruction = isFloorPlanRequest(description + ' ' + answers.map((item) => item.answer).join(' '))
-      ? 'This is a floor-plan or new-construction request. Return a floorPlan object with a coherent dimensioned layout.'
+      ? 'This is a floor-plan or new-construction request. Return a floorPlan object that intelligently redraws the customer sketch and answers into a coherent dimensioned layout.'
       : 'This is not a floor-plan request. Return floorPlan as null.';
 
     const prompt = `You are the structured intake assistant for Skills Connect Pro, a South African home-services marketplace.
@@ -491,8 +491,11 @@ Rules:
 9. Materials are preliminary possibilities, not shopping instructions. Return an empty array when uncertain.
 10. Keep language clear, practical and suitable for customers with varied literacy levels.
 11. ${floorPlanInstruction}
-12. When returning a floorPlan, use metres and keep every room rectangle inside the overallLength × overallWidth boundary. Room rectangles must not overlap. Include 2–8 rooms with x, y, width and height measured from the top-left corner.
-13. A floorPlan is a clean concept visual only; never claim it is approved, structurally certified or ready for construction.`;
+12. When returning a floorPlan, treat the uploaded sketch and the customer's explicit answers as the source of truth. Preserve the intended room relationships, entrance position and circulation where they are clear; do not replace the idea with a generic three-box layout.
+13. Use metres and keep every room rectangle inside the overallLength × overallWidth boundary. Room rectangles must not overlap. Include 2–8 purposeful rooms with x, y, width and height measured from the top-left corner. Make the room widths add up sensibly to the overall length, and make the room heights fit the overall width.
+14. Use useful room names (for example Bedroom, Bathroom / Toilet, Kitchen + Lounge), put wet rooms near practical plumbing zones when possible, and include concise room notes describing likely doors, windows or built-in features when they can be inferred.
+15. If the sketch is ambiguous, make the simplest buildable interpretation, state the key assumptions, and keep the geometry internally consistent rather than inventing extra rooms.
+16. A floorPlan is a clean concept visual only; never claim it is approved, structurally certified or ready for construction.`;
 
     const contents: Array<string | { inlineData: { mimeType: string; data: string } }> = [prompt];
     if (image) {
