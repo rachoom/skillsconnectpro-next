@@ -14,7 +14,7 @@ function decodeImageData(value: string): DecodedImage | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
 
-  const dataUrlMatch = trimmed.match(/^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/i);
+  const dataUrlMatch = trimmed.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/i);
   const contentType = (dataUrlMatch?.[1] ?? 'image/jpeg').toLowerCase();
   const base64 = dataUrlMatch?.[2] ?? trimmed.replace(/^base64,/, '');
 
