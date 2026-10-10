@@ -35,8 +35,10 @@ function dimension(value: unknown, fallback: number): number {
 function normaliseRoom(room: FloorPlanRoom, length: number, width: number, index: number): FloorPlanRoom {
   const roomWidth = Math.min(dimension(room.width, length / 2), length);
   const roomHeight = Math.min(dimension(room.height, width), width);
-  const x = Math.max(0, Math.min(length - roomWidth, dimension(room.x, 0)));
-  const y = Math.max(0, Math.min(width - roomHeight, dimension(room.y, 0)));
+  const rawX = typeof room.x === 'number' && Number.isFinite(room.x) ? room.x : 0;
+  const rawY = typeof room.y === 'number' && Number.isFinite(room.y) ? room.y : 0;
+  const x = Math.max(0, Math.min(length - roomWidth, rawX));
+  const y = Math.max(0, Math.min(width - roomHeight, rawY));
   return {
     id: clean(room.id, `room-${index + 1}`),
     name: clean(room.name, `Room ${index + 1}`),
