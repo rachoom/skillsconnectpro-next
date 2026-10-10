@@ -30,7 +30,7 @@ import polish from './provider-opportunity-polish.module.css';
 
 type Opportunity = {
   invitationId: string;
-  providerId: string;
+  providerId: number;
   status: string;
   responseDeadline: string | null;
   leadAccess: {

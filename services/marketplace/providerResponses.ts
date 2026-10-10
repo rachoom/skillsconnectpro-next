@@ -23,7 +23,7 @@ type ProviderLeadAccess = {
 
 export interface ProviderOpportunity {
   invitationId: string;
-  providerId: string;
+  providerId: number;
   status: string;
   responseDeadline: string | null;
   leadAccess: ProviderLeadAccess;
@@ -73,7 +73,7 @@ export interface SubmitProviderResponseInput {
 type InvitationTokenRow = {
   id: string;
   project_id: string;
-  provider_id: string;
+  provider_id: number;
   status: string;
   response_deadline: string | null;
   response_token_expires_at: string | null;
@@ -119,10 +119,11 @@ async function findInvitationByToken(token: string): Promise<InvitationTokenRow 
 }
 
 async function loadProviderLeadAccess(
-  providerId: string,
+  providerId: string | number,
   currentInvitationId: string,
 ): Promise<ProviderLeadAccess> {
   const supabase = getSupabaseAdmin();
+  const providerSubjectId = String(providerId);
   const [{ count, error: countError }, { data: entitlementData, error: entitlementError }] = await Promise.all([
     supabase
       .from('lead_invitations')
@@ -134,7 +135,7 @@ async function loadProviderLeadAccess(
       .from('subscription_entitlements')
       .select('id, plan_code, status, qualified_leads_used, qualified_leads_limit, starts_at, ends_at')
       .eq('subject_type', 'provider')
-      .eq('subject_id', providerId)
+      .eq('subject_id', providerSubjectId)
       .in('status', ['trial', 'active'])
       .order('created_at', { ascending: false }),
   ]);
