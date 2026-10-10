@@ -215,11 +215,11 @@ export async function POST(request: Request) {
     const blocked = await enforcePublicRequestLimit(request, 'project_intake', 5);
     if (blocked) return blocked;
     const contentLength = Number(request.headers.get('content-length') ?? 0);
-    if (contentLength > 1_000_000) {
+    if (contentLength > 4_000_000) {
       return NextResponse.json({ error: 'Project information is too large.' }, { status: 413 });
     }
 
-    const body = await readBoundedJson(request, 1000000);
+    const body = await readBoundedJson(request, 4_000_000);
     const preferredProviderId = body && typeof body === 'object' && !Array.isArray(body)
       ? positiveInteger((body as Record<string, unknown>).preferredProviderId)
       : null;
