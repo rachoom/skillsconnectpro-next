@@ -730,7 +730,7 @@ export const ProjectIntakeV2: React.FC = () => {
                     <CheckCircle2 className="mt-0.5 shrink-0" size={19} />
                     <span><strong>Your estimate is already loaded.</strong> We skipped the earlier project questions. Just confirm where the work is and how the provider can reach you.</span>
                   </div>
-                )
+                )}
 
                 {imagePreview && (
                   <div data-intake-reference-image className="mt-5 overflow-hidden rounded-2xl border-2 border-[#c8c7bb] bg-white p-3">
