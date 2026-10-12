@@ -178,5 +178,10 @@ export async function POST(request: NextRequest) {
     };
   }
 
-  return NextResponse.json(payload, { status: response.status });
+  const nextResponse = NextResponse.json(payload, { status: response.status });
+  // assess-v2 owns the anonymous AI-session cookie; preserve it when this
+  // category-normalising wrapper constructs a fresh response.
+  const aiSessionCookie = response.headers.get('set-cookie');
+  if (aiSessionCookie) nextResponse.headers.set('set-cookie', aiSessionCookie);
+  return nextResponse;
 }

@@ -10,6 +10,7 @@ import { createProject, updateProjectMedia } from '@/services/marketplace/projec
 import { createProjectMediaSignedUrls, storeProjectImage } from '@/services/marketplace/projectMedia';
 import { sendCustomerProjectConfirmation } from '@/services/marketplace/customerWhatsAppNotifications';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
+import { linkAiUsageToProject } from '@/services/aiUsageGuard';
 import type { CreateProjectInput } from '@/types/marketplace';
 
 export const runtime = 'nodejs';
@@ -230,6 +231,10 @@ export async function POST(request: Request) {
     const { project: createdProject, accessToken } = await createProject(input);
     let project = createdProject;
     let mediaWarning: string | null = null;
+
+    // This is non-blocking product evidence: it tells us whether a guided AI
+    // project became a genuine marketplace lead without storing raw IP/session data.
+    await linkAiUsageToProject(request, project.id);
 
     if (imageData) {
       try {

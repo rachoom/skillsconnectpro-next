@@ -1,4 +1,5 @@
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
+import { customerProjectUsage, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie } from '@/services/aiUsageGuard';
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -401,6 +402,7 @@ export async function POST(request: NextRequest) {
   let answers: IntakeAnswer[] = [];
   let image = '';
   let questionsAlreadyAsked = 0;
+  let reservation: UsageReservation | null = null;
 
   try {
     const blocked = await enforcePublicRequestLimit(request, 'assessment', 30);
@@ -434,6 +436,10 @@ export async function POST(request: NextRequest) {
         questionsAlreadyAsked,
       );
     }
+
+    const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image)));
+    if (!guarded.allowed) return guarded.response;
+    reservation = guarded.reservation;
 
     const answerContext = answers.length > 0
       ? `\nCustomer answers already collected:\n${answers.map((item) => `- ${item.question}: ${item.answer}`).join('\n')}`
@@ -505,19 +511,21 @@ Rules:
 
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: 'gemini-3.6-flash',
       contents,
-      config: { responseMimeType: 'application/json' },
+      config: { responseMimeType: 'application/json', maxOutputTokens: 1100 },
     });
 
-    return intakeResponse(
-      normaliseAssessment(parseModelJson(response.text ?? '{}'), 'gemini-flash-latest'),
+    await settleAiUsage(reservation, 'gemini-3.6-flash', response);
+    return withAiUsageCookie(intakeResponse(
+      normaliseAssessment(parseModelJson(response.text ?? '{}'), 'gemini-3.6-flash'),
       false,
       description,
       answers,
       questionsAlreadyAsked,
-    );
+    ), reservation);
   } catch (error) {
+    await releaseAiUsage(reservation);
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('POST /api/project-intake/assess-v2 failed:', error);

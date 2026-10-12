@@ -1,4 +1,5 @@
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
+import { providerOnboardingUsage, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie } from '@/services/aiUsageGuard';
 import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 
@@ -13,6 +14,7 @@ Return ONLY JSON in one of these forms:
 {"success":true,"name":"...","trade":"...","phone":"...","location":"..."}`;
 
 export async function POST(request: Request) {
+  let reservation: UsageReservation | null = null;
   try {
     const blocked = await enforcePublicRequestLimit(request, 'card_extraction', 5);
     if (blocked) return blocked;
@@ -23,18 +25,24 @@ export async function POST(request: Request) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return NextResponse.json({ error: 'Gemini is not configured.' }, { status: 503 });
 
+    const guarded = await reserveAiUsage(request, providerOnboardingUsage());
+    if (!guarded.allowed) return guarded.response;
+    reservation = guarded.reservation;
+
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: 'gemini-3.5-flash-lite',
       contents: [{ parts: [
         { text: prompt },
         { inlineData: { mimeType: String(mimeType), data: data.includes(',') ? data.split(',').pop() ?? '' : data } },
       ] }],
-      config: { responseMimeType: 'application/json' },
+      config: { responseMimeType: 'application/json', maxOutputTokens: 260 },
     });
 
-    return NextResponse.json(JSON.parse((response.text ?? '{}').replace(/^```json\s*|\s*```$/gi, '').trim()));
+    await settleAiUsage(reservation, 'gemini-3.5-flash-lite', response);
+    return withAiUsageCookie(NextResponse.json(JSON.parse((response.text ?? '{}').replace(/^```json\s*|\s*```$/gi, '').trim())), reservation);
   } catch (error) {
+    await releaseAiUsage(reservation);
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('POST /api/onboarding/extract-card failed:', error);
