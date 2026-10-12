@@ -1,5 +1,5 @@
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
-import { customerProjectUsage, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie } from '@/services/aiUsageGuard';
+import { customerProjectUsage, readAiResponseCache, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie, writeAiResponseCache } from '@/services/aiUsageGuard';
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -437,6 +437,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const cacheSource = JSON.stringify({ description, image, answers, questionsAlreadyAsked });
+    const cachedAssessment = await readAiResponseCache<IntakeAssessment>('project_assessment', cacheSource);
+    if (cachedAssessment) {
+      return intakeResponse(cachedAssessment, false, description, answers, questionsAlreadyAsked);
+    }
+
     const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image)));
     if (!guarded.allowed) return guarded.response;
     reservation = guarded.reservation;
@@ -516,9 +522,11 @@ Rules:
       config: { responseMimeType: 'application/json', maxOutputTokens: 1100 },
     });
 
+    const assessment = normaliseAssessment(parseModelJson(response.text ?? '{}'), 'gemini-3.6-flash');
     await settleAiUsage(reservation, 'gemini-3.6-flash', response);
+    await writeAiResponseCache('project_assessment', cacheSource, assessment);
     return withAiUsageCookie(intakeResponse(
-      normaliseAssessment(parseModelJson(response.text ?? '{}'), 'gemini-3.6-flash'),
+      assessment,
       false,
       description,
       answers,

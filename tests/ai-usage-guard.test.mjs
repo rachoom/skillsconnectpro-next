@@ -14,6 +14,10 @@ test('AI budget migration keeps the ledger server-only and atomically reserves m
   assert.match(migration, /grant execute on function public\.reserve_ai_usage[\s\S]* to service_role/i);
   assert.match(migration, /pg_advisory_xact_lock\(hashtextextended\('ai_budget:'/i);
   assert.match(migration, /'Africa\/Johannesburg'/i);
+  const cacheMigration = read('../supabase/migrations/202610120002_add_ai_response_cache.sql');
+  assert.match(cacheMigration, /create table public\.ai_response_cache/i);
+  assert.match(cacheMigration, /enable row level security/i);
+  assert.match(cacheMigration, /revoke all on public\.ai_response_cache from public, anon, authenticated/i);
 });
 
 test('AI routes reserve usage, settle actual tokens and use Lite for inexpensive classification', () => {
@@ -36,4 +40,5 @@ test('AI cost guard stores only HMAC hashes and sets an HttpOnly session cookie'
   assert.match(guard, /httpOnly: true/);
   assert.match(guard, /AI_MONTHLY_BUDGET_CENTS \|\| 50_000/);
   assert.match(guard, /AI_COST_ZAR_PER_USD/);
+  assert.match(guard, /readAiResponseCache/);
 });

@@ -64,6 +64,50 @@ function unavailableMigrationError(error: { code?: string; message?: string } | 
     || /reserve_ai_usage|function.*does not exist/i.test(error?.message || '');
 }
 
+function unavailableCacheError(error: { code?: string; message?: string } | null) {
+  return error?.code === '42P01' || error?.code === 'PGRST205'
+    || /ai_response_cache|relation.*does not exist/i.test(error?.message || '');
+}
+
+function cacheKey(kind: string, source: string) {
+  return hash(`ai-cache:${kind}:${source}`);
+}
+
+/** Short-lived, server-only cache for duplicate form submissions. */
+export async function readAiResponseCache<T>(kind: string, source: string): Promise<T | null> {
+  if (process.env.AI_RESPONSE_CACHE_ENABLED === 'false') return null;
+  try {
+    const { data, error } = await getSupabaseAdmin()
+      .from('ai_response_cache')
+      .select('response')
+      .eq('key_hash', cacheKey(kind, source))
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+    if (error) {
+      if (!unavailableCacheError(error)) console.error('AI response cache lookup failed:', error.message);
+      return null;
+    }
+    return (data as { response?: T } | null)?.response ?? null;
+  } catch (error) {
+    console.error('AI response cache lookup failed:', error);
+    return null;
+  }
+}
+
+export async function writeAiResponseCache(kind: string, source: string, response: unknown, ttlSeconds = 900) {
+  if (process.env.AI_RESPONSE_CACHE_ENABLED === 'false') return;
+  try {
+    const { error } = await getSupabaseAdmin().from('ai_response_cache').upsert({
+      key_hash: cacheKey(kind, source),
+      response,
+      expires_at: new Date(Date.now() + Math.max(60, Math.min(ttlSeconds, 3_600)) * 1_000).toISOString(),
+    });
+    if (error && !unavailableCacheError(error)) console.error('AI response cache write failed:', error.message);
+  } catch (error) {
+    console.error('AI response cache write failed:', error);
+  }
+}
+
 /**
  * Reserves a small portion of the monthly AI budget before a Gemini call. The
  * database function makes the check atomic across Vercel instances; the

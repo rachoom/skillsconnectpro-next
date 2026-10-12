@@ -1,5 +1,5 @@
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
-import { customerProjectUsage, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie } from '@/services/aiUsageGuard';
+import { customerProjectUsage, readAiResponseCache, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie, writeAiResponseCache } from '@/services/aiUsageGuard';
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
@@ -28,6 +28,10 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join('\n');
 
+    const cacheSource = JSON.stringify({ prompt, image: imageStr, qaHistory });
+    const cachedEstimate = await readAiResponseCache<{ estimate?: string }>('estimate', cacheSource);
+    if (cachedEstimate?.estimate) return NextResponse.json(cachedEstimate);
+
     const guarded = await reserveAiUsage(req, customerProjectUsage(Boolean(imageStr)));
     if (!guarded.allowed) return guarded.response;
     reservation = guarded.reservation;
@@ -53,6 +57,7 @@ export async function POST(req: Request) {
 
     const responseText = response.text || '{"materials":[],"materialsTotal":0,"toolsNeeded":0,"laborHours":4,"laborNotes":"","recommendedService":"General Contractor","estimateType":"standardized","clarifyingQuestions":[]}';
     await settleAiUsage(reservation, 'gemini-3.6-flash', response);
+    await writeAiResponseCache('estimate', cacheSource, { estimate: responseText });
     return withAiUsageCookie(NextResponse.json({ estimate: responseText }), reservation);
 
   } catch (error: any) {
