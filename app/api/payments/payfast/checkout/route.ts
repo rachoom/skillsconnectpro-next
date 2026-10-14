@@ -16,6 +16,7 @@ function siteUrl(): string {
 
 function normalisePhone(value: string): string {
   const digits = value.replace(/\D/g, '');
+  if (digits.startsWith('00')) return digits.slice(2);
   return digits.startsWith('0') ? `27${digits.slice(1)}` : digits;
 }
 
@@ -35,12 +36,16 @@ async function findProvider(body: Record<string, unknown>): Promise<Provider | n
     if (error) throw new Error(`Unable to find provider: ${error.message}`);
     return data as Provider | null;
   }
+
   const normalisedIdentity = normalisePhone(identity);
-  const { data, error } = await supabase
-    .from('artisans').select('id, first_name, last_name, email, phone')
-    .or(`phone.eq.${identity},phone.eq.${normalisedIdentity},phone.eq.+${normalisedIdentity}`).maybeSingle();
-  if (error) throw new Error(`Unable to find provider: ${error.message}`);
-  return data as Provider | null;
+  const localIdentity = normalisedIdentity.startsWith('27') ? `0${normalisedIdentity.slice(2)}` : '';
+  const candidates = [...new Set([identity, identity.replace(/\D/g, ''), normalisedIdentity, localIdentity, `+${normalisedIdentity}`].filter(Boolean))];
+  for (const phone of candidates) {
+    const { data, error } = await supabase.from('artisans').select('id, first_name, last_name, email, phone').eq('phone', phone).maybeSingle();
+    if (error) throw new Error(`Unable to find provider: ${error.message}`);
+    if (data) return data as Provider;
+  }
+  return null;
 }
 
 export async function POST(request: Request) {
