@@ -5,7 +5,9 @@ import { providerPlans } from './planCatalog';
 const plans = providerPlans.filter((plan) => plan.kind === 'subscription');
 const packs = providerPlans.filter((plan) => plan.kind === 'lead_pack');
 
-export default function ProviderPlansPage() {
+export default async function ProviderPlansPage({ searchParams }: { searchParams: Promise<{ provider?: string }> }) {
+  const { provider } = await searchParams;
+  const providerQuery = provider && /^\d+$/.test(provider) ? `?provider=${encodeURIComponent(provider)}` : '';
   return (
     <main className="min-h-screen bg-[#0b120c] px-4 py-6 text-[#f8f3e5] md:px-8 md:py-10">
       <div className="mx-auto max-w-6xl">
@@ -30,14 +32,14 @@ export default function ProviderPlansPage() {
               <ul className="mt-7 space-y-3 text-sm leading-5">
                 {plan.included.slice(0, 3).map((feature) => <li key={feature} className="flex gap-2"><Check className="mt-0.5 shrink-0" size={16} />{feature}</li>)}
               </ul>
-              <Link href={`/provider-plans/${plan.slug}`} className={`mt-8 flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black ${plan.name === 'Growth' ? 'bg-[#141006] text-[#ffd75f]' : 'bg-[#ffd75f] text-[#241b00]'}`}>Explore {plan.name}<ArrowRight size={17} /></Link>
+              <Link href={`/provider-plans/${plan.slug}${providerQuery}`} className={`mt-8 flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black ${plan.name === 'Growth' ? 'bg-[#141006] text-[#ffd75f]' : 'bg-[#ffd75f] text-[#241b00]'}`}>Explore {plan.name}<ArrowRight size={17} /></Link>
             </article>
           ))}
         </section>
 
         <section className="mt-6 rounded-[1.7rem] border border-white/15 bg-white/[0.06] p-6 md:flex md:items-center md:justify-between md:gap-10 md:p-8">
           <div><div className="flex items-center gap-2 text-[#ffd75f]"><ShieldCheck size={18} /><span className="text-xs font-black uppercase tracking-[0.14em]">Flexible lead packs</span></div><h2 className="mt-3 text-2xl font-black">Prefer to top up only when you need to?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">Lead packs give you a straightforward way to unlock a set number of new customer opportunities.</p></div>
-          <div className="mt-5 grid grid-cols-3 gap-2 md:mt-0">{packs.map((pack) => <Link key={pack.slug} href={`/provider-plans/${pack.slug}`} className="rounded-xl border border-white/15 bg-black/20 px-3 py-3 text-center text-xs font-bold transition hover:border-[#ffd75f] hover:bg-[#ffd75f]/10"><span className="block text-[#ffd75f]">{pack.price}</span><span className="mt-1 block text-white/75">{pack.name}</span></Link>)}</div>
+          <div className="mt-5 grid grid-cols-3 gap-2 md:mt-0">{packs.map((pack) => <Link key={pack.slug} href={`/provider-plans/${pack.slug}${providerQuery}`} className="rounded-xl border border-white/15 bg-black/20 px-3 py-3 text-center text-xs font-bold transition hover:border-[#ffd75f] hover:bg-[#ffd75f]/10"><span className="block text-[#ffd75f]">{pack.price}</span><span className="mt-1 block text-white/75">{pack.name}</span></Link>)}</div>
         </section>
       </div>
     </main>
