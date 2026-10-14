@@ -74,9 +74,9 @@ export async function POST(request: Request) {
       item_description: plan.kind === 'subscription' ? `${plan.name} monthly provider access` : `${plan.name} once-off provider lead pack`,
       custom_str1: String(provider.id), custom_str2: plan.code, custom_str3: plan.kind, email_confirmation: 1,
     };
+    // Keep recurring fields in Payfast's documented order; card selection is handled by Payfast.
     if (plan.kind === 'subscription') Object.assign(fields, {
-      subscription_type: 1, recurring_amount: amount.toFixed(2), frequency: 3, cycles: 0, payment_method: 'cc',
-      subscription_notify_email: true, subscription_notify_buyer: true,
+      subscription_type: 1, recurring_amount: amount.toFixed(2), frequency: 3, cycles: 0,
     });
     const paymentFields = normalisePayfastFields(fields);
     const { error: insertError } = await getSupabaseAdmin().from('payment_transactions').insert({
