@@ -45,7 +45,7 @@ async function findProvider(body: Record<string, unknown>): Promise<Provider | n
 
 export async function POST(request: Request) {
   try {
-    const blocked = await enforcePublicRequestLimit(request, 'payfast-checkout', 10);
+    const blocked = await enforcePublicRequestLimit(request, 'payfast_checkout', 10);
     if (blocked) return blocked;
     const body = await readBoundedJson(request, 10_000) as Record<string, unknown>;
     const plan = getProviderPlan(String(body.plan || ''));
