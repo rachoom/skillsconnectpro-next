@@ -12,9 +12,12 @@ const SANDBOX_VALIDATE_URL = 'https://sandbox.payfast.co.za/eng/query/validate';
 export function getPayfastConfig() {
   const merchantId = process.env.PAYFAST_MERCHANT_ID?.trim();
   const merchantKey = process.env.PAYFAST_MERCHANT_KEY?.trim();
-  const passphrase = process.env.PAYFAST_PASSPHRASE;
+  const passphrase = process.env.PAYFAST_PASSPHRASE?.trim();
   if (!merchantId || !merchantKey || !passphrase) {
     throw new Error('Payfast is not configured yet. Add the merchant ID, merchant key and passphrase as server-side environment variables.');
+  }
+  if (!/^[A-Za-z0-9_\-/]{1,32}$/.test(passphrase)) {
+    throw new Error('PAYFAST_PASSPHRASE must match the Payfast Dashboard passphrase and use only letters, numbers, hyphen, underscore or slash.');
   }
   const mode: PayfastMode = process.env.PAYFAST_MODE === 'live' ? 'live' : 'sandbox';
   return {
@@ -25,15 +28,16 @@ export function getPayfastConfig() {
 }
 
 function formEncode(value: string): string {
-  return new URLSearchParams({ value }).toString().slice('value='.length);
+  return new URLSearchParams({ value: value.trim() }).toString().slice('value='.length);
 }
 
 /** Payfast signs fields in form insertion order, not alphabetical API order. */
 export function payfastParamString(fields: Record<string, PayfastFieldValue>): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(fields)) {
-    if (value === undefined || value === null || String(value).trim() === '') continue;
-    params.append(key, String(value));
+    const normalisedValue = value === undefined || value === null ? '' : String(value).trim();
+    if (!normalisedValue) continue;
+    params.append(key, normalisedValue);
   }
   return params.toString();
 }
@@ -53,6 +57,6 @@ export function secureEqualHex(left: string | null | undefined, right: string): 
 
 export function normalisePayfastFields(fields: Record<string, PayfastFieldValue>): PayfastFields {
   return Object.fromEntries(Object.entries(fields)
-    .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '')
-    .map(([key, value]) => [key, String(value)]));
+    .map(([key, value]) => [key, value === undefined || value === null ? '' : String(value).trim()])
+    .filter(([, value]) => value !== ''));
 }
