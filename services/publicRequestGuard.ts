@@ -55,8 +55,10 @@ export async function enforcePublicRequestLimit(request: Request, bucket: string
       status: 429, headers: { 'Retry-After': String(windowSeconds) },
     });
     return null;
-  } catch {
-    console.error('Public request limiter is unavailable.');
+  } catch (error) {
+    // Keep the browser response generic, but retain a safe diagnostic in
+    // server logs so an outage can be resolved without weakening the guard.
+    console.error('Public request limiter is unavailable:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 });
   }
 }
