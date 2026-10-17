@@ -28,7 +28,8 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
   const [error, setError] = useState(errorMessages[initialError] ?? '');
 
   const callbackUrl = () => {
-    const url = new URL('/auth/callback', window.location.origin);
+    const applicationUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || window.location.origin;
+    const url = new URL('/auth/callback', applicationUrl);
     url.searchParams.set('next', nextPath);
     if (projectId && projectToken) {
       url.searchParams.set('projectId', projectId);
