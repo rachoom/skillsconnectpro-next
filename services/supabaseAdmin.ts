@@ -1,29 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { normaliseSupabaseProjectUrl } from './supabase/config';
 
 let adminClient: SupabaseClient | null = null;
-
-/**
- * Supabase's JavaScript client expects the project base URL only. It appends
- * paths such as /rest/v1 itself. This normaliser protects server routes from an
- * environment variable copied from the REST API panel with /rest/v1 attached.
- */
-function normaliseSupabaseUrl(value: string): string {
-  const trimmed = value.trim().replace(/\/+$/, '');
-  const withoutApiPath = trimmed.replace(/\/(?:rest|auth|storage|realtime)\/v1$/i, '');
-
-  let parsed: URL;
-  try {
-    parsed = new URL(withoutApiPath);
-  } catch {
-    throw new Error('SUPABASE_URL must be a valid absolute project URL.');
-  }
-
-  if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost') {
-    throw new Error('SUPABASE_URL must use HTTPS.');
-  }
-
-  return parsed.toString().replace(/\/$/, '');
-}
 
 /**
  * Server-only Supabase client for marketplace operations.
@@ -45,7 +23,7 @@ export function getSupabaseAdmin(): SupabaseClient {
     throw new Error('Missing SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.');
   }
 
-  const supabaseUrl = normaliseSupabaseUrl(configuredUrl);
+  const supabaseUrl = normaliseSupabaseProjectUrl(configuredUrl);
 
   adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
