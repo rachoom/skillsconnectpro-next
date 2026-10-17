@@ -21,6 +21,7 @@ const errorMessages: Record<string, string> = {
 
 export function SignInCard({ nextPath, projectId, projectToken, initialError }: Props) {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+  const googleAuthEnabled = process.env.NEXT_PUBLIC_SUPABASE_GOOGLE_AUTH_ENABLED !== 'false';
   const [email, setEmail] = useState('');
   const [working, setWorking] = useState(false);
   const [sent, setSent] = useState(false);
@@ -108,7 +109,7 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
           <div className={styles.lock}><LockKeyhole /></div>
           <span className={styles.kicker}>Private workspace</span>
           <h2>{projectId ? 'Save this project' : 'Sign in to continue'}</h2>
-          <p className={styles.cardCopy}>{projectId ? 'Your current project will be attached to your account after sign-in.' : 'Use Google or receive a secure sign-in link by email.'}</p>
+          <p className={styles.cardCopy}>{projectId ? 'Your current project will be attached to your account after sign-in.' : googleAuthEnabled ? 'Use Google or receive a secure sign-in link by email.' : 'Receive a secure sign-in link by email.'}</p>
 
           {error && <div role="alert" className={styles.error}>{error}</div>}
           {sent ? (
@@ -119,10 +120,14 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
             </div>
           ) : (
             <>
-              <button type="button" className={styles.google} onClick={signInWithGoogle} disabled={working}>
-                <span aria-hidden="true">G</span> Continue with Google
-              </button>
-              <div className={styles.divider}><span>or use email</span></div>
+              {googleAuthEnabled && (
+                <>
+                  <button type="button" className={styles.google} onClick={signInWithGoogle} disabled={working}>
+                    <span aria-hidden="true">G</span> Continue with Google
+                  </button>
+                  <div className={styles.divider}><span>or use email</span></div>
+                </>
+              )}
               <form onSubmit={sendMagicLink}>
                 <label htmlFor="account-email">Email address</label>
                 <div className={styles.emailField}><Mail size={18} /><input id="account-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></div>
