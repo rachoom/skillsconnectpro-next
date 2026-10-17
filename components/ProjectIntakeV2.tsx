@@ -263,6 +263,7 @@ export const ProjectIntakeV2: React.FC = () => {
   const [usedFallback, setUsedFallback] = useState(false);
   const [connectMode, setConnectMode] = useState(false);
   const [customerUrl, setCustomerUrl] = useState('');
+  const [saveProjectUrl, setSaveProjectUrl] = useState('');
   const [createdTitle, setCreatedTitle] = useState('');
 
   useEffect(() => {
@@ -285,17 +286,21 @@ export const ProjectIntakeV2: React.FC = () => {
     if (!importedDescription) return;
 
     const importedImage = typeof context.image === 'string' ? context.image : '';
-    setConnectMode(true);
-    setDescription(importedDescription);
-    setImageData(importedImage);
-    setImagePreview(importedImage);
-    setAssessment(importedEstimateAssessment(context, importedDescription));
-    setAnswerHistory([]);
-    setQuestionCount(0);
-    setQuestionProgress(null);
-    setConfirmStage('brief');
-    setStep('confirm');
-    window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
+    const hydrationTimer = window.setTimeout(() => {
+      setConnectMode(true);
+      setDescription(importedDescription);
+      setImageData(importedImage);
+      setImagePreview(importedImage);
+      setAssessment(importedEstimateAssessment(context, importedDescription));
+      setAnswerHistory([]);
+      setQuestionCount(0);
+      setQuestionProgress(null);
+      setConfirmStage('brief');
+      setStep('confirm');
+      window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
+    }, 0);
+
+    return () => window.clearTimeout(hydrationTimer);
   }, []);
 
   const resolvedLocation = customLocation.trim() || location;
@@ -515,7 +520,9 @@ export const ProjectIntakeV2: React.FC = () => {
       }
 
       setCreatedTitle(payload.project.title || assessment.title);
-      setCustomerUrl(`/project/${payload.project.id}?token=${encodeURIComponent(payload.accessToken)}`);
+      const token = encodeURIComponent(payload.accessToken);
+      setCustomerUrl(`/project/${payload.project.id}?token=${token}`);
+      setSaveProjectUrl(`/sign-in?next=${encodeURIComponent(`/my-projects/${payload.project.id}`)}&projectId=${encodeURIComponent(payload.project.id)}&token=${token}`);
       setStep('done');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (reason) {
@@ -552,6 +559,7 @@ export const ProjectIntakeV2: React.FC = () => {
     setUsedFallback(false);
     setConnectMode(false);
     setCustomerUrl('');
+    setSaveProjectUrl('');
   };
 
   const progress = step === 'describe' ? 0 : step === 'clarify' ? 1 : 2;
@@ -835,6 +843,8 @@ export const ProjectIntakeV2: React.FC = () => {
             <h1 className="mt-2 text-3xl font-black sm:text-4xl">{createdTitle}</h1>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-[#526052]">Your private dashboard is ready. Provider responses will appear there, and your contact details remain protected until you select someone.</p>
             <a data-intake-primary-action href={customerUrl} className="mt-7 flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-[#f5c518] font-black text-black shadow-[0_8px_0_#a57f00]">Open my project dashboard <ArrowRight size={21} /></a>
+            <Link href={saveProjectUrl || '/sign-in?next=/my-projects'} className="mt-5 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border-2 border-[#167451] bg-white font-black text-[#167451]">Save & manage in My Projects <ShieldCheck size={20} /></Link>
+            <p className="mx-auto mt-3 max-w-lg text-xs leading-5 text-[#526052]">Sign in once to keep this brief, materials, estimates and documents together. You will not need to answer the project questions again.</p>
             <button type="button" onClick={restart} className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#526052]"><RotateCcw size={16} /> Create another project</button>
           </section>
         )}

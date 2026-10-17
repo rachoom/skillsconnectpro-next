@@ -184,6 +184,30 @@ export async function createProject(input: CreateProjectInput): Promise<CreatedP
 
   const projectRow = data as ProjectRow;
 
+  if (input.materials?.length) {
+    const materialRows = input.materials
+      .map((material, index) => ({
+        project_id: projectRow.id,
+        name: material.name?.trim() || `Material ${index + 1}`,
+        quantity: material.quantity ?? null,
+        unit: cleanOptionalText(material.unit),
+        estimated_unit_price: material.estimatedUnitPrice ?? null,
+        estimated_total: material.estimatedTotal ?? null,
+        notes: cleanOptionalText(material.notes),
+        sort_order: index,
+      }));
+
+    const { error: materialsError } = await supabase
+      .from('project_materials')
+      .insert(materialRows);
+
+    if (materialsError) {
+      // Keep the legacy JSON copy on projects as a safe fallback while the
+      // structured workspace rolls out.
+      console.error('Project created but structured materials failed:', materialsError.message);
+    }
+  }
+
   const { error: eventError } = await supabase.from('project_status_events').insert({
     project_id: projectRow.id,
     event_type: 'assessment_completed',

@@ -11,6 +11,7 @@ import { createProjectMediaSignedUrls, storeProjectImage } from '@/services/mark
 import { sendCustomerProjectConfirmation } from '@/services/marketplace/customerWhatsAppNotifications';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { linkAiUsageToProject } from '@/services/aiUsageGuard';
+import { getAuthenticatedAccount } from '@/services/supabase/server';
 import type { CreateProjectInput } from '@/types/marketplace';
 
 export const runtime = 'nodejs';
@@ -224,7 +225,14 @@ export async function POST(request: Request) {
     const preferredProviderId = body && typeof body === 'object' && !Array.isArray(body)
       ? positiveInteger((body as Record<string, unknown>).preferredProviderId)
       : null;
-    const input = parsePublicIntake(body);
+    const parsedInput = parsePublicIntake(body);
+    const { user } = await getAuthenticatedAccount();
+    const input: CreateProjectInput = {
+      ...parsedInput,
+      // Account ownership is derived from the verified Supabase session. Never
+      // accept a customer id from the public request body.
+      customerId: user?.id ?? null,
+    };
     const imageData = body && typeof body === 'object' && !Array.isArray(body)
       ? text((body as Record<string, unknown>).image, 3_000_000)
       : '';

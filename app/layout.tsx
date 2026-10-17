@@ -38,6 +38,8 @@ const surfaceInitialiser = `
         ? 'intake'
         : path.indexOf('/project/') === 0
           ? 'customer'
+          : path.indexOf('/my-projects') === 0 || path.indexOf('/sign-in') === 0
+            ? 'account'
           : path === '/'
             ? 'home'
             : path.indexOf('/browse-providers') === 0

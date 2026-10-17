@@ -110,6 +110,7 @@ export function PremiumLanding() {
             <Link href="/provider-plans">Provider plans</Link>
           </div>
           <div className={styles.navActions}>
+            <Link href="/my-projects" className={styles.join}>My Projects</Link>
             <Link href="/join" className={styles.join}>Join as provider <ArrowRight size={15} /></Link>
             <button
               ref={menuButton}
@@ -131,6 +132,7 @@ export function PremiumLanding() {
             <Link href="/browse-providers" onClick={closeMenu}>Find a provider</Link>
             <Link href="/assistant" onClick={closeMenu}>AI Project Assistant</Link>
             <Link href="/estimator" onClick={closeMenu}>Project estimator</Link>
+            <Link href="/my-projects" onClick={closeMenu}>My Projects</Link>
             <Link href="/provider-plans" onClick={closeMenu}>Provider plans</Link>
             <a href="#support" onClick={closeMenu}>Help & support</a>
           </div>
