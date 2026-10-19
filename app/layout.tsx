@@ -58,6 +58,13 @@ const surfaceInitialiser = `
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.skillsconnectpro.co.za'),
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [{ url: '/icon.png', type: 'image/png', sizes: '512x512' }],
+  },
   title: 'Skills Connect Pro | Mzansi Skilled Services',
   description: 'Describe, photograph or speak about the service you need. Skills Connect Pro helps customers across Ekurhuleni reach suitable local providers through one guided marketplace.',
   openGraph: {
