@@ -95,6 +95,7 @@ function AccountNav() {
       <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
       <div className={styles.navActions}>
         <Link href="/" className={styles.navLink}>Home</Link>
+        <Link href="/plans" className={styles.navLink}>Plans</Link>
         <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
       </div>
     </div></nav>

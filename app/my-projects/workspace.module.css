@@ -29,6 +29,18 @@
 .empty { grid-column:1/-1; text-align:center; border:1px dashed #3a3a3a; border-radius:26px; padding:60px 24px; background:#0f0f0f; }
 .emptyIcon { width:64px; height:64px; display:grid; place-items:center; background:#f5c518; color:#090909; border-radius:22px; margin:0 auto 18px; }
 .empty h2 { font-size:1.8rem; margin-bottom:8px; }.empty p { color:#999; margin:0 auto 22px; max-width:500px; }
+.planHero { max-width:760px; margin:0 auto 36px; text-align:center; }
+.planHero h1 { margin:10px 0 14px; font-size:clamp(2.7rem,6vw,5.2rem); line-height:.95; letter-spacing:-.055em; }
+.planHero p { margin:0 auto; color:#aaa; line-height:1.7; }
+.planGrid { display:grid; max-width:860px; margin:0 auto; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.planCard { position:relative; border:1px solid #333; border-top:3px solid #f5c518; border-radius:24px; background:linear-gradient(145deg,#171717,#0d0d0d); padding:28px; }
+.featuredPlan { border-color:#f5c518; box-shadow:0 22px 55px rgba(245,197,24,.12); }
+.planBadge { position:absolute; top:-13px; right:20px; border-radius:999px; background:#f5c518; color:#090909; padding:6px 10px; font-size:.66rem; font-weight:950; letter-spacing:.08em; text-transform:uppercase; }
+.planCard > svg { color:#f5c518; }.planCard h2 { margin:18px 0 7px; font-size:1.7rem; }
+.planPrice { margin:0; font-size:2.6rem; font-weight:950; letter-spacing:-.05em; }.planPrice span { font-size:.85rem; font-weight:800; letter-spacing:0; color:#aaa; }
+.planFeatures { display:grid; gap:12px; margin:24px 0; padding:0; list-style:none; color:#ddd; font-size:.9rem; line-height:1.45; }.planFeatures li { display:flex; gap:9px; align-items:flex-start; }.planFeatures svg { flex:none; margin-top:2px; color:#f5c518; }
+.planAction,.planSecondaryAction { display:flex; align-items:center; justify-content:center; gap:8px; min-height:46px; border-radius:11px; padding:0 14px; font-size:.9rem; font-weight:950; }.planAction { background:#f5c518; color:#090909; }.planSecondaryAction { border:1px solid #4a4a4a; background:#191919; color:#f5f1e7; }
+.planFinePrint { max-width:860px; margin:22px auto 0; color:#888; text-align:center; font-size:.8rem; line-height:1.6; }
 .backRow { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:28px; }
 .back { display:flex; align-items:center; gap:8px; color:#ccc; font-weight:800; }
 .projectHeader { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:end; border-bottom:1px solid #292929; padding-bottom:28px; }
@@ -61,5 +73,5 @@
 .completed { opacity:.62; }.completed strong { text-decoration:line-through; }
 .documentLink { color:#f5c518; font-weight:850; background:none; border:0; padding:0; cursor:pointer; text-align:left; }
 .uploadLabel { display:flex; align-items:center; justify-content:center; gap:8px; min-height:46px; border:1px dashed #6d5b19; color:#f5c518; border-radius:12px; font-weight:900; cursor:pointer; }.uploadLabel input { display:none; }
-@media (max-width:900px) { .panelGrid,.projectHeader { grid-template-columns:1fr; }.estimate { min-width:0; }.grid { grid-template-columns:1fr; }.stats { grid-template-columns:1fr; }.hero { align-items:flex-start; flex-direction:column; } }
+@media (max-width:900px) { .panelGrid,.projectHeader,.planGrid { grid-template-columns:1fr; }.estimate { min-width:0; }.grid { grid-template-columns:1fr; }.stats { grid-template-columns:1fr; }.hero { align-items:flex-start; flex-direction:column; } }
 @media (max-width:600px) { .navInner { min-height:68px; }.navInner img { width:165px; }.navLink span,.signOut span { display:none; }.primaryLink { display:none; }.shell { padding-top:34px; }.formGrid { grid-template-columns:1fr; }.row { grid-template-columns:minmax(0,1fr) auto; }.row .amount { grid-column:1/2; }.projectHeader h1 { font-size:2.4rem; } }
