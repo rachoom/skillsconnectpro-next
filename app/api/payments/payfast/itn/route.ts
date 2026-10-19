@@ -27,21 +27,25 @@ export async function POST(request: Request) {
     const processorReference = fields.pf_payment_id;
     if (!paymentReference || !processorReference) return new NextResponse('Missing payment reference', { status: 400 });
     const supabase = getSupabaseAdmin();
-    const { data: payment, error: paymentError } = await supabase.from('payment_transactions')
+    const { data: providerPayment, error: providerPaymentError } = await supabase.from('payment_transactions')
       .select('m_payment_id, amount_cents').eq('m_payment_id', paymentReference).maybeSingle();
-    if (paymentError) throw new Error(`Unable to find payment: ${paymentError.message}`);
+    if (providerPaymentError) throw new Error(`Unable to find provider payment: ${providerPaymentError.message}`);
+    const { data: customerPayment, error: customerPaymentError } = providerPayment ? { data: null, error: null } : await supabase
+      .from('customer_payment_transactions').select('m_payment_id, amount_cents').eq('m_payment_id', paymentReference).maybeSingle();
+    if (customerPaymentError) throw new Error(`Unable to find customer payment: ${customerPaymentError.message}`);
+    const payment = providerPayment ?? customerPayment;
     if (!payment) return new NextResponse('Unknown payment', { status: 400 });
     const paidCents = Math.round(Number(fields.amount_gross) * 100);
     if (!Number.isFinite(paidCents) || paidCents !== Number(payment.amount_cents)) return new NextResponse('Payment amount does not match', { status: 400 });
 
-    const { error: updateError } = await supabase.from('payment_transactions').update({
-      processor_status: paymentStatus || 'UNKNOWN', payfast_payment_id: processorReference, subscription_token: fields.token || null,
-      processor_payload: fields, updated_at: new Date().toISOString(),
-    }).eq('m_payment_id', paymentReference);
+    const paymentUpdate = providerPayment
+      ? { processor_status: paymentStatus || 'UNKNOWN', payfast_payment_id: processorReference, subscription_token: fields.token || null, processor_payload: fields, updated_at: new Date().toISOString() }
+      : { processor_status: paymentStatus || 'UNKNOWN', payfast_payment_id: processorReference, processor_payload: fields, updated_at: new Date().toISOString() };
+    const { error: updateError } = await supabase.from(providerPayment ? 'payment_transactions' : 'customer_payment_transactions').update(paymentUpdate).eq('m_payment_id', paymentReference);
     if (updateError) throw new Error(`Unable to record payment result: ${updateError.message}`);
     if (paymentStatus === 'COMPLETE') {
-      const { error: entitlementError } = await supabase.rpc('grant_provider_payment_entitlement', { payment_ref: paymentReference, processor_ref: processorReference });
-      if (entitlementError) throw new Error(`Unable to activate provider access: ${entitlementError.message}`);
+      const { error: entitlementError } = await supabase.rpc(providerPayment ? 'grant_provider_payment_entitlement' : 'grant_customer_payment_entitlement', { payment_ref: paymentReference, processor_ref: processorReference });
+      if (entitlementError) throw new Error(`Unable to activate ${providerPayment ? 'provider access' : 'customer project plan'}: ${entitlementError.message}`);
     }
     return new NextResponse('OK', { status: 200 });
   } catch (error) {

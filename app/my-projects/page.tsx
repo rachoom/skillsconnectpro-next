@@ -27,13 +27,16 @@ export default async function MyProjectsPage({ searchParams }: Props) {
   const { supabase, user } = await getAuthenticatedAccount();
   if (!user) redirect('/sign-in?next=/my-projects');
 
-  const [{ data: projects, error }, { data: roles }] = await Promise.all([
+  const [{ data: projects, error }, { data: roles }, { data: subscriptions }] = await Promise.all([
     supabase.from('projects').select('id,title,customer_description,category,status,location_text,estimated_min,estimated_max,estimate_currency,created_at,updated_at').order('updated_at', { ascending: false }),
     supabase.from('account_roles').select('role,status,is_primary').eq('user_id', user.id),
+    supabase.from('account_subscriptions').select('plan_code,ends_at,starts_at').eq('user_id', user.id).eq('status', 'active').order('starts_at', { ascending: false }).limit(1),
   ]);
 
   const activeProjects = (projects ?? []).filter((project) => !['completed', 'cancelled'].includes(project.status)).length;
   const roleLabels = (roles ?? []).filter((role) => role.status === 'active').map((role) => role.role.replaceAll('_', ' '));
+  const activePlan = (subscriptions ?? []).find((subscription) => !subscription.ends_at || new Date(subscription.ends_at).getTime() > Date.now()) ?? null;
+  const activePlanLabel = activePlan?.plan_code === 'project_pass_90' ? 'Home Project Pass' : activePlan?.plan_code === 'basic_30' ? 'Basic' : 'Free';
   const claimState = Array.isArray(params.claim) ? params.claim[0] : params.claim;
 
   return (
@@ -56,6 +59,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
         <section className={styles.stats} aria-label="Account summary">
           <div className={styles.stat}><span>Total projects</span><strong>{projects?.length ?? 0}</strong></div>
           <div className={styles.stat}><span>Active projects</span><strong>{activeProjects}</strong></div>
+          <div className={styles.stat}><span>Current plan</span><strong style={{ fontSize: '1.05rem' }}>{activePlanLabel}</strong>{activePlan?.ends_at && <small style={{ display: 'block', marginTop: 7, color: '#aaa' }}>Until {new Date(activePlan.ends_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</small>}</div>
           <div className={styles.stat}><span>Account access</span><strong style={{ fontSize: '1.05rem', textTransform: 'capitalize' }}>{roleLabels.join(' · ') || 'Customer'}</strong></div>
         </section>
 
