@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, MapPin, PackageSearch, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, MapPin, PackageOpen, PackageSearch, Plus, Sparkles } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import styles from './workspace.module.css';
 
@@ -74,6 +74,16 @@ export default async function MyProjectsPage({ searchParams }: Props) {
             <div className={styles.open}><span>Open artisan workspace</span><ArrowRight size={19} /></div>
           </Link>
 
+          <Link href="/materials" className={styles.projectCard}>
+            <div className={styles.cardTop}>
+              <span className={styles.category}>Project materials</span>
+            </div>
+            <PackageOpen size={28} />
+            <h2>Materials & Procurement</h2>
+            <p className={styles.description}>See material lists across your projects. Materials are created and edited inside each project, then collected here for quick access.</p>
+            <div className={styles.open}><span>Open materials workspace</span><ArrowRight size={19} /></div>
+          </Link>
+
           <Link href="/hardware-quotations" className={styles.projectCard}>
             <div className={styles.cardTop}>
               <span className={styles.category}>Procurement</span>
@@ -122,6 +132,7 @@ function AccountNav() {
       <div className={styles.navActions}>
         <Link href="/" className={styles.navLink}>Home</Link>
         <Link href="/artisan-business" className={styles.navLink}>Artisan Business</Link>
+        <Link href="/materials" className={styles.navLink}>Materials</Link>
         <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>
         <Link href="/plans" className={styles.navLink}>Plans</Link>
         <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
