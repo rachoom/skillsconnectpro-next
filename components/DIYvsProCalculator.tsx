@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
-import { Camera, X, Loader2, Hammer, Image as ImageIcon, Trash2, Check, Mic } from 'lucide-react';
+import { Camera, X, Loader2, Hammer, Image as ImageIcon, Trash2, Check, Mic, PackageSearch } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
 type QaPair = {
@@ -570,6 +570,27 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
               <span className="text-4xl font-black text-brand-yellow tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">R {result.trueCost.toLocaleString()}</span>
             </div>
             <Link
+              href="/hardware-quote-start"
+              onClick={() => {
+                try {
+                  window.sessionStorage.setItem('scp-hardware-quote-context', JSON.stringify({
+                    description: input.trim(),
+                    image,
+                    service: result.recommendedService || inferServiceFromText(input),
+                    estimate: result,
+                  }));
+                } catch {
+                  // The quote-start page will explain if the estimate context is unavailable.
+                }
+              }}
+              aria-label="Request hardware quotations using this project estimate"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-brand-yellow/50 bg-brand-yellow/10 py-3 font-black uppercase tracking-[0.12em] text-brand-yellow transition-all hover:bg-brand-yellow hover:text-black"
+            >
+              <PackageSearch size={18} /> Get Hardware Quotes
+            </Link>
+            <p className="mt-2 text-center text-[11px] leading-5 text-gray-400">Materials only — request supplier prices without choosing an artisan first. Your plan quotation limit applies.</p>
+
+            <Link
               href={`/get-help?mode=connect&service=${encodeURIComponent(result.recommendedService || inferServiceFromText(input))}&description=${encodeURIComponent(input)}`}
               onClick={() => {
                 try {
@@ -584,11 +605,11 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
                 }
               }}
               aria-label="Connect with a professional using this project estimate"
-              className="mt-4 w-full py-3 bg-brand-yellow text-black font-black uppercase tracking-[0.12em] rounded-xl hover:bg-white transition-all text-center block"
+              className="mt-3 w-full py-3 bg-brand-yellow text-black font-black uppercase tracking-[0.12em] rounded-xl hover:bg-white transition-all text-center block"
             >
               Connect a Pro
             </Link>
-            <p className="mt-2 text-center text-[11px] leading-5 text-gray-400">Your estimate, answers and uploaded photo will be carried into the request—no need to start over.</p>
+            <p className="mt-2 text-center text-[11px] leading-5 text-gray-400">Need labour too? Carry the same estimate into the artisan matching flow.</p>
             <button
               onClick={handleDownloadPdf}
               className="mt-6 w-full py-3 bg-white/5 text-brand-yellow font-black uppercase tracking-[0.12em] rounded-xl hover:bg-brand-yellow hover:text-black border border-brand-yellow/40 transition-all"
