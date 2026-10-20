@@ -44,10 +44,13 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
       const { data } = await supabase.auth.getUser();
       if (!active || !data.user) return;
       if (projectId && projectToken) {
-        const { data: claimed } = await supabase.rpc('claim_guest_project', {
-          target_project_id: projectId,
-          raw_access_token: projectToken,
+        const response = await fetch('/api/projects/claim', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ projectId, token: projectToken }),
         });
+        const result = await response.json().catch(() => ({ claimed: false }));
+        const claimed = response.ok && result?.claimed === true;
         window.location.replace(`${nextPath}${nextPath.includes('?') ? '&' : '?'}claim=${claimed ? 'saved' : 'failed'}`);
         return;
       }
