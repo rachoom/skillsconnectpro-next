@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
+import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 function text(value: unknown, max: number) {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
+function servesArea(areas: string[] | null, deliveryArea: string) {
+  if (!areas?.length) return true;
+  const target = deliveryArea.toLowerCase();
+  return areas.some((area) => {
+    const normalised = area.trim().toLowerCase();
+    return normalised === target || target.includes(normalised) || normalised.includes(target);
+  });
 }
 
 export async function POST(request: Request) {
@@ -94,9 +104,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unable to copy the materials list into the quotation request.' }, { status: 500 });
   }
 
-  if (allowance) {
-    await supabase.from('usage_allowances').update({ used: allowance.used + 1 }).eq('user_id', user.id).eq('allowance_type', 'supplier_quote_requests');
+  const { data: partners } = await supabase
+    .from('hardware_partners')
+    .select('id,service_areas')
+    .eq('status', 'active');
+
+  const eligible = (partners ?? []).filter((partner) => servesArea(partner.service_areas, deliveryArea)).slice(0, 10);
+  if (eligible.length) {
+    await supabase.from('hardware_quote_invitations').insert(
+      eligible.map((partner) => ({ request_id: quoteRequest.id, partner_id: partner.id })),
+    );
   }
 
-  return NextResponse.json({ id: quoteRequest.id }, { status: 201 });
+  if (allowance) {
+    const admin = getSupabaseAdmin();
+    await admin
+      .from('usage_allowances')
+      .update({ used: allowance.used + 1 })
+      .eq('user_id', user.id)
+      .eq('allowance_type', 'supplier_quote_requests');
+  }
+
+  return NextResponse.json({ id: quoteRequest.id, invitedPartners: eligible.length }, { status: 201 });
 }
