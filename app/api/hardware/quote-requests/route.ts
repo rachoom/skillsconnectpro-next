@@ -36,39 +36,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Project and delivery area are required.' }, { status: 400 });
   }
 
-  const { data: project, error: projectError } = await supabase
-    .from('projects')
-    .select('id,title,location_text')
-    .eq('id', projectId)
-    .maybeSingle();
+  const [{ data: project, error: projectError }, { data: materials, error: materialsError }, { data: partners, error: partnersError }] = await Promise.all([
+    supabase.from('projects').select('id,title,location_text').eq('id', projectId).maybeSingle(),
+    supabase.from('project_materials').select('id,name,quantity,unit,notes,status').eq('project_id', projectId).neq('status', 'removed').order('created_at'),
+    supabase.from('hardware_partners').select('id,service_areas').eq('status', 'active'),
+  ]);
 
   if (projectError || !project) {
     return NextResponse.json({ error: 'Project not found or access denied.' }, { status: 404 });
   }
-
-  const { data: materials, error: materialsError } = await supabase
-    .from('project_materials')
-    .select('id,name,quantity,unit,notes,status')
-    .eq('project_id', projectId)
-    .neq('status', 'removed')
-    .order('created_at');
-
   if (materialsError) {
     return NextResponse.json({ error: 'Unable to load project materials.' }, { status: 500 });
   }
   if (!materials?.length) {
     return NextResponse.json({ error: 'Add at least one material before requesting hardware quotations.' }, { status: 400 });
   }
+  if (partnersError) {
+    return NextResponse.json({ error: 'Unable to check participating hardware stores.' }, { status: 503 });
+  }
 
-  const { data: allowance } = await supabase
-    .from('usage_allowances')
-    .select('allowed,used,resets_at')
-    .eq('user_id', user.id)
-    .eq('allowance_type', 'supplier_quote_requests')
-    .maybeSingle();
+  const eligible = (partners ?? []).filter((partner) => servesArea(partner.service_areas, deliveryArea)).slice(0, 5);
+  const admin = getSupabaseAdmin();
+  let allowanceConsumed = false;
 
-  if (allowance?.allowed !== null && allowance?.allowed !== undefined && allowance.used >= allowance.allowed) {
-    return NextResponse.json({ error: 'Your current plan has no hardware quotation requests remaining.' }, { status: 403 });
+  if (eligible.length) {
+    const { data: allowanceResult, error: allowanceError } = await admin.rpc('consume_supplier_quote_allowance', {
+      target_user_id: user.id,
+    });
+    const allowance = Array.isArray(allowanceResult) ? allowanceResult[0] : allowanceResult;
+    if (allowanceError) {
+      console.error('Unable to consume supplier quote allowance:', allowanceError.message);
+      return NextResponse.json({ error: 'Unable to verify your hardware quotation allowance.' }, { status: 503 });
+    }
+    if (!allowance?.is_allowed) {
+      return NextResponse.json({
+        error: 'You have used the hardware quotation requests included with your current plan.',
+        upgradeUrl: '/plans#homeowners',
+      }, { status: 403 });
+    }
+    allowanceConsumed = true;
   }
 
   const { data: quoteRequest, error: requestError } = await supabase
@@ -85,6 +91,7 @@ export async function POST(request: Request) {
     .single();
 
   if (requestError || !quoteRequest) {
+    if (allowanceConsumed) await admin.rpc('release_supplier_quote_allowance', { target_user_id: user.id });
     return NextResponse.json({ error: requestError?.message ?? 'Unable to create quotation request.' }, { status: 500 });
   }
 
@@ -101,29 +108,27 @@ export async function POST(request: Request) {
   const { error: itemsError } = await supabase.from('material_quote_request_items').insert(items);
   if (itemsError) {
     await supabase.from('material_quote_requests').update({ status: 'cancelled' }).eq('id', quoteRequest.id);
+    if (allowanceConsumed) await admin.rpc('release_supplier_quote_allowance', { target_user_id: user.id });
     return NextResponse.json({ error: 'Unable to copy the materials list into the quotation request.' }, { status: 500 });
   }
 
-  const { data: partners } = await supabase
-    .from('hardware_partners')
-    .select('id,service_areas')
-    .eq('status', 'active');
-
-  const eligible = (partners ?? []).filter((partner) => servesArea(partner.service_areas, deliveryArea)).slice(0, 10);
   if (eligible.length) {
-    await supabase.from('hardware_quote_invitations').insert(
+    const { error: inviteError } = await supabase.from('hardware_quote_invitations').insert(
       eligible.map((partner) => ({ request_id: quoteRequest.id, partner_id: partner.id })),
     );
+    if (inviteError) {
+      await supabase.from('material_quote_requests').update({ status: 'cancelled' }).eq('id', quoteRequest.id);
+      if (allowanceConsumed) await admin.rpc('release_supplier_quote_allowance', { target_user_id: user.id });
+      return NextResponse.json({ error: 'Unable to send this request to hardware partners.' }, { status: 500 });
+    }
   }
 
-  if (allowance) {
-    const admin = getSupabaseAdmin();
-    await admin
-      .from('usage_allowances')
-      .update({ used: allowance.used + 1 })
-      .eq('user_id', user.id)
-      .eq('allowance_type', 'supplier_quote_requests');
-  }
-
-  return NextResponse.json({ id: quoteRequest.id, invitedPartners: eligible.length }, { status: 201 });
+  return NextResponse.json({
+    id: quoteRequest.id,
+    invitedPartners: eligible.length,
+    allowanceUsed: allowanceConsumed,
+    message: eligible.length
+      ? `Request sent to ${eligible.length} participating hardware partner${eligible.length === 1 ? '' : 's'}.`
+      : 'Your quotation request was saved, but there are no eligible participating hardware partners in that area yet. Your plan allowance was not used.',
+  }, { status: 201 });
 }
