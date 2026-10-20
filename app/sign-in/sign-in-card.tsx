@@ -28,8 +28,10 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
   const [error, setError] = useState(errorMessages[initialError] ?? '');
 
   const callbackUrl = () => {
-    const applicationUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || window.location.origin;
-    const url = new URL('/auth/callback', applicationUrl);
+    // Keep the callback on the host the visitor is using. This also keeps the
+    // short-lived return-path cookie available if the site is reached through
+    // either the www or apex domain.
+    const url = new URL('/auth/callback', window.location.origin);
     url.searchParams.set('next', nextPath);
     if (projectId && projectToken) {
       url.searchParams.set('projectId', projectId);
@@ -38,19 +40,30 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
     return url.toString();
   };
 
+  const rememberReturnPath = async () => {
+    try {
+      await fetch('/api/auth/remember-return-path', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ next: nextPath }),
+      });
+    } catch {
+      // The signed callback URL remains the primary return mechanism. The
+      // cookie is an additional recovery path, so a network failure here
+      // should not block sign-in.
+    }
+  };
+
   useEffect(() => {
     let active = true;
     const continueExistingSession = async () => {
       const { data } = await supabase.auth.getUser();
       if (!active || !data.user) return;
       if (projectId && projectToken) {
-        const response = await fetch('/api/projects/claim', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ projectId, token: projectToken }),
+        const { data: claimed } = await supabase.rpc('claim_guest_project', {
+          target_project_id: projectId,
+          raw_access_token: projectToken,
         });
-        const result = await response.json().catch(() => ({ claimed: false }));
-        const claimed = response.ok && result?.claimed === true;
         window.location.replace(`${nextPath}${nextPath.includes('?') ? '&' : '?'}claim=${claimed ? 'saved' : 'failed'}`);
         return;
       }
@@ -64,6 +77,7 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
     event.preventDefault();
     setError('');
     setWorking(true);
+    await rememberReturnPath();
     const { error: signInError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: { emailRedirectTo: callbackUrl(), shouldCreateUser: true },
@@ -79,6 +93,7 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
   const signInWithGoogle = async () => {
     setError('');
     setWorking(true);
+    await rememberReturnPath();
     const { error: signInError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: callbackUrl(), queryParams: { access_type: 'offline', prompt: 'consent' } },

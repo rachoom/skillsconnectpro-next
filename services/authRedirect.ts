@@ -1,3 +1,5 @@
+export const AUTH_RETURN_PATH_COOKIE = 'skills_connect_return_path';
+
 export function safeInternalPath(value: string | null | undefined, fallback = '/my-projects') {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return fallback;
   try {
@@ -7,6 +9,20 @@ export function safeInternalPath(value: string | null | undefined, fallback = '/
   } catch {
     return fallback;
   }
+}
+
+/**
+ * Prefer the target supplied by the authentication provider, but retain a
+ * same-site fallback for providers or email clients that remove redirect
+ * query parameters. Both values are validated as local paths first.
+ */
+export function resolveAuthReturnPath(
+  requestedPath: string | null | undefined,
+  rememberedPath: string | null | undefined,
+) {
+  const requested = safeInternalPath(requestedPath, '');
+  if (requested) return requested;
+  return safeInternalPath(rememberedPath);
 }
 
 export function withResult(path: string, key: string, value: string) {
