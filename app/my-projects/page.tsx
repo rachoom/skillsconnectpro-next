@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowRight, CalendarDays, FolderKanban, MapPin, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, MapPin, PackageSearch, Plus, Sparkles } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import styles from './workspace.module.css';
 
@@ -63,6 +63,28 @@ export default async function MyProjectsPage({ searchParams }: Props) {
           <div className={styles.stat}><span>Account access</span><strong style={{ fontSize: '1.05rem', textTransform: 'capitalize' }}>{roleLabels.join(' · ') || 'Customer'}</strong></div>
         </section>
 
+        <section className={styles.grid} aria-label="Workspace shortcuts" style={{ marginBottom: 28 }}>
+          <Link href="/artisan-business" className={styles.projectCard}>
+            <div className={styles.cardTop}>
+              <span className={styles.category}>Business tools</span>
+            </div>
+            <BriefcaseBusiness size={28} />
+            <h2>Artisan Business Workspace</h2>
+            <p className={styles.description}>Manage customer jobs, project materials, expenses and supplier quotations. Activate the workspace here even if your public provider profile is not linked yet.</p>
+            <div className={styles.open}><span>Open artisan workspace</span><ArrowRight size={19} /></div>
+          </Link>
+
+          <Link href="/hardware-quotations" className={styles.projectCard}>
+            <div className={styles.cardTop}>
+              <span className={styles.category}>Procurement</span>
+            </div>
+            <PackageSearch size={28} />
+            <h2>Hardware Quotations</h2>
+            <p className={styles.description}>See material-price requests and compare quotations sent back by participating hardware suppliers.</p>
+            <div className={styles.open}><span>Open hardware quotations</span><ArrowRight size={19} /></div>
+          </Link>
+        </section>
+
         <section className={styles.grid} aria-label="Saved projects">
           {(projects ?? []).map((project) => (
             <Link href={`/my-projects/${project.id}`} className={styles.projectCard} key={project.id}>
@@ -99,6 +121,8 @@ function AccountNav() {
       <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
       <div className={styles.navActions}>
         <Link href="/" className={styles.navLink}>Home</Link>
+        <Link href="/artisan-business" className={styles.navLink}>Artisan Business</Link>
+        <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>
         <Link href="/plans" className={styles.navLink}>Plans</Link>
         <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
       </div>
