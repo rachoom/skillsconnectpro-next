@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
@@ -6,6 +7,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!hardwareQuotesEnabled()) return NextResponse.json({ error: 'Hardware quotations are not available in this launch phase.' }, { status: 404 });
   const { id: quoteId } = await params;
   const { supabase, user } = await getAuthenticatedAccount();
   if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
