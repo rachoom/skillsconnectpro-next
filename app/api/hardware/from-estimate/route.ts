@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { createProject, updateProjectMedia } from '@/services/marketplace/projects';
 import { storeProjectImage } from '@/services/marketplace/projectMedia';
@@ -33,6 +34,7 @@ function parseQuantity(value: unknown): { quantity: number | undefined; unit: st
 }
 
 export async function POST(request: Request) {
+  if (!hardwareQuotesEnabled()) return NextResponse.json({ error: 'Hardware quotations are not available in this launch phase.' }, { status: 404 });
   const { user } = await getAuthenticatedAccount();
   if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
 
