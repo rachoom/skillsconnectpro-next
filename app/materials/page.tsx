@@ -5,11 +5,12 @@ import { redirect } from 'next/navigation';
 import { ArrowRight, PackageOpen, PackageSearch } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import styles from '../my-projects/workspace.module.css';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Materials & Procurement | Skills Connect Pro',
-  description: 'Review materials across projects and continue into hardware quotation requests.',
+  description: 'Review materials across projects and keep project costs organised.',
 };
 
 function money(value: number | string | null) {
@@ -17,6 +18,7 @@ function money(value: number | string | null) {
 }
 
 export default async function MaterialsPage() {
+  const showHardwareQuotes = hardwareQuotesEnabled();
   const { supabase, user } = await getAuthenticatedAccount();
   if (!user) redirect('/sign-in?next=/materials');
 
@@ -40,7 +42,7 @@ export default async function MaterialsPage() {
         <div className={styles.navActions}>
           <Link href="/my-projects" className={styles.navLink}>My Projects</Link>
           <Link href="/artisan-business" className={styles.navLink}>Artisan Business</Link>
-          <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>
+          {showHardwareQuotes && <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>}
           <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
         </div>
       </div></nav>
@@ -50,9 +52,9 @@ export default async function MaterialsPage() {
           <div>
             <span className={styles.eyebrow}>Project materials</span>
             <h1>Materials & Procurement</h1>
-            <p>Material lists remain attached to their projects, while this page gives you one place to find them and continue into supplier quotations.</p>
+            <p>Material lists remain attached to their projects, while this page gives you one place to review quantities, planned costs and recorded purchases.</p>
           </div>
-          <Link href="/hardware-quotations" className={styles.primaryLink}><PackageSearch size={17} /> Hardware quotations</Link>
+          {showHardwareQuotes && <Link href="/hardware-quotations" className={styles.primaryLink}><PackageSearch size={17} /> Hardware quotations</Link>}
         </section>
 
         <section className={styles.grid}>
