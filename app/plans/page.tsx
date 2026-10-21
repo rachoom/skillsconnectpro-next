@@ -17,6 +17,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { providerPlans } from '@/app/provider-plans/planCatalog';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 
 export const metadata: Metadata = {
   title: 'Plans | Skills Connect Pro',
@@ -35,7 +36,7 @@ const customerPlans: Array<{
 }> = [
   {
     code: 'free', name: 'Free', price: 'R0', period: 'to get started', description: 'A practical starting point for understanding one job and taking the first step.', button: 'Start a project', featured: false,
-    features: ['Account registration', 'Basic AI Project Assistant', '1 project photo analysis', 'Basic materials calculation', 'Hardware quotation requests', 'Find suitable artisans', '1 active project', 'Basic project budget', 'Limited expense tracking and receipt storage'],
+    features: ['Account registration', 'Basic AI Project Assistant', '1 project photo analysis', 'Basic materials calculation', ...(hardwareQuotesEnabled() ? ['Hardware quotation requests'] : []), 'Find suitable artisans', '1 active project', 'Basic project budget', 'Limited expense tracking and receipt storage'],
     visual: { icon: Sparkles, image: '/mzansi-services-hero-v2.webp', eyebrow: 'Start with clarity', outcome: 'Turn a problem into a clear next step.' },
   },
   {
@@ -51,7 +52,7 @@ const customerPlans: Array<{
 ];
 
 const comparisonRows = [
-  ['Account registration', 'Included', 'Included', 'Included'], ['Basic AI Project Assistant', 'Included', 'Included', 'Included'], ['Project photo analysis', '1', '2', '5'], ['Materials calculations', 'Basic', 'Full', 'Full'], ['Hardware quotation requests', 'Included', 'Included', 'Included'], ['Find artisans', 'Included', 'Included', 'Included'], ['Active projects', '1', '1', '3'], ['Project budget', 'Basic', 'Basic', 'Advanced'], ['Expense tracking', 'Limited', 'Included', 'Included'], ['Receipt storage', 'Limited', 'Limited', 'Expanded'], ['Project timeline', '—', '—', 'Included'], ['Milestone management', '—', '—', 'Included'], ['Project reports', '—', '—', 'Included'], ['Collaborate with artisans', '—', 'Limited', 'Included'], ['Project document export', '—', 'Limited', 'Included'],
+  ['Account registration', 'Included', 'Included', 'Included'], ['Basic AI Project Assistant', 'Included', 'Included', 'Included'], ['Project photo analysis', '1', '2', '5'], ['Materials calculations', 'Basic', 'Full', 'Full'], ...(hardwareQuotesEnabled() ? [['Hardware quotation requests', 'Included', 'Included', 'Included']] : []), ['Find artisans', 'Included', 'Included', 'Included'], ['Active projects', '1', '1', '3'], ['Project budget', 'Basic', 'Basic', 'Advanced'], ['Expense tracking', 'Limited', 'Included', 'Included'], ['Receipt storage', 'Limited', 'Limited', 'Expanded'], ['Project timeline', '—', '—', 'Included'], ['Milestone management', '—', '—', 'Included'], ['Project reports', '—', '—', 'Included'], ['Collaborate with artisans', '—', 'Limited', 'Included'], ['Project document export', '—', 'Limited', 'Included'],
 ];
 
 const workspaceMoments: Array<{ icon: PlanVisual['icon']; title: string; text: string }> = [
