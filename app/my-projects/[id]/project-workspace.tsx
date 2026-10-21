@@ -5,6 +5,7 @@ import { Check, FileDown, FileText, Loader2, PackagePlus, Plus, ReceiptText, Tra
 import { createBrowserSupabaseClient } from '@/services/supabase/client';
 import { HardwareQuoteRequestButton } from './hardware-quote-request';
 import styles from '../workspace.module.css';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 
 type Project = {
   id: string;
@@ -39,6 +40,7 @@ function rand(value: number | null | undefined) {
 }
 
 export function ProjectWorkspace({ project, initialMaterials, initialDocuments, initialExpenses, initialMilestones }: Props) {
+  const showHardwareQuotes = hardwareQuotesEnabled();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [tab, setTab] = useState<Tab>('overview');
   const [materials, setMaterials] = useState(initialMaterials);
@@ -187,7 +189,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
 
       {tab === 'materials' && <div className={styles.panelGrid}>
         <section className={styles.panel}><span className={styles.eyebrow}>Materials list</span><h2>{rand(materialsTotal)} planned</h2><p className={styles.subtle}>AI estimate items and anything you add stay editable here.</p><div className={styles.list}>{materials.map((item) => <div className={styles.row} key={item.id}><div><strong>{item.name}</strong><small>{item.quantity ?? '—'} {item.unit ?? ''}{item.notes ? ` · ${item.notes}` : ''}</small></div><span className={styles.amount}>{rand(item.actual_total ?? item.estimated_total)}</span><button className={styles.iconButton} onClick={() => removeMaterial(item.id)} aria-label={`Remove ${item.name}`}>{working === item.id ? <Loader2 size={17} /> : <Trash2 size={17} />}</button></div>)}{!materials.length && <p className={styles.subtle}>No materials have been added yet.</p>}</div></section>
-        <aside className={styles.sidePanel}><PackagePlus /><h2>Add material</h2><form className={styles.form} onSubmit={addMaterial}><input className={styles.input} placeholder="Material name" value={materialName} onChange={(event) => setMaterialName(event.target.value)} /><div className={styles.formGrid}><input className={styles.input} type="number" min="0.001" step="0.001" placeholder="Qty" value={materialQuantity} onChange={(event) => setMaterialQuantity(event.target.value)} /><input className={styles.input} type="number" min="0" step="0.01" placeholder="Each R" value={materialPrice} onChange={(event) => setMaterialPrice(event.target.value)} /></div><button className={styles.action} disabled={working === 'material'}><Plus size={17} /> Add material</button></form><div style={{ marginTop: 24, paddingTop: 22, borderTop: '1px solid rgba(255,255,255,.12)' }}><span className={styles.eyebrow}>Ready to price it?</span><h2>Ask hardware stores</h2><p className={styles.subtle}>Send this materials list to participating suppliers and compare their quotations in one place.</p><HardwareQuoteRequestButton projectId={project.id} defaultArea={project.location_text ?? ''} /></div></aside>
+        <aside className={styles.sidePanel}><PackagePlus /><h2>Add material</h2><form className={styles.form} onSubmit={addMaterial}><input className={styles.input} placeholder="Material name" value={materialName} onChange={(event) => setMaterialName(event.target.value)} /><div className={styles.formGrid}><input className={styles.input} type="number" min="0.001" step="0.001" placeholder="Qty" value={materialQuantity} onChange={(event) => setMaterialQuantity(event.target.value)} /><input className={styles.input} type="number" min="0" step="0.01" placeholder="Each R" value={materialPrice} onChange={(event) => setMaterialPrice(event.target.value)} /></div><button className={styles.action} disabled={working === 'material'}><Plus size={17} /> Add material</button></form>{showHardwareQuotes && <div style={{ marginTop: 24, paddingTop: 22, borderTop: '1px solid rgba(255,255,255,.12)' }}><span className={styles.eyebrow}>Ready to price it?</span><h2>Ask hardware stores</h2><p className={styles.subtle}>Send this materials list to participating suppliers and compare their quotations in one place.</p><HardwareQuoteRequestButton projectId={project.id} defaultArea={project.location_text ?? ''} /></div>}</aside>
       </div>}
 
       {tab === 'milestones' && <div className={styles.panelGrid}>
