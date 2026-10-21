@@ -159,12 +159,19 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
         clarifyingQuestions: []
       };
       if (data.estimate) {
+        const b = String.fromCharCode(96, 96, 96);
+        const cleanString = data.estimate.replace(new RegExp(b + 'json|' + b, 'gi'), '').trim();
         try {
-          const b = String.fromCharCode(96, 96, 96);
-          const cleanString = data.estimate.replace(new RegExp(b + 'json|' + b, 'gi'), '').trim();
           const tempParsed = JSON.parse(cleanString);
-          if (tempParsed && typeof tempParsed === 'object') parsedObj = { ...parsedObj, ...tempParsed };
-        } catch(e) {}
+          if (!tempParsed || typeof tempParsed !== 'object' || Array.isArray(tempParsed)) {
+            throw new Error('Estimator response was not a valid project estimate.');
+          }
+          parsedObj = { ...parsedObj, ...tempParsed };
+        } catch {
+          throw new Error('The estimator returned incomplete data. Please try the estimate again.');
+        }
+      } else {
+        throw new Error('The estimator returned no project data. Please try again.');
       }
 
       const normalizedMaterials: MaterialItem[] = Array.isArray(parsedObj.materials)
