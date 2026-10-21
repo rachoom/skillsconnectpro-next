@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, MapPin, PackageOpen, PackageSearch, Plus, Sparkles } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import styles from './workspace.module.css';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,7 @@ function money(min: number | null, max: number | null) {
 
 export default async function MyProjectsPage({ searchParams }: Props) {
   const params = await searchParams;
+  const showHardwareQuotes = hardwareQuotesEnabled();
   const { supabase, user } = await getAuthenticatedAccount();
   if (!user) redirect('/sign-in?next=/my-projects');
 
@@ -84,7 +86,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
             <div className={styles.open}><span>Open materials workspace</span><ArrowRight size={19} /></div>
           </Link>
 
-          <Link href="/hardware-quotations" className={styles.projectCard}>
+          {showHardwareQuotes && (          <Link href="/hardware-quotations" className={styles.projectCard}>
             <div className={styles.cardTop}>
               <span className={styles.category}>Procurement</span>
             </div>
@@ -92,7 +94,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
             <h2>Hardware Quotations</h2>
             <p className={styles.description}>See material-price requests and compare quotations sent back by participating hardware suppliers.</p>
             <div className={styles.open}><span>Open hardware quotations</span><ArrowRight size={19} /></div>
-          </Link>
+          </Link>)}
         </section>
 
         <section className={styles.grid} aria-label="Saved projects">
@@ -133,7 +135,7 @@ function AccountNav() {
         <Link href="/" className={styles.navLink}>Home</Link>
         <Link href="/artisan-business" className={styles.navLink}>Artisan Business</Link>
         <Link href="/materials" className={styles.navLink}>Materials</Link>
-        <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>
+        {hardwareQuotesEnabled() && (        <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>)}
         <Link href="/plans" className={styles.navLink}>Plans</Link>
         <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
       </div>
