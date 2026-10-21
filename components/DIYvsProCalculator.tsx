@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Camera, X, Loader2, Hammer, Image as ImageIcon, Trash2, Check, Mic, PackageSearch } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 
 type QaPair = {
   question: string;
@@ -60,6 +61,7 @@ const inferServiceFromText = (text: string): string => {
 };
 
 export default function DIYvsProCalculator({ initialDescription = '' }: { initialDescription?: string }) {
+  const showHardwareQuotes = hardwareQuotesEnabled();
   const [input, setInput] = useState(initialDescription);
   const [timeValue, setTimeValue] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -576,6 +578,7 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
               <span className="text-lg font-bold text-white">True Project Cost</span>
               <span className="text-4xl font-black text-brand-yellow tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">R {result.trueCost.toLocaleString()}</span>
             </div>
+            {showHardwareQuotes && (<>
             <Link
               href="/hardware-quote-start"
               onClick={() => {
@@ -596,6 +599,7 @@ export default function DIYvsProCalculator({ initialDescription = '' }: { initia
               <PackageSearch size={18} /> Get Hardware Quotes
             </Link>
             <p className="mt-2 text-center text-[11px] leading-5 text-gray-400">Materials only — request supplier prices without choosing an artisan first. Your plan quotation limit applies.</p>
+            </>)}
 
             <Link
               href={`/get-help?mode=connect&service=${encodeURIComponent(result.recommendedService || inferServiceFromText(input))}&description=${encodeURIComponent(input)}`}
