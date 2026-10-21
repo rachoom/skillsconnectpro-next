@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
@@ -19,6 +20,7 @@ function servesArea(areas: string[] | null, deliveryArea: string) {
 }
 
 export async function POST(request: Request) {
+  if (!hardwareQuotesEnabled()) return NextResponse.json({ error: 'Hardware quotations are not available in this launch phase.' }, { status: 404 });
   const { supabase, user } = await getAuthenticatedAccount();
   if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
 
