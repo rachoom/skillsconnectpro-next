@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { ArrowLeft, Loader2, PackageSearch, ShieldCheck } from 'lucide-react';
 
 type EstimateContext = {
@@ -23,21 +24,22 @@ type EstimateContext = {
 const AREAS = ['Alberton','Benoni','Boksburg','Brakpan','Daveyton','Duduza','Germiston','Johannesburg','Katlehong','Kempton Park','Kwa-Thema','Nigel','Springs','Tembisa','Tsakane','Vosloorus'];
 
 export default function HardwareQuoteStartPage() {
-  const [context, setContext] = useState<EstimateContext | null>(null);
+  const router = useRouter();
+  const [context] = useState<EstimateContext | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = window.sessionStorage.getItem('scp-hardware-quote-context');
+      return stored ? JSON.parse(stored) as EstimateContext : null;
+    } catch {
+      return null;
+    }
+  });
   const [area, setArea] = useState('');
   const [customArea, setCustomArea] = useState('');
   const [notes, setNotes] = useState('');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    try {
-      const stored = window.sessionStorage.getItem('scp-hardware-quote-context');
-      if (stored) setContext(JSON.parse(stored) as EstimateContext);
-    } catch {
-      setContext(null);
-    }
-  }, []);
+  const [upgradeHref, setUpgradeHref] = useState('');
 
   const submit = async () => {
     const deliveryArea = customArea.trim() || area;
@@ -51,6 +53,7 @@ export default function HardwareQuoteStartPage() {
     }
 
     setError('');
+    setUpgradeHref('');
     setWorking(true);
     const projectResponse = await fetch('/api/hardware/from-estimate', {
       method: 'POST',
@@ -60,7 +63,7 @@ export default function HardwareQuoteStartPage() {
 
     if (projectResponse.status === 401) {
       try { window.sessionStorage.setItem('scp-hardware-quote-context', JSON.stringify(context)); } catch {}
-      window.location.href = '/sign-in?next=/hardware-quote-start';
+      router.push('/sign-in?next=/hardware-quote-start');
       return;
     }
 
@@ -68,6 +71,7 @@ export default function HardwareQuoteStartPage() {
     if (!projectResponse.ok || !projectResult?.projectId) {
       setWorking(false);
       setError(projectResult?.error ?? 'Unable to save this procurement project.');
+      if (typeof projectResult?.upgradeUrl === 'string') setUpgradeHref(projectResult.upgradeUrl);
       return;
     }
 
@@ -82,6 +86,7 @@ export default function HardwareQuoteStartPage() {
       setWorking(false);
       if (quoteResponse.status === 403 && quoteResult?.upgradeUrl) {
         setError(`${quoteResult.error} Your project has been saved. Upgrade your plan to send another hardware quotation request.`);
+        setUpgradeHref(quoteResult.upgradeUrl);
         return;
       }
       setError(quoteResult?.error ?? 'The project was saved, but the hardware quotation request could not be sent.');
@@ -89,7 +94,7 @@ export default function HardwareQuoteStartPage() {
     }
 
     try { window.sessionStorage.removeItem('scp-hardware-quote-context'); } catch {}
-    window.location.href = `/hardware-quotations/${quoteResult.id}`;
+    router.push(`/hardware-quotations/${quoteResult.id}`);
   };
 
   return (
@@ -121,7 +126,7 @@ export default function HardwareQuoteStartPage() {
             <label className="block"><span className="mb-2 block text-xs font-black uppercase tracking-wider text-white/65">Supplier note — optional</span><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full rounded-xl border border-white/15 bg-[#111] px-4 py-3 text-base text-white" placeholder="Brand preferences, delivery notes, alternatives allowed..." /></label>
           </div>
 
-          {error && <div role="alert" className="mt-5 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-100">{error}</div>}
+          {error && <div role="alert" className="mt-5 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-100"><p>{error}</p>{upgradeHref && <Link href={upgradeHref} className="mt-3 inline-flex font-black text-[#ffe17a] underline underline-offset-4">Compare project plans →</Link>}</div>}
 
           <button type="button" onClick={submit} disabled={working || !context} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#f9c62b] px-5 py-4 font-black uppercase tracking-[0.12em] text-black disabled:opacity-50">
             {working ? <Loader2 className="animate-spin" size={19}/> : <PackageSearch size={19}/>} {working ? 'Preparing request…' : 'Request Hardware Quotations'}

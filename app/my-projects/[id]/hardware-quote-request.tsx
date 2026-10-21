@@ -2,15 +2,20 @@
 
 import { useState } from 'react';
 import { Loader2, PackageSearch } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export function HardwareQuoteRequestButton({ projectId, defaultArea }: { projectId: string; defaultArea: string }) {
+  const router = useRouter();
   const [area, setArea] = useState(defaultArea);
   const [notes, setNotes] = useState('');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
+  const [upgradeHref, setUpgradeHref] = useState('');
 
   const requestQuotes = async () => {
     setError('');
+    setUpgradeHref('');
     setWorking(true);
     const response = await fetch('/api/hardware/quote-requests', {
       method: 'POST',
@@ -21,9 +26,10 @@ export function HardwareQuoteRequestButton({ projectId, defaultArea }: { project
     if (!response.ok) {
       setWorking(false);
       setError(result?.error ?? 'Unable to request quotations.');
+      if (typeof result?.upgradeUrl === 'string') setUpgradeHref(result.upgradeUrl);
       return;
     }
-    window.location.href = `/hardware-quotations/${result.id}`;
+    router.push(`/hardware-quotations/${result.id}`);
   };
 
   return (
@@ -36,7 +42,7 @@ export function HardwareQuoteRequestButton({ projectId, defaultArea }: { project
         {working ? <Loader2 size={18} /> : <PackageSearch size={18} />}
         {working ? 'Sending request…' : 'Get hardware quotations'}
       </button>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{error}{upgradeHref && <> <Link href={upgradeHref}>Compare project plans →</Link></>}</p>}
     </div>
   );
 }

@@ -1,5 +1,7 @@
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { customerProjectUsage, readAiResponseCache, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie, writeAiResponseCache } from '@/services/aiUsageGuard';
+import { releaseCustomerPhotoAssessment, reserveCustomerPhotoAssessment, type CustomerPhotoUsageReservation } from '@/services/customerPlanUsage';
+import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -403,6 +405,7 @@ export async function POST(request: NextRequest) {
   let image = '';
   let questionsAlreadyAsked = 0;
   let reservation: UsageReservation | null = null;
+  let photoReservation: CustomerPhotoUsageReservation | null = null;
 
   try {
     const blocked = await enforcePublicRequestLimit(request, 'assessment', 30);
@@ -443,8 +446,29 @@ export async function POST(request: NextRequest) {
       return intakeResponse(cachedAssessment, false, description, answers, questionsAlreadyAsked);
     }
 
+    // Charge a signed-in customer once for a new image-led brief, not for each
+    // clarification round carrying the same photo forward.
+    if (image && questionsAlreadyAsked === 0) {
+      const { user } = await getAuthenticatedAccount();
+      if (user) {
+        const photoUsage = await reserveCustomerPhotoAssessment(user.id);
+        if (!photoUsage.allowed) {
+          return NextResponse.json({
+            error: 'You have used the project-photo analyses included with your current plan.',
+            code: 'PHOTO_ANALYSIS_LIMIT',
+            upgradeUrl: '/plans#homeowners',
+            planCode: photoUsage.planCode,
+          }, { status: 403 });
+        }
+        photoReservation = photoUsage.reservation;
+      }
+    }
+
     const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image)));
-    if (!guarded.allowed) return guarded.response;
+    if (!guarded.allowed) {
+      await releaseCustomerPhotoAssessment(photoReservation);
+      return guarded.response;
+    }
     reservation = guarded.reservation;
 
     const answerContext = answers.length > 0
@@ -524,6 +548,7 @@ Rules:
 
     const assessment = normaliseAssessment(parseModelJson(response.text ?? '{}'), 'gemini-3.6-flash');
     await settleAiUsage(reservation, 'gemini-3.6-flash', response);
+    if (photoReservation) photoReservation.settled = true;
     await writeAiResponseCache('project_assessment', cacheSource, assessment);
     return withAiUsageCookie(intakeResponse(
       assessment,
@@ -534,6 +559,7 @@ Rules:
     ), reservation);
   } catch (error) {
     await releaseAiUsage(reservation);
+    await releaseCustomerPhotoAssessment(photoReservation);
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('POST /api/project-intake/assess-v2 failed:', error);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Check, FileDown, FileText, Loader2, PackagePlus, Plus, ReceiptText, Trash2, Upload } from 'lucide-react';
 import { createBrowserSupabaseClient } from '@/services/supabase/client';
 import { HardwareQuoteRequestButton } from './hardware-quote-request';
@@ -57,13 +58,27 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
   const [expenseAmount, setExpenseAmount] = useState('');
   const [working, setWorking] = useState('');
   const [message, setMessage] = useState('');
+  const [upgradeHref, setUpgradeHref] = useState('');
 
   const materialsTotal = materials.reduce((sum, item) => sum + Number(item.actual_total ?? item.estimated_total ?? 0), 0);
   const expensesTotal = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-  const report = (value: string) => {
+  const report = (value: string, href = '') => {
     setMessage(value);
-    window.setTimeout(() => setMessage(''), 3500);
+    setUpgradeHref(href);
+    window.setTimeout(() => { setMessage(''); setUpgradeHref(''); }, 5000);
+  };
+
+  const reportWorkspaceLimit = (value: string) => {
+    if (value.includes('SCP_PLAN_LIMIT_MILESTONES')) {
+      report('Milestones are included with the Home Project Pass. Upgrade to plan this project from first step to handover.', '/plans#homeowners');
+      return;
+    }
+    if (value.includes('SCP_PLAN_LIMIT_DOCUMENT_STORAGE')) {
+      report('You have used the document storage included with your plan. Upgrade to keep more project records together.', '/plans#homeowners');
+      return;
+    }
+    report(value);
   };
 
   const updateEstimate = async () => {
@@ -117,7 +132,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
     setWorking('milestone');
     const { data, error } = await supabase.from('project_milestones').insert({ project_id: project.id, title: milestoneTitle.trim(), sort_order: milestones.length }).select('*').single();
     setWorking('');
-    if (error || !data) { report(error?.message ?? 'Unable to add milestone.'); return; }
+    if (error || !data) { reportWorkspaceLimit(error?.message ?? 'Unable to add milestone.'); return; }
     setMilestones((current) => [...current, data as Milestone]); setMilestoneTitle(''); report('Milestone added.');
   };
 
@@ -127,7 +142,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
     setWorking(item.id);
     const { error } = await supabase.from('project_milestones').update({ status: nextStatus, completed_at: completed ? null : new Date().toISOString() }).eq('id', item.id).eq('project_id', project.id);
     setWorking('');
-    if (error) { report(error.message); return; }
+    if (error) { reportWorkspaceLimit(error.message); return; }
     setMilestones((current) => current.map((row) => row.id === item.id ? { ...row, status: nextStatus } : row));
   };
 
@@ -155,7 +170,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
     const { data, error } = await supabase.from('project_documents').insert({ project_id: project.id, file_name: file.name, storage_path: path, mime_type: file.type || null, size_bytes: file.size, document_type: file.type.startsWith('image/') ? 'photo' : file.type === 'application/pdf' ? 'floor_plan' : 'other' }).select('*').single();
     if (error || !data) {
       await supabase.storage.from('project-documents').remove([path]);
-      setWorking(''); report(error?.message ?? 'Unable to save document.'); return;
+      setWorking(''); reportWorkspaceLimit(error?.message ?? 'Unable to save document.'); return;
     }
     setDocuments((current) => [data as DocumentRow, ...current]); setWorking(''); report('Document uploaded.');
   };
@@ -180,7 +195,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
       <div className={styles.tabs} role="tablist" aria-label="Project workspace sections">
         {(['overview', 'materials', 'milestones', 'expenses', 'documents'] as Tab[]).map((item) => <button key={item} role="tab" data-active={tab === item} onClick={() => setTab(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}
       </div>
-      {message && <div className={styles.notice} role="status">{message}</div>}
+      {message && <div className={styles.notice} role="status"><span>{message}</span>{upgradeHref && <Link href={upgradeHref} className={styles.noticeLink}>Compare project plans →</Link>}</div>}
 
       {tab === 'overview' && <div className={styles.panelGrid}>
         <section className={styles.panel}><span className={styles.eyebrow}>Project brief</span><h2>What is being done</h2><p className={styles.subtle}>{project.customer_description}</p>{project.likely_issue && <><h2 style={{ marginTop: 24 }}>Likely scope or issue</h2><p className={styles.subtle}>{project.likely_issue}</p></>}{project.safety_notes?.length > 0 && <div className={styles.error} style={{ marginTop: 22, marginBottom: 0 }}><strong>Safety first</strong>{project.safety_notes.map((note) => <div key={note}>• {note}</div>)}</div>}</section>

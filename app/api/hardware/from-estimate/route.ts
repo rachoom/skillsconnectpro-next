@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
+import { isCustomerPlanLimitError } from '@/services/customerPlanUsage';
 import { createProject, updateProjectMedia } from '@/services/marketplace/projects';
 import { storeProjectImage } from '@/services/marketplace/projectMedia';
 
@@ -34,7 +34,6 @@ function parseQuantity(value: unknown): { quantity: number | undefined; unit: st
 }
 
 export async function POST(request: Request) {
-  if (!hardwareQuotesEnabled()) return NextResponse.json({ error: 'Hardware quotations are not available in this launch phase.' }, { status: 404 });
   const { user } = await getAuthenticatedAccount();
   if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
 
@@ -81,33 +80,48 @@ export async function POST(request: Request) {
   const total = safeNumber(estimate.trueCost) ?? safeNumber(estimate.materials) ?? 0;
   const range = total > 0 ? Math.round(total * 0.1) : 0;
 
-  const { project } = await createProject({
-    customerId: user.id,
-    title: `${service} materials project`,
-    customerDescription: description,
-    aiSummary: 'Created from the AI Project Assistant for materials procurement only.',
-    likelyIssue: description,
-    category: service,
-    urgency: 'planned',
-    serviceLevel: 'free',
-    locationText: deliveryArea,
-    estimatedMin: total > 0 ? Math.max(0, total - range) : null,
-    estimatedMax: total > 0 ? total + range : null,
-    estimateCurrency: 'ZAR',
-    confidence: 0.75,
-    professionalInspectionRequired: true,
-    safetyNotes: ['Hardware quotations confirm supplier pricing only. Final quantities and installation scope should be checked before purchase.'],
-    materials,
-    assessmentPayload: {
-      intakeOrigin: 'calculator_hardware_quote',
-      procurementOnly: true,
-      estimateType: cleanText(estimate.estimateType, 30) || 'standardized',
-      toolsEstimate: safeNumber(estimate.tools),
-      labourEstimate: safeNumber(estimate.laborTotal),
-    },
-    sourceChannel: 'web',
-    consentToShare: false,
-  });
+  let created: Awaited<ReturnType<typeof createProject>>;
+  try {
+    created = await createProject({
+      customerId: user.id,
+      title: `${service} materials project`,
+      customerDescription: description,
+      aiSummary: 'Created from the AI Project Assistant for materials procurement only.',
+      likelyIssue: description,
+      category: service,
+      urgency: 'planned',
+      serviceLevel: 'free',
+      locationText: deliveryArea,
+      estimatedMin: total > 0 ? Math.max(0, total - range) : null,
+      estimatedMax: total > 0 ? total + range : null,
+      estimateCurrency: 'ZAR',
+      confidence: 0.75,
+      professionalInspectionRequired: true,
+      safetyNotes: ['Hardware quotations confirm supplier pricing only. Final quantities and installation scope should be checked before purchase.'],
+      materials,
+      assessmentPayload: {
+        intakeOrigin: 'calculator_hardware_quote',
+        procurementOnly: true,
+        estimateType: cleanText(estimate.estimateType, 30) || 'standardized',
+        toolsEstimate: safeNumber(estimate.tools),
+        labourEstimate: safeNumber(estimate.laborTotal),
+      },
+      sourceChannel: 'web',
+      consentToShare: false,
+    });
+  } catch (error) {
+    if (isCustomerPlanLimitError(error, 'ACTIVE_PROJECTS')) {
+      return NextResponse.json({
+        error: 'You already have the active projects included with your current plan. Upgrade to keep this procurement project and its quotes together.',
+        code: 'ACTIVE_PROJECT_LIMIT',
+        upgradeUrl: '/plans#homeowners',
+      }, { status: 403 });
+    }
+    console.error('Unable to create procurement project:', error);
+    return NextResponse.json({ error: 'Unable to save this procurement project.' }, { status: 500 });
+  }
+
+  const { project } = created;
 
   let mediaStored = false;
   if (image) {

@@ -11,6 +11,7 @@ import { createProjectMediaSignedUrls, storeProjectImage } from '@/services/mark
 import { sendCustomerProjectConfirmation } from '@/services/marketplace/customerWhatsAppNotifications';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { linkAiUsageToProject } from '@/services/aiUsageGuard';
+import { isCustomerPlanLimitError } from '@/services/customerPlanUsage';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import type { CreateProjectInput } from '@/types/marketplace';
 
@@ -347,6 +348,13 @@ export async function POST(request: Request) {
   } catch (error) {
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
+    if (isCustomerPlanLimitError(error, 'ACTIVE_PROJECTS')) {
+      return NextResponse.json({
+        error: 'You already have the active projects included with your current plan. Choose a project plan to keep more projects moving at once.',
+        code: 'ACTIVE_PROJECT_LIMIT',
+        upgradeUrl: '/plans#homeowners',
+      }, { status: 403 });
+    }
     const message = error instanceof Error ? error.message : 'Unable to create the project.';
     const isServiceError = message.startsWith('Unable to create project:') || message.includes('SUPABASE_');
     console.error('POST /api/projects/intake failed:', error);
