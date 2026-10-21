@@ -6,14 +6,16 @@ import { BriefcaseBusiness, ChevronRight, FolderKanban, Hammer, PackageSearch, P
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { ActivateArtisanWorkspace } from './activate-artisan-workspace';
 import styles from '../my-projects/workspace.module.css';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Artisan Business Workspace | Skills Connect Pro',
-  description: 'Plan jobs, manage project materials and request hardware quotations.',
+  description: 'Plan jobs, manage project materials, expenses and customer work.',
 };
 
 export default async function ArtisanBusinessPage() {
+  const showHardwareQuotes = hardwareQuotesEnabled();
   const { supabase, user } = await getAuthenticatedAccount();
   if (!user) redirect('/sign-in?next=/artisan-business');
 
@@ -44,7 +46,7 @@ export default async function ArtisanBusinessPage() {
           <div>
             <span className={styles.eyebrow}>Artisan business tools</span>
             <h1>Manage the work, not just the lead.</h1>
-            <p>Plan customer jobs, keep materials and expenses together, and request supplier quotations from the same project workspace.</p>
+            <p>Plan customer jobs, keep materials, expenses and documents together, and manage the work from the same project workspace.</p>
           </div>
           <Link href="/assistant" className={styles.primaryLink}><Plus size={17} /> Start a customer project</Link>
         </section>
@@ -61,7 +63,7 @@ export default async function ArtisanBusinessPage() {
             <section className={styles.stats} aria-label="Business workspace summary">
               <div className={styles.stat}><span>Projects</span><strong>{projects?.length ?? 0}</strong></div>
               <div className={styles.stat}><span>Active jobs</span><strong>{activeProjects}</strong></div>
-              <div className={styles.stat}><span>Open hardware requests</span><strong>{openRequests}</strong></div>
+              {showHardwareQuotes && <div className={styles.stat}><span>Open hardware requests</span><strong>{openRequests}</strong></div>}
               <div className={styles.stat}><span>Public profile</span><strong style={{ fontSize: '1.05rem' }}>{linkedProfile ? 'Verified link' : 'Not linked yet'}</strong></div>
             </section>
 
@@ -91,12 +93,12 @@ export default async function ArtisanBusinessPage() {
               <aside className={styles.sidePanel}>
                 <Hammer />
                 <h2>Business toolkit</h2>
-                <p className={styles.subtle}>Use each project to calculate materials, track spend, save documents and ask hardware partners for prices.</p>
+                <p className={styles.subtle}>Use each project to calculate materials, track spend, save documents and keep the customer job organised.</p>
                 <Link href="/my-projects" className={styles.action}>Open project manager</Link>
               </aside>
             </section>
 
-            <section className={styles.panel} style={{ marginTop: 22 }}>
+            {showHardwareQuotes && (            <section className={styles.panel} style={{ marginTop: 22 }}>
               <span className={styles.eyebrow}>Hardware procurement</span>
               <h2>Material quotation requests</h2>
               <div className={styles.list}>
@@ -108,7 +110,7 @@ export default async function ArtisanBusinessPage() {
                 ))}
                 {!quoteRequests?.length && <p className={styles.subtle}>No hardware quotation requests yet. Open a project, go to Materials and request prices.</p>}
               </div>
-            </section>
+            </section>)}
           </>
         )}
       </div>
