@@ -3,6 +3,22 @@ import { requireProjectWorkspaceAccess } from '@/services/projectWorkspaceAccess
 
 const ALLOWED_TYPES = new Set(['image/jpeg','image/png','image/webp','application/pdf','text/plain']);
 
+function friendlyDocumentLimit(message: string) {
+  if (message.includes('SCP_PLAN_LIMIT_DOCUMENT_COUNT')) {
+    return { error: 'You have reached the number of documents included with your current plan.', code: 'DOCUMENT_COUNT_LIMIT' };
+  }
+  if (message.includes('SCP_PLAN_LIMIT_DOCUMENT_FILE_SIZE')) {
+    return { error: 'This file is larger than the size allowed by your current plan.', code: 'DOCUMENT_FILE_SIZE_LIMIT' };
+  }
+  if (message.includes('SCP_PLAN_LIMIT_DOCUMENT_PROJECT_STORAGE')) {
+    return { error: 'This project has reached the document storage included with your current plan.', code: 'DOCUMENT_PROJECT_STORAGE_LIMIT' };
+  }
+  if (message.includes('SCP_PLAN_LIMIT_DOCUMENT_STORAGE')) {
+    return { error: 'You have reached the total document storage included with your current plan.', code: 'DOCUMENT_STORAGE_LIMIT' };
+  }
+  return null;
+}
+
 function uuidLike(value: unknown) {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
@@ -17,8 +33,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const form = await request.formData();
   const file = form.get('file');
   if (!(file instanceof File)) return NextResponse.json({ error: 'Choose a document to upload.' }, { status: 400 });
-  if (file.size <= 0 || file.size > 10 * 1024 * 1024) {
-    return NextResponse.json({ error: 'Documents must be 10 MB or smaller.' }, { status: 400 });
+  if (file.size <= 0) {
+    return NextResponse.json({ error: 'Choose a non-empty document.' }, { status: 400 });
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({
+      error: 'Documents can be up to 10 MB. Free plans are limited to 5 MB per file.',
+      code: 'DOCUMENT_FILE_SIZE_LIMIT',
+    }, { status: 413 });
   }
   if (!ALLOWED_TYPES.has(file.type)) {
     return NextResponse.json({ error: 'Use PDF, JPG, PNG, WEBP or text files.' }, { status: 400 });
@@ -47,6 +69,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   if (error || !data) {
     await admin.storage.from('project-documents').remove([storagePath]);
+    const limit = error ? friendlyDocumentLimit(error.message) : null;
+    if (limit) return NextResponse.json(limit, { status: 403 });
     return NextResponse.json({ error: error?.message ?? 'Unable to save document.' }, { status: 400 });
   }
 
