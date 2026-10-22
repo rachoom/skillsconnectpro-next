@@ -58,8 +58,9 @@ test('My Projects supports a persistent light and dark theme', () => {
   const css = read('../app/my-projects/workspace.module.css');
   assert.match(toggle, /skills-connect-workspace-theme/);
   assert.match(toggle, /prefers-color-scheme: light/);
-  assert.match(toggle, /dataset\.workspaceTheme/);
-  assert.match(css, /data-workspace-theme='light'/);
+  assert.match(toggle, /data-workspace-shell/);
+  assert.match(toggle, /setAttribute\('data-theme'/);
+  assert.match(css, /\.page\[data-theme='light'\]/);
   assert.match(css, /#f3eee3/);
 });
 
@@ -84,4 +85,14 @@ test('document upload limits stay plan-aware', () => {
   assert.match(plans, /25 MB per project/);
   assert.match(plans, /200 MB per project/);
   assert.match(plans, /500 MB per project/);
+});
+
+
+test('theme toggle targets the rendered workspace shell', () => {
+  const listing = read('../app/my-projects/page.tsx');
+  const detail = read('../app/my-projects/[id]/page.tsx');
+  const toggle = read('../app/my-projects/workspace-theme-toggle.tsx');
+  assert.match(listing, /data-workspace-shell/);
+  assert.match(detail, /data-workspace-shell/);
+  assert.match(toggle, /querySelector<HTMLElement>\('\[data-workspace-shell\]'\)/);
 });
