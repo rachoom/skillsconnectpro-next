@@ -174,7 +174,7 @@ async function queuePreferredProvider(input: {
     waveNumber: 1,
     targets: [{
       providerId: provider.id,
-      deliveryChannel: 'admin',
+      deliveryChannel: 'whatsapp',
       deliveryAddress: provider.phone,
       providerSnapshot: {
         displayName,
@@ -190,13 +190,13 @@ async function queuePreferredProvider(input: {
   });
 
   if (created.length === 0) return { requested: true, queued: false,
-    reason: 'The selected provider requires review or the initial invitation wave is already full.' };
+    reason: 'The selected provider requires review or could not be invited directly.' };
 
   const { error: eventError } = await supabase.from('project_status_events').insert({
     project_id: input.projectId,
     event_type: 'customer_preferred_provider_queued',
     actor_type: 'customer',
-    message: `${displayName} was added to the first invitation wave at the customer's request.`,
+    message: `${displayName} was invited directly at the customer's request.`,
     event_data: {
       providerId: provider.id,
       providerName: displayName,
@@ -208,7 +208,7 @@ async function queuePreferredProvider(input: {
     console.error('Preferred provider queued but timeline event failed:', eventError.message);
   }
 
-  return { requested: true, queued: true, reason: 'The customer-selected provider was added to the first invitation wave.' };
+  return { requested: true, queued: true, reason: 'The customer-selected provider was invited directly.' };
 }
 
 export async function POST(request: Request) {
@@ -276,9 +276,11 @@ export async function POST(request: Request) {
       reason: string;
     } | null = null;
 
-    if (process.env.MARKETPLACE_AUTOROUTING_ENABLED !== 'false') {
+    // A customer-selected provider is a direct request, not a marketplace broadcast.
+    // Keep the existing wave engine untouched and bypass it entirely for direct requests.
+    if (!preferredProviderId && process.env.MARKETPLACE_AUTOROUTING_ENABLED !== 'false') {
       try {
-        const result = await processAutomaticRouting({ projectId: project.id, preferredProviderId });
+        const result = await processAutomaticRouting({ projectId: project.id });
         routing = {
           action: result.action,
           waveNumber: result.waveNumber,
@@ -305,11 +307,6 @@ export async function POST(request: Request) {
           projectId: project.id,
           providerId: preferredProviderId,
         });
-        if (preferredProvider.queued && routing) {
-          routing.providersQueued += 1;
-          routing.totalInvitations += 1;
-          routing.reason = `${routing.reason} The customer-selected provider was also included.`;
-        }
       } catch (preferredError) {
         console.error('Project created but preferred provider could not be queued:', preferredError);
         preferredProvider.reason = 'The project was created, but the preferred provider requires administrator review.';
