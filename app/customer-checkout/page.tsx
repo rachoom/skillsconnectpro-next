@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft, CalendarDays, CreditCard, LockKeyhole, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Check, CreditCard, LockKeyhole, ShieldCheck, Sparkles } from 'lucide-react';
 import { CustomerCheckoutForm } from './CustomerCheckoutForm';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
+import { customerPlanBenefits, customerTheme } from '@/services/planPresentation';
 
 type Props = { searchParams: Promise<{ plan?: string }> };
 type Plan = { code: string; name: string; price_cents: number; duration_days: number | null; features: string[] };
@@ -46,6 +47,8 @@ export default async function CustomerCheckoutPage({ searchParams }: Props) {
   if (!plan || !plan.duration_days) redirect('/plans');
 
   const story = planStories[plan.code as keyof typeof planStories];
+  const theme = customerTheme(plan.code);
+  const benefits = customerPlanBenefits[plan.code] ?? plan.features;
 
   return (
     <main className="relative isolate min-h-screen overflow-hidden bg-[#071009] px-4 py-5 text-[#fff8e8] md:px-8 md:py-8">
@@ -62,12 +65,12 @@ export default async function CustomerCheckoutPage({ searchParams }: Props) {
         <section className="rounded-[2rem] border border-white/20 bg-white/[.075] p-5 shadow-2xl shadow-black/35 backdrop-blur-2xl md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="flex w-fit items-center gap-2 rounded-full border border-[#ffd75f]/40 bg-[#ffd75f]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] text-[#ffe17a]"><Sparkles size={13} /> Secure project access</div>
+              <div className={`flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] ${theme.badge}`}><Sparkles size={13} /> Secure project access</div>
               <p className="mt-5 text-xs font-black uppercase tracking-[0.15em] text-white/50">{story.eyebrow}</p>
               <h1 className="mt-3 max-w-xl text-3xl font-black leading-tight tracking-[-.035em] text-[#fff8e8] md:text-5xl">{story.heading}</h1>
               <p className="mt-4 max-w-xl text-sm leading-7 text-white/70 md:text-base">{story.detail}</p>
             </div>
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-[#ffd75f]/45 bg-[#ffd75f] text-[#271d00] shadow-lg shadow-[#ffd75f]/10"><CreditCard size={22} /></span>
+            <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl border shadow-lg ${theme.panel}`}><CreditCard size={22} /></span>
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -75,18 +78,24 @@ export default async function CustomerCheckoutPage({ searchParams }: Props) {
           </div>
 
           <div className="mt-7 border-t border-white/12 pt-7">
+            <p className="text-xs font-black uppercase tracking-[0.15em] text-white/50">Everything included in {plan.name}</p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              {benefits.map((benefit) => <li key={benefit} className="flex gap-2.5 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm leading-5 text-white/82"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{benefit}</li>)}
+            </ul>
+          </div>
+          <div className="mt-7 border-t border-white/12 pt-7">
             <CustomerCheckoutForm plan={{ code: plan.code, name: plan.name, priceCents: plan.price_cents, durationDays: plan.duration_days }} />
           </div>
         </section>
 
         <aside className="space-y-4">
           <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-[#11190f]/85 shadow-2xl shadow-black/30 backdrop-blur-2xl">
-            <div className="border-b border-white/12 bg-[linear-gradient(135deg,rgba(255,215,95,.96),rgba(221,169,21,.98))] p-6 text-[#281d00]">
+            <div className={`border-b border-white/12 p-6 ${theme.panel}`}>
               <p className="text-[10px] font-black uppercase tracking-[.17em] text-[#664900]">Your project plan</p>
               <h2 className="mt-2 text-2xl font-black tracking-[-.03em]">{plan.name}</h2>
               <p className="mt-3 text-4xl font-black">{money(plan.price_cents)} <span className="text-sm font-bold">once-off</span></p>
             </div>
-            <div className="p-6"><div className="flex items-center justify-between gap-4 text-sm"><span className="text-white/60">Private workspace access</span><span className="font-black text-white">{plan.duration_days} days</span></div><div className="mt-4 flex items-center justify-between gap-4 text-sm"><span className="text-white/60">Renewal</span><span className="font-black text-[#ffe17a]">Not automatic</span></div><div className="mt-5 h-px bg-white/12" /><p className="mt-5 text-sm leading-6 text-white/65">One payment, one defined access period. There is no hidden recurring homeowner card subscription.</p></div>
+            <div className="p-6"><div className="flex items-center justify-between gap-4 text-sm"><span className="text-white/60">Private workspace access</span><span className="font-black text-white">{plan.duration_days} days</span></div><div className="mt-4 flex items-center justify-between gap-4 text-sm"><span className="text-white/60">Renewal</span><span className={`font-black ${theme.price}`}>Not automatic</span></div><div className="mt-5 h-px bg-white/12" /><p className="mt-5 text-sm leading-6 text-white/65">One payment, one defined access period. There is no hidden recurring homeowner card subscription.</p></div>
           </div>
 
           <div className="rounded-[1.6rem] border border-white/15 bg-white/[.055] p-5 backdrop-blur-xl"><div className="flex gap-3"><LockKeyhole className="mt-0.5 shrink-0 text-[#ffe17a]" size={20} /><div><h2 className="font-black text-white">Payment stays protected</h2><p className="mt-2 text-sm leading-6 text-white/65">Payfast handles your card details. Skills Connect Pro receives only the verified result needed to activate your pass.</p></div></div></div>
