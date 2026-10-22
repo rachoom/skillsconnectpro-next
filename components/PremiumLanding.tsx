@@ -142,56 +142,48 @@ export function PremiumLanding() {
       <section className={styles.spotlight} aria-labelledby="home-heading">
         <Image
           src="/mzansi-services-hero-v2.webp"
-          alt="Mechanics, electricians, plumbers, builders and cleaners representing local skills"
+          alt="A South African family at home while a skilled professional works on their property"
           fill priority sizes="100vw" className={styles.heroImage}
         />
         <div className={styles.scrim} aria-hidden="true" />
         <div className={styles.spotlightInner}>
           <div className={styles.pitch}>
             <span className={styles.location}><MapPin size={14} aria-hidden="true" /> STARTING IN EKURHULENI. BUILT FOR MZANSI.</span>
-            <div className={styles.languageCarousel} aria-hidden="true">
-              <span className={styles.languageLabel}>{activePhrase.language}</span>
-              <span key={languageIndex} className={styles.languagePhrase}>{activePhrase.phrase}</span>
-              <span className={styles.languageDots}>
-                {mzansiPhrases.map((item, index) => (
-                  <i key={item.language} data-active={index === languageIndex ? 'true' : 'false'} />
-                ))}
-              </span>
-            </div>
-            <h1 id="home-heading">The right skills.<br /><span>For the job at hand.</span></h1>
-            <p>Car trouble. A leaking tap. A home that needs care. Connect with suitable local service providers through one simple request.</p>
+            <span className={styles.heroKicker}>YOUR HOME. YOUR IDEA. YOUR NEXT MOVE.</span>
+            <h1 id="home-heading">Turn your home ideas into <span>real results.</span></h1>
+            <p>From a repair you have been putting off to the renovation you can already picture, Skills Connect Pro helps you plan the job, understand what it may take and connect with the right local help when you are ready.</p>
             <Link href="/assistant" className={styles.mobileAssistantCta}>
               <span className={styles.mobileAssistantIcon}><Sparkles size={20} aria-hidden="true" /></span>
-              <span><strong>Try the AI Project Assistant</strong><small>Plan · clarify · estimate</small></span>
+              <span><strong>Plan it with the AI Project Assistant</strong><small>Clarify · estimate · organise</small></span>
               <ArrowRight size={20} aria-hidden="true" />
             </Link>
             <div id="start-request" className={styles.requestHub}>
-              <span className={styles.requestLabel}>WHAT DO YOU NEED DONE?</span>
+              <span className={styles.requestLabel}>WHAT DO YOU WANT TO GET DONE?</span>
               <Link href="/get-help" className={styles.commandBar}>
                 <span className={styles.commandIcon}><Wrench size={22} aria-hidden="true" /></span>
-                <span><strong>Describe your job</strong><small>Type, speak or add a photo in the next step</small></span>
+                <span><strong>Describe your project or problem</strong><small>Type, speak or add a photo in the next step</small></span>
                 <ArrowRight size={22} aria-hidden="true" />
               </Link>
               <div className={styles.inputHint} aria-hidden="true"><Camera size={14} /><span>Photo</span><Mic size={14} /><span>Voice</span><span className={styles.hintDivider} />Start in your own words</div>
             </div>
-            <Link href="/browse-providers" className={styles.secondary}>Prefer to explore? Browse providers <ArrowRight size={16} aria-hidden="true" /></Link>
+            <Link href="/browse-providers" className={styles.secondary}>Already know what you need? Browse providers <ArrowRight size={16} aria-hidden="true" /></Link>
             <div className={styles.heroProof} aria-label="Marketplace benefits">
-              <span><ShieldCheck size={16} aria-hidden="true" /> Private until you choose</span>
-              <span><Check size={16} aria-hidden="true" /> You control the connection</span>
+              <span><ShieldCheck size={16} aria-hidden="true" /> Plan before you commit</span>
+              <span><Check size={16} aria-hidden="true" /> You choose who to connect with</span>
             </div>
           </div>
           <aside className={styles.connectionCard} aria-label="How your request works">
-            <span className={styles.cardEyebrow}><span className={styles.liveDot} aria-hidden="true" /> LOCAL SKILLS. ONE CONNECTION.</span>
-            <strong>A clear path to<br />getting it done.</strong>
+            <span className={styles.cardEyebrow}><span className={styles.liveDot} aria-hidden="true" /> FROM IDEA TO DONE</span>
+            <strong>A clearer way to<br />move your project forward.</strong>
             <div className={styles.connectionSteps}>
-              <span><b>01</b> Describe the job</span>
-              <span><b>02</b> Compare responses</span>
-              <span><b>03</b> Choose your provider</span>
+              <span><b>01</b> Show us the idea or problem</span>
+              <span><b>02</b> Plan the job and next steps</span>
+              <span><b>03</b> Connect with suitable help</span>
             </div>
           </aside>
         </div>
         <div className={styles.journey} aria-label="Available service categories">
-          <span>MECHANICS</span><span>HOME & PROPERTY</span><span>CLEANING</span><span>EVERYDAY MAINTENANCE</span>
+          <span>REPAIR</span><span>RENOVATE</span><span>IMPROVE</span><span>MAINTAIN</span>
           <a href="#services">Explore services <ArrowRight size={14} aria-hidden="true" /></a>
         </div>
       </section>
