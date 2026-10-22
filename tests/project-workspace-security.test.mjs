@@ -25,7 +25,7 @@ test('workspace API verifies project access before using service role', () => {
 
 test('all manual project tabs have server actions', () => {
   const route = read('../app/api/account/projects/[id]/workspace/route.ts');
-  for (const action of ['update_estimate','add_material','remove_material','add_milestone','toggle_milestone','add_expense']) {
+  for (const action of ['update_project_status','update_estimate','add_material','remove_material','add_milestone','toggle_milestone','add_expense']) {
     assert.match(route, new RegExp(`body\\.action === '${action}'`));
   }
   const docs = read('../app/api/account/projects/[id]/documents/route.ts');
@@ -95,4 +95,19 @@ test('theme toggle targets the rendered workspace shell', () => {
   assert.match(listing, /data-workspace-shell/);
   assert.match(detail, /data-workspace-shell/);
   assert.match(toggle, /querySelector<HTMLElement>\('\[data-workspace-shell\]'\)/);
+});
+
+
+test('customers can close projects without deleting their history', () => {
+  const route = read('../app/api/account/projects/[id]/workspace/route.ts');
+  const workspace = read('../app/my-projects/[id]/project-workspace.tsx');
+
+  assert.match(route, /body\.action === 'update_project_status'/);
+  assert.match(route, /status: 'cancelled'/);
+  assert.match(route, /status: 'completed'/);
+  assert.match(route, /lead_invitations/);
+  assert.match(route, /project_matches/);
+  assert.match(workspace, /Mark complete/);
+  assert.match(workspace, /Cancel project/);
+  assert.match(workspace, /active-project slot is now available/);
 });
