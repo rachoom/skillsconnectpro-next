@@ -62,3 +62,26 @@ test('My Projects supports a persistent light and dark theme', () => {
   assert.match(css, /data-workspace-theme='light'/);
   assert.match(css, /#f3eee3/);
 });
+
+
+test('document upload limits stay plan-aware', () => {
+  const route = read('../app/api/account/projects/[id]/documents/route.ts');
+  const workspace = read('../app/my-projects/[id]/project-workspace.tsx');
+  const plans = read('../services/planPresentation.ts');
+
+  for (const code of [
+    'SCP_PLAN_LIMIT_DOCUMENT_COUNT',
+    'SCP_PLAN_LIMIT_DOCUMENT_FILE_SIZE',
+    'SCP_PLAN_LIMIT_DOCUMENT_PROJECT_STORAGE',
+    'SCP_PLAN_LIMIT_DOCUMENT_STORAGE',
+  ]) {
+    assert.match(route, new RegExp(code));
+  }
+
+  assert.match(workspace, /Free: 5 files/);
+  assert.match(workspace, /Basic: 20 files/);
+  assert.match(workspace, /Home Project Pass: 50 files/);
+  assert.match(plans, /25 MB per project/);
+  assert.match(plans, /200 MB per project/);
+  assert.match(plans, /500 MB per project/);
+});
