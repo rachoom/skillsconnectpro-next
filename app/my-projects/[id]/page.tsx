@@ -53,7 +53,7 @@ export default async function ProjectWorkspacePage({ params }: Props) {
   };
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-workspace-shell>
       <nav className={styles.nav}><div className={styles.navInner}>
         <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
         <div className={styles.navActions}><Link href="/my-projects" className={styles.navLink}>My Projects</Link><WorkspaceThemeToggle /><form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form></div>
