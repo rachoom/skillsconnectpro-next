@@ -453,6 +453,21 @@ async function applyLifecycleAction(input: {
       .eq('id', input.projectId);
     if (projectUpdateError) throw new Error(`Unable to cancel project: ${projectUpdateError.message}`);
 
+    // Cancellation closes every provider opportunity for this project, including
+    // the previously accepted/selected invitation, so stale secure links and
+    // provider workspaces cannot continue presenting the job as actionable.
+    const { error: invitationCancelError } = await supabase
+      .from('lead_invitations')
+      .update({
+        status: 'cancelled',
+        failure_reason: 'Customer cancelled the project.',
+      })
+      .eq('project_id', input.projectId)
+      .in('status', ['queued', 'sent', 'delivered', 'viewed', 'accepted']);
+    if (invitationCancelError) {
+      throw new Error(`Project was cancelled but provider invitations could not be closed: ${invitationCancelError.message}`);
+    }
+
     await insertEvent({
       projectId: input.projectId,
       eventType: 'project_cancelled',
