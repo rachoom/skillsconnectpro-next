@@ -285,9 +285,6 @@ export default async function ArtisanBusinessPage() {
               <div className={styles.row}><div><strong>Availability</strong><small>Last provider setting</small></div><span>{availability?.availability_status?.replaceAll('_', ' ') || 'not set'}</span></div>
               <div className={styles.row}><div><strong>Free leads remaining</strong><small>First {leadAccess.freeLeadLimit} leads are complimentary</small></div><span className={styles.amount}>{leadAccess.freeLeadsRemaining}</span></div>
             </div>
-            <Link href={providerPlansHref} className={styles.action} style={{ marginTop: 18 }}>
-              View provider plans
-            </Link>
           </aside>
         </section>
 
