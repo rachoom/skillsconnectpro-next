@@ -508,6 +508,63 @@ async function applyLifecycleAction(input: {
   throw new Error('Unsupported lifecycle action.');
 }
 
+async function cancelUnmatchedCustomerProject(input: {
+  projectId: string;
+  actorId: string;
+  note?: string | null;
+}) {
+  const supabase = getSupabaseAdmin();
+  const { data: project, error: projectError } = await supabase
+    .from('projects')
+    .select('id, status')
+    .eq('id', input.projectId)
+    .single();
+
+  if (projectError || !project) {
+    throw new Error(`Unable to load project: ${projectError?.message ?? 'Project not found.'}`);
+  }
+
+  if (!['draft', 'assessment_complete', 'matching', 'responses_received'].includes(project.status)) {
+    return false;
+  }
+
+  const { error: projectUpdateError } = await supabase
+    .from('projects')
+    .update({ status: 'cancelled' })
+    .eq('id', input.projectId)
+    .in('status', ['draft', 'assessment_complete', 'matching', 'responses_received']);
+  if (projectUpdateError) throw new Error(`Unable to cancel project: ${projectUpdateError.message}`);
+
+  const { error: invitationCancelError } = await supabase
+    .from('lead_invitations')
+    .update({
+      status: 'cancelled',
+      failure_reason: 'Customer cancelled the request.',
+    })
+    .eq('project_id', input.projectId)
+    .in('status', ['queued', 'sent', 'delivered', 'viewed']);
+  if (invitationCancelError) {
+    throw new Error(`Project was cancelled but provider invitations could not be closed: ${invitationCancelError.message}`);
+  }
+
+  const note = input.note?.trim().slice(0, 2000) || null;
+  const { error: eventError } = await supabase.from('project_status_events').insert({
+    project_id: input.projectId,
+    event_type: 'project_cancelled',
+    actor_type: 'customer',
+    actor_id: input.actorId,
+    message: 'The customer cancelled the request while provider matching was still in progress.',
+    event_data: {
+      action: 'cancel_project',
+      note,
+      stage: 'pre_selection',
+    },
+  });
+  if (eventError) console.error('Cancellation saved but timeline event failed:', eventError.message);
+
+  return true;
+}
+
 export async function updateCustomerLifecycle(input: {
   projectId: string;
   accessToken: string;
@@ -517,6 +574,41 @@ export async function updateCustomerLifecycle(input: {
 }) {
   const project = await getProjectByAccessToken(input.projectId, input.accessToken);
   if (!project) throw new Error('Project not found.');
+
+  if (input.action === 'cancel_project') {
+    const cancelledBeforeSelection = await cancelUnmatchedCustomerProject({
+      projectId: input.projectId,
+      actorId: project.customerId ?? project.guestPhone ?? project.id,
+      note: input.note,
+    });
+    if (cancelledBeforeSelection) {
+      return {
+        projectId: input.projectId,
+        projectTitle: project.title,
+        projectStatus: 'cancelled',
+        matchStatus: 'cancelled',
+        actorType: 'customer' as const,
+        providerId: 0,
+        providerName: 'No provider selected',
+        customerName: project.guestName?.trim() || 'Customer',
+        contactReleased: false,
+        completionReportedAt: null,
+        completionReportedBy: null,
+        completionNote: null,
+        completionConfirmationDueAt: null,
+        completionGraceHours: getCompletionGraceHours(),
+        completionConfirmedAt: null,
+        completionConfirmedByCustomer: false,
+        autoClosedAt: null,
+        issueReportedAt: null,
+        issueReportedBy: null,
+        issueNote: null,
+        finalPrice: null,
+        finalPriceCurrency: 'ZAR',
+      };
+    }
+  }
+
   const match = await loadMatch(input.projectId);
 
   await applyLifecycleAction({
