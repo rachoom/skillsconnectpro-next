@@ -6,14 +6,14 @@ type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const HERO_SOCIAL_IMAGE = '/artisans/hero-welder.jpg';
+const HERO_SOCIAL_IMAGE = '/mzansi-services-hero-v2.webp';
 
 export const metadata: Metadata = {
   title: 'Skills Connect Pro | Mzansi Skilled Services',
-  description: 'Describe, photograph or speak about the service you need. Connect with mechanics, artisans and suitable local providers through one guided Ekurhuleni marketplace, built to grow across Mzansi.',
+  description: 'Turn your home ideas into real results. Plan projects, understand materials and costs, and connect with suitable local professionals through Skills Connect Pro.',
   openGraph: {
     title: 'Skills Connect Pro | Mzansi Skilled Services',
-    description: 'From mechanics and artisans to everyday services, find and connect with suitable local providers across Ekurhuleni through one guided marketplace.',
+    description: 'Turn your home ideas into real results with clearer project planning, materials and cost guidance, and suitable local professionals.',
     images: [{ url: HERO_SOCIAL_IMAGE, width: 1200, height: 630 }],
     type: 'website',
   },
