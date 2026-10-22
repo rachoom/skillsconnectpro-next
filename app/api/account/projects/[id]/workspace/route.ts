@@ -24,6 +24,51 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const { admin, user } = access;
 
+  if (body.action === 'update_project_status') {
+    const nextStatus = body.status === 'completed' || body.status === 'cancelled' ? body.status : null;
+    if (!nextStatus) {
+      return NextResponse.json({ error: 'Choose completed or cancelled.' }, { status: 400 });
+    }
+
+    const now = new Date().toISOString();
+    const { error: projectError } = await admin
+      .from('projects')
+      .update({ status: nextStatus, updated_at: now })
+      .eq('id', projectId);
+
+    if (projectError) return NextResponse.json({ error: projectError.message }, { status: 400 });
+
+    // Once a project is closed, providers should not keep receiving/responding
+    // to still-open invitations for it.
+    const { error: invitationError } = await admin
+      .from('lead_invitations')
+      .update({ status: 'cancelled', updated_at: now })
+      .eq('project_id', projectId)
+      .in('status', ['queued', 'sent', 'delivered', 'viewed']);
+
+    if (invitationError) {
+      console.error('Project close invitation cleanup failed:', invitationError.message);
+    }
+
+    if (nextStatus === 'cancelled') {
+      const { error: matchError } = await admin
+        .from('project_matches')
+        .update({ status: 'cancelled', updated_at: now })
+        .eq('project_id', projectId)
+        .in('status', ['selected', 'contact_released', 'accepted', 'in_progress']);
+      if (matchError) console.error('Project cancellation match cleanup failed:', matchError.message);
+    } else {
+      const { error: matchError } = await admin
+        .from('project_matches')
+        .update({ status: 'completed', completion_reported_at: now, updated_at: now })
+        .eq('project_id', projectId)
+        .in('status', ['selected', 'contact_released', 'accepted', 'in_progress']);
+      if (matchError) console.error('Project completion match cleanup failed:', matchError.message);
+    }
+
+    return NextResponse.json({ ok: true, status: nextStatus });
+  }
+
   if (body.action === 'update_estimate') {
     const min = body.min === null || body.min === '' ? null : finiteNumber(body.min);
     const max = body.max === null || body.max === '' ? null : finiteNumber(body.max);
