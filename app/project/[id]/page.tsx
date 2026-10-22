@@ -166,6 +166,7 @@ export default function CustomerProjectPage() {
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [activityExpanded, setActivityExpanded] = useState(false);
 
   useEffect(() => {
     const initialisation = window.setTimeout(() => {
@@ -220,6 +221,7 @@ export default function CustomerProjectPage() {
     feed?.match?.contactReleasedAt &&
     feed?.releasedContact?.provider,
   );
+  const projectClosed = Boolean(feed && ['cancelled', 'completed', 'unfulfilled'].includes(feed.project.status));
 
   const selectProvider = async (responseId: string) => {
     setSelectingResponseId(responseId);
@@ -419,6 +421,12 @@ export default function CustomerProjectPage() {
           </div>
         )}
 
+        {project.status === 'cancelled' && (
+          <div className={styles.inlineError} role="status">
+            <AlertTriangle size={18} /> This project has been cancelled. Provider selection and connection are closed.
+          </div>
+        )}
+
         <section className={styles.metricsGrid} aria-label="Project matching status">
           <article className={styles.metricCard}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><Users size={19} /></span><small>01</small></div>
@@ -440,7 +448,7 @@ export default function CustomerProjectPage() {
           </article>
         </section>
 
-        {selectedResponse && !contactsReleased && (
+        {selectedResponse && !contactsReleased && !projectClosed && (
           <section className={`${styles.actionCard} ${styles.actionSelected} ${styles.actionNeedsAttention}`}>
             <div className={styles.actionIcon}><UserRoundCheck size={27} /></div>
             <div className={styles.actionCopy}>
@@ -613,12 +621,12 @@ export default function CustomerProjectPage() {
                     )}
 
                     <button
-                      disabled={contactsReleased || selected || selectingResponseId !== null}
+                      disabled={projectClosed || contactsReleased || selected || selectingResponseId !== null}
                       onClick={() => void selectProvider(response.id)}
                       className={`${styles.selectProviderButton} ${!hasSelection && index === 0 ? styles.selectProviderAttention : ''}`}
                     >
                       {selectingResponseId === response.id ? <Loader2 className="animate-spin" size={16} /> : selected ? <CheckCircle2 size={16} /> : <UserRoundCheck size={16} />}
-                      {selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
+                      {projectClosed ? 'Project closed' : selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
                     </button>
                   </article>
                 );
@@ -628,15 +636,21 @@ export default function CustomerProjectPage() {
         </section>
 
         <section className={styles.activityCard}>
-          <div className={styles.activityHeading}>
+          <button
+            type="button"
+            onClick={() => setActivityExpanded((expanded) => !expanded)}
+            className={styles.activityHeading}
+            aria-expanded={activityExpanded}
+            style={{ width: '100%', border: 0, background: 'transparent', textAlign: 'left', cursor: 'pointer' }}
+          >
             <div>
               <span>Project activity</span>
-              <h2>Your project journey</h2>
+              <h2>Your project journey {activityExpanded ? '▴' : '▾'}</h2>
             </div>
-            <small>Latest activity updates automatically</small>
-          </div>
+            <small>{feed.timeline.length} update{feed.timeline.length === 1 ? '' : 's'} · {activityExpanded ? 'Tap to collapse' : 'Tap to expand'}</small>
+          </button>
 
-          {feed.timeline.length > 0 ? (
+          {activityExpanded && (feed.timeline.length > 0 ? (
             <div className={styles.timeline}>
               {feed.timeline.map((event, index) => (
                 <div key={event.id} className={styles.timelineItem}>
@@ -653,7 +667,7 @@ export default function CustomerProjectPage() {
             </div>
           ) : (
             <div className={styles.timelineEmpty}>Project activity will appear here as the request progresses.</div>
-          )}
+          ))}
         </section>
       </div>
 
