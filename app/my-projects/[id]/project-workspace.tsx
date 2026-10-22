@@ -72,7 +72,19 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
       report('Milestones are included with the Home Project Pass. Upgrade to plan this project from first step to handover.', '/plans#homeowners');
       return;
     }
-    if (value.includes('SCP_PLAN_LIMIT_DOCUMENT_STORAGE')) {
+    if (value.includes('DOCUMENT_COUNT_LIMIT') || value.includes('number of documents included')) {
+      report('You have reached the document limit for this project. Upgrade to store more project files.', '/plans#homeowners');
+      return;
+    }
+    if (value.includes('DOCUMENT_FILE_SIZE_LIMIT') || value.includes('larger than the size allowed')) {
+      report('That file is larger than your plan allows. Free supports up to 5 MB per file; paid project plans support up to 10 MB.', '/plans#homeowners');
+      return;
+    }
+    if (value.includes('DOCUMENT_PROJECT_STORAGE_LIMIT') || value.includes('project has reached the document storage')) {
+      report('This project has used its document storage allowance. Upgrade to keep more project records together.', '/plans#homeowners');
+      return;
+    }
+    if (value.includes('SCP_PLAN_LIMIT_DOCUMENT_STORAGE') || value.includes('total document storage included')) {
       report('You have used the document storage included with your plan. Upgrade to keep more project records together.', '/plans#homeowners');
       return;
     }
@@ -218,8 +230,8 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
     setWorking('document');
     try {
       const response = await fetch(`/api/account/projects/${project.id}/documents`, { method: 'POST', body: form });
-      const payload = await response.json().catch(() => ({})) as { error?: string; item?: DocumentRow };
-      if (!response.ok || !payload.item) throw new Error(payload.error || 'Unable to save document.');
+      const payload = await response.json().catch(() => ({})) as { error?: string; code?: string; item?: DocumentRow };
+      if (!response.ok || !payload.item) throw new Error(payload.code ? `${payload.code}: ${payload.error || ''}` : payload.error || 'Unable to save document.');
       setDocuments((current) => [payload.item as DocumentRow, ...current]);
       report('Document uploaded.');
     } catch (error) {
@@ -287,7 +299,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
 
       {tab === 'documents' && <div className={styles.panelGrid}>
         <section className={styles.panel}><span className={styles.eyebrow}>Project files</span><h2>Plans, quotes and receipts</h2><div className={styles.list}>{documents.map((item) => <div className={styles.row} key={item.id}><div><button className={styles.documentLink} onClick={() => openDocument(item.storage_path)}><FileText size={15} style={{ display: 'inline', marginRight: 7 }} />{item.file_name}</button><small>{item.document_type.replaceAll('_', ' ')} · {item.size_bytes ? `${Math.ceil(item.size_bytes / 1024)} KB` : 'size unavailable'}</small></div><button className={styles.iconButton} onClick={() => openDocument(item.storage_path)} aria-label={`Open ${item.file_name}`}><FileDown size={17} /></button><button className={styles.iconButton} onClick={() => removeDocument(item)} aria-label={`Remove ${item.file_name}`}>{working === item.id ? <Loader2 size={17} /> : <Trash2 size={17} />}</button></div>)}{!documents.length && <p className={styles.subtle}>No documents uploaded yet.</p>}</div></section>
-        <aside className={styles.sidePanel}><Upload /><h2>Attach a document</h2><p className={styles.subtle}>PDF, JPG, PNG, WEBP or text. Maximum 10 MB.</p><label className={styles.uploadLabel}>{working === 'document' ? <Loader2 size={18} /> : <Upload size={18} />} {working === 'document' ? 'Uploading…' : 'Choose a file'}<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,text/plain" onChange={uploadDocument} disabled={working === 'document'} /></label></aside>
+        <aside className={styles.sidePanel}><Upload /><h2>Attach a document</h2><p className={styles.subtle}>PDF, JPG, PNG, WEBP or text. Free: 5 files, 5 MB each. Basic: 20 files, 10 MB each. Home Project Pass: 50 files, 10 MB each.</p><label className={styles.uploadLabel}>{working === 'document' ? <Loader2 size={18} /> : <Upload size={18} />} {working === 'document' ? 'Uploading…' : 'Choose a file'}<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,text/plain" onChange={uploadDocument} disabled={working === 'document'} /></label></aside>
       </div>}
     </>
   );
