@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         .single();
       if (appError || !app) throw appError || new Error('Application not found.');
 
-      const { error: insertError } = await supabase.from('artisans').insert([{
+      const { data: artisan, error: insertError } = await supabase.from('artisans').insert([{
         first_name: app.first_name,
         last_name: app.last_name,
         category: app.trade,
@@ -87,14 +87,26 @@ export async function POST(request: Request) {
         bio: app.bio,
         verified: true,
         rating: 5.0,
-        is_claimed: false,
+        is_claimed: Boolean(app.user_id),
         image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=400',
-      }]);
-      if (insertError) throw insertError;
+      }]).select('id').single();
+      if (insertError || !artisan) throw insertError || new Error('Approved provider profile was not created.');
 
       const { error: updateError } = await supabase.from('artisan_applications').update({ status: 'approved' }).eq('id', id);
       if (updateError) throw updateError;
-      return NextResponse.json({ ok: true });
+
+      if (app.user_id) {
+        const { error: roleError } = await supabase.from('account_roles').upsert({
+          user_id: app.user_id,
+          role: 'artisan',
+          status: 'active',
+          is_primary: false,
+          linked_artisan_id: artisan.id,
+        }, { onConflict: 'user_id,role', ignoreDuplicates: false });
+        if (roleError) throw roleError;
+      }
+
+      return NextResponse.json({ ok: true, artisanId: artisan.id, linkedAccount: Boolean(app.user_id) });
     }
 
     if (action === 'reject_application') {
