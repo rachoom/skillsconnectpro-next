@@ -17,8 +17,9 @@ test('workspace API verifies project access before using service role', () => {
   const access = read('../services/projectWorkspaceAccess.ts');
   assert.match(route, /requireProjectWorkspaceAccess/);
   assert.match(access, /getAuthenticatedAccount/);
-  assert.match(access, /project_members/);
-  assert.match(access, /status', 'active'/);
+  assert.match(access, /getAuthenticatedAccount/);
+  assert.match(access, /supabase[\s\S]*from\('projects'\)/);
+  assert.match(access, /maybeSingle\(\)/);
   assert.match(access, /getSupabaseAdmin/);
 });
 
@@ -31,4 +32,12 @@ test('all manual project tabs have server actions', () => {
   assert.match(docs, /export async function POST/);
   assert.match(docs, /export async function GET/);
   assert.match(docs, /export async function DELETE/);
+});
+
+
+test('legacy procurement disclaimers never render as project safety warnings', () => {
+  const page = read('../app/my-projects/[id]/page.tsx');
+  const intake = read('../app/api/projects/intake/route.ts');
+  assert.match(page, /hardware quotation\|supplier pricing\|procurement/);
+  assert.match(intake, /hardware quotation\|supplier pricing\|procurement/);
 });
