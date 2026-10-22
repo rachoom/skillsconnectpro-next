@@ -6,6 +6,7 @@ import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, MapPin, Pack
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import styles from './workspace.module.css';
 import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
+import { WorkspaceThemeToggle } from './workspace-theme-toggle';
 
 export const dynamic = 'force-dynamic';
 
@@ -137,6 +138,7 @@ function AccountNav() {
         <Link href="/materials" className={styles.navLink}>Materials</Link>
         {hardwareQuotesEnabled() && (        <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>)}
         <Link href="/plans" className={styles.navLink}>Plans</Link>
+        <WorkspaceThemeToggle />
         <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
       </div>
     </div></nav>
