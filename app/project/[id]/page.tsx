@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock3,
   Loader2,
   LockKeyhole,
@@ -166,6 +168,7 @@ export default function CustomerProjectPage() {
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [journeyOpen, setJourneyOpen] = useState(false);
 
   useEffect(() => {
     const initialisation = window.setTimeout(() => {
@@ -216,7 +219,8 @@ export default function CustomerProjectPage() {
     [feed, selectedResponseId],
   );
   const contactsReleased = Boolean(
-    feed?.project.status !== 'cancelled' &&
+    feed?.project.status &&
+    !['completed', 'cancelled', 'unfulfilled'].includes(feed.project.status) &&
     feed?.match?.contactReleasedAt &&
     feed?.releasedContact?.provider,
   );
@@ -307,7 +311,8 @@ export default function CustomerProjectPage() {
   const responseCount = feed.matching.validResponsesReceived;
   const hasResponses = responseCount > 0;
   const hasSelection = Boolean(feed.match?.providerResponseId);
-  const releasedProvider = project.status === 'cancelled' ? null : feed.releasedContact?.provider ?? null;
+  const projectClosed = ['completed', 'cancelled', 'unfulfilled'].includes(project.status);
+  const releasedProvider = projectClosed ? null : feed.releasedContact?.provider ?? null;
   const selectedName = selectedResponse ? providerName(selectedResponse.provider) : 'the selected provider';
   const whatsappHref = releasedProvider?.whatsapp
     ? `https://wa.me/${whatsappNumber(releasedProvider.whatsapp)}?text=${encodeURIComponent(
@@ -374,23 +379,27 @@ export default function CustomerProjectPage() {
                 <i className={styles.matchingSpinner} aria-hidden="true" />
                 <span>{hasResponses ? <CheckCircle2 size={25} /> : <Users size={25} />}</span>
               </div>
-              <p className={styles.matchingKicker}>{hasResponses ? 'Response ready' : 'Matching in progress'}</p>
+              <p className={styles.matchingKicker}>{projectClosed ? 'Project closed' : hasResponses ? 'Response ready' : 'Matching in progress'}</p>
               <strong>
-                {hasResponses
-                  ? `${responseCount} provider response${responseCount === 1 ? '' : 's'} ready`
-                  : feed.matching.invitationsSent > 0
-                    ? `${feed.matching.invitationsSent} provider${feed.matching.invitationsSent === 1 ? '' : 's'} contacted`
-                    : 'Finding suitable providers'}
+                {projectClosed
+                  ? project.status === 'completed' ? 'Project completed' : project.status === 'cancelled' ? 'Project cancelled' : 'Project closed'
+                  : hasResponses
+                    ? `${responseCount} provider response${responseCount === 1 ? '' : 's'} ready`
+                    : feed.matching.invitationsSent > 0
+                      ? `${feed.matching.invitationsSent} provider${feed.matching.invitationsSent === 1 ? '' : 's'} contacted`
+                      : 'Finding suitable providers'}
               </strong>
               <p className={styles.matchingCopy}>
-                {hasResponses
-                  ? 'A provider has replied. Compare the response below and choose when you are ready.'
-                  : feed.matching.providersReviewing > 0
-                    ? `${feed.matching.providersReviewing} provider${feed.matching.providersReviewing === 1 ? ' is' : 's are'} reviewing your request now.`
-                    : 'We are contacting suitable local providers. This page updates automatically.'}
+                {projectClosed
+                  ? 'No further provider selection or contact sharing is available for this project. Previous activity remains visible below.'
+                  : hasResponses
+                    ? 'A provider has replied. Compare the response below and choose when you are ready.'
+                    : feed.matching.providersReviewing > 0
+                      ? `${feed.matching.providersReviewing} provider${feed.matching.providersReviewing === 1 ? ' is' : 's are'} reviewing your request now.`
+                      : 'We are contacting suitable local providers. This page updates automatically.'}
               </p>
 
-              {!hasResponses && (
+              {!projectClosed && !hasResponses && (
                 <>
                   <div className={styles.matchingProgress} aria-hidden="true"><span /></div>
                   <div className={styles.matchingActivity}>
@@ -400,7 +409,7 @@ export default function CustomerProjectPage() {
                 </>
               )}
 
-              {hasResponses && !hasSelection ? (
+              {!projectClosed && hasResponses && !hasSelection ? (
                 <button type="button" onClick={openProviderResponses} className={`${styles.refreshButton} ${styles.reviewResponsesButton}`}>
                   <CheckCircle2 size={16} /> Review {responseCount} response{responseCount === 1 ? '' : 's'}
                 </button>
@@ -440,7 +449,7 @@ export default function CustomerProjectPage() {
           </article>
         </section>
 
-        {selectedResponse && !contactsReleased && (
+        {selectedResponse && !contactsReleased && !projectClosed && (
           <section className={`${styles.actionCard} ${styles.actionSelected} ${styles.actionNeedsAttention}`}>
             <div className={styles.actionIcon}><UserRoundCheck size={27} /></div>
             <div className={styles.actionCopy}>
@@ -613,12 +622,12 @@ export default function CustomerProjectPage() {
                     )}
 
                     <button
-                      disabled={contactsReleased || selected || selectingResponseId !== null}
+                      disabled={projectClosed || contactsReleased || selected || selectingResponseId !== null}
                       onClick={() => void selectProvider(response.id)}
                       className={`${styles.selectProviderButton} ${!hasSelection && index === 0 ? styles.selectProviderAttention : ''}`}
                     >
                       {selectingResponseId === response.id ? <Loader2 className="animate-spin" size={16} /> : selected ? <CheckCircle2 size={16} /> : <UserRoundCheck size={16} />}
-                      {selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
+                      {projectClosed ? 'Project closed' : selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
                     </button>
                   </article>
                 );
@@ -632,32 +641,46 @@ export default function CustomerProjectPage() {
             <div>
               <span>Project activity</span>
               <h2>Your project journey</h2>
+              <small>{feed.timeline.length} update{feed.timeline.length === 1 ? '' : 's'} recorded</small>
             </div>
-            <small>Latest activity updates automatically</small>
+            <button
+              type="button"
+              className={styles.activityToggle}
+              onClick={() => setJourneyOpen((open) => !open)}
+              aria-expanded={journeyOpen}
+              aria-controls="project-journey-timeline"
+            >
+              {journeyOpen ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+              {journeyOpen ? 'Hide activity' : 'Show activity'}
+            </button>
           </div>
 
-          {feed.timeline.length > 0 ? (
-            <div className={styles.timeline}>
-              {feed.timeline.map((event, index) => (
-                <div key={event.id} className={styles.timelineItem}>
-                  <div className={styles.timelineMarker}>
-                    <span>{index + 1}</span>
-                  </div>
-                  <div>
-                    <p>{event.eventType.replaceAll('_', ' ')}</p>
-                    {event.message && <small>{event.message}</small>}
-                    <time>{formatDate(event.createdAt)}</time>
-                  </div>
+          {journeyOpen && (
+            <div id="project-journey-timeline">
+              {feed.timeline.length > 0 ? (
+                <div className={styles.timeline}>
+                  {feed.timeline.map((event, index) => (
+                    <div key={event.id} className={styles.timelineItem}>
+                      <div className={styles.timelineMarker}>
+                        <span>{index + 1}</span>
+                      </div>
+                      <div>
+                        <p>{event.eventType.replaceAll('_', ' ')}</p>
+                        {event.message && <small>{event.message}</small>}
+                        <time>{formatDate(event.createdAt)}</time>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className={styles.timelineEmpty}>Project activity will appear here as the request progresses.</div>
+              )}
             </div>
-          ) : (
-            <div className={styles.timelineEmpty}>Project activity will appear here as the request progresses.</div>
           )}
         </section>
       </div>
 
-      {showReleaseConfirm && selectedResponse && (
+      {showReleaseConfirm && selectedResponse && !projectClosed && (
         <div className={styles.modalBackdrop}>
           <section className={styles.modalCard}>
             <div className={styles.modalHeader}>
