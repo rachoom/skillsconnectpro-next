@@ -291,21 +291,6 @@ export async function POST(request: Request) {
       reason: string;
     } | null = null;
 
-    if (process.env.MARKETPLACE_AUTOROUTING_ENABLED !== 'false') {
-      try {
-        const result = await processAutomaticRouting({ projectId: project.id, preferredProviderId });
-        routing = {
-          action: result.action,
-          waveNumber: result.waveNumber,
-          providersQueued: result.invitationsQueued,
-          totalInvitations: result.totalInvitations,
-          reason: result.reason,
-        };
-      } catch (routingError) {
-        console.error('Public intake project created but automatic routing failed:', routingError);
-      }
-    }
-
     let preferredProvider = {
       requested: Boolean(preferredProviderId),
       queued: false,
@@ -320,14 +305,38 @@ export async function POST(request: Request) {
           projectId: project.id,
           providerId: preferredProviderId,
         });
-        if (preferredProvider.queued && routing) {
-          routing.providersQueued += 1;
-          routing.totalInvitations += 1;
-          routing.reason = `${routing.reason} The customer-selected provider was also included.`;
-        }
+        routing = {
+          action: preferredProvider.queued ? 'waiting_for_responses' : 'no_candidates',
+          waveNumber: preferredProvider.queued ? 1 : null,
+          providersQueued: preferredProvider.queued ? 1 : 0,
+          totalInvitations: preferredProvider.queued ? 1 : 0,
+          reason: preferredProvider.queued
+            ? 'The customer selected a specific provider, so only that provider was invited.'
+            : preferredProvider.reason,
+        };
       } catch (preferredError) {
         console.error('Project created but preferred provider could not be queued:', preferredError);
         preferredProvider.reason = 'The project was created, but the preferred provider requires administrator review.';
+        routing = {
+          action: 'no_candidates',
+          waveNumber: null,
+          providersQueued: 0,
+          totalInvitations: 0,
+          reason: preferredProvider.reason,
+        };
+      }
+    } else if (process.env.MARKETPLACE_AUTOROUTING_ENABLED !== 'false') {
+      try {
+        const result = await processAutomaticRouting({ projectId: project.id });
+        routing = {
+          action: result.action,
+          waveNumber: result.waveNumber,
+          providersQueued: result.invitationsQueued,
+          totalInvitations: result.totalInvitations,
+          reason: result.reason,
+        };
+      } catch (routingError) {
+        console.error('Public intake project created but automatic routing failed:', routingError);
       }
     }
 
