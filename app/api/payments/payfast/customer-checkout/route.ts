@@ -66,6 +66,10 @@ export async function POST(request: Request) {
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('Unable to create customer Payfast checkout:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unable to start secure checkout.' }, { status: 500 });
+    const technicalMessage = error instanceof Error ? error.message : '';
+    const publicMessage = technicalMessage.includes('Payfast is not configured')
+      ? 'Secure checkout is temporarily unavailable while payment configuration is being restored. Please try again shortly.'
+      : technicalMessage || 'Unable to start secure checkout.';
+    return NextResponse.json({ error: publicMessage }, { status: technicalMessage.includes('Payfast is not configured') ? 503 : 500 });
   }
 }
