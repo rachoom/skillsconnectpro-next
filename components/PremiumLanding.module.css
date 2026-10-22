@@ -627,3 +627,65 @@
   .mobileAssistantCta { margin-top: 16px; }
   .heroProof { align-items: flex-start; flex-direction: column; gap: 7px; }
 }
+
+
+/* === Human-first hero crop: keep people visible on phones and tablets === */
+@media (max-width: 900px) {
+  .heroImage {
+    object-position: 54% 42%;
+    transform: scale(1.035);
+    transform-origin: 54% 42%;
+    filter: saturate(1.08) contrast(1.02) brightness(1.09);
+  }
+
+  .scrim {
+    background:
+      linear-gradient(90deg, rgba(8,8,8,.90) 0%, rgba(8,8,8,.72) 37%, rgba(8,8,8,.30) 63%, rgba(8,8,8,.08) 100%),
+      linear-gradient(180deg, rgba(8,8,8,.16) 0%, rgba(8,8,8,.22) 28%, rgba(8,8,8,.50) 58%, rgba(8,8,8,.88) 88%, #080808 100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .spotlight {
+    background: #080808;
+  }
+
+  .heroImage {
+    object-position: 52% 46%;
+    transform: scale(1.06);
+    transform-origin: 52% 46%;
+    filter: saturate(1.08) contrast(1.01) brightness(1.13);
+  }
+
+  .scrim {
+    background:
+      linear-gradient(90deg, rgba(8,8,8,.80) 0%, rgba(8,8,8,.54) 38%, rgba(8,8,8,.18) 72%, rgba(8,8,8,.03) 100%),
+      linear-gradient(180deg, rgba(8,8,8,.08) 0%, rgba(8,8,8,.12) 25%, rgba(8,8,8,.42) 52%, rgba(8,8,8,.78) 76%, #080808 100%);
+  }
+
+  .pitch {
+    position: relative;
+    z-index: 1;
+  }
+
+  .heroBenefits > span,
+  .requestHub,
+  .heroSecondary {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
+
+@media (max-width: 430px) {
+  .heroImage {
+    object-position: 50% 48%;
+    transform: scale(1.08);
+    transform-origin: 50% 48%;
+  }
+
+  .scrim {
+    background:
+      linear-gradient(90deg, rgba(8,8,8,.76) 0%, rgba(8,8,8,.47) 40%, rgba(8,8,8,.12) 74%, rgba(8,8,8,.02) 100%),
+      linear-gradient(180deg, rgba(8,8,8,.06) 0%, rgba(8,8,8,.10) 24%, rgba(8,8,8,.40) 50%, rgba(8,8,8,.79) 75%, #080808 100%);
+  }
+}
