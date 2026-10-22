@@ -26,21 +26,31 @@
 .skip:focus { transform: none; }
 
 /* Navigation stays compact, with a permanent provider entry point. */
-.nav { position: sticky; top: 0; z-index: 90; background: rgba(8, 8, 8, .94); color: #fafafa; border-bottom: 1px solid #292929; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-.navStripe { height: 2px; background: linear-gradient(90deg, transparent, #f5c518 40%, #f5c518 60%, transparent); }
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 90;
+  color: #fafafa;
+  background: linear-gradient(180deg, rgba(5,10,7,.56), rgba(5,10,7,.34));
+  border-bottom: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 12px 36px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(26px) saturate(145%);
+  -webkit-backdrop-filter: blur(26px) saturate(145%);
+}
+.navStripe { height: 1px; background: linear-gradient(90deg, transparent 4%, rgba(245,197,24,.28) 30%, rgba(245,197,24,.82) 50%, rgba(245,197,24,.28) 70%, transparent 96%); }
 .navInner { width: min(1280px, 100%); min-height: 82px; margin: auto; padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { display: flex; align-items: center; min-height: 44px; flex-shrink: 0; }
 .brand img { width: 184px; height: auto; }
 .desktopNav, .navActions { display: flex; align-items: center; gap: 26px; }
 .desktopNav a { display: inline-flex; align-items: center; min-height: 44px; color: #b3b3b3; font-size: 12px; font-weight: 500; }
 .navActions { gap: 8px; }
-.join { min-height: 44px; padding: 11px 17px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #4a4a4a; border-radius: 10px; color: #fafafa; font-size: 12px; font-weight: 600; background: #141414; }
-.menuButton { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; border: 1px solid #4a4a4a; border-radius: 10px; background: #141414; color: #fafafa; }
-.mobileMenu { padding: 8px 20px 20px; display: grid; border-top: 1px solid #303030; background: #080808; max-height: 75svh; overflow-y: auto; }
+.join { min-height: 44px; padding: 11px 17px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid rgba(255,255,255,.20); border-radius: 12px; color: #fafafa; font-size: 12px; font-weight: 650; background: rgba(8,8,8,.28); box-shadow: inset 0 1px 0 rgba(255,255,255,.04); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: background 180ms ease, border-color 180ms ease, transform 180ms ease; }
+.menuButton { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.20); border-radius: 12px; background: rgba(8,8,8,.28); color: #fafafa; box-shadow: inset 0 1px 0 rgba(255,255,255,.04); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.mobileMenu { padding: 8px 20px 20px; display: grid; border-top: 1px solid rgba(255,255,255,.12); background: rgba(5,10,7,.72); box-shadow: 0 18px 36px rgba(0,0,0,.20); backdrop-filter: blur(28px) saturate(145%); -webkit-backdrop-filter: blur(28px) saturate(145%); max-height: 75svh; overflow-y: auto; }
 .mobileMenu a { display: flex; align-items: center; min-height: 48px; padding: 12px; border-radius: 8px; color: #fafafa; font-size: 14px; }
 
 /* Static, full-width photo with a scrim only as strong as the text requires. */
-.spotlight { position: relative; isolation: isolate; overflow: hidden; background: #080808; color: #fafafa; padding: 0 32px; }
+.spotlight { position: relative; isolation: isolate; overflow: hidden; background: #080808; color: #fafafa; padding: 83px 32px 0; }
 .heroImage { z-index: -3; object-fit: cover; object-position: 64% center; filter: saturate(1.04) contrast(1.03) brightness(1.03); }
 .scrim { position: absolute; inset: 0; z-index: -2; background: linear-gradient(90deg, rgba(8,8,8,.98) 0%, rgba(8,8,8,.93) 31%, rgba(8,8,8,.60) 51%, rgba(8,8,8,.10) 75%), linear-gradient(0deg, #080808 0%, rgba(8,8,8,.38) 12%, transparent 36%); }
 .spotlightInner { width: min(1216px, 100%); min-height: 650px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 48px; position: relative; }
@@ -218,7 +228,7 @@
   .brand img { width: 143px; }
   .join { min-height: 44px; padding: 10px; font-size: 10px; }
   .join svg { display: none; }
-  .spotlight { padding: 0 20px; }
+  .spotlight { padding: 69px 20px 0; }
   .spotlightInner { min-height: 0; display: block; }
   .heroImage { object-position: 58% 28%; }
   .scrim { background: linear-gradient(180deg,rgba(8,8,8,.40) 0%,rgba(8,8,8,.52) 24%,rgba(8,8,8,.82) 54%,rgba(8,8,8,.95) 77%,#080808 100%),linear-gradient(90deg,rgba(8,8,8,.70) 0%,rgba(8,8,8,.10) 100%); }
@@ -298,7 +308,7 @@
   .navInner { padding-inline: 14px; gap: 6px; }
   .brand img { width: 125px; }
   .navActions { gap: 6px; }
-  .spotlight { padding-inline: 16px; }
+  .spotlight { padding-left: 16px; padding-right: 16px; }
   .pitch h1 { font-size: 36px; }
   .inputHint .hintDivider { margin-inline: 0; }
   .heroProof { font-size: 9px; gap: 10px; }
@@ -688,4 +698,49 @@
       linear-gradient(90deg, rgba(8,8,8,.76) 0%, rgba(8,8,8,.47) 40%, rgba(8,8,8,.12) 74%, rgba(8,8,8,.02) 100%),
       linear-gradient(180deg, rgba(8,8,8,.06) 0%, rgba(8,8,8,.10) 24%, rgba(8,8,8,.40) 50%, rgba(8,8,8,.79) 75%, #080808 100%);
   }
+}
+
+
+/* === Frozen-glass title bar === */
+.navInner {
+  position: relative;
+}
+
+.brand,
+.desktopNav a,
+.join,
+.menuButton {
+  text-shadow: 0 1px 14px rgba(0,0,0,.28);
+}
+
+.join:hover,
+.menuButton:hover {
+  border-color: rgba(245,197,24,.62);
+  background: rgba(245,197,24,.10);
+}
+
+@media (max-width: 640px) {
+  .nav {
+    background: linear-gradient(180deg, rgba(5,10,7,.62), rgba(5,10,7,.40));
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+  }
+
+  .navInner {
+    min-height: 68px;
+  }
+
+  .join,
+  .menuButton {
+    background: rgba(8,8,8,.34);
+  }
+
+  .mobileMenu a {
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+}
+
+@supports not ((backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px))) {
+  .nav { background: rgba(5,10,7,.90); }
+  .mobileMenu { background: rgba(5,10,7,.96); }
 }
