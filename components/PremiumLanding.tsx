@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ArrowRight,
   Camera,
@@ -57,31 +57,10 @@ const questions = [
   ['When are my contact details shared?', 'Your contact details stay private until you choose a provider and confirm the connection.'],
 ];
 
-const mzansiPhrases = [
-  { language: 'isiZulu', phrase: 'Siyakuxhumanisa.' },
-  { language: 'Sesotho', phrase: 'Re a u hokahanya.' },
-  { language: 'isiXhosa', phrase: 'Siyakudibanisa.' },
-  { language: 'Afrikaans', phrase: 'Ons verbind jou.' },
-];
-
 export function PremiumLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [languageIndex, setLanguageIndex] = useState(0);
   const menuButton = useRef<HTMLButtonElement>(null);
   const closeMenu = () => setMenuOpen(false);
-
-  useEffect(() => {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (reducedMotion.matches) return;
-
-    const timer = window.setInterval(() => {
-      setLanguageIndex((current) => (current + 1) % mzansiPhrases.length);
-    }, 3600);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const activePhrase = mzansiPhrases[languageIndex];
 
   return (
     <main className={styles.page} data-design="premium-2026">
