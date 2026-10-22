@@ -32,19 +32,24 @@ export default async function MyProjectsPage({ searchParams }: Props) {
 
   const [{ data: projects, error }, { data: roles }, { data: subscriptions }] = await Promise.all([
     supabase.from('projects').select('id,title,customer_description,category,status,location_text,estimated_min,estimated_max,estimate_currency,created_at,updated_at').order('updated_at', { ascending: false }),
-    supabase.from('account_roles').select('role,status,is_primary').eq('user_id', user.id),
+    supabase.from('account_roles').select('role,status,is_primary,linked_artisan_id').eq('user_id', user.id),
     supabase.from('account_subscriptions').select('plan_code,ends_at,starts_at').eq('user_id', user.id).eq('status', 'active').order('starts_at', { ascending: false }).limit(1),
   ]);
 
   const activeProjects = (projects ?? []).filter((project) => !['completed', 'cancelled'].includes(project.status)).length;
-  const roleLabels = (roles ?? []).filter((role) => role.status === 'active').map((role) => role.role.replaceAll('_', ' '));
+  const linkedArtisanRole = (roles ?? []).find(
+    (role) => role.role === 'artisan' && role.status === 'active' && role.linked_artisan_id,
+  );
+  const roleLabels = (roles ?? [])
+    .filter((role) => role.status === 'active' && (role.role !== 'artisan' || role.linked_artisan_id))
+    .map((role) => role.role.replaceAll('_', ' '));
   const activePlan = (subscriptions ?? []).find((subscription) => !subscription.ends_at || new Date(subscription.ends_at).getTime() > Date.now()) ?? null;
   const activePlanLabel = activePlan?.plan_code === 'project_pass_90' ? 'Home Project Pass' : activePlan?.plan_code === 'basic_30' ? 'Basic' : 'Free';
   const claimState = Array.isArray(params.claim) ? params.claim[0] : params.claim;
 
   return (
     <main className={styles.page} data-workspace-shell>
-      <AccountNav />
+      <AccountNav hasArtisanAccess={Boolean(linkedArtisanRole)} />
       <div className={styles.shell}>
         {claimState === 'saved' && <div className={styles.notice}>Project saved. You can now reopen it from any device.</div>}
         {claimState === 'failed' && <div className={styles.error}>We could not attach that guest project. Its original secure project link still works.</div>}
@@ -67,15 +72,27 @@ export default async function MyProjectsPage({ searchParams }: Props) {
         </section>
 
         <section className={styles.grid} aria-label="Workspace shortcuts" style={{ marginBottom: 28 }}>
-          <Link href="/artisan-business" className={styles.projectCard}>
-            <div className={styles.cardTop}>
-              <span className={styles.category}>Business tools</span>
-            </div>
-            <BriefcaseBusiness size={28} />
-            <h2>Artisan Business Workspace</h2>
-            <p className={styles.description}>Manage customer jobs, project materials, expenses and supplier quotations. Activate the workspace here even if your public provider profile is not linked yet.</p>
-            <div className={styles.open}><span>Open artisan workspace</span><ArrowRight size={19} /></div>
-          </Link>
+          {linkedArtisanRole ? (
+            <Link href="/artisan-business" className={styles.projectCard}>
+              <div className={styles.cardTop}>
+                <span className={styles.category}>Provider business</span>
+              </div>
+              <BriefcaseBusiness size={28} />
+              <h2>Artisan Business Workspace</h2>
+              <p className={styles.description}>Track Skills Connect Pro opportunities, responses, selected jobs and provider-plan access from your business dashboard.</p>
+              <div className={styles.open}><span>Open artisan workspace</span><ArrowRight size={19} /></div>
+            </Link>
+          ) : (
+            <Link href="/join" className={styles.projectCard}>
+              <div className={styles.cardTop}>
+                <span className={styles.category}>Provider network</span>
+              </div>
+              <BriefcaseBusiness size={28} />
+              <h2>Join as a provider</h2>
+              <p className={styles.description}>Customer and provider access can share one login, but provider tools are activated only after your service-provider application is reviewed and linked.</p>
+              <div className={styles.open}><span>Apply to join</span><ArrowRight size={19} /></div>
+            </Link>
+          )}
 
           <Link href="/materials" className={styles.projectCard}>
             <div className={styles.cardTop}>
@@ -128,13 +145,15 @@ export default async function MyProjectsPage({ searchParams }: Props) {
   );
 }
 
-function AccountNav() {
+function AccountNav({ hasArtisanAccess = false }: { hasArtisanAccess?: boolean }) {
   return (
     <nav className={styles.nav} aria-label="Account navigation"><div className={styles.navInner}>
       <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
       <div className={styles.navActions}>
         <Link href="/" className={styles.navLink}>Home</Link>
-        <Link href="/artisan-business" className={styles.navLink}>Artisan Business</Link>
+        {hasArtisanAccess
+          ? <Link href="/artisan-business" className={styles.navLink}>Artisan Business</Link>
+          : <Link href="/join" className={styles.navLink}>Join as provider</Link>}
         <Link href="/materials" className={styles.navLink}>Materials</Link>
         {hardwareQuotesEnabled() && (        <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>)}
         <Link href="/plans" className={styles.navLink}>Plans</Link>
