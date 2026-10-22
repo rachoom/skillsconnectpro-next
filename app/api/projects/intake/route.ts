@@ -99,7 +99,13 @@ function parsePublicIntake(body: unknown): CreateProjectInput {
     confidence: optionalNumber(value.confidence),
     professionalInspectionRequired: value.professionalInspectionRequired !== false,
     safetyNotes: Array.isArray(value.safetyNotes)
-      ? value.safetyNotes.map((item) => text(item, 300)).filter(Boolean).slice(0, 8)
+      ? value.safetyNotes
+          .map((item) => text(item, 300))
+          .filter(Boolean)
+          // Pricing/procurement disclaimers are not safety warnings and must
+          // never appear under the customer's "Safety first" panel.
+          .filter((note) => !/(hardware quotation|supplier pricing|procurement|quotation limit|installation scope should be checked before purchase)/i.test(note))
+          .slice(0, 8)
       : [],
     materials: Array.isArray(value.materials)
       ? value.materials.slice(0, 20) as CreateProjectInput['materials']
