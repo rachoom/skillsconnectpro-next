@@ -128,6 +128,12 @@ export async function releaseContactsForProject(input: {
     throw new Error('Confirm contact sharing before continuing.');
   }
 
+  const project = await getProjectByAccessToken(input.projectId, input.projectAccessToken);
+  if (!project) throw new Error('Project not found.');
+  if (['completed', 'cancelled', 'unfulfilled'].includes(project.status)) {
+    throw new Error(`Contact details cannot be released while the project is ${project.status}.`);
+  }
+
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase.rpc('release_marketplace_contacts', {
     p_project_id: input.projectId,
