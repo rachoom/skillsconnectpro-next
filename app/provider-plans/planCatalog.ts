@@ -22,7 +22,16 @@ export const providerPlans: ProviderPlan[] = [
       { title: 'See the full job before you respond', description: 'View the customer brief, project images, area, timing and preliminary context in one focused workspace.' },
       { title: 'Reply professionally in minutes', description: 'Send availability, a site-visit option, an estimate range or a question without chasing details over multiple calls.' },
     ],
-    included: ['Active provider access', 'Full opportunity briefs', 'Structured response tools', 'Monthly access, cancel any time'],
+    included: [
+      'Active provider access after the 3 complimentary leads',
+      'Full customer opportunity briefs',
+      'Project photos, area and timing context',
+      'Structured availability and estimate responses',
+      'Site-visit option and fee response',
+      'Customer contact stays protected until selection',
+      'Private provider opportunity workspace',
+      'Monthly access, cancel future renewals any time',
+    ],
   },
   {
     slug: 'growth', code: 'growth_monthly', name: 'Growth', price: 'R99', cadence: 'per month', kind: 'subscription',
@@ -33,7 +42,16 @@ export const providerPlans: ProviderPlan[] = [
       { title: 'Build a stronger quote-ready routine', description: 'Use clear job information and structured replies to decide faster which work is worth taking on.' },
       { title: 'Designed for regular local service work', description: 'A practical home for plumbers, mechanics, electricians, cleaners and other skilled providers growing their name in the area.' },
     ],
-    included: ['Everything in Starter', 'Ongoing provider access', 'Full job-response workspace', 'Built for regular local work'],
+    included: [
+      'Everything in Starter',
+      'Ongoing provider access for regular local work',
+      'Full job-response workspace',
+      'Project context before committing time or travel',
+      'Structured quote-ready responses',
+      'Customer selection and controlled contact release',
+      'Access designed for a steadier lead pipeline',
+      'Monthly access, cancel future renewals any time',
+    ],
   },
   {
     slug: 'pro', code: 'pro_monthly', name: 'Pro', price: 'R199', cadence: 'per month', kind: 'subscription',
@@ -44,7 +62,16 @@ export const providerPlans: ProviderPlan[] = [
       { title: 'Protect your time with better context', description: 'Review the job information before committing your time, travel and team capacity.' },
       { title: 'A platform that grows with your business', description: 'Your provider access is ready for the richer matching, business tools and category expansion being built into Skills Connect Pro.' },
     ],
-    included: ['Everything in Growth', 'Continuous provider access', 'Complete project context', 'Ready for future business tools'],
+    included: [
+      'Everything in Growth',
+      'Continuous provider marketplace access',
+      'Complete project context and customer brief',
+      'Provider business workspace access',
+      'Project planning, materials and expense tools',
+      'Customer-job organisation and saved project records',
+      'Built for established providers and teams',
+      'Ready for expanding Skills Connect Pro business tools',
+    ],
   },
   {
     slug: 'lead-pack-4', code: 'lead_pack_4', name: '4 lead credits', price: 'R99', cadence: 'once-off', kind: 'lead_pack',
@@ -55,7 +82,7 @@ export const providerPlans: ProviderPlan[] = [
       { title: 'No monthly plan required', description: 'Top up your access as your workload, capacity and appetite for new work changes.' },
       { title: 'The same complete workspace', description: 'Every unlocked opportunity includes the full brief and the tools to reply clearly.' },
     ],
-    included: ['4 lead credits', 'One-time purchase', 'Full opportunity access', 'No monthly commitment'],
+    included: ['4 lead credits', 'One-time purchase', 'Full opportunity brief for each unlocked lead', 'Structured response tools', 'Use credits only when you choose to respond', 'No monthly commitment'],
   },
   {
     slug: 'lead-pack-10', code: 'lead_pack_10', name: '10 lead credits', price: 'R199', cadence: 'once-off', kind: 'lead_pack',
@@ -66,7 +93,7 @@ export const providerPlans: ProviderPlan[] = [
       { title: 'Control your pace', description: 'Use credits only when you choose to open a new opportunity and put your name forward.' },
       { title: 'Make decisions with the full picture', description: 'Review the job context before spending time on a visit, estimate or detailed reply.' },
     ],
-    included: ['10 lead credits', 'One-time purchase', 'Flexible use', 'Full opportunity access'],
+    included: ['10 lead credits', 'One-time purchase', 'Flexible use across suitable opportunities', 'Full opportunity briefs', 'Structured response tools', 'No monthly commitment'],
   },
   {
     slug: 'lead-pack-25', code: 'lead_pack_25', name: '25 lead credits', price: 'R399', cadence: 'once-off', kind: 'lead_pack',
@@ -77,7 +104,7 @@ export const providerPlans: ProviderPlan[] = [
       { title: 'Value that follows your capacity', description: 'Use credits over time, as and when a project fits your service and availability.' },
       { title: 'Focus on the jobs that fit', description: 'Get the context you need to decide quickly whether to reply, quote, visit or pass.' },
     ],
-    included: ['25 lead credits', 'One-time purchase', 'Built for active providers', 'Full opportunity access'],
+    included: ['25 lead credits', 'One-time purchase', 'Built for active providers', 'Full opportunity briefs', 'Structured response tools', 'Flexible use as capacity allows', 'No monthly commitment'],
   },
 ];
 
