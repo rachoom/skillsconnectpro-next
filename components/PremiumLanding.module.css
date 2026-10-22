@@ -744,3 +744,135 @@
   .nav { background: rgba(5,10,7,.90); }
   .mobileMenu { background: rgba(5,10,7,.96); }
 }
+
+
+/* === Campaign motion system === */
+@keyframes heroRise {
+  from { opacity: 0; transform: translateY(18px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes typeRealResults {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes caretBlink {
+  0%, 46% { opacity: 1; }
+  47%, 100% { opacity: 0; }
+}
+
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 16px 34px rgba(245,197,24,.20), 0 0 0 0 rgba(245,197,24,.16); }
+  50% { box-shadow: 0 18px 38px rgba(245,197,24,.27), 0 0 0 9px rgba(245,197,24,0); }
+}
+
+@keyframes glassSweep {
+  0% { transform: translateX(-135%) skewX(-18deg); opacity: 0; }
+  18% { opacity: .42; }
+  42%, 100% { transform: translateX(165%) skewX(-18deg); opacity: 0; }
+}
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(28px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.location { animation: heroRise .55s cubic-bezier(.2,.7,.2,1) .06s both; }
+.heroKicker { animation: heroRise .6s cubic-bezier(.2,.7,.2,1) .14s both; }
+.pitch h1 { animation: heroRise .68s cubic-bezier(.2,.7,.2,1) .22s both; }
+.pitch > p { animation: heroRise .68s cubic-bezier(.2,.7,.2,1) .34s both; }
+.heroActions { animation: heroRise .68s cubic-bezier(.2,.7,.2,1) .46s both; }
+.heroBenefits { animation: heroRise .68s cubic-bezier(.2,.7,.2,1) .56s both; }
+.requestHub { animation: heroRise .72s cubic-bezier(.2,.7,.2,1) .64s both; }
+.secondary { animation: heroRise .7s cubic-bezier(.2,.7,.2,1) .74s both; }
+.connectionCard { animation: heroRise .8s cubic-bezier(.2,.7,.2,1) .72s both; }
+
+.typingText {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  clip-path: inset(0 100% 0 0);
+  animation: typeRealResults 1.18s steps(13, end) .72s forwards;
+}
+
+.typingText::after {
+  content: "";
+  position: absolute;
+  top: .12em;
+  right: -.08em;
+  width: .055em;
+  height: .82em;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0;
+  animation: caretBlink .72s step-end 1.94s 4;
+}
+
+.heroPrimary {
+  position: relative;
+  overflow: hidden;
+  animation: ctaGlow 3.6s ease-in-out 2.1s infinite;
+}
+
+.heroPrimary::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% -35%;
+  width: 22%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.48), transparent);
+  transform: translateX(-135%) skewX(-18deg);
+  animation: glassSweep 5.6s ease-in-out 2.6s infinite;
+  pointer-events: none;
+}
+
+.nav {
+  animation: heroRise .55s cubic-bezier(.2,.7,.2,1) both;
+}
+
+@supports (animation-timeline: view()) {
+  .assistantBand,
+  .mzansiStatement,
+  .section,
+  .planning,
+  .provider,
+  .support {
+    animation-name: revealUp;
+    animation-duration: 1ms;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 8% cover 26%;
+  }
+
+  .serviceTile,
+  .stepGrid article,
+  .faqs details {
+    animation-name: revealUp;
+    animation-duration: 1ms;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 12% cover 24%;
+  }
+
+  .serviceTile:nth-child(2n),
+  .stepGrid article:nth-child(2n),
+  .faqs details:nth-child(2n) {
+    animation-range: entry 16% cover 28%;
+  }
+}
+
+@media (max-width: 640px) {
+  .typingText::after { height: .78em; }
+  .heroPrimary { animation-duration: 4.4s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typingText {
+    clip-path: none !important;
+  }
+  .typingText::after {
+    display: none !important;
+  }
+}
