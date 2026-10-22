@@ -132,7 +132,7 @@ export function PremiumLanding() {
           <div className={styles.pitch}>
             <span className={styles.location}><MapPin size={14} aria-hidden="true" /> STARTING IN EKURHULENI. BUILT FOR MZANSI.</span>
             <span className={styles.heroKicker}>REAL PEOPLE. REAL PROJECTS. REAL PROGRESS.</span>
-            <h1 id="home-heading">Turn your home ideas into <span>real results.</span></h1>
+            <h1 id="home-heading">Turn your home ideas into <span className={styles.typingText}>real results.</span></h1>
             <p>Plan, estimate and connect with trusted local professionals to get the job done — all in one place.</p>
 
             <div className={styles.heroActions}>
