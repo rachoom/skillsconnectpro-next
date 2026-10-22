@@ -19,6 +19,7 @@ type ProjectRoutingRow = {
   status: string;
   consent_to_share: boolean;
   created_at: string;
+  assessment_payload: Record<string, unknown> | null;
 };
 
 type InvitationRow = {
@@ -175,7 +176,7 @@ async function processRoutingLocked(input: { projectId: string; force?: boolean;
   const [projectResult, invitationResult, responseResult, matchResult] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, urgency, service_level, status, consent_to_share, created_at')
+      .select('id, urgency, service_level, status, consent_to_share, created_at, assessment_payload')
       .eq('id', input.projectId)
       .single(),
     supabase
@@ -250,6 +251,31 @@ async function processRoutingLocked(input: { projectId: string; force?: boolean;
       ...common,
       action: 'routing_closed',
       reason: 'Provider routing is already closed for this project.',
+    });
+  }
+
+  const assessment = project.assessment_payload ?? {};
+  const directInviteMode =
+    assessment.intakeOrigin === 'controlled_provider_browse'
+    && Number.isInteger(Number(assessment.preferredProviderId))
+    && Number(assessment.preferredProviderId) > 0;
+
+  // A customer who explicitly chose a provider from Browse Providers asked
+  // for a direct invitation, not a general marketplace search. Keep the
+  // normal routing engine intact for all other projects, but never expand
+  // a direct-provider request automatically.
+  if (directInviteMode && !input.force) {
+    const directDeadline = earliestDeadline(
+      invitations.filter((invitation) => ACTIVE_INVITATION_STATUSES.has(invitation.status)),
+    );
+    return result({
+      ...common,
+      waveNumber: invitations.length ? highestWaveNumber : null,
+      action: invitations.length ? 'waiting_for_responses' : 'no_candidates',
+      reason: invitations.length
+        ? 'This project is in direct-invite mode and will wait for the customer-selected provider.'
+        : 'The customer-selected provider could not be invited. Automatic wave expansion is disabled for this direct request.',
+      nextCheckAt: directDeadline?.toISOString() ?? null,
     });
   }
 
