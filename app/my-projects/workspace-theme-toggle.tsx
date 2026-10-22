@@ -19,13 +19,15 @@ export function WorkspaceThemeToggle() {
         : 'dark';
 
     setTheme(initial);
-    document.documentElement.dataset.workspaceTheme = initial;
+    const shell = document.querySelector<HTMLElement>('[data-workspace-shell]');
+    shell?.setAttribute('data-theme', initial);
   }, []);
 
   const toggle = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
-    document.documentElement.dataset.workspaceTheme = next;
+    const shell = document.querySelector<HTMLElement>('[data-workspace-shell]');
+    shell?.setAttribute('data-theme', next);
     window.localStorage.setItem(STORAGE_KEY, next);
   };
 
