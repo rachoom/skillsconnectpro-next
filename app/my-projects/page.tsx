@@ -43,7 +43,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
   const claimState = Array.isArray(params.claim) ? params.claim[0] : params.claim;
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-workspace-shell>
       <AccountNav />
       <div className={styles.shell}>
         {claimState === 'saved' && <div className={styles.notice}>Project saved. You can now reopen it from any device.</div>}
