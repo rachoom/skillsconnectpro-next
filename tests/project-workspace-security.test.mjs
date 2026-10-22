@@ -41,3 +41,24 @@ test('legacy procurement disclaimers never render as project safety warnings', (
   assert.match(page, /hardware quotation\|supplier pricing\|procurement/);
   assert.match(intake, /hardware quotation\|supplier pricing\|procurement/);
 });
+
+
+test('persisted child records are reloaded after parent RLS access succeeds', () => {
+  const page = read('../app/my-projects/[id]/page.tsx');
+  assert.match(page, /getSupabaseAdmin/);
+  assert.match(page, /admin\.from\('project_documents'\)/);
+  assert.match(page, /admin\.from\('project_materials'\)/);
+  assert.match(page, /admin\.from\('project_expenses'\)/);
+  assert.match(page, /admin\.from\('project_milestones'\)/);
+  assert.match(page, /projectResult[\s\S]*notFound\(\)[\s\S]*getSupabaseAdmin/);
+});
+
+test('My Projects supports a persistent light and dark theme', () => {
+  const toggle = read('../app/my-projects/workspace-theme-toggle.tsx');
+  const css = read('../app/my-projects/workspace.module.css');
+  assert.match(toggle, /skills-connect-workspace-theme/);
+  assert.match(toggle, /prefers-color-scheme: light/);
+  assert.match(toggle, /dataset\.workspaceTheme/);
+  assert.match(css, /data-workspace-theme='light'/);
+  assert.match(css, /#f3eee3/);
+});
