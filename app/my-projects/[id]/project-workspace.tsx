@@ -1,9 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Check, FileDown, FileText, Loader2, PackagePlus, Plus, ReceiptText, Trash2, Upload } from 'lucide-react';
-import { createBrowserSupabaseClient } from '@/services/supabase/client';
 import { HardwareQuoteRequestButton } from './hardware-quote-request';
 import styles from '../workspace.module.css';
 import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
@@ -42,7 +41,6 @@ function rand(value: number | null | undefined) {
 
 export function ProjectWorkspace({ project, initialMaterials, initialDocuments, initialExpenses, initialMilestones }: Props) {
   const showHardwareQuotes = hardwareQuotesEnabled();
-  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [tab, setTab] = useState<Tab>('overview');
   const [materials, setMaterials] = useState(initialMaterials);
   const [documents, setDocuments] = useState(initialDocuments);
@@ -81,6 +79,17 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
     report(value);
   };
 
+  const workspaceRequest = async (body: Record<string, unknown>) => {
+    const response = await fetch(`/api/account/projects/${project.id}/workspace`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json().catch(() => ({})) as { error?: string; item?: unknown; ok?: boolean };
+    if (!response.ok) throw new Error(payload.error || 'Unable to update this project.');
+    return payload;
+  };
+
   const updateEstimate = async () => {
     const min = estimateMin ? Number(estimateMin) : null;
     const max = estimateMax ? Number(estimateMax) : null;
@@ -89,9 +98,14 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
       return;
     }
     setWorking('estimate');
-    const { error } = await supabase.from('projects').update({ estimated_min: min, estimated_max: max }).eq('id', project.id);
-    setWorking('');
-    report(error ? error.message : 'Project range updated.');
+    try {
+      await workspaceRequest({ action: 'update_estimate', min, max });
+      report('Project range updated.');
+    } catch (error) {
+      report(error instanceof Error ? error.message : 'Unable to update the project range.');
+    } finally {
+      setWorking('');
+    }
   };
 
   const addMaterial = async (event: React.FormEvent) => {
@@ -103,58 +117,94 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
       return;
     }
     setWorking('material');
-    const { data, error } = await supabase.from('project_materials').insert({
-      project_id: project.id,
-      name: materialName.trim(),
-      quantity,
-      unit: 'item',
-      estimated_unit_price: unitPrice,
-      estimated_total: unitPrice === null ? null : quantity * unitPrice,
-    }).select('*').single();
-    setWorking('');
-    if (error || !data) { report(error?.message ?? 'Unable to add material.'); return; }
-    setMaterials((current) => [...current, data as Material]);
-    setMaterialName(''); setMaterialQuantity('1'); setMaterialPrice('');
-    report('Material added.');
+    try {
+      const payload = await workspaceRequest({
+        action: 'add_material',
+        name: materialName.trim(),
+        quantity,
+        unitPrice,
+      });
+      if (!payload.item) throw new Error('Unable to add material.');
+      setMaterials((current) => [...current, payload.item as Material]);
+      setMaterialName(''); setMaterialQuantity('1'); setMaterialPrice('');
+      report('Material added.');
+    } catch (error) {
+      report(error instanceof Error ? error.message : 'Unable to add material.');
+    } finally {
+      setWorking('');
+    }
   };
 
   const removeMaterial = async (id: string) => {
     setWorking(id);
-    const { error } = await supabase.from('project_materials').update({ status: 'removed' }).eq('id', id).eq('project_id', project.id);
-    setWorking('');
-    if (error) { report(error.message); return; }
-    setMaterials((current) => current.filter((item) => item.id !== id));
+    try {
+      await workspaceRequest({ action: 'remove_material', itemId: id });
+      setMaterials((current) => current.filter((item) => item.id !== id));
+    } catch (error) {
+      report(error instanceof Error ? error.message : 'Unable to remove material.');
+    } finally {
+      setWorking('');
+    }
   };
 
   const addMilestone = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!milestoneTitle.trim()) return;
     setWorking('milestone');
-    const { data, error } = await supabase.from('project_milestones').insert({ project_id: project.id, title: milestoneTitle.trim(), sort_order: milestones.length }).select('*').single();
-    setWorking('');
-    if (error || !data) { reportWorkspaceLimit(error?.message ?? 'Unable to add milestone.'); return; }
-    setMilestones((current) => [...current, data as Milestone]); setMilestoneTitle(''); report('Milestone added.');
+    try {
+      const payload = await workspaceRequest({
+        action: 'add_milestone',
+        title: milestoneTitle.trim(),
+        sortOrder: milestones.length,
+      });
+      if (!payload.item) throw new Error('Unable to add milestone.');
+      setMilestones((current) => [...current, payload.item as Milestone]);
+      setMilestoneTitle('');
+      report('Milestone added.');
+    } catch (error) {
+      reportWorkspaceLimit(error instanceof Error ? error.message : 'Unable to add milestone.');
+    } finally {
+      setWorking('');
+    }
   };
 
   const toggleMilestone = async (item: Milestone) => {
     const completed = item.status === 'completed';
     const nextStatus = completed ? 'not_started' : 'completed';
     setWorking(item.id);
-    const { error } = await supabase.from('project_milestones').update({ status: nextStatus, completed_at: completed ? null : new Date().toISOString() }).eq('id', item.id).eq('project_id', project.id);
-    setWorking('');
-    if (error) { reportWorkspaceLimit(error.message); return; }
-    setMilestones((current) => current.map((row) => row.id === item.id ? { ...row, status: nextStatus } : row));
+    try {
+      await workspaceRequest({ action: 'toggle_milestone', itemId: item.id, status: nextStatus });
+      setMilestones((current) => current.map((row) => row.id === item.id ? { ...row, status: nextStatus } : row));
+    } catch (error) {
+      reportWorkspaceLimit(error instanceof Error ? error.message : 'Unable to update milestone.');
+    } finally {
+      setWorking('');
+    }
   };
 
   const addExpense = async (event: React.FormEvent) => {
     event.preventDefault();
     const amount = Number(expenseAmount);
-    if (!expenseDescription.trim() || !Number.isFinite(amount) || amount < 0) { report('Add an expense description and valid amount.'); return; }
+    if (!expenseDescription.trim() || !Number.isFinite(amount) || amount < 0) {
+      report('Add an expense description and valid amount.');
+      return;
+    }
     setWorking('expense');
-    const { data, error } = await supabase.from('project_expenses').insert({ project_id: project.id, description: expenseDescription.trim(), category: 'other', amount }).select('*').single();
-    setWorking('');
-    if (error || !data) { report(error?.message ?? 'Unable to add expense.'); return; }
-    setExpenses((current) => [data as Expense, ...current]); setExpenseDescription(''); setExpenseAmount(''); report('Expense added.');
+    try {
+      const payload = await workspaceRequest({
+        action: 'add_expense',
+        description: expenseDescription.trim(),
+        amount,
+      });
+      if (!payload.item) throw new Error('Unable to add expense.');
+      setExpenses((current) => [payload.item as Expense, ...current]);
+      setExpenseDescription(''); setExpenseAmount('');
+      report('Expense added.');
+    } catch (error) {
+      report(error instanceof Error ? error.message : 'Unable to add expense.');
+    } finally {
+      setWorking('');
+    }
   };
 
   const uploadDocument = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,32 +212,50 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
     event.target.value = '';
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) { report('Documents must be 10 MB or smaller.'); return; }
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-120);
-    const path = `${project.id}/${crypto.randomUUID()}-${safeName}`;
+
+    const form = new FormData();
+    form.set('file', file);
     setWorking('document');
-    const { error: uploadError } = await supabase.storage.from('project-documents').upload(path, file, { upsert: false, contentType: file.type || undefined });
-    if (uploadError) { setWorking(''); report(uploadError.message); return; }
-    const { data, error } = await supabase.from('project_documents').insert({ project_id: project.id, file_name: file.name, storage_path: path, mime_type: file.type || null, size_bytes: file.size, document_type: file.type.startsWith('image/') ? 'photo' : file.type === 'application/pdf' ? 'floor_plan' : 'other' }).select('*').single();
-    if (error || !data) {
-      await supabase.storage.from('project-documents').remove([path]);
-      setWorking(''); reportWorkspaceLimit(error?.message ?? 'Unable to save document.'); return;
+    try {
+      const response = await fetch(`/api/account/projects/${project.id}/documents`, { method: 'POST', body: form });
+      const payload = await response.json().catch(() => ({})) as { error?: string; item?: DocumentRow };
+      if (!response.ok || !payload.item) throw new Error(payload.error || 'Unable to save document.');
+      setDocuments((current) => [payload.item as DocumentRow, ...current]);
+      report('Document uploaded.');
+    } catch (error) {
+      reportWorkspaceLimit(error instanceof Error ? error.message : 'Unable to save document.');
+    } finally {
+      setWorking('');
     }
-    setDocuments((current) => [data as DocumentRow, ...current]); setWorking(''); report('Document uploaded.');
   };
 
   const openDocument = async (path: string) => {
-    const { data, error } = await supabase.storage.from('project-documents').createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) { report(error?.message ?? 'Unable to open document.'); return; }
-    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    try {
+      const response = await fetch(`/api/account/projects/${project.id}/documents?path=${encodeURIComponent(path)}`);
+      const payload = await response.json().catch(() => ({})) as { error?: string; url?: string };
+      if (!response.ok || !payload.url) throw new Error(payload.error || 'Unable to open document.');
+      window.open(payload.url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      report(error instanceof Error ? error.message : 'Unable to open document.');
+    }
   };
 
   const removeDocument = async (document: DocumentRow) => {
     setWorking(document.id);
-    const { error } = await supabase.from('project_documents').delete().eq('id', document.id).eq('project_id', project.id);
-    if (!error) await supabase.storage.from('project-documents').remove([document.storage_path]);
-    setWorking('');
-    if (error) { report(error.message); return; }
-    setDocuments((current) => current.filter((item) => item.id !== document.id));
+    try {
+      const response = await fetch(`/api/account/projects/${project.id}/documents`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: document.id, storagePath: document.storage_path }),
+      });
+      const payload = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || 'Unable to remove document.');
+      setDocuments((current) => current.filter((item) => item.id !== document.id));
+    } catch (error) {
+      report(error instanceof Error ? error.message : 'Unable to remove document.');
+    } finally {
+      setWorking('');
+    }
   };
 
   return (
