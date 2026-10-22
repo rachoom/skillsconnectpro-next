@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
+import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { phoneValidationMessage } from '@/services/marketplace/intakePolicy.js';
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 
@@ -16,9 +17,15 @@ export async function POST(request: Request) {
     }
     const blocked = await enforcePublicRequestLimit(request, 'provider_application', 5);
     if (blocked) return blocked;
+
+    // The join page remains usable without an account, but when the applicant
+    // is signed in we retain the auth-user link so approval can activate the
+    // provider role on this same login.
+    const { user } = await getAuthenticatedAccount();
     const { error } = await getSupabaseAdmin().from('artisan_applications').insert({
       first_name: name, last_name: '', trade, phone, location, status: 'pending',
       bio: 'Submitted through the provider photo application.',
+      user_id: user?.id ?? null,
     });
     if (error) throw error;
     return NextResponse.json({ submitted: true, status: 'pending' }, { status: 201 });
