@@ -169,7 +169,7 @@ async function queuePreferredProvider(input: {
     return { requested: true, queued: false, reason: 'The selected provider is currently inactive.' };
   }
   if (invitationResult.data) {
-    return { requested: true, queued: false, reason: 'The selected provider was already included in the first wave.' };
+    return { requested: true, queued: false, reason: 'The selected provider already has an invitation for this project.' };
   }
 
   const provider = providerResult.data;
@@ -182,7 +182,7 @@ async function queuePreferredProvider(input: {
     waveNumber: 1,
     targets: [{
       providerId: provider.id,
-      deliveryChannel: 'admin',
+      deliveryChannel: 'whatsapp',
       deliveryAddress: provider.phone,
       providerSnapshot: {
         displayName,
@@ -198,13 +198,13 @@ async function queuePreferredProvider(input: {
   });
 
   if (created.length === 0) return { requested: true, queued: false,
-    reason: 'The selected provider requires review or the initial invitation wave is already full.' };
+    reason: 'The selected provider requires review or could not be invited directly.' };
 
   const { error: eventError } = await supabase.from('project_status_events').insert({
     project_id: input.projectId,
     event_type: 'customer_preferred_provider_queued',
     actor_type: 'customer',
-    message: `${displayName} was added to the first invitation wave at the customer's request.`,
+    message: `${displayName} was invited directly at the customer's request.`,
     event_data: {
       providerId: provider.id,
       providerName: displayName,
@@ -216,7 +216,7 @@ async function queuePreferredProvider(input: {
     console.error('Preferred provider queued but timeline event failed:', eventError.message);
   }
 
-  return { requested: true, queued: true, reason: 'The customer-selected provider was added to the first invitation wave.' };
+  return { requested: true, queued: true, reason: 'The customer-selected provider was invited directly.' };
 }
 
 export async function POST(request: Request) {
