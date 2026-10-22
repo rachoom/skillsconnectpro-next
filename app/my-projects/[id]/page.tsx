@@ -26,7 +26,12 @@ export default async function ProjectWorkspacePage({ params }: Props) {
   ]);
 
   if (!projectResult.data || projectResult.error) notFound();
-  const project = projectResult.data;
+  const project = {
+    ...projectResult.data,
+    safety_notes: (projectResult.data.safety_notes ?? []).filter(
+      (note: string) => !/(hardware quotation|supplier pricing|procurement|quotation limit|installation scope should be checked before purchase)/i.test(note),
+    ),
+  };
 
   return (
     <main className={styles.page}>
