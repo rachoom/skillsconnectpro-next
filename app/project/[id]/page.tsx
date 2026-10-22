@@ -166,6 +166,8 @@ export default function CustomerProjectPage() {
   const [selectingResponseId, setSelectingResponseId] = useState<string | null>(null);
   const [releasingContact, setReleasingContact] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancellingRequest, setCancellingRequest] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [journeyOpen, setJourneyOpen] = useState(false);
@@ -245,6 +247,30 @@ export default function CustomerProjectPage() {
       setError(requestError instanceof Error ? requestError.message : 'Unable to select provider.');
     } finally {
       setSelectingResponseId(null);
+    }
+  };
+
+  const cancelRequest = async () => {
+    setCancellingRequest(true);
+    setError(null);
+
+    try {
+      await readJson(
+        await fetch(`/api/projects/${projectId}/lifecycle`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-project-access-token': accessToken,
+          },
+          body: JSON.stringify({ action: 'cancel_project' }),
+        }),
+      );
+      setShowCancelConfirm(false);
+      await loadFeed(true);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to cancel this request.');
+    } finally {
+      setCancellingRequest(false);
     }
   };
 
@@ -414,9 +440,16 @@ export default function CustomerProjectPage() {
                   <CheckCircle2 size={16} /> Review {responseCount} response{responseCount === 1 ? '' : 's'}
                 </button>
               ) : (
-                <button type="button" onClick={() => void loadFeed()} className={styles.refreshButton}>
-                  <RefreshCw size={15} /> Refresh now
-                </button>
+                <div style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <button type="button" onClick={() => void loadFeed()} className={styles.refreshButton}>
+                    <RefreshCw size={15} /> Refresh now
+                  </button>
+                  {!projectClosed && !hasSelection && (
+                    <button type="button" onClick={() => setShowCancelConfirm(true)} className={styles.refreshButton}>
+                      <X size={15} /> Cancel request
+                    </button>
+                  )}
+                </div>
               )}
             </aside>
           </div>
@@ -679,6 +712,30 @@ export default function CustomerProjectPage() {
           )}
         </section>
       </div>
+
+      {showCancelConfirm && !projectClosed && !hasSelection && (
+        <div className={styles.modalBackdrop}>
+          <section className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              <div>
+                <span>Cancel request</span>
+                <h2>Stop looking for providers?</h2>
+              </div>
+              <button onClick={() => setShowCancelConfirm(false)} aria-label="Close cancellation confirmation"><X size={18} /></button>
+            </div>
+            <div className={styles.modalBody}>
+              This will close the project request and stop any further provider matching, retries or invitation waves. Providers who already received an invitation will no longer be able to respond to this request.
+            </div>
+            <div className={styles.modalActions}>
+              <button onClick={() => setShowCancelConfirm(false)} className={styles.secondaryModalAction}>Keep request open</button>
+              <button disabled={cancellingRequest} onClick={() => void cancelRequest()} className={styles.primaryAction}>
+                {cancellingRequest ? <Loader2 className="animate-spin" size={17} /> : <X size={17} />}
+                Cancel request
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {showReleaseConfirm && selectedResponse && !projectClosed && (
         <div className={styles.modalBackdrop}>
