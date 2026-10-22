@@ -8,6 +8,7 @@ export const customerPlanBenefits: Record<string, string[]> = {
     '1 active project',
     'Basic project budget',
     'Save project details and photos',
+    'Up to 5 project documents (5 MB each)',
     'Limited expense and receipt tracking',
   ],
   basic_30: [
@@ -17,6 +18,7 @@ export const customerPlanBenefits: Record<string, string[]> = {
     '1 active project workspace',
     'Expense tracking',
     'Store receipts and project documents',
+    'Up to 20 project documents (10 MB each)',
     'Milestones and progress tracking',
     'Basic artisan collaboration',
     'Basic project budget and cost record',
@@ -27,6 +29,7 @@ export const customerPlanBenefits: Record<string, string[]> = {
     'Up to 3 active projects',
     'Advanced project budget and cost tracking',
     'Expanded receipt and document storage',
+    'Up to 50 project documents per project (10 MB each)',
     'Project timeline and milestones',
     'Project reports and handover record',
     'Collaborate with artisans across the project',
