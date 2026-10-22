@@ -1527,3 +1527,33 @@
     animation: none !important;
   }
 }
+
+
+/* Compact customer project journey */
+.activityToggle {
+  min-height: 2.75rem;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  border:1px solid rgba(245,197,24,.2);
+  border-radius:999px;
+  padding:0 .9rem;
+  background:rgba(245,197,24,.055);
+  color:var(--scp-yellow);
+  font:inherit;
+  font-size:.72rem;
+  font-weight:900;
+  cursor:pointer;
+}
+.activityToggle:hover { background:rgba(245,197,24,.1); border-color:rgba(245,197,24,.34); }
+.activityHeading > div > small { display:block; margin-top:.35rem; color:var(--scp-faint); font-size:.68rem; }
+:global(html[data-scp-theme='light']) .activityToggle {
+  border-color:rgba(151,112,0,.2);
+  background:rgba(245,197,24,.09);
+  color:#775900;
+}
+@media (max-width:559px) {
+  .activityHeading { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; }
+  .activityToggle { min-height:2.55rem; padding:0 .72rem; font-size:.66rem; }
+}
