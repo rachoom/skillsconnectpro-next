@@ -97,133 +97,133 @@
 }
 .themeToggle:hover { border-color:#7d6818; color:#f5c518; }
 
-:global(html[data-workspace-theme='light']) .page {
+.page[data-theme='light'] {
   color-scheme:light;
   background:
     radial-gradient(circle at 12% 0%, rgba(245,197,24,.12), transparent 30%),
     #f3eee3;
   color:#1d1b17;
 }
-:global(html[data-workspace-theme='light']) .nav {
+.page[data-theme='light'] .nav {
   background:rgba(250,247,239,.88);
   border-bottom-color:#d9d0c0;
   box-shadow:0 12px 32px rgba(65,54,36,.08);
 }
-:global(html[data-workspace-theme='light']) .navInner > a:first-child {
+.page[data-theme='light'] .navInner > a:first-child {
   background:#111;
   border-radius:13px;
   padding:3px 8px;
 }
-:global(html[data-workspace-theme='light']) .navLink,
-:global(html[data-workspace-theme='light']) .signOut,
-:global(html[data-workspace-theme='light']) .themeToggle {
+.page[data-theme='light'] .navLink,
+.page[data-theme='light'] .signOut,
+.page[data-theme='light'] .themeToggle {
   color:#24211b;
   background:rgba(255,253,248,.86);
   border-color:#d7cdbd;
   box-shadow:0 5px 14px rgba(80,64,38,.05);
 }
-:global(html[data-workspace-theme='light']) .themeToggle:hover,
-:global(html[data-workspace-theme='light']) .navLink:hover,
-:global(html[data-workspace-theme='light']) .signOut:hover {
+.page[data-theme='light'] .themeToggle:hover,
+.page[data-theme='light'] .navLink:hover,
+.page[data-theme='light'] .signOut:hover {
   border-color:#b39013;
   background:#fff9dd;
 }
-:global(html[data-workspace-theme='light']) .hero p,
-:global(html[data-workspace-theme='light']) .description,
-:global(html[data-workspace-theme='light']) .projectHeader p,
-:global(html[data-workspace-theme='light']) .subtle,
-:global(html[data-workspace-theme='light']) .empty p,
-:global(html[data-workspace-theme='light']) .planHero p,
-:global(html[data-workspace-theme='light']) .planFinePrint {
+.page[data-theme='light'] .hero p,
+.page[data-theme='light'] .description,
+.page[data-theme='light'] .projectHeader p,
+.page[data-theme='light'] .subtle,
+.page[data-theme='light'] .empty p,
+.page[data-theme='light'] .planHero p,
+.page[data-theme='light'] .planFinePrint {
   color:#6b645a;
 }
-:global(html[data-workspace-theme='light']) .notice {
+.page[data-theme='light'] .notice {
   border-color:#d4b64e;
   background:#fff6c9;
   color:#5c4d0e;
 }
-:global(html[data-workspace-theme='light']) .error {
+.page[data-theme='light'] .error {
   border-color:#d9a5a5;
   background:#fff0f0;
   color:#7b2525;
 }
-:global(html[data-workspace-theme='light']) .stat,
-:global(html[data-workspace-theme='light']) .panel,
-:global(html[data-workspace-theme='light']) .sidePanel {
+.page[data-theme='light'] .stat,
+.page[data-theme='light'] .panel,
+.page[data-theme='light'] .sidePanel {
   background:#fffdf8;
   border-color:#dcd3c4;
   box-shadow:0 14px 34px rgba(84,69,43,.06);
 }
-:global(html[data-workspace-theme='light']) .stat span,
-:global(html[data-workspace-theme='light']) .row small {
+.page[data-theme='light'] .stat span,
+.page[data-theme='light'] .row small {
   color:#756e64;
 }
-:global(html[data-workspace-theme='light']) .projectCard,
-:global(html[data-workspace-theme='light']) .planCard {
+.page[data-theme='light'] .projectCard,
+.page[data-theme='light'] .planCard {
   background:linear-gradient(145deg,#fffdf8,#f7f1e6);
   border-color:#dcd2c2;
   box-shadow:0 12px 30px rgba(73,58,33,.05);
 }
-:global(html[data-workspace-theme='light']) .projectCard:hover {
+.page[data-theme='light'] .projectCard:hover {
   border-color:#b8981d;
   box-shadow:0 20px 45px rgba(88,68,30,.12);
 }
-:global(html[data-workspace-theme='light']) .status {
+.page[data-theme='light'] .status {
   background:#edf4e7;
   color:#39512f;
   border-color:#b8c9a8;
 }
-:global(html[data-workspace-theme='light']) .meta,
-:global(html[data-workspace-theme='light']) .back {
+.page[data-theme='light'] .meta,
+.page[data-theme='light'] .back {
   color:#5f5a51;
 }
-:global(html[data-workspace-theme='light']) .open,
-:global(html[data-workspace-theme='light']) .projectHeader {
+.page[data-theme='light'] .open,
+.page[data-theme='light'] .projectHeader {
   border-color:#ddd3c3;
 }
-:global(html[data-workspace-theme='light']) .empty {
+.page[data-theme='light'] .empty {
   background:#fbf7ef;
   border-color:#cfc3b0;
 }
-:global(html[data-workspace-theme='light']) .tabs button {
+.page[data-theme='light'] .tabs button {
   background:#fffdf8;
   color:#645e54;
   border-color:#d6ccbc;
 }
-:global(html[data-workspace-theme='light']) .tabs button[data-active='true'] {
+.page[data-theme='light'] .tabs button[data-active='true'] {
   background:#f5c518;
   color:#090909;
   border-color:#d4aa0f;
 }
-:global(html[data-workspace-theme='light']) .row,
-:global(html[data-workspace-theme='light']) .milestoneRow {
+.page[data-theme='light'] .row,
+.page[data-theme='light'] .milestoneRow {
   background:#faf6ee;
   border-color:#ded5c7;
 }
-:global(html[data-workspace-theme='light']) .iconButton,
-:global(html[data-workspace-theme='light']) .check,
-:global(html[data-workspace-theme='light']) .secondaryAction,
-:global(html[data-workspace-theme='light']) .planSecondaryAction {
+.page[data-theme='light'] .iconButton,
+.page[data-theme='light'] .check,
+.page[data-theme='light'] .secondaryAction,
+.page[data-theme='light'] .planSecondaryAction {
   background:#fffdf8;
   border-color:#cec4b4;
   color:#4b473f;
 }
-:global(html[data-workspace-theme='light']) .input,
-:global(html[data-workspace-theme='light']) .select {
+.page[data-theme='light'] .input,
+.page[data-theme='light'] .select {
   background:#fffdf9;
   border-color:#cfc5b5;
   color:#1d1b17;
 }
-:global(html[data-workspace-theme='light']) .input::placeholder {
+.page[data-theme='light'] .input::placeholder {
   color:#8c8478;
 }
-:global(html[data-workspace-theme='light']) .planFeatures {
+.page[data-theme='light'] .planFeatures {
   color:#49443d;
 }
-:global(html[data-workspace-theme='light']) .planPrice span {
+.page[data-theme='light'] .planPrice span {
   color:#746d62;
 }
-:global(html[data-workspace-theme='light']) .uploadLabel {
+.page[data-theme='light'] .uploadLabel {
   background:#fff9dc;
   border-color:#b8971e;
   color:#7a6210;
