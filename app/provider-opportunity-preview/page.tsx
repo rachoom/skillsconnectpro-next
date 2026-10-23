@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import {
   CalendarClock,
   CheckCircle2,
@@ -22,6 +25,26 @@ const options = [
 ];
 
 export default function ProviderOpportunityPreviewPage() {
+  const [selected, setSelected] = useState('available_now');
+  const [timeSlot, setTimeSlot] = useState('within_1_hour');
+  const [pricingOpen, setPricingOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  if (submitted) {
+    return (
+      <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5`}>
+        <section className="max-w-lg rounded-3xl border-2 border-[#55A979] bg-[#E6F8DF] p-8 text-center shadow-xl shadow-[#355332]/20">
+          <CheckCircle2 className="mx-auto text-[#21885A]" size={48} />
+          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.18em] text-[#21885A]">Interactive preview</p>
+          <h1 className="mt-2 text-3xl font-black">Response captured</h1>
+          <p className="mt-3 text-sm leading-6 text-[#355D43]">This is a preview only, so no customer was notified. The real provider link uses the same controls and submits the response to Skills Connect Pro.</p>
+          <button type="button" onClick={() => setSubmitted(false)} className="mt-5 rounded-xl border-2 border-[#21885A] bg-white px-5 py-3 text-sm font-black text-[#173B28]">Return to preview</button>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className={`${polish.scope} min-h-screen bg-[#9FCB8A] px-4 py-5 text-[#203020] md:px-8 md:py-8`}>
       <div className="mx-auto max-w-4xl">
@@ -31,7 +54,7 @@ export default function ProviderOpportunityPreviewPage() {
               <ShieldCheck size={15} /> Skills Connect Pro
             </div>
             <span className="rounded-full border border-[#D3A826] bg-[#FFE067] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#4A3600]">
-              Preview · provider view
+              Interactive preview · provider view
             </span>
           </div>
           <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">Kitchen tap leaking badly</h1>
@@ -75,11 +98,12 @@ export default function ProviderOpportunityPreviewPage() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
-              {options.map((option, index) => {
+              {options.map((option) => {
                 const Icon = option.icon;
+                const active = selected === option.value;
                 return (
-                  <button data-provider-option={option.value} data-selected={index === 0 ? "true" : "false"} type="button" key={option.title} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm transition ${option.className} ${index === 0 ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : ''}`}>
-                    {index === 0 && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}
+                  <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} type="button" key={option.title} onClick={() => setSelected(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm transition ${option.className} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : ''}`}>
+                    {active && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}
                     <Icon size={18} />
                     <span className="mt-2 block pr-4 text-sm font-black leading-tight">{option.title}</span>
                     <span className="mt-1 block text-[10px] leading-4 text-[#4D5949]">{option.helper}</span><span data-vernac-choice>{option.isiZulu}</span>
@@ -88,7 +112,7 @@ export default function ProviderOpportunityPreviewPage() {
               })}
             </div>
 
-            <button data-provider-decline data-selected="false" type="button" className="mt-2 flex w-full items-center justify-between rounded-2xl border-2 border-[#D7A5AD] bg-[#FFE5E9] px-4 py-3 text-left text-[#74404A]">
+            <button data-provider-decline data-selected={selected === 'declined' ? 'true' : 'false'} type="button" onClick={() => setSelected('declined')} className="mt-2 flex w-full items-center justify-between rounded-2xl border-2 border-[#D7A5AD] bg-[#FFE5E9] px-4 py-3 text-left text-[#74404A]">
               <span className="flex items-center gap-2 text-sm font-bold"><XCircle size={17} /><span>Not available for this job <span data-vernac-inline>· Angitholakali kulo msebenzi</span></span></span>
               <span className="text-[10px] uppercase tracking-wider">Decline</span>
             </button>
@@ -96,23 +120,25 @@ export default function ProviderOpportunityPreviewPage() {
             <div className="mt-5">
               <p className="text-[10px] font-black uppercase tracking-wider text-[#66725F]">Estimated arrival window <span data-vernac-inline>· Isikhathi engingafika ngaso</span></p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <button data-provider-time data-selected="true" type="button" className="rounded-full border-2 border-[#C89A18] bg-[#FFD75F] px-3 py-2 text-xs font-bold text-[#3F2D00]"><span>Within 1 hour</span><span data-vernac-time>Phakathi kwehora elilodwa</span></button>
-                <button data-provider-time data-selected="false" type="button" className="rounded-full border-2 border-[#9DBA8F] bg-[#FFFFFF]/75 px-3 py-2 text-xs font-bold text-[#3E493A]"><span>1–3 hours</span><span data-vernac-time>Amahora angu-1–3</span></button>
-                <button data-provider-time data-selected="false" type="button" className="rounded-full border-2 border-[#9DBA8F] bg-[#FFFFFF]/75 px-3 py-2 text-xs font-bold text-[#3E493A]"><span>Not sure</span><span data-vernac-time>Angikaqiniseki</span></button>
+                <button data-provider-time data-selected={timeSlot === 'within_1_hour' ? 'true' : 'false'} type="button" onClick={() => setTimeSlot('within_1_hour')} className="rounded-full border-2 border-[#C89A18] bg-[#FFD75F] px-3 py-2 text-xs font-bold text-[#3F2D00]"><span>Within 1 hour</span><span data-vernac-time>Phakathi kwehora elilodwa</span></button>
+                <button data-provider-time data-selected={timeSlot === '1_3_hours' ? 'true' : 'false'} type="button" onClick={() => setTimeSlot('1_3_hours')} className="rounded-full border-2 border-[#9DBA8F] bg-[#FFFFFF]/75 px-3 py-2 text-xs font-bold text-[#3E493A]"><span>1–3 hours</span><span data-vernac-time>Amahora angu-1–3</span></button>
+                <button data-provider-time data-selected={timeSlot === 'unsure' ? 'true' : 'false'} type="button" onClick={() => setTimeSlot('unsure')} className="rounded-full border-2 border-[#9DBA8F] bg-[#FFFFFF]/75 px-3 py-2 text-xs font-bold text-[#3E493A]"><span>Not sure</span><span data-vernac-time>Angikaqiniseki</span></button>
               </div>
             </div>
 
-            <button data-provider-pricing type="button" className="mt-5 flex w-full items-center justify-between rounded-xl border-2 border-[#B7CBAE] bg-[#FFFDF5] px-4 py-3 text-left">
+            <button data-provider-pricing type="button" onClick={() => setPricingOpen((open) => !open)} className="mt-5 flex w-full items-center justify-between rounded-xl border-2 border-[#B7CBAE] bg-[#FFFDF5] px-4 py-3 text-left">
               <span><span className="block text-xs font-black text-[#293829]">Add pricing details <span data-vernac-inline>· Faka imininingwane yentengo</span></span><span className="mt-0.5 block text-[10px] text-[#6E765F]">Optional — site visit fee or preliminary range</span></span>
-              <ChevronDown className="text-[#60705A]" size={17} />
+              <ChevronDown className={`text-[#60705A] transition ${pricingOpen ? 'rotate-180' : ''}`} size={17} />
             </button>
+
+            {pricingOpen && <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-[#B7CBAE] bg-white/5 p-3"><input placeholder="Site visit fee (R)" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm" /><input placeholder="Estimate from (R)" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm" /></div>}
 
             <label className="mt-4 block">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">Message to customer — optional <span data-vernac-inline>· Umlayezo oya ekhasimendeni</span></span>
-              <textarea readOnly placeholder="Add a quick note or question" className="mt-1.5 min-h-20 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none" />
+              <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a quick note or question" className="mt-1.5 min-h-20 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none" />
             </label>
 
-            <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#FFC21A] px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md">
+            <button type="button" onClick={() => setSubmitted(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#FFC21A] px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md">
               <CheckCircle2 size={17} /><span data-submit-copy><span>Submit response</span><span data-vernac-submit>Thumela impendulo</span></span>
             </button>
           </form>
