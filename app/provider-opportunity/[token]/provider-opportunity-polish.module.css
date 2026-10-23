@@ -824,3 +824,123 @@
 :global(html[data-scp-theme='light']) .scope [data-provider-time][data-selected='true'] [data-vernac-time] {
   color: #725b0a !important;
 }
+
+
+/* === 2026-10-23 provider opportunity colour and guidance pass === */
+.scope [data-provider-header] {
+  box-shadow:
+    0 28px 70px -48px rgba(245,197,24,.58),
+    inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+
+.scope [data-provider-job-card] {
+  box-shadow:
+    0 28px 70px -54px rgba(88,173,122,.42),
+    inset 0 1px 0 rgba(255,255,255,.045) !important;
+}
+
+.scope [data-job-fact]:nth-child(1)::before { background: #f5c518; }
+.scope [data-job-fact]:nth-child(2)::before { background: #65b6e8; }
+
+.scope [data-provider-response-form] {
+  box-shadow:
+    0 32px 80px -52px rgba(245,197,24,.58),
+    inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+.scope [data-provider-option] {
+  cursor: pointer;
+}
+.scope [data-provider-option]:active,
+.scope [data-provider-time]:active,
+.scope [data-provider-decline]:active,
+.scope [data-provider-pricing]:active {
+  transform: scale(.985) !important;
+}
+
+.scope [data-provider-option='available_now'] {
+  background: linear-gradient(145deg,rgba(245,197,24,.12),rgba(20,20,18,.98) 68%) !important;
+}
+.scope [data-provider-option='available_today'] {
+  background: linear-gradient(145deg,rgba(255,204,70,.09),rgba(20,20,18,.98) 68%) !important;
+}
+.scope [data-provider-option='available_tomorrow'] {
+  background: linear-gradient(145deg,rgba(103,169,220,.12),rgba(20,20,18,.98) 68%) !important;
+}
+.scope [data-provider-option='available_this_week'] {
+  background: linear-gradient(145deg,rgba(113,181,141,.12),rgba(20,20,18,.98) 68%) !important;
+}
+.scope [data-provider-option='available_next_week'],
+.scope [data-provider-option='site_visit'] {
+  background: linear-gradient(145deg,rgba(157,139,199,.12),rgba(20,20,18,.98) 68%) !important;
+}
+.scope [data-provider-option='estimate'] {
+  background: linear-gradient(145deg,rgba(92,184,137,.12),rgba(20,20,18,.98) 68%) !important;
+}
+.scope [data-provider-option='need_information'] {
+  background: linear-gradient(145deg,rgba(200,139,153,.12),rgba(20,20,18,.98) 68%) !important;
+}
+
+.scope [data-provider-option][data-selected='true'] {
+  transform: translateY(-2px);
+}
+
+.scope [data-provider-response-form]::before {
+  content: '1  Choose availability   •   2  Add details   •   3  Send response';
+  display: block;
+  margin: -.1rem 0 1rem;
+  padding: .65rem .8rem;
+  border: 1px solid rgba(245,197,24,.18);
+  border-radius: .8rem;
+  background: rgba(245,197,24,.055);
+  color: #c8b66f;
+  font-size: .58rem;
+  font-weight: 850;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.scope [data-provider-pricing] {
+  border-left: 3px solid #67a9dc !important;
+}
+
+.scope [data-provider-decline] {
+  border-left: 3px solid #d16f7c !important;
+}
+
+.scope [data-provider-response-form] > button:last-of-type {
+  background:
+    linear-gradient(135deg,#ffe05a,#f5c518 58%,#e4ae05) !important;
+  box-shadow:
+    0 18px 42px -16px rgba(245,197,24,.72),
+    inset 0 1px 0 rgba(255,255,255,.42) !important;
+}
+
+@media (max-width: 639px) {
+  .scope [data-provider-response-form]::before {
+    content: 'Choose  •  Add details  •  Send';
+    font-size: .55rem;
+    text-align: center;
+  }
+}
+
+:global(html[data-scp-theme='light']) .scope [data-provider-option='available_now'] {
+  background: linear-gradient(145deg,#fff9df,#fff 70%) !important;
+}
+:global(html[data-scp-theme='light']) .scope [data-provider-option='available_today'] {
+  background: linear-gradient(145deg,#fff8e7,#fff 70%) !important;
+}
+:global(html[data-scp-theme='light']) .scope [data-provider-option='available_tomorrow'] {
+  background: linear-gradient(145deg,#eef8ff,#fff 70%) !important;
+}
+:global(html[data-scp-theme='light']) .scope [data-provider-option='available_this_week'],
+:global(html[data-scp-theme='light']) .scope [data-provider-option='estimate'] {
+  background: linear-gradient(145deg,#eefaf2,#fff 70%) !important;
+}
+:global(html[data-scp-theme='light']) .scope [data-provider-option='available_next_week'],
+:global(html[data-scp-theme='light']) .scope [data-provider-option='site_visit'] {
+  background: linear-gradient(145deg,#f6f1ff,#fff 70%) !important;
+}
+:global(html[data-scp-theme='light']) .scope [data-provider-option='need_information'] {
+  background: linear-gradient(145deg,#fff1f5,#fff 70%) !important;
+}
