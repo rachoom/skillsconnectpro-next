@@ -89,7 +89,7 @@ export default function ProviderOpportunityPreviewPage() {
       <div className="mx-auto max-w-[520px]">
         <header className={`rounded-3xl border p-4 shadow-sm ${panel}`}>
           <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2"><img src="/favicon.svg" alt="" className="size-8 shrink-0 rounded-lg object-contain" /><strong className="text-sm font-black tracking-tight sm:text-base">Skills Connect Pro</strong></div>
+            <div className="flex min-w-0 items-center gap-2"><img src="/logo-new.svg" alt="" className="size-8 shrink-0 rounded-lg object-contain" /><strong className="text-sm font-black tracking-tight sm:text-base">Skills Connect Pro</strong></div>
             <div className="flex shrink-0 items-center gap-1">
               <button type="button" onClick={() => setLang(lang === 'en' ? 'zu' : 'en')} className="rounded-full border border-[#CBA638] px-2.5 py-1.5 text-xs font-black" aria-label="Switch language">{lang === 'en' ? 'EN / ZU' : 'ZU / EN'}</button>
               <button type="button" onClick={() => setDark(!dark)} className="rounded-full border border-[#CBA638] p-1.5" aria-label="Toggle theme">{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
