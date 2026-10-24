@@ -86,7 +86,7 @@ type ResponseType =
 type TimeSlot = 'unsure' | 'morning' | 'midday' | 'afternoon' | 'evening';
 
 type ResponseForm = {
-  responseType: ResponseType;
+  responseType: ResponseType | null;
   timeSlot: TimeSlot;
   siteVisitFee: string;
   estimateMin: string;
@@ -104,7 +104,7 @@ type ResponseOption = {
 };
 
 const INITIAL_FORM: ResponseForm = {
-  responseType: 'available_today',
+  responseType: null,
   timeSlot: 'unsure',
   siteVisitFee: '',
   estimateMin: '',
@@ -176,7 +176,7 @@ function whatsappNumber(value: string): string {
   return digits.startsWith('0') ? `27${digits.slice(1)}` : digits;
 }
 
-function arrivalWindow(responseType: ResponseType, timeSlot: TimeSlot) {
+function arrivalWindow(responseType: ResponseType | null, timeSlot: TimeSlot) {
   if (responseType === 'available_now') {
     const start = new Date();
     return { start: start.toISOString(), end: new Date(start.getTime() + 2 * 60 * 60 * 1000).toISOString() };
@@ -210,7 +210,7 @@ export default function ProviderOpportunityPage() {
         const payload = await readJson(await fetch(`/api/provider-opportunities/${encodeURIComponent(token)}`, { cache: 'no-store' }));
         if (active) {
           setOpportunity(payload.opportunity);
-          setForm((current) => ({ ...current, responseType: defaultResponseForUrgency(payload.opportunity.project.urgency) }));
+          setForm((current) => ({ ...current, responseType: null }));
         }
       } catch (requestError) {
         if (active) setError(requestError instanceof Error ? requestError.message : 'Unable to load opportunity.');
@@ -238,6 +238,10 @@ export default function ProviderOpportunityPage() {
 
   const submitResponse = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!form.responseType) {
+      setError('Choose your availability or response before submitting.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const window = arrivalWindow(form.responseType, form.timeSlot);
@@ -362,7 +366,7 @@ export default function ProviderOpportunityPage() {
   }
 
   const responseOptions = responseOptionsForUrgency(project.urgency);
-  const showTimeSlots = ['available_today', 'available_tomorrow'].includes(form.responseType);
+  const showTimeSlots = form.responseType !== null && ['available_today', 'available_tomorrow'].includes(form.responseType);
   const pricingOpen = showPricing || form.responseType === 'site_visit' || form.responseType === 'estimate';
   const submitLabel = form.responseType === 'declined' ? 'Submit decline' : form.responseType === 'need_information' ? 'Submit question' : 'Submit response';
   const submitIsiZulu = form.responseType === 'declined' ? 'Thumela ukuthi awutholakali' : form.responseType === 'need_information' ? 'Thumela umbuzo' : 'Thumela impendulo';
@@ -399,7 +403,7 @@ export default function ProviderOpportunityPage() {
             {!leadLocked && project.safetyNotes.length > 0 && <article className="rounded-[1.75rem] border-2 border-[#D9A52D] bg-[#FFF0B8] p-5"><h2 className="font-black text-[#5F4300]">Safety notes</h2><ul className="mt-3 space-y-2 text-sm text-[#6F5414]">{project.safetyNotes.map((note) => <li key={note}>• {note}</li>)}</ul></article>}
           </section>
 
-          {leadLocked ? <aside data-provider-lead-lock className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#201a08] p-5 text-[#FFF9E8] shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5"><div className="flex items-start justify-between gap-3"><span className="flex size-11 items-center justify-center rounded-2xl bg-[#FFD45C] text-[#4A3500]"><Sparkles size={21} /></span><span className="rounded-full border border-[#FFE067]/40 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#FFE067]">Lead access paused</span></div><h2 className="mt-5 text-2xl font-black leading-tight">Your first {opportunity.leadAccess.freeLeadLimit} leads opened the door. Keep it open.</h2><p className="mt-3 text-sm leading-6 text-[#E7DDBA]">Choose a provider plan to unlock this opportunity and keep responding to new customer work.</p><div className="mt-5 rounded-2xl border border-[#FFE067]/25 bg-white/5 p-4"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#FFE067]">Your free lead access</p><div className="mt-2 flex items-end justify-between"><strong className="text-3xl font-black">{opportunity.leadAccess.freeLeadsUsed}<span className="text-base text-[#E7DDBA]"> / {opportunity.leadAccess.freeLeadLimit}</span></strong><span className="text-xs font-bold text-[#E7DDBA]">Free leads used</span></div></div><div className="mt-4 grid grid-cols-3 gap-2"><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Starter<br /><strong>R49</strong></span><span className="rounded-xl bg-[#FFD45C] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Growth<br /><strong>R99</strong></span><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Pro<br /><strong>R199</strong></span></div><Link href={`/provider-plans?provider=${encodeURIComponent(opportunity.providerId)}`} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FFD45C] px-4 py-3.5 text-sm font-black text-[#342600]">Unlock this lead <ArrowRight size={18} /></Link><Link href="/provider-plans" className="mt-3 flex items-center justify-center text-xs font-bold text-[#FFE689] underline underline-offset-4">Compare every provider plan</Link></aside> : <form data-provider-response-form onSubmit={submitResponse} className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
+          {leadLocked ? <aside data-provider-lead-lock className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#201a08] p-5 text-[#FFF9E8] shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5"><div className="flex items-start justify-between gap-3"><span className="flex size-11 items-center justify-center rounded-2xl bg-[#FFD45C] text-[#4A3500]"><Sparkles size={21} /></span><span className="rounded-full border border-[#FFE067]/40 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#FFE067]">Lead access paused</span></div><h2 className="mt-5 text-2xl font-black leading-tight">Your first {opportunity.leadAccess.freeLeadLimit} leads opened the door. Keep it open.</h2><p className="mt-3 text-sm leading-6 text-[#E7DDBA]">Choose a provider plan to unlock this opportunity and keep responding to new customer work.</p><div className="mt-5 rounded-2xl border border-[#FFE067]/25 bg-white/5 p-4"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#FFE067]">Your free lead access</p><div className="mt-2 flex items-end justify-between"><strong className="text-3xl font-black">{opportunity.leadAccess.freeLeadsUsed}<span className="text-base text-[#E7DDBA]"> / {opportunity.leadAccess.freeLeadLimit}</span></strong><span className="text-xs font-bold text-[#E7DDBA]">Free leads used</span></div></div><div className="mt-4 grid grid-cols-3 gap-2"><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Starter<br /><strong>R49</strong></span><span className="rounded-xl bg-[#FFD45C] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Growth<br /><strong>R99</strong></span><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Pro<br /><strong>R199</strong></span></div><Link href={`/provider-plans?provider=${encodeURIComponent(opportunity.providerId)}`} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FFD45C] px-4 py-3.5 text-sm font-black text-[#342600]">Unlock this lead <ArrowRight size={18} /></Link><Link href="/provider-plans" className="mt-3 flex items-center justify-center text-xs font-bold text-[#FFE689] underline underline-offset-4">Compare every provider plan</Link></aside> : <form data-provider-response-form data-choice-made={form.responseType ? 'true' : 'false'} onSubmit={submitResponse} className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
             <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-black">Respond to this opportunity</h2><span data-vernac>Phendula ngaleli thuba lomsebenzi</span><p className="mt-1 text-xs leading-5 text-[#6E765F]">Choose your availability. Pricing and a note are optional.</p></div><MessageCircle className="mt-1 text-[#B07800]" size={21} /></div>
             <div className="mt-4 grid grid-cols-2 gap-2">{responseOptions.map((option) => { const Icon = option.icon; const active = form.responseType === option.value; return <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} type="button" key={option.value} onClick={() => chooseResponse(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm transition ${option.tone} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : 'hover:-translate-y-0.5'}`}>{active && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}<Icon size={18} /><span className="mt-2 block pr-4 text-sm font-black leading-tight">{option.title}</span><span className="mt-1 block text-[10px] leading-4 text-[#4D5949]">{option.helper}</span><span data-vernac-choice>{option.isiZulu}</span></button>; })}</div>
             <button data-provider-decline data-selected={form.responseType === 'declined' ? 'true' : 'false'} type="button" onClick={() => chooseResponse('declined')} className={`mt-2 flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 text-left ${form.responseType === 'declined' ? 'border-[#B95C69] bg-[#FFC8D2] text-[#6E2430] ring-4 ring-[#6E2430]/15' : 'border-[#D7A5AD] bg-[#FFE5E9] text-[#74404A]'}`}><span className="flex items-center gap-2 text-sm font-bold"><XCircle size={17} /><span>Not available for this job <span data-vernac-inline>· Angitholakali kulo msebenzi</span></span></span><span className="text-[10px] uppercase tracking-wider">Decline</span></button>
@@ -409,7 +413,7 @@ export default function ProviderOpportunityPage() {
             {pricingOpen && <div className="mt-3 space-y-3 rounded-2xl border-2 border-[#B7CBAE] bg-[#F7FAF2] p-3.5"><label className="block"><span className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">Site visit fee (R) <span data-vernac-inline>· Imali yokuhlola indawo</span></span><input inputMode="decimal" value={form.siteVisitFee} onChange={(event) => setForm({ ...form, siteVisitFee: event.target.value })} placeholder="For example: 250" className="mt-1.5 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none focus:border-[#D2A326]" /></label><div className="grid grid-cols-2 gap-2"><label><span className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">From (R) <span data-vernac-inline>· Kusukela</span></span><input inputMode="decimal" value={form.estimateMin} onChange={(event) => setForm({ ...form, estimateMin: event.target.value })} placeholder="Minimum" className="mt-1.5 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none focus:border-[#D2A326]" /></label><label><span className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">To (R) <span data-vernac-inline>· Kuze kufike</span></span><input inputMode="decimal" value={form.estimateMax} onChange={(event) => setForm({ ...form, estimateMax: event.target.value })} placeholder="Maximum" className="mt-1.5 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none focus:border-[#D2A326]" /></label></div></div>}
             <label className="mt-4 block"><span className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">Message to customer — optional <span data-vernac-inline>· Umlayezo oya ekhasimendeni</span></span><textarea value={form.providerMessage} onChange={(event) => setForm({ ...form, providerMessage: event.target.value })} placeholder={form.responseType === 'need_information' ? 'What do you need to know?' : 'Add a quick note or question'} className="mt-1.5 min-h-20 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none focus:border-[#D2A326]" /></label>
             {error && <p className="mt-3 rounded-xl border border-[#C95D65] bg-[#FFDDE2] p-3 text-sm text-[#8E3039]">{error}</p>}
-            <button disabled={submitting} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md disabled:opacity-50 ${form.responseType === 'declined' ? 'border-[#96515C] bg-[#FFC8D2] text-[#64212C]' : 'border-[#C18A00] bg-[#FFC21A] text-[#2E2200]'}`}>{submitting ? <Loader2 className="animate-spin" size={17} /> : <CheckCircle2 size={17} />}<span data-submit-copy><span>{submitLabel}</span><span data-vernac-submit>{submitIsiZulu}</span></span></button>
+            <button disabled={submitting || !form.responseType} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md disabled:opacity-50 ${form.responseType === 'declined' ? 'border-[#96515C] bg-[#FFC8D2] text-[#64212C]' : 'border-[#C18A00] bg-[#FFC21A] text-[#2E2200]'}`}>{submitting ? <Loader2 className="animate-spin" size={17} /> : <CheckCircle2 size={17} />}<span data-submit-copy><span>{submitLabel}</span><span data-vernac-submit>{submitIsiZulu}</span></span></button>
           </form>}
         </div>
       </div>
