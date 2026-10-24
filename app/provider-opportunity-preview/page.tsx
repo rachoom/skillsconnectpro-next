@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CalendarClock,
   CheckCircle2,
@@ -30,6 +30,25 @@ export default function ProviderOpportunityPreviewPage() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [hintIndex, setHintIndex] = useState(0);
+
+  useEffect(() => {
+    if (selected) {
+      setHintIndex(-1);
+      return;
+    }
+    setHintIndex(0);
+    const timer = window.setInterval(() => {
+      setHintIndex((current) => {
+        if (options.length <= 1) return 0;
+        const base = current < 0 ? 0 : current;
+        let next = Math.floor(Math.random() * (options.length - 1));
+        if (next >= base) next += 1;
+        return next % options.length;
+      });
+    }, 1100);
+    return () => window.clearInterval(timer);
+  }, [selected]);
 
   if (submitted) {
     return (
@@ -98,11 +117,12 @@ export default function ProviderOpportunityPreviewPage() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
-              {options.map((option) => {
+              {options.map((option, index) => {
                 const Icon = option.icon;
                 const active = selected === option.value;
+                const hinted = !selected && hintIndex === index;
                 return (
-                  <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} type="button" key={option.title} onClick={() => setSelected(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm transition ${option.className} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : ''}`}>
+                  <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} data-hint-active={hinted ? 'true' : 'false'} style={hinted ? { boxShadow: '0 0 0 3px rgba(245,197,24,.72), 0 0 26px rgba(245,197,24,.55), 0 18px 32px -18px rgba(245,197,24,.78)', transform: 'translateY(-3px) scale(1.018)', borderColor: '#f5c518', transition: 'all 280ms ease' } : { transition: 'all 280ms ease' }} type="button" key={option.title} onClick={() => setSelected(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm ${option.className} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : ''}`}>
                     {active && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}
                     <Icon size={18} />
                     <span className="mt-2 block pr-4 text-sm font-black leading-tight">{option.title}</span>
