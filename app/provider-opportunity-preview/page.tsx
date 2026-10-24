@@ -138,7 +138,7 @@ export default function ProviderOpportunityPreviewPage() {
               <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a quick note or question" className="mt-1.5 min-h-20 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none" />
             </label>
 
-            <button type="button" disabled={!selected} onClick={() => setSubmitted(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#FFC21A] px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md disabled:opacity-50">
+            <button data-provider-submit type="button" disabled={!selected} onClick={() => setSubmitted(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#FFC21A] px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md disabled:opacity-50">
               <CheckCircle2 size={17} /><span data-submit-copy><span>Submit response</span><span data-vernac-submit>Thumela impendulo</span></span>
             </button>
           </form>
