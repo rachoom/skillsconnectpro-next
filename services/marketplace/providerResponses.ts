@@ -304,6 +304,21 @@ export async function submitProviderResponse(
   }
 
   const supabase = getSupabaseAdmin();
+  const { data: projectState, error: projectStateError } = await supabase
+    .from('projects')
+    .select('status')
+    .eq('id', invitation.project_id)
+    .single();
+  if (projectStateError || !projectState) {
+    throw new Error(`Unable to verify project status: ${projectStateError?.message ?? 'Project not found.'}`);
+  }
+  if (['cancelled', 'completed', 'unfulfilled'].includes(projectState.status)) {
+    throw new Error(`This project is ${projectState.status}. New provider responses are closed.`);
+  }
+  if (['accepted', 'declined'].includes(invitation.status)) {
+    throw new Error('You have already submitted a final response to this opportunity.');
+  }
+
   const declined = input.responseType === 'declined';
   const invitationStatus = declined ? 'declined' : 'accepted';
 
