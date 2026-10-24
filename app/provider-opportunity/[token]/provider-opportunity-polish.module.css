@@ -944,3 +944,50 @@
 :global(html[data-scp-theme='light']) .scope [data-provider-option='need_information'] {
   background: linear-gradient(145deg,#fff1f5,#fff 70%) !important;
 }
+
+
+/* === Brand-yellow provider surface experiment === */
+.scope {
+  background: #f5c518 !important;
+}
+
+.scope > div {
+  position: relative;
+  z-index: 1;
+}
+
+.scope header,
+.scope article,
+.scope form,
+.scope aside {
+  box-shadow:
+    0 24px 56px -34px rgba(0,0,0,.62),
+    inset 0 1px 0 rgba(255,255,255,.05) !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope {
+  background: #f5c518 !important;
+  color: #fff !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope [data-provider-header],
+:global(html[data-scp-theme='dark']) .scope [data-provider-job-card],
+:global(html[data-scp-theme='dark']) .scope [data-provider-response-form],
+:global(html[data-scp-theme='dark']) .scope [data-provider-lead-lock] {
+  background: #11110f !important;
+  border-color: rgba(17,17,15,.92) !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope [data-job-fact],
+:global(html[data-scp-theme='dark']) .scope [data-provider-pricing],
+:global(html[data-scp-theme='dark']) .scope [data-provider-time],
+:global(html[data-scp-theme='dark']) .scope [data-provider-option],
+:global(html[data-scp-theme='dark']) .scope details {
+  background: #1a1a17 !important;
+}
+
+:global(html[data-scp-theme='dark']) .scope [data-provider-response-form] {
+  box-shadow:
+    0 30px 70px -34px rgba(0,0,0,.78),
+    0 0 0 1px rgba(0,0,0,.14) !important;
+}
