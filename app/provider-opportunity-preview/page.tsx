@@ -1,168 +1,128 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  CalendarClock,
-  CheckCircle2,
-  ChevronDown,
-  Clock3,
-  MapPin,
-  MessageCircle,
-  ShieldCheck,
-  Wrench,
-  XCircle,
-  Zap,
-  Sun,
-  CalendarDays,
-} from 'lucide-react';
-import polish from '../provider-opportunity/[token]/provider-opportunity-polish.module.css';
+import { CalendarClock, CheckCircle2, ChevronDown, ChevronLeft, Clock3, MapPin, MessageCircle, ShieldCheck, Wrench, XCircle, Zap, Sun, CalendarDays, Moon } from 'lucide-react';
 
 const options = [
-  { value: 'available_now', title: 'Available now', helper: 'Can attend immediately', isiZulu: 'Ngiyatholakala manje', icon: Zap, className: 'border-[#D6A524] bg-[#FFD166]' },
-  { value: 'available_today', title: 'Available today', helper: 'Can attend later today', isiZulu: 'Ngiyatholakala namuhla', icon: Sun, className: 'border-[#D8B43D] bg-[#FFE58A]' },
-  { value: 'available_tomorrow', title: 'Available tomorrow', helper: 'Can attend tomorrow', isiZulu: 'Ngiyatholakala kusasa', icon: CalendarClock, className: 'border-[#79ADD0] bg-[#BDE0FE]' },
-  { value: 'available_this_week', title: 'Available this week', helper: 'Arrange a suitable day', isiZulu: 'Ngiyatholakala kuleli sonto', icon: CalendarDays, className: 'border-[#90B77C] bg-[#DDF0D1]' },
+  { value: 'available_now', en: 'Available now', zu: 'Ngiyatholakala manje', hint: 'Can attend immediately', hintZu: 'Ngingafika manje', icon: Zap },
+  { value: 'available_today', en: 'Available today', zu: 'Ngiyatholakala namuhla', hint: 'Can attend later today', hintZu: 'Ngingafika namuhla', icon: Sun },
+  { value: 'available_tomorrow', en: 'Available tomorrow', zu: 'Ngiyatholakala kusasa', hint: 'Can attend tomorrow', hintZu: 'Ngingafika kusasa', icon: CalendarClock },
+  { value: 'available_this_week', en: 'Available this week', zu: 'Ngiyatholakala kuleli sonto', hint: 'Arrange a suitable day', hintZu: 'Hlela usuku olufanele', icon: CalendarDays },
 ];
+const translations = {
+  heading: ['New opportunity', 'Ithuba elisha lomsebenzi'],
+  job: ['Kitchen tap leaking badly', 'Umpompi wasekhishini uyavuza kakhulu'],
+  description: ['The kitchen tap is leaking continuously from the base. The customer would like it inspected and repaired as soon as possible.', 'Umpompi wasekhishini uvuza njalo ezansi. Ikhasimende lifuna uhlolwe futhi ulungiswe ngokushesha.'],
+  overview: ['Job overview', 'Imininingwane yomsebenzi'],
+  preferred: ['Preferred time', 'Isikhathi esithandwayo'],
+  today: ['Today · Flexible', 'Namuhla · Kuyavumelana'],
+  budget: ['Customer estimate', 'Isilinganiso sekhasimende'],
+  unspecified: ['Not supplied', 'Akushiwongo'],
+  assessment: ['View preliminary assessment', 'Buka ukuhlolwa kokuqala'],
+  assessmentText: ['Likely tap fitting or seal failure. An on-site inspection is recommended before final quotation.', 'Kungenzeka inkinga isesixhumanisini noma esivalweni sompompi. Kunconywa ukuhlola endaweni ngaphambi kokunikeza intengo yokugcina.'],
+  deadline: ['Reply within about 30 minutes', 'Phendula kungakapheli imizuzu engu-30'],
+  availability: ['When are you available?', 'Utholakala nini?'],
+  availabilityHelp: ['Select one option to continue.', 'Khetha okukodwa ukuze uqhubeke.'],
+  decline: ['Not available for this job', 'Angitholakali kulo msebenzi'],
+  arrival: ['Estimated arrival time', 'Isikhathi esilinganisiwe sokufika'],
+  arrivalHelp: ['Choose a suitable arrival window.', 'Khetha isikhathi esifanele sokufika.'],
+  pricing: ['Add pricing details', 'Faka imininingwane yentengo'],
+  optional: ['Optional · Site visit fee or estimate', 'Ongakukhetha · Imali yokuvakasha noma isilinganiso'],
+  message: ['Message to customer (optional)', 'Umlayezo ekhasimendeni (ongakukhetha)'],
+  notePlaceholder: ['Add a quick note or question', 'Faka umlayezo noma umbuzo'],
+  continue: ['Review response', 'Hlola impendulo'],
+  review: ['Review your response', 'Hlola impendulo yakho'],
+  reviewHelp: ['Confirm the details before sending.', 'Qinisekisa imininingwane ngaphambi kokuthumela.'],
+  submit: ['Submit response', 'Thumela impendulo'],
+  back: ['Back', 'Emuva'],
+  step: ['Step', 'Isinyathelo'],
+  privacy: ['Your contact details remain private until the customer selects you.', 'Imininingwane yakho yokuxhumana ihlala iyimfihlo kuze kube ikhasimende likukhetha.'],
+  complete: ['Response captured', 'Impendulo yamukelwe'],
+  preview: ['Interactive preview · No customer is notified.', 'Ukubuka kuqala · Alikho ikhasimende elaziswayo.'],
+  reset: ['Try another response', 'Zama enye impendulo'],
+  selected: ['Availability', 'Ukutholakala'],
+  window: ['Arrival window', 'Isikhathi sokufika'],
+  now: ['Within 1 hour', 'Kungakapheli ihora'],
+  soon: ['1–3 hours', 'Amahora angu-1–3'],
+  unsure: ['Not sure yet', 'Angikaqiniseki'],
+  morning: ['Morning', 'Ekuseni'],
+  afternoon: ['Afternoon', 'Ntambama'],
+  evening: ['Evening', 'Kusihlwa'],
+  schedule: ['Arrange with customer', 'Hlela nekhasimende'],
+  declineConfirm: ['You will decline this opportunity.', 'Uzokwenqaba leli thuba.'],
+  fee: ['Site visit fee (R)', 'Imali yokuvakashela indawo (R)'],
+  min: ['Estimate from (R)', 'Isilinganiso sisuka ku (R)'],
+  max: ['Estimate to (R)', 'Isilinganiso sifika ku (R)'],
+} as const;
 
 export default function ProviderOpportunityPreviewPage() {
+  const [lang, setLang] = useState<'en' | 'zu'>('en');
+  const [dark, setDark] = useState(false);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selected, setSelected] = useState('');
-  const [timeSlot, setTimeSlot] = useState('within_1_hour');
-  const [pricingOpen, setPricingOpen] = useState(false);
+  const [arrival, setArrival] = useState('');
+  const [pricing, setPricing] = useState(false);
+  const [fee, setFee] = useState('');
+  const [min, setMin] = useState('');
+  const [max, setMax] = useState('');
   const [note, setNote] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [hintIndex, setHintIndex] = useState(0);
-
+  const [done, setDone] = useState(false);
+  const [hint, setHint] = useState(-1);
+  const tr = (key: keyof typeof translations) => translations[key][lang === 'en' ? 0 : 1];
+  const isDecline = selected === 'declined';
+  const picked = options.find(o => o.value === selected);
+  const slots = selected === 'available_now' ? ['now', 'soon', 'unsure'] as const : selected === 'available_today' || selected === 'available_tomorrow' ? ['morning', 'afternoon', 'evening', 'unsure'] as const : ['schedule', 'unsure'] as const;
   useEffect(() => {
-    if (selected) {
-      setHintIndex(-1);
-      return;
-    }
-    setHintIndex(0);
-    const timer = window.setInterval(() => {
-      setHintIndex((current) => {
-        if (options.length <= 1) return 0;
-        const base = current < 0 ? 0 : current;
-        let next = Math.floor(Math.random() * (options.length - 1));
-        if (next >= base) next += 1;
-        return next % options.length;
-      });
-    }, 1100);
+    if (step !== 1 || selected) return;
+    const timer = window.setInterval(() => setHint(current => (current + 1) % options.length), 1700);
     return () => window.clearInterval(timer);
-  }, [selected]);
-
-  if (submitted) {
-    return (
-      <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5`}>
-        <section className="max-w-lg rounded-3xl border-2 border-[#55A979] bg-[#E6F8DF] p-8 text-center shadow-xl shadow-[#355332]/20">
-          <CheckCircle2 className="mx-auto text-[#21885A]" size={48} />
-          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.18em] text-[#21885A]">Interactive preview</p>
-          <h1 className="mt-2 text-3xl font-black">Response captured</h1>
-          <p className="mt-3 text-sm leading-6 text-[#355D43]">This is a preview only, so no customer was notified. The real provider link uses the same controls and submits the response to Skills Connect Pro.</p>
-          <button type="button" onClick={() => setSubmitted(false)} className="mt-5 rounded-xl border-2 border-[#21885A] bg-white px-5 py-3 text-sm font-black text-[#173B28]">Return to preview</button>
-        </section>
-      </main>
-    );
+  }, [step, selected]);
+  function choose(value: string) {
+    setSelected(value);
+    setArrival('');
+    setStep(value === 'declined' ? 3 : 2);
   }
-
+  const panel = dark ? 'bg-[#222725] text-[#F8F7F0] border-[#5C5B3C]' : 'bg-[#FFF9E9] text-[#292C25] border-[#E6C85C]';
+  const muted = dark ? 'text-[#D5D7CE]' : 'text-[#5B6056]';
   return (
-    <main className={`${polish.scope} min-h-screen bg-[#9FCB8A] px-4 py-5 text-[#203020] md:px-8 md:py-8`}>
-      <div className="mx-auto max-w-4xl">
-        <header data-provider-header className="mb-4 rounded-[1.75rem] border-2 border-[#D3A826] bg-[#FFF0A8] p-5 shadow-xl shadow-[#355332]/20 md:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]">
-              <ShieldCheck size={15} /> Skills Connect Pro
+    <main className={`min-h-[100dvh] ${dark ? 'bg-[#141916] text-white' : 'bg-[#F7D54C] text-[#292C25]'} px-3 py-4 sm:px-5 sm:py-8 transition-colors`}>
+      <div className="mx-auto max-w-[520px]">
+        <header className={`rounded-3xl border p-4 shadow-sm ${panel}`}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2"><img src="/favicon.ico" alt="" className="size-8 shrink-0 rounded-lg object-contain" /><strong className="text-sm font-black tracking-tight sm:text-base">Skills Connect Pro</strong></div>
+            <div className="flex shrink-0 items-center gap-1">
+              <button type="button" onClick={() => setLang(lang === 'en' ? 'zu' : 'en')} className="rounded-full border border-[#CBA638] px-2.5 py-1.5 text-xs font-black" aria-label="Switch language">{lang === 'en' ? 'EN / ZU' : 'ZU / EN'}</button>
+              <button type="button" onClick={() => setDark(!dark)} className="rounded-full border border-[#CBA638] p-1.5" aria-label="Toggle theme">{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
+              <MessageCircle size={19} className="ml-1 text-[#B78B11]" aria-label="Chat" />
             </div>
-            <span className="rounded-full border border-[#D3A826] bg-[#FFE067] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#4A3600]">
-              Interactive preview · provider view
-            </span>
           </div>
-          <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">Kitchen tap leaking badly</h1>
-          <p className="mt-2 text-sm leading-6 text-[#4F5D4A]">Hi Thabo. Can you assist with this job? <span data-vernac-inline>· Ungakwazi yini ukwenza lo msebenzi?</span></p>
-          <div data-opportunity-meta className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wider">
-            <span className="rounded-xl bg-[#FFFFFF]/80 px-3 py-2">Plumbing</span>
-            <span className="rounded-xl bg-[#FFD45C] px-3 py-2 text-[#4A3500]">Urgent</span>
-            <span className="flex items-center gap-1 rounded-xl bg-[#FFFFFF]/80 px-3 py-2"><MapPin size={13} /> Benoni</span>
-          </div>
+          <div className="mt-4 flex items-center justify-between gap-2"><span className="rounded-full bg-[#F6CB42] px-3 py-1 text-[11px] font-black text-[#352800]">{tr('heading')}</span><span className={`flex items-center gap-1 text-[11px] font-bold ${muted}`}><Clock3 size={13}/>{tr('deadline')}</span></div>
+          <h1 className="mt-3 text-xl font-black leading-tight sm:text-2xl">{tr('job')}</h1>
+          <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-bold"><span className="rounded-lg bg-[#E7E8DA] px-2.5 py-1.5 text-[#30352A]">Plumbing</span><span className="rounded-lg bg-[#F6CB42] px-2.5 py-1.5 text-[#352800]">Urgent</span><span className="flex items-center gap-1 rounded-lg bg-[#E7E8DA] px-2.5 py-1.5 text-[#30352A]"><MapPin size={12}/>Benoni</span></div>
+          <details className={`mt-3 rounded-xl border px-3 py-2 ${dark ? 'border-white/20' : 'border-[#E5D9B3]'}`}><summary className="cursor-pointer text-xs font-black">{tr('overview')}</summary><p className={`mt-3 text-sm leading-6 ${muted}`}>{tr('description')}</p><div className="mt-3 grid grid-cols-2 gap-2 text-xs"><div><strong>{tr('preferred')}</strong><p>{tr('today')}</p></div><div><strong>{tr('budget')}</strong><p>{tr('unspecified')}</p></div></div><details className="mt-3"><summary className="cursor-pointer text-xs font-bold">{tr('assessment')}</summary><p className="mt-2 text-xs leading-5">{tr('assessmentText')}</p></details></details>
         </header>
-
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_390px]">
-          <section className="space-y-4">
-            <article data-provider-job-card className="rounded-[1.75rem] border-2 border-[#7CAD6E] bg-[#FFF9E8] p-5 shadow-lg shadow-[#355332]/15 md:p-6">
-              <div className="flex items-center gap-3"><Wrench className="text-[#B07800]" size={19} /><div><h2 className="text-lg font-black">Job overview</h2><span data-vernac>Imininingwane yomsebenzi</span></div></div>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#3E493A]">
-                The kitchen tap is leaking continuously from the base and the customer would like it inspected and repaired as soon as possible.
-              </p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <div data-job-fact className="rounded-2xl bg-[#EAF3DE] p-3.5">
-                  <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#60705A]"><CalendarClock size={13} /> Preferred time <span data-vernac-inline>· Isikhathi esithandwayo</span></p>
-                  <p className="mt-1.5 text-sm font-bold">Today · Flexible</p>
-                </div>
-                <div data-job-fact className="rounded-2xl bg-[#EAF3DE] p-3.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">Customer estimate <span data-vernac-inline>· Isilinganiso sekhasimende</span></p>
-                  <p className="mt-1.5 text-sm font-bold">Not supplied</p>
-                </div>
-              </div>
-              <details className="mt-4 rounded-2xl border border-[#B8CFAE] bg-[#F3F8ED] p-4">
-                <summary className="cursor-pointer text-xs font-black uppercase tracking-wider text-[#52644E]">View preliminary assessment</summary>
-                <p className="mt-3 text-sm leading-6 text-[#3E493A]">Likely tap fitting or seal failure. An on-site inspection is recommended before final quotation.</p>
-              </details>
-              <p className="mt-4 flex items-center gap-2 text-xs text-[#65735E]"><Clock3 size={14} /> Reply within about 30 minutes</p>
-            </article>
-          </section>
-
-          <form data-provider-response-form data-choice-made={selected ? 'true' : 'false'} className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
-            <div className="flex items-start justify-between gap-4">
-              <div><h2 className="text-xl font-black">Respond to this opportunity</h2><span data-vernac>Phendula ngaleli thuba lomsebenzi</span><p className="mt-1 text-xs leading-5 text-[#6E765F]">Choose your availability. Pricing and a note are optional.</p></div>
-              <MessageCircle className="mt-1 text-[#B07800]" size={21} />
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {options.map((option, index) => {
-                const Icon = option.icon;
-                const active = selected === option.value;
-                const hinted = !selected && hintIndex === index;
-                return (
-                  <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} data-hint-active={hinted ? 'true' : 'false'} style={hinted ? { boxShadow: '0 0 0 3px rgba(245,197,24,.72), 0 0 26px rgba(245,197,24,.55), 0 18px 32px -18px rgba(245,197,24,.78)', transform: 'translateY(-3px) scale(1.018)', borderColor: '#f5c518', transition: 'all 280ms ease' } : { transition: 'all 280ms ease' }} type="button" key={option.title} onClick={() => setSelected(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm ${option.className} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : ''}`}>
-                    {active && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}
-                    <Icon size={18} />
-                    <span className="mt-2 block pr-4 text-sm font-black leading-tight">{option.title}</span>
-                    <span className="mt-1 block text-[10px] leading-4 text-[#4D5949]">{option.helper}</span><span data-vernac-choice>{option.isiZulu}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button data-provider-decline data-selected={selected === 'declined' ? 'true' : 'false'} type="button" onClick={() => setSelected('declined')} className="mt-2 flex w-full items-center justify-between rounded-2xl border-2 border-[#D7A5AD] bg-[#FFE5E9] px-4 py-3 text-left text-[#74404A]">
-              <span className="flex items-center gap-2 text-sm font-bold"><XCircle size={17} /><span>Not available for this job <span data-vernac-inline>· Angitholakali kulo msebenzi</span></span></span>
-              <span className="text-[10px] uppercase tracking-wider">Decline</span>
-            </button>
-
-            <div className="mt-5">
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#66725F]">Estimated arrival window <span data-vernac-inline>· Isikhathi engingafika ngaso</span></p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button data-provider-time data-selected={timeSlot === 'within_1_hour' ? 'true' : 'false'} type="button" onClick={() => setTimeSlot('within_1_hour')} className="rounded-full border-2 border-[#C89A18] bg-[#FFD75F] px-3 py-2 text-xs font-bold text-[#3F2D00]"><span>Within 1 hour</span><span data-vernac-time>Phakathi kwehora elilodwa</span></button>
-                <button data-provider-time data-selected={timeSlot === '1_3_hours' ? 'true' : 'false'} type="button" onClick={() => setTimeSlot('1_3_hours')} className="rounded-full border-2 border-[#9DBA8F] bg-[#FFFFFF]/75 px-3 py-2 text-xs font-bold text-[#3E493A]"><span>1–3 hours</span><span data-vernac-time>Amahora angu-1–3</span></button>
-                <button data-provider-time data-selected={timeSlot === 'unsure' ? 'true' : 'false'} type="button" onClick={() => setTimeSlot('unsure')} className="rounded-full border-2 border-[#9DBA8F] bg-[#FFFFFF]/75 px-3 py-2 text-xs font-bold text-[#3E493A]"><span>Not sure</span><span data-vernac-time>Angikaqiniseki</span></button>
-              </div>
-            </div>
-
-            <button data-provider-pricing type="button" onClick={() => setPricingOpen((open) => !open)} className="mt-5 flex w-full items-center justify-between rounded-xl border-2 border-[#B7CBAE] bg-[#FFFDF5] px-4 py-3 text-left">
-              <span><span className="block text-xs font-black text-[#293829]">Add pricing details <span data-vernac-inline>· Faka imininingwane yentengo</span></span><span className="mt-0.5 block text-[10px] text-[#6E765F]">Optional — site visit fee or preliminary range</span></span>
-              <ChevronDown className={`text-[#60705A] transition ${pricingOpen ? 'rotate-180' : ''}`} size={17} />
-            </button>
-
-            {pricingOpen && <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-[#B7CBAE] bg-white/5 p-3"><input placeholder="Site visit fee (R)" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm" /><input placeholder="Estimate from (R)" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm" /></div>}
-
-            <label className="mt-4 block">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#60705A]">Message to customer — optional <span data-vernac-inline>· Umlayezo oya ekhasimendeni</span></span>
-              <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a quick note or question" className="mt-1.5 min-h-20 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none" />
-            </label>
-
-            <button data-provider-submit type="button" disabled={!selected} onClick={() => setSubmitted(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#FFC21A] px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md disabled:opacity-50">
-              <CheckCircle2 size={17} /><span data-submit-copy><span>Submit response</span><span data-vernac-submit>Thumela impendulo</span></span>
-            </button>
-          </form>
-        </div>
+        {done ? <section className={`mt-4 rounded-3xl border p-8 text-center ${panel}`}><CheckCircle2 className="mx-auto text-[#198858]" size={50}/><h2 className="mt-4 text-2xl font-black">{tr('complete')}</h2><p className={`mt-3 text-sm ${muted}`}>{tr('preview')}</p><button type="button" onClick={() => { setDone(false); setStep(1); setSelected(''); setArrival(''); }} className="mt-6 rounded-xl bg-[#F7C62B] px-5 py-3 font-black text-[#322700]">{tr('reset')}</button></section> :
+        <section className={`mt-4 rounded-3xl border p-4 shadow-lg sm:p-5 ${panel}`}>
+          <div className="flex items-center justify-between gap-2"><button type="button" disabled={step === 1} onClick={() => setStep(step === 3 && isDecline ? 1 : step === 3 ? 2 : 1)} className="flex items-center gap-1 text-xs font-bold disabled:opacity-25"><ChevronLeft size={16}/>{tr('back')}</button><span className="text-xs font-black">{tr('step')} {step} / 3</span></div>
+          <div className="mt-3 flex gap-1.5">{[1,2,3].map(n => <span key={n} className={`h-1.5 flex-1 rounded-full ${n <= step ? 'bg-[#E6B01C]' : dark ? 'bg-white/20' : 'bg-[#E9E2CE]'}`}/>)}</div>
+          <div key={step} className="animate-[fadeIn_.2s_ease-out]">
+            <h2 className="mt-5 text-xl font-black">{step === 1 ? tr('availability') : step === 2 ? tr('arrival') : tr('review')}</h2>
+            <p className={`mt-1 text-xs ${muted}`}>{step === 1 ? tr('availabilityHelp') : step === 2 ? tr('arrivalHelp') : tr('reviewHelp')}</p>
+            {step === 1 && <div className="mt-5 space-y-2.5">
+              {options.map((o, index) => { const Icon = o.icon; return <button key={o.value} type="button" onClick={() => choose(o.value)} className={`flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-left text-[#2D2A18] transition-all duration-300 hover:-translate-y-0.5 ${hint === index ? 'scale-[1.012] border-[#B58100] bg-[#FFE16B] shadow-[0_0_0_3px_rgba(245,197,24,.3),0_0_22px_rgba(245,197,24,.6)]' : 'border-[#D9B64E] bg-[#FFEBA5]'}`}><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/60"><Icon size={21}/></span><span className="flex-1"><strong className="block text-sm">{lang === 'en' ? o.en : o.zu}</strong><span className="mt-0.5 block text-xs text-[#63583D]">{lang === 'en' ? o.hint : o.hintZu}</span></span><ChevronDown size={16} className="-rotate-90"/></button>; })}
+              <button type="button" onClick={() => choose('declined')} className="flex w-full items-center gap-3 rounded-2xl border-2 border-[#E6B7BD] bg-[#FFE6E9] px-4 py-3 text-left text-[#783841]"><XCircle size={20}/><strong className="text-sm">{tr('decline')}</strong></button>
+            </div>}
+            {step === 2 && <div className="mt-5">
+              <div className="grid gap-2">{slots.map(slot => <button key={slot} type="button" onClick={() => setArrival(slot)} className={`rounded-xl border-2 px-4 py-3 text-left text-sm font-bold ${arrival === slot ? 'border-[#C39513] bg-[#F8D45C] text-[#302700]' : dark ? 'border-white/20 bg-white/10' : 'border-[#E6D8A9] bg-white'}`}>{tr(slot === 'now' ? 'now' : slot === 'soon' ? 'soon' : slot === 'morning' ? 'morning' : slot === 'afternoon' ? 'afternoon' : slot === 'evening' ? 'evening' : slot === 'schedule' ? 'schedule' : 'unsure')}</button>)}</div>
+              <button type="button" onClick={() => setPricing(!pricing)} className={`mt-4 flex w-full items-center justify-between rounded-xl border p-3 text-left text-sm font-bold ${dark ? 'border-white/20' : 'border-[#E5D9B3]'}`}>{tr('pricing')} <ChevronDown size={17} className={pricing ? 'rotate-180' : ''}/></button>
+              {pricing && <div className="mt-2 grid gap-2"><input inputMode="decimal" value={fee} onChange={e => setFee(e.target.value)} placeholder={tr('fee')} className="w-full rounded-xl border p-3 text-sm text-[#292C25]"/><div className="grid grid-cols-2 gap-2"><input inputMode="decimal" value={min} onChange={e => setMin(e.target.value)} placeholder={tr('min')} className="min-w-0 rounded-xl border p-3 text-sm text-[#292C25]"/><input inputMode="decimal" value={max} onChange={e => setMax(e.target.value)} placeholder={tr('max')} className="min-w-0 rounded-xl border p-3 text-sm text-[#292C25]"/></div></div>}
+              <label className="mt-4 block text-xs font-bold">{tr('message')}<textarea value={note} onChange={e => setNote(e.target.value)} placeholder={tr('notePlaceholder')} className="mt-2 min-h-20 w-full rounded-xl border p-3 text-sm text-[#292C25]"/></label>
+              <button type="button" onClick={() => setStep(3)} className="mt-4 w-full rounded-xl bg-[#F5C328] px-4 py-3.5 text-sm font-black text-[#302700]">{tr('continue')} →</button>
+            </div>}
+            {step === 3 && <div className="mt-5"><div className={`rounded-xl border p-4 text-sm ${dark ? 'border-white/20 bg-white/10' : 'border-[#E5D9B3] bg-white'}`}><p className="font-black">{tr('selected')}</p><p className="mt-1">{isDecline ? tr('decline') : lang === 'en' ? picked?.en : picked?.zu}</p>{!isDecline && <><p className="mt-4 font-black">{tr('window')}</p><p className="mt-1">{arrival ? tr(arrival === 'now' ? 'now' : arrival === 'soon' ? 'soon' : arrival === 'morning' ? 'morning' : arrival === 'afternoon' ? 'afternoon' : arrival === 'evening' ? 'evening' : arrival === 'schedule' ? 'schedule' : 'unsure') : tr('unsure')}</p>{fee && <p className="mt-3">{tr('fee')}: R{fee}</p>}{min && <p className="mt-2">{tr('min')}: R{min}</p>}{max && <p className="mt-2">{tr('max')}: R{max}</p>}{note && <p className="mt-3 whitespace-pre-wrap">{note}</p>}</>}{isDecline && <p className="mt-3 text-xs">{tr('declineConfirm')}</p>}</div><button type="button" onClick={() => setDone(true)} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#F8C528] px-4 py-4 text-sm font-black text-[#302700] shadow-md"><CheckCircle2 size={19}/>{tr('submit')}</button></div>}
+          </div>
+        </section>}
+        <p className={`mx-auto mt-4 max-w-sm text-center text-[11px] leading-5 ${muted}`}><ShieldCheck size={13} className="mr-1 inline"/>{tr('privacy')}</p>
       </div>
     </main>
   );
