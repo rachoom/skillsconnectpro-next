@@ -181,7 +181,7 @@ function arrivalWindow(responseType: ResponseType | null, timeSlot: TimeSlot) {
     const start = new Date();
     return { start: start.toISOString(), end: new Date(start.getTime() + 2 * 60 * 60 * 1000).toISOString() };
   }
-  if (!['available_today', 'available_tomorrow'].includes(responseType) || timeSlot === 'unsure') return { start: null, end: null };
+  if (!responseType || !['available_today', 'available_tomorrow'].includes(responseType) || timeSlot === 'unsure') return { start: null, end: null };
   const slot = TIME_SLOTS.find((item) => item.value === timeSlot);
   if (slot?.start === undefined || slot.end === undefined) return { start: null, end: null };
   const start = new Date();
