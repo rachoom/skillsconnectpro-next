@@ -25,7 +25,7 @@ const options = [
 ];
 
 export default function ProviderOpportunityPreviewPage() {
-  const [selected, setSelected] = useState('available_now');
+  const [selected, setSelected] = useState('');
   const [timeSlot, setTimeSlot] = useState('within_1_hour');
   const [pricingOpen, setPricingOpen] = useState(false);
   const [note, setNote] = useState('');
@@ -91,7 +91,7 @@ export default function ProviderOpportunityPreviewPage() {
             </article>
           </section>
 
-          <form data-provider-response-form className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
+          <form data-provider-response-form data-choice-made={selected ? 'true' : 'false'} className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
             <div className="flex items-start justify-between gap-4">
               <div><h2 className="text-xl font-black">Respond to this opportunity</h2><span data-vernac>Phendula ngaleli thuba lomsebenzi</span><p className="mt-1 text-xs leading-5 text-[#6E765F]">Choose your availability. Pricing and a note are optional.</p></div>
               <MessageCircle className="mt-1 text-[#B07800]" size={21} />
@@ -138,7 +138,7 @@ export default function ProviderOpportunityPreviewPage() {
               <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a quick note or question" className="mt-1.5 min-h-20 w-full rounded-xl border-2 border-[#BDD0B5] bg-white px-3 py-3 text-sm outline-none" />
             </label>
 
-            <button type="button" onClick={() => setSubmitted(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#FFC21A] px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md">
+            <button type="button" disabled={!selected} onClick={() => setSubmitted(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C18A00] bg-[#FFC21A] px-4 py-3.5 text-sm font-black uppercase tracking-wider shadow-md disabled:opacity-50">
               <CheckCircle2 size={17} /><span data-submit-copy><span>Submit response</span><span data-vernac-submit>Thumela impendulo</span></span>
             </button>
           </form>
