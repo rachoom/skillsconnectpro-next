@@ -202,6 +202,7 @@ export default function ProviderOpportunityPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hintIndex, setHintIndex] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -221,6 +222,29 @@ export default function ProviderOpportunityPage() {
     if (token) void load();
     return () => { active = false; };
   }, [token]);
+
+  useEffect(() => {
+    if (form.responseType || !opportunity) {
+      setHintIndex(-1);
+      return;
+    }
+
+    const count = responseOptionsForUrgency(opportunity.project.urgency).length;
+    if (count <= 0) return;
+    setHintIndex(0);
+
+    const timer = window.setInterval(() => {
+      setHintIndex((current) => {
+        if (count === 1) return 0;
+        const base = current < 0 ? 0 : current;
+        let next = Math.floor(Math.random() * (count - 1));
+        if (next >= base) next += 1;
+        return next % count;
+      });
+    }, 1100);
+
+    return () => window.clearInterval(timer);
+  }, [form.responseType, opportunity]);
 
   const providerName = useMemo(() => {
     const snapshot = opportunity?.providerSnapshot;
@@ -405,7 +429,7 @@ export default function ProviderOpportunityPage() {
 
           {leadLocked ? <aside data-provider-lead-lock className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#201a08] p-5 text-[#FFF9E8] shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5"><div className="flex items-start justify-between gap-3"><span className="flex size-11 items-center justify-center rounded-2xl bg-[#FFD45C] text-[#4A3500]"><Sparkles size={21} /></span><span className="rounded-full border border-[#FFE067]/40 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#FFE067]">Lead access paused</span></div><h2 className="mt-5 text-2xl font-black leading-tight">Your first {opportunity.leadAccess.freeLeadLimit} leads opened the door. Keep it open.</h2><p className="mt-3 text-sm leading-6 text-[#E7DDBA]">Choose a provider plan to unlock this opportunity and keep responding to new customer work.</p><div className="mt-5 rounded-2xl border border-[#FFE067]/25 bg-white/5 p-4"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#FFE067]">Your free lead access</p><div className="mt-2 flex items-end justify-between"><strong className="text-3xl font-black">{opportunity.leadAccess.freeLeadsUsed}<span className="text-base text-[#E7DDBA]"> / {opportunity.leadAccess.freeLeadLimit}</span></strong><span className="text-xs font-bold text-[#E7DDBA]">Free leads used</span></div></div><div className="mt-4 grid grid-cols-3 gap-2"><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Starter<br /><strong>R49</strong></span><span className="rounded-xl bg-[#FFD45C] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Growth<br /><strong>R99</strong></span><span className="rounded-xl bg-[#FFF7DC] px-2 py-3 text-center text-xs font-black text-[#3B2C08]">Pro<br /><strong>R199</strong></span></div><Link href={`/provider-plans?provider=${encodeURIComponent(opportunity.providerId)}`} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FFD45C] px-4 py-3.5 text-sm font-black text-[#342600]">Unlock this lead <ArrowRight size={18} /></Link><Link href="/provider-plans" className="mt-3 flex items-center justify-center text-xs font-bold text-[#FFE689] underline underline-offset-4">Compare every provider plan</Link></aside> : <form data-provider-response-form data-choice-made={form.responseType ? 'true' : 'false'} onSubmit={submitResponse} className="h-fit rounded-[1.75rem] border-2 border-[#D1A93C] bg-[#FFF2C7] p-5 shadow-xl shadow-[#355332]/20 lg:sticky lg:top-5">
             <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-black">Respond to this opportunity</h2><span data-vernac>Phendula ngaleli thuba lomsebenzi</span><p className="mt-1 text-xs leading-5 text-[#6E765F]">Choose your availability. Pricing and a note are optional.</p></div><MessageCircle className="mt-1 text-[#B07800]" size={21} /></div>
-            <div className="mt-4 grid grid-cols-2 gap-2">{responseOptions.map((option) => { const Icon = option.icon; const active = form.responseType === option.value; return <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} type="button" key={option.value} onClick={() => chooseResponse(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm transition ${option.tone} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : 'hover:-translate-y-0.5'}`}>{active && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}<Icon size={18} /><span className="mt-2 block pr-4 text-sm font-black leading-tight">{option.title}</span><span className="mt-1 block text-[10px] leading-4 text-[#4D5949]">{option.helper}</span><span data-vernac-choice>{option.isiZulu}</span></button>; })}</div>
+            <div className="mt-4 grid grid-cols-2 gap-2">{responseOptions.map((option, index) => { const Icon = option.icon; const active = form.responseType === option.value; const hinted = !form.responseType && hintIndex === index; return <button data-provider-option={option.value} data-selected={active ? 'true' : 'false'} data-hint-active={hinted ? 'true' : 'false'} style={hinted ? { boxShadow: '0 0 0 3px rgba(245,197,24,.72), 0 0 26px rgba(245,197,24,.55), 0 18px 32px -18px rgba(245,197,24,.78)', transform: 'translateY(-3px) scale(1.018)', borderColor: '#f5c518', transition: 'all 280ms ease' } : { transition: 'all 280ms ease' }} type="button" key={option.value} onClick={() => chooseResponse(option.value)} className={`relative rounded-2xl border-2 p-3 text-left text-[#203020] shadow-sm ${option.tone} ${active ? '-translate-y-0.5 ring-4 ring-[#203020]/20' : 'hover:-translate-y-0.5'}`}>{active && <CheckCircle2 className="absolute right-2.5 top-2.5" size={17} />}<Icon size={18} /><span className="mt-2 block pr-4 text-sm font-black leading-tight">{option.title}</span><span className="mt-1 block text-[10px] leading-4 text-[#4D5949]">{option.helper}</span><span data-vernac-choice>{option.isiZulu}</span></button>; })}</div>
             <button data-provider-decline data-selected={form.responseType === 'declined' ? 'true' : 'false'} type="button" onClick={() => chooseResponse('declined')} className={`mt-2 flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 text-left ${form.responseType === 'declined' ? 'border-[#B95C69] bg-[#FFC8D2] text-[#6E2430] ring-4 ring-[#6E2430]/15' : 'border-[#D7A5AD] bg-[#FFE5E9] text-[#74404A]'}`}><span className="flex items-center gap-2 text-sm font-bold"><XCircle size={17} /><span>Not available for this job <span data-vernac-inline>· Angitholakali kulo msebenzi</span></span></span><span className="text-[10px] uppercase tracking-wider">Decline</span></button>
             {showTimeSlots && <div className="mt-5"><p className="text-[10px] font-black uppercase tracking-wider text-[#66725F]">Estimated arrival window <span data-vernac-inline>· Isikhathi engingafika ngaso</span></p><div className="mt-2 flex flex-wrap gap-2">{TIME_SLOTS.map((slot) => <button data-provider-time data-selected={form.timeSlot === slot.value ? 'true' : 'false'} type="button" key={slot.value} onClick={() => setForm((current) => ({ ...current, timeSlot: slot.value }))} className={`rounded-full border-2 px-3 py-2 text-xs font-bold ${form.timeSlot === slot.value ? 'border-[#C89A18] bg-[#FFD75F] text-[#3F2D00]' : 'border-[#9DBA8F] bg-[#FFFFFF]/75 text-[#3E493A]'}`}><span>{slot.label}</span><span data-vernac-time>{slot.isiZulu}</span></button>)}</div></div>}
             {(form.responseType === 'available_this_week' || form.responseType === 'available_next_week') && <p className="mt-4 rounded-2xl bg-[#EAF3DE] px-4 py-3 text-xs font-semibold text-[#53644D]">You can confirm the exact day with the customer after they choose your response.</p>}
