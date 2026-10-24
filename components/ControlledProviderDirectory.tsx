@@ -30,8 +30,21 @@ type Provider = {
   verified: boolean | null;
   status: string | null;
   bio: string | null;
+  portfolio_urls?: string[] | string | null;
   marketplace_rating: number | null;
   marketplace_review_count: number | null;
+};
+
+const portfolioImages = (provider: Provider): string[] => {
+  const raw = provider.portfolio_urls;
+  let values: unknown = raw;
+  if (typeof raw === 'string') {
+    try { values = JSON.parse(raw); } catch { values = raw.split(','); }
+  }
+  if (!Array.isArray(values)) return [];
+  return [...new Set(values.filter((value): value is string =>
+    typeof value === 'string' && /^https:\/\//i.test(value.trim())
+  ).map(value => value.trim()))].slice(0, 12);
 };
 
 const displayName = (provider: Provider) =>
@@ -55,6 +68,7 @@ export const ControlledProviderDirectory = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All services');
   const [selected, setSelected] = useState<Provider | null>(null);
+  const [photoIndex, setPhotoIndex] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -225,10 +239,31 @@ export const ControlledProviderDirectory = () => {
                 <span>About this provider</span>
                 <p>{selected.bio?.trim() || 'This provider has not added a detailed marketplace introduction yet. You can still invite them to review a real project brief and decide whether they are available.'}</p>
               </div>
+              {portfolioImages(selected).length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-2 text-lg font-black">Proof of work</h3>
+                  <p className="mb-3 text-sm opacity-75">{portfolioImages(selected).length} project photo{portfolioImages(selected).length === 1 ? '' : 's'} uploaded by this provider</p>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {portfolioImages(selected).map((url, index) => (
+                      <button key={url} type="button" onClick={() => setPhotoIndex(index)} className="relative aspect-square overflow-hidden rounded-xl border border-white/15 bg-black/20" aria-label={`Enlarge proof of work photo ${index + 1}`}>
+                        <img src={url} alt={`Work sample ${index + 1} by ${displayName(selected)}`} loading="lazy" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className={styles.privacyNotice}><ShieldCheck size={19} /><p>Private contact details are intentionally hidden. Invite this provider through a project request to preserve the interaction and job record.</p></div>
               <Link href={providerHref(selected)} className={styles.modalCta}>Invite this provider to my job <ArrowRight size={18} /></Link>
             </div>
           </section>
+        </div>
+      )}
+      {selected && photoIndex !== null && portfolioImages(selected)[photoIndex] && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4" role="dialog" aria-modal="true" aria-label="Proof of work image viewer" onClick={() => setPhotoIndex(null)}>
+          <button type="button" onClick={() => setPhotoIndex(null)} className="absolute right-4 top-4 rounded-full bg-white px-3 py-2 text-black" aria-label="Close image"><X size={22}/></button>
+          <button type="button" onClick={event => {event.stopPropagation(); setPhotoIndex((photoIndex - 1 + portfolioImages(selected).length) % portfolioImages(selected).length);}} className="absolute left-2 rounded-full bg-white/20 px-3 py-3 text-white" aria-label="Previous image">‹</button>
+          <img src={portfolioImages(selected)[photoIndex]} alt={`Work sample ${photoIndex + 1}`} className="max-h-[85vh] max-w-[85vw] object-contain" onClick={event => event.stopPropagation()}/>
+          <button type="button" onClick={event => {event.stopPropagation(); setPhotoIndex((photoIndex + 1) % portfolioImages(selected).length);}} className="absolute right-2 rounded-full bg-white/20 px-3 py-3 text-white" aria-label="Next image">›</button>
         </div>
       )}
     </main>
