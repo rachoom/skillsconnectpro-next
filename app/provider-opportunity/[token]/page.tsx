@@ -273,6 +273,44 @@ export default function ProviderOpportunityPage() {
   if (!opportunity) return null;
   const project = opportunity.project;
   const leadLocked = opportunity.leadAccess.locked;
+  const projectClosed = ['cancelled', 'completed', 'unfulfilled'].includes(project.status);
+  const responseFinal = ['accepted', 'declined'].includes(opportunity.status);
+
+  if (projectClosed) {
+    const title = project.status === 'cancelled' ? 'Project cancelled' : project.status === 'completed' ? 'Project completed' : 'Project closed';
+    const copy = project.status === 'cancelled'
+      ? 'The customer cancelled this project. No further response is needed and this opportunity is now read-only.'
+      : project.status === 'completed'
+        ? 'This project has been completed. The opportunity is now read-only.'
+        : 'This project is no longer accepting provider responses.';
+    return (
+      <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5`}>
+        <section className="max-w-lg rounded-3xl border-2 border-[#C95D65] bg-[#FFDDE2] p-8 text-center shadow-xl shadow-[#355332]/20">
+          <XCircle className="mx-auto text-[#A6323B]" size={46} />
+          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#A6323B]">Opportunity closed</p>
+          <h1 className="mt-2 text-3xl font-black">{title}</h1>
+          <p className="mt-3 text-sm leading-6 text-[#6E3439]">{copy}</p>
+          <div className="mt-5 rounded-2xl border border-[#D7A5AD] bg-white/55 p-4 text-left text-xs leading-5 text-[#6E3439]">
+            <strong>{project.title}</strong><br />
+            {project.category} · {project.serviceArea}
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (responseFinal) {
+    return (
+      <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5`}>
+        <section className="max-w-lg rounded-3xl border-2 border-[#55A979] bg-[#E6F8DF] p-8 text-center shadow-xl shadow-[#355332]/20">
+          <CheckCircle2 className="mx-auto text-[#21885A]" size={46} />
+          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#21885A]">Response already submitted</p>
+          <h1 className="mt-2 text-3xl font-black">{opportunity.status === 'declined' ? 'Opportunity declined' : 'Response received'}</h1>
+          <p className="mt-3 text-sm leading-6 text-[#355D43]">Your response has already been recorded for this project. You do not need to submit it again.</p>
+        </section>
+      </main>
+    );
+  }
 
   if (opportunity.customerContact) {
     const contact = opportunity.customerContact;
