@@ -991,3 +991,61 @@
     0 30px 70px -34px rgba(0,0,0,.78),
     0 0 0 1px rgba(0,0,0,.14) !important;
 }
+
+
+/* === Guided choice animation + shared yellow canvas === */
+@keyframes providerChoiceHint {
+  0%, 72%, 100% {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045) !important;
+    transform: translateY(0);
+  }
+  82% {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--choice-accent) 18%, transparent),
+      0 16px 34px -22px color-mix(in srgb, var(--choice-accent) 58%, transparent),
+      inset 0 1px 0 rgba(255,255,255,.08) !important;
+    transform: translateY(-2px);
+  }
+  90% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--choice-accent) 11%, transparent),
+      0 10px 24px -20px color-mix(in srgb, var(--choice-accent) 42%, transparent),
+      inset 0 1px 0 rgba(255,255,255,.06) !important;
+    transform: translateY(-1px);
+  }
+}
+
+.scope [data-provider-response-form]:not(:focus-within) [data-provider-option][data-selected='false'] {
+  animation: providerChoiceHint 8.4s ease-in-out infinite;
+}
+
+.scope [data-provider-response-form]:not(:focus-within) [data-provider-option][data-selected='false']:nth-child(1) { animation-delay: 0s; }
+.scope [data-provider-response-form]:not(:focus-within) [data-provider-option][data-selected='false']:nth-child(2) { animation-delay: 1.2s; }
+.scope [data-provider-response-form]:not(:focus-within) [data-provider-option][data-selected='false']:nth-child(3) { animation-delay: 2.4s; }
+.scope [data-provider-response-form]:not(:focus-within) [data-provider-option][data-selected='false']:nth-child(4) { animation-delay: 3.6s; }
+.scope [data-provider-response-form]:not(:focus-within) [data-provider-option][data-selected='false']:nth-child(5) { animation-delay: 4.8s; }
+.scope [data-provider-response-form]:not(:focus-within) [data-provider-option][data-selected='false']:nth-child(6) { animation-delay: 6s; }
+
+.scope [data-provider-option][data-selected='true'] {
+  animation: none !important;
+}
+
+:global(html[data-scp-theme='light']) .scope {
+  background: #f5c518 !important;
+}
+
+:global(html[data-scp-theme='light']) .scope [data-provider-header],
+:global(html[data-scp-theme='light']) .scope [data-provider-job-card],
+:global(html[data-scp-theme='light']) .scope [data-provider-response-form],
+:global(html[data-scp-theme='light']) .scope [data-provider-lead-preview],
+:global(html[data-scp-theme='light']) .scope [data-provider-lead-lock] {
+  box-shadow:
+    0 24px 58px -38px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scope [data-provider-option] {
+    animation: none !important;
+  }
+}
