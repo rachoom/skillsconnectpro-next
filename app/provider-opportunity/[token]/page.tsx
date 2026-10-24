@@ -67,6 +67,7 @@ type Opportunity = {
     safetyNotes: string[];
     materials: unknown[];
     professionalInspectionRequired: boolean;
+    status: string;
     media: Array<{ path: string; url?: string; type: string; alt?: string; createdAt?: string }>;
   };
 };
