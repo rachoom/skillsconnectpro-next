@@ -291,9 +291,9 @@ export default function ProviderOpportunityPage() {
           <p className="mt-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#A6323B]">Opportunity closed</p>
           <h1 className="mt-2 text-3xl font-black">{title}</h1>
           <p className="mt-3 text-sm leading-6 text-[#6E3439]">{copy}</p>
-          <div className="mt-5 rounded-2xl border border-[#D7A5AD] bg-white/55 p-4 text-left text-xs leading-5 text-[#6E3439]">
-            <strong>{project.title}</strong><br />
-            {project.category} · {project.serviceArea}
+          <div className="mt-5 rounded-2xl border border-[#B94D5D] bg-[#4A171F] p-4 text-left text-xs leading-5 text-[#FFE8EC] shadow-inner">
+            <strong className="text-[#FFF4F5]">{project.title}</strong><br />
+            <span className="text-[#F1BAC3]">{project.category} · {project.serviceArea}</span>
           </div>
         </section>
       </main>
