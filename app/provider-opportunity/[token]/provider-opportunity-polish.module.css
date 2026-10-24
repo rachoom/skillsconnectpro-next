@@ -1078,3 +1078,12 @@
     animation: none !important;
   }
 }
+
+
+/* JS now drives the provider choice hint; keep CSS animation from overriding inline glow state. */
+.scope [data-provider-response-form] [data-provider-option] {
+  animation: none !important;
+}
+.scope [data-provider-option][data-hint-active='true'] {
+  z-index: 2;
+}
