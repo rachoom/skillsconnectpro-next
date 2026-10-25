@@ -876,3 +876,14 @@
     display: none !important;
   }
 }
+
+/* Fast Connect: make emergency access visible immediately below the job composer. */
+.fastConnectRow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 14px; }
+.emergencyLink { min-height: 48px; padding: 11px 15px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid #f5c518; border-radius: 12px; color: #ffe16a; font-size: 12px; font-weight: 850; line-height: 1.35; background: rgba(0,0,0,.6); box-shadow: 0 3px 16px rgba(245,197,24,.12); transition: background .18s, transform .18s; }
+.emergencyLink:hover { background: rgba(245,197,24,.16); transform: translateY(-1px); }
+.fastConnectRow .secondary { margin-top: 0; }
+@media (max-width: 600px) {
+  .fastConnectRow { display: grid; gap: 7px; }
+  .emergencyLink { width: 100%; font-size: 12px; }
+  .fastConnectRow .secondary { min-height: 40px; }
+}
