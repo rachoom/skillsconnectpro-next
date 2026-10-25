@@ -62,7 +62,7 @@ const providerHref = (provider: Provider) => {
     providerName: displayName(provider),
     service: provider.category || 'Home service',
   });
-  return `/get-help?${params.toString()}`;
+  return `/quick-request?${params.toString()}`;
 };
 
 export const ControlledProviderDirectory = () => {
@@ -206,7 +206,7 @@ export const ControlledProviderDirectory = () => {
 
                       <div className={styles.cardActions}>
                         <button type="button" onClick={() => setSelected(provider)}>View profile</button>
-                        <Link href={providerHref(provider)}>Invite to my job <ArrowRight size={16} /></Link>
+                        <Link href={providerHref(provider)}>Quick request <ArrowRight size={16} /></Link>
                       </div>
                     </div>
                   </article>
@@ -257,7 +257,7 @@ export const ControlledProviderDirectory = () => {
                 </div>
               )}
               <div className={styles.privacyNotice}><ShieldCheck size={19} /><p>Private contact details are intentionally hidden. Invite this provider through a project request to preserve the interaction and job record.</p></div>
-              <Link href={providerHref(selected)} className={styles.modalCta}>Invite this provider to my job <ArrowRight size={18} /></Link>
+              <Link href={providerHref(selected)} className={styles.modalCta}>Send a quick request <ArrowRight size={18} /></Link>
             </div>
           </section>
         </div>
