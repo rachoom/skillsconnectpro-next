@@ -18,6 +18,7 @@ import {
   MessageCircle,
   Mic,
   Paintbrush,
+  Search,
   ShieldCheck,
   Sparkles,
   UsersRound,
