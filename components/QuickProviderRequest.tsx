@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { AlertTriangle, ArrowLeft, ArrowRight, Camera, CheckCircle2, Clock3, Loader2, MapPin, Search, ShieldCheck, Wrench, X } from 'lucide-react';
 
 type Timing = 'now' | 'today' | 'later';
@@ -78,6 +78,13 @@ function quickImage(file: File): Promise<string> {
   });
 }
 
+const RECENT_REQUEST_STORAGE_KEY = 'scp-quick-request-recent-v1';
+const RECOVERY_AGE_MS = 24 * 60 * 60 * 1000;
+type RecentQuickRequest = { url: string; createdAt: number; pendingRedirect: boolean };
+function safeTrackingUrl(value: unknown): value is string {
+  return typeof value === 'string' && /^\/project\/[0-9a-f-]{36}\?token=[A-Za-z0-9_-]+$/i.test(value);
+}
+
 const inputClass = 'mt-2 min-h-12 w-full rounded-xl border border-[#a6ad9b] bg-white px-3 py-3 text-base text-[#182019] outline-none focus:border-[#d3a314] focus:ring-2 focus:ring-[#eeb82a]/40';
 
 export function QuickProviderRequest() {
@@ -102,10 +109,40 @@ export function QuickProviderRequest() {
   const [error, setError] = useState('');
   const [upgradeUrl, setUpgradeUrl] = useState('');
   const [busy, setBusy] = useState(false);
+  const submittingRef = useRef(false);
+  const [recoveryUrl, setRecoveryUrl] = useState('');
   const [submitted, setSubmitted] = useState<{ url: string; queued: boolean; reason: string } | null>(null);
   const options = useMemo(() => issueOptions(category), [category]);
   const effectiveLocation = customLocation.trim() || location;
   const urgency = timing === 'now' ? 'emergency' : timing === 'today' ? 'urgent' : 'planned';
+
+  // This access token is only returned when a project is created; the server
+  // stores its hash. Keep a tab-scoped recovery link if redirect is interrupted.
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(RECENT_REQUEST_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as RecentQuickRequest;
+      if (!safeTrackingUrl(saved.url) || !Number.isFinite(saved.createdAt)
+        || saved.createdAt > Date.now() || Date.now() - saved.createdAt > RECOVERY_AGE_MS) {
+        window.sessionStorage.removeItem(RECENT_REQUEST_STORAGE_KEY);
+        return;
+      }
+      setRecoveryUrl(saved.url);
+      if (saved.pendingRedirect && Date.now() - saved.createdAt < 5 * 60 * 1000) {
+        window.sessionStorage.setItem(RECENT_REQUEST_STORAGE_KEY,
+          JSON.stringify({ ...saved, pendingRedirect: false }));
+        window.location.replace(saved.url);
+      }
+    } catch {
+      // Storage may be disabled; successful submissions still navigate directly.
+    }
+  }, []);
+
+  const clearRecovery = () => {
+    try { window.sessionStorage.removeItem(RECENT_REQUEST_STORAGE_KEY); } catch { /* disabled storage */ }
+    setRecoveryUrl('');
+  };
 
   async function chooseImage(event: ChangeEvent<HTMLInputElement>) {
     const photo = event.target.files?.[0];
@@ -124,6 +161,7 @@ export function QuickProviderRequest() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submittingRef.current || submitted) return;
     setError('');
     setUpgradeUrl('');
     if (!effectiveLocation || !name.trim() || !phone.trim() || !consent) {
@@ -135,6 +173,7 @@ export function QuickProviderRequest() {
       return;
     }
     const jobDescription = [problem, details.trim()].filter(Boolean).join('. ').slice(0, 3000);
+    submittingRef.current = true;
     setBusy(true);
     try {
       const response = await fetch('/api/projects/intake', {
@@ -177,12 +216,25 @@ export function QuickProviderRequest() {
         throw new Error(payload.error || 'Could not send your request.');
       }
       const queued = chosenProviderId ? Boolean(payload.preferredProvider?.queued) : Boolean(payload.routing?.providersQueued);
+      const trackingUrl = '/project/' + encodeURIComponent(payload.project.id) + '?token=' + encodeURIComponent(payload.accessToken);
+      // Do not require a second submission if the browser refreshes after success.
+      try {
+        window.sessionStorage.setItem(RECENT_REQUEST_STORAGE_KEY, JSON.stringify({
+          url: trackingUrl, createdAt: Date.now(), pendingRedirect: true,
+        } satisfies RecentQuickRequest));
+      } catch { /* Continue without tab recovery when storage is disabled. */ }
+
+      setRecoveryUrl(trackingUrl);
       setSubmitted({
-        url: '/project/' + encodeURIComponent(payload.project.id) + '?token=' + encodeURIComponent(payload.accessToken),
+        url: trackingUrl,
         queued,
         reason: chosenProviderId ? payload.preferredProvider?.reason || '' : payload.routing?.reason || '',
       });
+      // The previous implementation stopped at a volatile React success panel.
+      // Open the established dashboard with its secure project access token.
+      try { window.location.replace(trackingUrl); } catch { /* The manual link remains visible. */ }
     } catch (reason) {
+      submittingRef.current = false;
       setError(reason instanceof Error ? reason.message : 'Could not send your request.');
     } finally {
       setBusy(false);
@@ -212,6 +264,14 @@ export function QuickProviderRequest() {
               <h1 className="mt-3 text-3xl font-black tracking-tight">{chosenProviderId ? 'Send a quick request' : 'Get help quickly'}</h1>
               <p className="mt-2 text-sm leading-6 text-[#D2D4C9]">{chosenProviderId ? 'Your selected provider is already attached. Just share the essentials.' : 'Tell us what you need and where. We will seek responses from suitable local providers.'}</p>
               {chosenProviderId && <div className="mt-4 rounded-xl border border-[#ebc54c]/50 bg-[#F8CE39]/10 p-3 text-sm"><CheckCircle2 size={16} className="mr-2 inline text-[#F8CE39]"/>Selected provider: <strong>{providerName || 'Your chosen provider'}</strong></div>}
+              {recoveryUrl && <div role="status" className="mt-4 rounded-xl border border-[#eac448]/60 bg-[#f8ce39]/10 p-4 text-sm leading-6">
+                <strong className="block">You have a recently submitted request.</strong>
+                <p className="text-[#dedbc5]">You do not need to send it again.</p>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <Link href={recoveryUrl} className="rounded-lg bg-[#f8ce39] px-3 py-2 font-black text-[#211c06]">Open tracking dashboard →</Link>
+                  <button type="button" className="text-xs underline underline-offset-4" onClick={clearRecovery}>Start a different request</button>
+                </div>
+              </div>}
               <form onSubmit={submit} className="mt-6 space-y-5">
                 <section className="rounded-2xl bg-[#F4F1E8] p-4 text-[#182019]">
                   <h2 className="flex items-center gap-2 text-base font-black"><Wrench size={19}/> 1. What do you need?</h2>
