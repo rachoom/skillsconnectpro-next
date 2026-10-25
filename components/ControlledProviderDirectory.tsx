@@ -31,20 +31,24 @@ type Provider = {
   status: string | null;
   bio: string | null;
   portfolio_urls?: string[] | string | null;
+  proof_of_work?: string[] | string | null;
   marketplace_rating: number | null;
   marketplace_review_count: number | null;
 };
 
 const portfolioImages = (provider: Provider): string[] => {
-  const raw = provider.portfolio_urls;
-  let values: unknown = raw;
-  if (typeof raw === 'string') {
-    try { values = JSON.parse(raw); } catch { values = raw.split(','); }
-  }
-  if (!Array.isArray(values)) return [];
+  const values = [provider.portfolio_urls, provider.proof_of_work].flatMap(raw => {
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== 'string') return [];
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch { /* Legacy comma-delimited photo URLs */ }
+    return raw.split(',');
+  });
   return [...new Set(values.filter((value): value is string =>
     typeof value === 'string' && /^https:\/\//i.test(value.trim())
-  ).map(value => value.trim()))].slice(0, 12);
+  ).map(value => value.trim()))].slice(0, 20);
 };
 
 const displayName = (provider: Provider) =>
