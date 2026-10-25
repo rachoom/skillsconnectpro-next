@@ -260,11 +260,25 @@ async function processRoutingLocked(input: { projectId: string; force?: boolean;
     && Number.isInteger(Number(assessment.preferredProviderId))
     && Number(assessment.preferredProviderId) > 0;
 
-  // A customer who explicitly chose a provider from Browse Providers asked
-  // for a direct invitation, not a general marketplace search. Keep the
-  // normal routing engine intact for all other projects, but never expand
-  // a direct-provider request automatically.
-  if (directInviteMode && !input.force) {
+  // Direct requests remain exclusive by default. Only urgent/emergency
+  // requests with a recorded, explicit customer opt-in may expand to other
+  // eligible providers after the original response deadline (or a decline).
+  // When the selected provider responds, stop expanding, even if emergency
+  // routing would otherwise seek multiple quotes.
+  const allowDirectFallback = directInviteMode
+    && assessment.allowAlternativeProviders === true
+    && (project.urgency === 'emergency' || project.urgency === 'urgent');
+
+  if (allowDirectFallback && validResponses > 0) {
+    return result({
+      ...common,
+      waveNumber: invitations.length ? highestWaveNumber : null,
+      action: 'response_target_reached',
+      reason: 'A provider has responded to the customer-selected request.',
+    });
+  }
+
+  if (directInviteMode && !input.force && !allowDirectFallback) {
     const directDeadline = earliestDeadline(
       invitations.filter((invitation) => ACTIVE_INVITATION_STATUSES.has(invitation.status)),
     );
