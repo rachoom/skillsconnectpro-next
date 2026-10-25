@@ -117,6 +117,9 @@ function parsePublicIntake(body: unknown): CreateProjectInput {
           ...value.assessmentPayload as Record<string, unknown>,
           preferredProviderId: positiveInteger(value.preferredProviderId),
           preferredProviderName: optionalText(value.preferredProviderName, 160),
+          // Only the customer's explicit choice authorises alternate invitations.
+          allowAlternativeProviders: Boolean(positiveInteger(value.preferredProviderId) && value.allowAlternativeProviders === true && (urgency === 'emergency' || urgency === 'urgent')),
+          quickRequest: Boolean((value.assessmentPayload as Record<string, unknown> | undefined)?.intakeVersion === 'quick-request-v1'),
           intakeOrigin: positiveInteger(value.preferredProviderId)
             ? 'controlled_provider_browse'
             : 'guided_homepage',
@@ -124,6 +127,9 @@ function parsePublicIntake(body: unknown): CreateProjectInput {
       : {
           preferredProviderId: positiveInteger(value.preferredProviderId),
           preferredProviderName: optionalText(value.preferredProviderName, 160),
+          // Only the customer's explicit choice authorises alternate invitations.
+          allowAlternativeProviders: Boolean(positiveInteger(value.preferredProviderId) && value.allowAlternativeProviders === true && (urgency === 'emergency' || urgency === 'urgent')),
+          quickRequest: Boolean((value.assessmentPayload as Record<string, unknown> | undefined)?.intakeVersion === 'quick-request-v1'),
           intakeOrigin: positiveInteger(value.preferredProviderId)
             ? 'controlled_provider_browse'
             : 'guided_homepage',
