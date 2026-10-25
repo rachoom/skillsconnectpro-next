@@ -4,7 +4,7 @@ import fs from 'node:fs';
 
 const read = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('browsed provider requests remain direct invitations instead of normal waves', () => {
+test('direct invitations remain exclusive unless the customer opts into urgent fallback', () => {
   const intake = read('../app/api/projects/intake/route.ts');
   const routing = read('../services/marketplace/automaticRouting.ts');
 
@@ -14,7 +14,10 @@ test('browsed provider requests remain direct invitations instead of normal wave
 
   assert.match(routing, /assessment\.intakeOrigin === 'controlled_provider_browse'/);
   assert.match(routing, /directInviteMode/);
-  assert.match(routing, /never expand[\s\S]*direct-provider request automatically/);
+  assert.match(intake, /allowAlternativeProviders: Boolean/);
+  assert.match(routing, /assessment\.allowAlternativeProviders === true/);
+  assert.match(routing, /allowDirectFallback && validResponses > 0/);
+  assert.match(routing, /directInviteMode && !input\.force && !allowDirectFallback/);
 });
 
 test('closed projects cannot offer or execute provider connection actions', () => {
@@ -39,4 +42,16 @@ test('project journey is compact and user-expandable', () => {
   assert.match(page, /Hide activity/);
   assert.match(page, /aria-controls="project-journey-timeline"/);
   assert.match(css, /\.activityToggle/);
+});
+
+test('quick request bypasses AI assessment and routes selected providers through the original project API', () => {
+  const quick = read('../components/QuickProviderRequest.tsx');
+  const directory = read('../components/ControlledProviderDirectory.tsx');
+  const home = read('../components/PremiumLanding.tsx');
+  assert.match(quick, /fetch\('\/api\/projects\/intake'/);
+  assert.doesNotMatch(quick, /assess-v[23]/);
+  assert.match(quick, /allowAlternativeProviders: Boolean/);
+  assert.match(directory, /return `\/quick-request\?/);
+  assert.match(home, /Find a Provider Now/);
+  assert.match(home, /quick-request\?mode=emergency/);
 });
