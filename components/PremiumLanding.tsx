@@ -141,10 +141,11 @@ export function PremiumLanding() {
                 <span>Start a project</span>
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <a href="#how-it-works" className={styles.heroSecondary}>
-                <CirclePlay size={19} aria-hidden="true" />
-                <span>See how it works</span>
-              </a>
+              <Link href="/browse-providers" className={styles.heroSecondary}>
+                <Search size={19} aria-hidden="true" />
+                <span>Find a Provider Now</span>
+                <ArrowRight size={18} aria-hidden="true" />
+              </Link>
             </div>
 
             <div className={styles.heroBenefits} aria-label="Why use Skills Connect Pro">
@@ -162,7 +163,12 @@ export function PremiumLanding() {
               </Link>
               <div className={styles.inputHint} aria-hidden="true"><Camera size={14} /><span>Photo</span><Mic size={14} /><span>Voice</span><span className={styles.hintDivider} />Start in your own words</div>
             </div>
-            <Link href="/browse-providers" className={styles.secondary}>Already know what you need? Browse providers <ArrowRight size={16} aria-hidden="true" /></Link>
+            <div className={styles.fastConnectRow}>
+              <Link href="/quick-request?mode=emergency" className={styles.emergencyLink}>
+                <Zap size={18} aria-hidden="true" /> Need urgent help? Request help now <ArrowRight size={17} aria-hidden="true" />
+              </Link>
+              <a href="#how-it-works" className={styles.secondary}><CirclePlay size={15} aria-hidden="true" /> See how it works</a>
+            </div>
           </div>
 
           <aside className={styles.connectionCard} aria-label="Project support checklist">
