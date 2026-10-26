@@ -60,3 +60,29 @@ export function normalisePayfastFields(fields: Record<string, PayfastFieldValue>
     .map(([key, value]) => [key, value === undefined || value === null ? '' : String(value).trim()])
     .filter(([, value]) => value !== ''));
 }
+
+/**
+ * Payfast cannot attach custom request headers to ITN callbacks.
+ * Only sandbox checkouts on a protected Vercel Preview append an automation
+ * bypass query parameter. The Vercel secret is injected server-side at build
+ * time and can be revoked independently after the testing window.
+ *
+ * Production always receives the original, secret-free callback URL.
+ */
+export function payfastNotificationUrl(siteOrigin: string, mode: PayfastMode): string {
+  const notify = new URL('/api/payments/payfast/itn', siteOrigin);
+  if (mode === 'sandbox' && process.env.VERCEL_ENV === 'preview') {
+    if (notify.hostname === 'skillsconnectpro.co.za'
+      || notify.hostname === 'www.skillsconnectpro.co.za') {
+      throw new Error('Payfast sandbox checkout cannot send notifications to the live production domain.');
+    }
+    if (notify.hostname.endsWith('.vercel.app')) {
+      const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+      if (!secret) {
+        throw new Error('Payfast sandbox callback is not ready: choose the Vercel automation bypass secret as the deployment environment variable, then redeploy Preview.');
+      }
+      notify.searchParams.set('x-vercel-protection-bypass', secret);
+    }
+  }
+  return notify.toString();
+}
