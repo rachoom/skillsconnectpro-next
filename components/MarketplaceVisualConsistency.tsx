@@ -7,7 +7,7 @@ export const MarketplaceVisualConsistency = () => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const surface = pathname.startsWith('/provider-opportunity/')
+    const surface = (pathname.startsWith('/provider-opportunity/') || pathname === '/provider-opportunity-preview')
       ? 'provider'
       : pathname === '/get-help'
         ? 'intake'
