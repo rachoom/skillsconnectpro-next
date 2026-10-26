@@ -312,6 +312,9 @@ export async function submitProviderResponse(
   if (projectStateError || !projectState) {
     throw new Error(`Unable to verify project status: ${projectStateError?.message ?? 'Project not found.'}`);
   }
+  if (['provider_selected', 'contact_released', 'in_progress', 'disputed'].includes(projectState.status)) {
+    throw new Error('This customer has already selected a provider. New responses are closed.');
+  }
   if (['cancelled', 'completed', 'unfulfilled'].includes(projectState.status)) {
     throw new Error(`This project is ${projectState.status}. New provider responses are closed.`);
   }
