@@ -12,6 +12,8 @@ interface Application {
   phone: string;
   bio: string;
   institution?: string; 
+  portfolio_images?: string[] | null;
+  referral_source?: string | null;
   status: 'pending' | 'approved' | 'rejected';
 }
 
@@ -310,6 +312,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                             <span className="bg-brand-yellow text-black text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest">{app.trade}</span>
                                             <span className="text-gray-500 text-xs font-mono uppercase">{new Date(app.created_at).toLocaleDateString()}</span>
                                             
+                                            {app.referral_source && app.referral_source !== 'join:direct' && (
+                                              <span className="rounded bg-amber-300/10 px-2 py-1 text-[10px] font-bold text-amber-300">Source: {app.referral_source}</span>
+                                            )}
                                             {app.institution && (
                                               <span className="bg-zinc-800 text-gray-300 text-[10px] font-bold px-2 py-1 rounded border border-white/10">{app.institution}</span>
                                             )}
@@ -332,6 +337,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                         <div className="bg-black/40 p-4 rounded-xl border border-white/5 relative group">
                                             <p className="text-gray-300 text-sm leading-relaxed italic">"{app.bio}"</p>
                                         </div>
+                                        {Array.isArray(app.portfolio_images) && app.portfolio_images.length > 0 && (
+                                          <div className="rounded-xl border border-amber-300/20 bg-amber-300/5 p-3">
+                                            <p className="mb-3 text-xs font-black uppercase tracking-wider text-amber-200">Work photos for review ({app.portfolio_images.length})</p>
+                                            <div className="grid max-w-lg grid-cols-3 gap-2">
+                                              {app.portfolio_images.slice(0, 3).map((_, index) => (
+                                                <a key={index} href={'/api/provider-admin/application-photo?applicationId=' + app.id + '&index=' + index} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg border border-white/15 bg-zinc-800" title="Open work photo">
+                                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                  <img src={'/api/provider-admin/application-photo?applicationId=' + app.id + '&index=' + index} alt={'Work example ' + (index + 1)} loading="lazy" className="h-full w-full object-cover" />
+                                                </a>
+                                              ))}
+                                            </div>
+                                            <p className="mt-2 text-[11px] text-zinc-400">Private application photos. Review before publishing or using for marketing.</p>
+                                          </div>
+                                        )}
                                         <button onClick={() => startEditing(app)} className="text-brand-yellow text-xs font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1">Edit Application</button>
                                     </>
                                 )}
