@@ -199,13 +199,50 @@ function arrivalWindow(responseType: ResponseType | null, timeSlot: TimeSlot) {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-export default function ProviderOpportunityPage() {
+const DEMO_OPPORTUNITY: Opportunity = {
+  invitationId: 'demo-invitation',
+  providerId: 0,
+  status: 'sent',
+  responseDeadline: null,
+  leadAccess: {
+    freeLeadLimit: 3,
+    freeLeadsUsed: 0,
+    freeLeadsRemaining: 3,
+    hasPaidAccess: false,
+    locked: false,
+    activePlan: null,
+  },
+  providerSnapshot: { name: 'Demo artisan' },
+  customerContact: null,
+  project: {
+    id: 'demo-project',
+    title: 'Kitchen tap leaking badly',
+    customerDescription: 'The kitchen tap is leaking continuously. The customer needs a plumber to inspect and repair it as soon as possible.',
+    aiSummary: 'The tap or seal may need repair. Confirm the cause on site before quoting.',
+    likelyIssue: null,
+    category: 'Plumbing',
+    urgency: 'urgent',
+    serviceLevel: 'standard',
+    serviceArea: 'Benoni',
+    preferredDate: null,
+    estimatedMin: null,
+    estimatedMax: null,
+    estimateCurrency: 'ZAR',
+    safetyNotes: [],
+    materials: [],
+    professionalInspectionRequired: true,
+    status: 'matching',
+    media: [],
+  },
+};
+
+export function ProviderOpportunityExperience({ preview = false }: { preview?: boolean }) {
   const params = useParams<{ token: string }>();
-  const token = params.token;
-  const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
+  const token = params?.token;
+  const [opportunity, setOpportunity] = useState<Opportunity | null>(preview ? DEMO_OPPORTUNITY : null);
   const [form, setForm] = useState<ResponseForm>(INITIAL_FORM);
   const [showPricing, setShowPricing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!preview);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -229,6 +266,7 @@ export default function ProviderOpportunityPage() {
   };
 
   useEffect(() => {
+    if (preview) return;
     let active = true;
     async function load() {
       try {
@@ -245,7 +283,7 @@ export default function ProviderOpportunityPage() {
     }
     if (token) void load();
     return () => { active = false; };
-  }, [token]);
+  }, [token, preview]);
 
   useEffect(() => {
     if (form.responseType || !opportunity) {
@@ -289,6 +327,12 @@ export default function ProviderOpportunityPage() {
     event.preventDefault();
     if (!form.responseType) {
       setError('Choose your availability or response before submitting.');
+      return;
+    }
+    if (preview) {
+      // Demo-only experience. No token, provider data, database write, or
+      // WhatsApp dispatch. This same UI is used for real invitations.
+      setSubmitted(true);
       return;
     }
     setSubmitting(true);
@@ -411,6 +455,7 @@ export default function ProviderOpportunityPage() {
   }
 
   if (submitted) {
+    if (preview) return <main className={`${polish.scope} flex min-h-screen items-center justify-center px-5`}><section className="max-w-lg rounded-3xl border border-[#D5AA28] bg-[#171714] p-8 text-center shadow-xl"><CheckCircle2 className="mx-auto text-[#F5C518]" size={46} /><h1 className="mt-5 text-3xl font-black text-white">Preview complete</h1><p className="mt-3 text-sm leading-6 text-[#E9E5D9]">That is how a provider's response would be submitted. This demonstration did not contact any customer or save a response.</p><button type="button" onClick={() => { setSubmitted(false); setForm(INITIAL_FORM); setStep(1); setShowPricing(false); setError(null); }} className="mt-6 rounded-xl bg-[#F5C518] px-5 py-3 text-sm font-bold text-[#171408]">Try another response</button></section></main>;
     return <main className={`${polish.scope} flex min-h-screen items-center justify-center bg-[#9FCB8A] px-5 text-[#173B28]`}><section className="max-w-lg rounded-3xl border-2 border-[#55A979] bg-[#E6F8DF] p-8 text-center shadow-xl shadow-[#355332]/20"><CheckCircle2 className="mx-auto text-[#21885A]" size={46} /><h1 className="mt-5 text-3xl font-black">Response received</h1><p className="mt-3 text-sm leading-6 text-[#355D43]">Thank you, {providerName}. Skills Connect Pro has added your response to the customer&apos;s project.</p></section></main>;
   }
 
@@ -424,6 +469,7 @@ export default function ProviderOpportunityPage() {
   return (
     <main className={`${polish.scope} min-h-screen px-4 py-5 md:px-8 md:py-8`}>
       <div className="mx-auto max-w-4xl">
+        {preview && <div data-provider-demo-banner role="status" className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#D5AA28] bg-[#171714] px-4 py-3 text-xs font-bold text-[#FFF0C2]"><span>INTERACTIVE DESIGN PREVIEW</span><span>No real job · No messages sent</span></div>}
         <header data-provider-header className="mb-4 rounded-[1.75rem] border-2 border-[#D3A826] bg-[#FFF0A8] p-5 shadow-xl shadow-[#355332]/20 md:p-7">
           <div className="flex flex-wrap items-center justify-between gap-3"><Link href="/" data-provider-brand aria-label="Skills Connect Pro homepage" className="inline-flex items-center"><img src="/logo-new.svg" width={220} height={58} alt="Skills Connect Pro" className="block h-12 w-auto max-w-[190px] object-contain object-left" /></Link><span data-provider-quick-label className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider ${leadLocked ? 'border-[#8B5B00] bg-[#3B2C08] text-[#FFE689]' : 'border-[#D3A826] bg-[#FFE067] text-[#4A3600]'}`}>{leadLocked ? 'Unlock to respond' : 'Quick reply · 3 steps'}</span></div>
           <div data-provider-header-actions className="mt-3 flex items-center justify-end gap-2"><button data-provider-language-toggle type="button" onClick={() => setLanguage(language === 'en' ? 'zu' : 'en')} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold" aria-label="Change language"><Languages size={17} strokeWidth={2} aria-hidden="true" />{language === 'en' ? 'EN / isiZulu' : 'isiZulu / EN'}</button><button data-provider-theme-toggle type="button" onClick={toggleTheme} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold" aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'dark' ? 'Use light theme' : 'Use dark theme'}>{theme === 'dark' ? <Sun size={17} strokeWidth={2} aria-hidden="true" /> : <Moon size={17} strokeWidth={2} aria-hidden="true" />}<span>{theme === 'dark' ? 'Light' : 'Dark'}</span></button></div>
@@ -474,4 +520,8 @@ export default function ProviderOpportunityPage() {
       </div>
     </main>
   );
+}
+
+export default function ProviderOpportunityPage() {
+  return <ProviderOpportunityExperience />;
 }
