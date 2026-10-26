@@ -99,7 +99,17 @@ export default async function CustomerCheckoutPage({ searchParams }: Props) {
           </div>
 
           <div className="rounded-[1.6rem] border border-white/15 bg-white/[.055] p-5 backdrop-blur-xl"><div className="flex gap-3"><LockKeyhole className="mt-0.5 shrink-0 text-[#ffe17a]" size={20} /><div><h2 className="font-black text-white">Payment stays protected</h2><p className="mt-2 text-sm leading-6 text-white/65">Payfast handles your card details. Skills Connect Pro receives only the verified result needed to activate your pass.</p></div></div></div>
-          <div className="rounded-[1.6rem] border border-white/15 bg-white/[.055] p-5 backdrop-blur-xl"><div className="flex gap-3"><ShieldCheck className="mt-0.5 shrink-0 text-[#ffe17a]" size={20} /><p className="text-sm leading-6 text-white/70"><strong className="block text-white">Attached to your account</strong>Signed in as {user.email ?? 'your private account'}.</p></div></div>
+          <div className="rounded-[1.6rem] border border-white/15 bg-white/[.055] p-5 backdrop-blur-xl">
+            <div className="flex gap-3"><ShieldCheck className="mt-0.5 shrink-0 text-[#ffe17a]" size={20} /><div className="min-w-0 flex-1">
+              <p className="text-sm leading-6 text-white/70"><strong className="block text-white">Attached to your account</strong>Signed in as {user.email ?? 'your private account'}.</p>
+              <form action="/auth/sign-out" method="post" className="mt-3">
+                <button type="submit" className="inline-flex min-h-10 items-center rounded-lg border border-[#ffe17a]/45 px-3 py-2 text-xs font-bold text-[#ffe17a] transition hover:bg-[#ffe17a]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe17a]">
+                  Sign out / switch account
+                </button>
+              </form>
+              <p className="mt-2 text-xs leading-5 text-white/55">You'll return to the homepage. Sign in with a different email to test the purchase under a separate customer account.</p>
+            </div></div>
+          </div>
           <div className="flex items-center gap-3 px-2 text-xs leading-5 text-white/50"><CalendarDays className="shrink-0 text-[#ffe17a]" size={17} /> Your access period begins only after Payfast verifies payment.</div>
         </aside>
       </div>
