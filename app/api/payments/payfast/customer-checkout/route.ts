@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
-import { getPayfastConfig, normalisePayfastFields, payfastSignature } from '@/services/payments/payfast';
+import { getPayfastConfig, normalisePayfastFields, payfastNotificationUrl, payfastSignature } from '@/services/payments/payfast';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
 export const runtime = 'nodejs';
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       merchant_id: config.merchantId, merchant_key: config.merchantKey,
       return_url: `${baseUrl}/customer-payment-result?payment=${encodeURIComponent(paymentReference)}`,
       cancel_url: `${baseUrl}/customer-payment-result?payment=${encodeURIComponent(paymentReference)}&cancelled=1`,
-      notify_url: `${baseUrl}/api/payments/payfast/itn`,
+      notify_url: payfastNotificationUrl(baseUrl, config.mode),
       name_first: customerName.first, name_last: customerName.last, email_address: user.email || undefined,
       m_payment_id: paymentReference, amount: amount.toFixed(2), item_name: `Skills Connect Pro ${customerPlan.name}`,
       item_description: `${customerPlan.name} project workspace access for ${customerPlan.duration_days} days`,
