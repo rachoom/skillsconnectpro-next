@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
+  ClipboardCheck,
   ChevronDown,
   ChevronUp,
   Clock3,
@@ -12,12 +14,13 @@ import {
   LockKeyhole,
   MapPin,
   MessageCircle,
+  MessagesSquare,
   Phone,
   RefreshCw,
   ShieldCheck,
   Star,
   UserRoundCheck,
-  Users,
+  UsersRound,
   Wrench,
   X,
 } from 'lucide-react';
@@ -299,9 +302,9 @@ export default function CustomerProjectPage() {
   };
 
   const openJobControls = () => {
-    const controls = document.getElementById('job-status-controls');
-    if (controls) controls.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+    // The lifecycle host can remount controls that were not yet loaded when
+    // contact details were first released, then scroll and focus the panel.
+    window.dispatchEvent(new Event('marketplace-open-job-controls'));
   };
 
   const openProviderResponses = () => {
@@ -403,7 +406,7 @@ export default function CustomerProjectPage() {
             >
               <div className={styles.matchingOrb}>
                 <i className={styles.matchingSpinner} aria-hidden="true" />
-                <span>{hasResponses ? <CheckCircle2 size={25} /> : <Users size={25} />}</span>
+                <span>{hasResponses ? <CheckCircle2 size={25} /> : <UsersRound size={26} strokeWidth={1.9} />}</span>
               </div>
               <p className={styles.matchingKicker}>{projectClosed ? 'Project closed' : hasResponses ? 'Response ready' : 'Matching in progress'}</p>
               <strong>
@@ -463,19 +466,19 @@ export default function CustomerProjectPage() {
 
         <section className={styles.metricsGrid} aria-label="Project matching status">
           <article className={styles.metricCard}>
-            <div className={styles.metricTop}><span className={styles.metricIcon}><Users size={19} /></span><small>01</small></div>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><UsersRound size={20} strokeWidth={1.9} /></span><small>01</small></div>
             <strong key={`invited-${feed.matching.invitationsSent}`} className={styles.metricValue}>{feed.matching.invitationsSent}</strong>
             <h2>Providers invited</h2>
             <p>Invitations sent to suitable local providers.</p>
           </article>
           <article className={`${styles.metricCard} ${feed.matching.providersReviewing > 0 && !hasResponses ? styles.metricReviewing : ''}`}>
-            <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={19} /></span><small>02</small></div>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={20} strokeWidth={1.9} /></span><small>02</small></div>
             <strong key={`reviewing-${feed.matching.providersReviewing}`} className={styles.metricValue}>{feed.matching.providersReviewing}</strong>
             <h2>Currently reviewing</h2>
             <p>Providers actively considering your project.</p>
           </article>
           <article className={`${styles.metricCard} ${styles.metricSuccess} ${hasResponses && !hasSelection ? styles.metricResponseReady : ''}`}>
-            <div className={styles.metricTop}><span className={styles.metricIcon}><CheckCircle2 size={19} /></span><small>03</small></div>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><MessagesSquare size={20} strokeWidth={1.9} /></span><small>03</small></div>
             <strong key={`responses-${feed.matching.validResponsesReceived}`} className={styles.metricValue}>{feed.matching.validResponsesReceived}</strong>
             <h2>Responses received</h2>
             <p>Provider options ready for you to compare.</p>
@@ -501,36 +504,48 @@ export default function CustomerProjectPage() {
         {contactsReleased && releasedProvider && (
           <>
             <section className={`${styles.actionCard} ${styles.actionConnected}`}>
-              <div className={styles.actionIcon}><CheckCircle2 size={28} /></div>
+              <div className={styles.actionIcon}><CheckCircle2 size={28} strokeWidth={1.9} /></div>
               <div className={styles.actionCopy}>
                 <span>You are connected</span>
                 <h2>{releasedProvider.name}</h2>
-                <p>Contact details have been released only to you and the selected provider.</p>
+                <p>You can now call or WhatsApp your provider. Your contact details are shared only with the two of you.</p>
                 <div className={styles.contactActions}>
                   {releasedProvider.phone && (
                     <a href={`tel:${releasedProvider.phone}`} className={styles.callButton}>
-                      <Phone size={17} /> Call {releasedProvider.phone}
+                      <Phone size={19} strokeWidth={2} aria-hidden="true" /> Call {releasedProvider.phone}
                     </a>
                   )}
                   {whatsappHref && (
                     <a href={whatsappHref} target="_blank" rel="noreferrer" className={styles.whatsappButton}>
-                      <MessageCircle size={17} /> WhatsApp provider
+                      <MessageCircle size={19} strokeWidth={2} aria-hidden="true" /> WhatsApp provider
                     </a>
                   )}
                 </div>
                 {releasedProvider.email && <small>Email: {releasedProvider.email}</small>}
+                <div className={styles.connectionNextHint}>
+                  <span className={styles.connectionNextIcon}><ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" /></span>
+                  <span><strong>What happens next?</strong> Manage your project below to track the work, confirm completion or report a problem.</span>
+                  <ArrowRight size={19} strokeWidth={2} aria-hidden="true" />
+                </div>
               </div>
             </section>
 
-            <section className={`${styles.actionCard} ${styles.jobControlsCard}`}>
-              <div className={styles.actionIcon}><Wrench size={25} /></div>
+            <section id="manage-project-next-step" aria-label="Next step: manage your project" className={`${styles.actionCard} ${styles.jobControlsCard}`}>
+              <div className={styles.actionIcon}><ClipboardCheck size={27} strokeWidth={1.9} aria-hidden="true" /></div>
               <div className={styles.actionCopy}>
-                <span>Manage job status</span>
-                <h2>Keep the project record up to date</h2>
-                <p>Mark when work starts, confirm completion, cancel the project or report a problem.</p>
+                <span>Next step · You're connected</span>
+                <h2>Manage your project here</h2>
+                <p>Stay in control from start to finish. Track the job, confirm when work is complete, or report a problem.</p>
+                <div className={styles.controlsFeatures} aria-label="Project management options">
+                  <span><CheckCircle2 size={15} aria-hidden="true" /> Job progress</span>
+                  <span><ClipboardCheck size={15} aria-hidden="true" /> Confirm completion</span>
+                  <span><ShieldCheck size={15} aria-hidden="true" /> Report an issue</span>
+                </div>
               </div>
-              <button type="button" onClick={openJobControls} className={styles.primaryAction}>
-                <Wrench size={17} /> Open job controls
+              <button type="button" onClick={openJobControls} aria-controls="job-status-controls" className={`${styles.primaryAction} ${styles.manageProjectAction}`}>
+                <ClipboardCheck size={19} strokeWidth={2} aria-hidden="true" />
+                Open project controls
+                <ArrowRight size={19} strokeWidth={2.1} aria-hidden="true" />
               </button>
             </section>
           </>
