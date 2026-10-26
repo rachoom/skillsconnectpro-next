@@ -160,12 +160,53 @@ function whatsappNumber(value: string): string {
   return digits;
 }
 
-export default function CustomerProjectPage() {
+// Safe demonstration data. The public preview has no project credentials,
+// provider contact information, API requests or write capabilities.
+const PREVIEW_FEED: ProjectFeed = {
+  project: {
+    id: 'demo-customer-project',
+    guestName: 'Sample Customer',
+    title: 'Kitchen tap leaking — Plumbing',
+    customerDescription: 'Water is leaking continuously from the kitchen tap. The customer needs a plumber to inspect the fitting and complete the repair.',
+    category: 'Plumbing', urgency: 'urgent', serviceLevel: 'standard',
+    status: 'contact_released', locationText: 'Benoni', suburb: 'Benoni', city: 'Ekurhuleni',
+    responseTargetAt: '2026-10-26T10:00:00+02:00', estimatedMin: null, estimatedMax: null,
+    estimateCurrency: 'ZAR', safetyNotes: [], createdAt: '2026-10-26T09:30:00+02:00', media: [],
+  },
+  matching: {
+    invitationsSent: 6,
+    invitationCounts: { sent: 5, responded: 1 },
+    validResponsesReceived: 1,
+    providersReviewing: 0,
+  },
+  responses: [{
+    id: 'demo-provider-response', providerId: 0,
+    provider: { name: 'Demo Plumbing Services', category: 'Plumber', location: 'Benoni', is_verified: true, rating: 5 },
+    responseType: 'site_visit', arrivalWindowStart: null, arrivalWindowEnd: null,
+    siteVisitFee: 100, estimateMin: 300, estimateMax: 800, estimateCurrency: 'ZAR',
+    providerMessage: 'I can assess the tap and confirm the repair cost after inspection.',
+    validUntil: null, createdAt: '2026-10-26T09:40:00+02:00',
+  }],
+  match: {
+    id: 'demo-match', providerId: 0, providerResponseId: 'demo-provider-response',
+    status: 'contact_released', selectedAt: '2026-10-26T09:44:00+02:00',
+    contactReleasedAt: '2026-10-26T09:45:00+02:00',
+  },
+  releasedContact: { provider: { id: 0, name: 'Demo Plumbing Services', phone: null, whatsapp: null, email: null } },
+  timeline: [
+    { id: 1, eventType: 'project_created', message: 'The customer submitted the request.', createdAt: '2026-10-26T09:30:00+02:00' },
+    { id: 2, eventType: 'provider_invited', message: 'Local plumbing providers were invited.', createdAt: '2026-10-26T09:34:00+02:00' },
+    { id: 3, eventType: 'provider_responded', message: 'A service provider responded.', createdAt: '2026-10-26T09:40:00+02:00' },
+    { id: 4, eventType: 'contact_released', message: 'The customer confirmed their provider connection.', createdAt: '2026-10-26T09:45:00+02:00' },
+  ],
+};
+
+export function CustomerProjectExperience({ preview = false }: { preview?: boolean }) {
   const params = useParams<{ id: string }>();
-  const projectId = params.id;
+  const projectId = preview ? 'demo-customer-project' : params.id;
   const [accessToken, setAccessToken] = useState('');
-  const [feed, setFeed] = useState<ProjectFeed | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [feed, setFeed] = useState<ProjectFeed | null>(preview ? PREVIEW_FEED : null);
+  const [loading, setLoading] = useState(!preview);
   const [selectingResponseId, setSelectingResponseId] = useState<string | null>(null);
   const [releasingContact, setReleasingContact] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
@@ -174,8 +215,11 @@ export default function CustomerProjectPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [journeyOpen, setJourneyOpen] = useState(false);
+  const [demoControlsOpen, setDemoControlsOpen] = useState(false);
+  const [demoControlAction, setDemoControlAction] = useState('');
 
   useEffect(() => {
+    if (preview) return;
     const initialisation = window.setTimeout(() => {
       const token = new URLSearchParams(window.location.search).get('token') ?? '';
       setAccessToken(token);
@@ -185,10 +229,10 @@ export default function CustomerProjectPage() {
       }
     }, 0);
     return () => window.clearTimeout(initialisation);
-  }, []);
+  }, [preview]);
 
   const loadFeed = useCallback(async (quiet = false) => {
-    if (!projectId || !accessToken) return;
+    if (preview || !projectId || !accessToken) return;
     if (!quiet) setLoading(true);
     setError(null);
 
@@ -206,17 +250,17 @@ export default function CustomerProjectPage() {
     } finally {
       if (!quiet) setLoading(false);
     }
-  }, [accessToken, projectId]);
+  }, [accessToken, projectId, preview]);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (preview || !accessToken) return;
     const initialLoad = window.setTimeout(() => void loadFeed(), 0);
     const interval = window.setInterval(() => void loadFeed(true), 15000);
     return () => {
       window.clearTimeout(initialLoad);
       window.clearInterval(interval);
     };
-  }, [accessToken, loadFeed]);
+  }, [accessToken, loadFeed, preview]);
 
   const selectedResponseId = feed?.match?.providerResponseId ?? null;
   const selectedResponse = useMemo(
@@ -302,6 +346,13 @@ export default function CustomerProjectPage() {
   };
 
   const openJobControls = () => {
+    if (preview) {
+      setDemoControlsOpen(true);
+      window.setTimeout(() => {
+        document.getElementById('job-status-controls')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      return;
+    }
     // The lifecycle host can remount controls that were not yet loaded when
     // contact details were first released, then scroll and focus the panel.
     window.dispatchEvent(new Event('marketplace-open-job-controls'));
@@ -352,12 +403,18 @@ export default function CustomerProjectPage() {
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
+        {preview && (
+          <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#D3A826] bg-[#272219] px-4 py-3 text-xs font-bold text-[#FFE9A3]">
+            <span>INTERACTIVE CUSTOMER DASHBOARD PREVIEW</span>
+            <span>Sample project · No real actions</span>
+          </div>
+        )}
         <div className={styles.overviewBar}>
           <div>
             <span>Customer workspace</span>
             <strong>Project Overview</strong>
           </div>
-          <div className={styles.liveState}><i /> Live updates</div>
+          <div className={styles.liveState}><i /> {preview ? 'Design preview' : 'Live updates'}</div>
         </div>
 
         <header className={styles.projectHero}>
@@ -444,7 +501,7 @@ export default function CustomerProjectPage() {
                 </button>
               ) : (
                 <div style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <button type="button" onClick={() => void loadFeed()} className={styles.refreshButton}>
+                  <button type="button" onClick={() => void loadFeed()} disabled={preview} className={styles.refreshButton}>
                     <RefreshCw size={15} /> Refresh now
                   </button>
                   {!projectClosed && !hasSelection && (
@@ -510,6 +567,7 @@ export default function CustomerProjectPage() {
                 <h2>{releasedProvider.name}</h2>
                 <p>You can now call or WhatsApp your provider. Your contact details are shared only with the two of you.</p>
                 <div className={styles.contactActions}>
+                  {preview && <><button type="button" disabled className={styles.callButton}><Phone size={19} aria-hidden="true" /> Call provider · Demo</button><button type="button" disabled className={styles.whatsappButton}><MessageCircle size={19} aria-hidden="true" /> WhatsApp provider · Demo</button></>}
                   {releasedProvider.phone && (
                     <a href={`tel:${releasedProvider.phone}`} className={styles.callButton}>
                       <Phone size={19} strokeWidth={2} aria-hidden="true" /> Call {releasedProvider.phone}
@@ -726,6 +784,16 @@ export default function CustomerProjectPage() {
             </div>
           )}
         </section>
+        {preview && demoControlsOpen && (
+          <section id="job-status-controls" className="mt-5 scroll-mt-20 rounded-3xl border-2 border-[#E6C34A] bg-[#151712] p-5 text-[#F5F4EB] shadow-lg sm:p-7" aria-label="Preview job controls">
+            <div className="flex items-center gap-3"><span className="rounded-xl border border-[#E6C34A]/30 bg-[#E6C34A]/10 p-3 text-[#F5C518]"><ClipboardCheck size={26} /></span><div><span className="text-xs font-bold uppercase tracking-widest text-[#F5C518]">Example controls · No changes saved</span><h2 className="mt-1 text-2xl font-extrabold">Manage your job</h2></div></div>
+            <p className="mt-4 text-sm leading-6 text-[#D2D2C8]">This is a safe preview of the actions available once you are connected to a provider.</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {['Mark work started', 'Confirm job completed', 'Report a problem'].map(action => <button key={action} type="button" onClick={() => setDemoControlAction(action)} className="min-h-14 rounded-xl border border-[#BBA34D]/60 bg-[#292818] px-4 py-3 text-sm font-bold text-[#FFE79A] hover:bg-[#40391B]">{action}</button>)}
+            </div>
+            {demoControlAction && <p role="status" className="mt-4 rounded-xl border border-[#E6C34A]/30 bg-[#E6C34A]/10 px-4 py-3 text-sm"><strong>{demoControlAction}</strong> — preview only. The actual controls request confirmation and save the update to the project.</p>}
+          </section>
+        )}
       </div>
 
       {showCancelConfirm && !projectClosed && !hasSelection && (
@@ -777,4 +845,8 @@ export default function CustomerProjectPage() {
       )}
     </main>
   );
+}
+
+export default function CustomerProjectPage() {
+  return <CustomerProjectExperience />;
 }
