@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import './join-dark.css';
 import { ProviderJoinExperience } from '../../components/ProviderJoinExperience';
 
 export const metadata: Metadata = {
