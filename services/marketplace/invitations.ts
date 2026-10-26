@@ -188,6 +188,7 @@ async function createInvitationsLocked(input: {
   if (safeTargets.length === 0) return [];
 
   const deadline = getInvitationResponseDeadline(project.urgency).toISOString();
+  const linkExpiry = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
   const waveNumber = input.waveNumber ?? 1;
 
   const prepared = safeTargets.map((target) => {
@@ -208,7 +209,7 @@ async function createInvitationsLocked(input: {
         viewed_at: null,
         response_deadline: deadline,
         response_token_hash: tokenPair.hash,
-        response_token_expires_at: deadline,
+        response_token_expires_at: linkExpiry,
         provider_snapshot: target.providerSnapshot ?? {},
         failure_reason: null,
       },
