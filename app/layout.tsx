@@ -19,7 +19,9 @@ const themeInitialiser = `
   (function () {
     try {
       var saved = window.localStorage.getItem('scp-theme');
-      var theme = saved === 'light' || saved === 'dark' ? saved : 'dark';
+      var onProviderPage = window.location.pathname.indexOf('/provider-opportunity/') === 0;
+      var deviceTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var theme = saved === 'light' || saved === 'dark' ? saved : (onProviderPage ? deviceTheme : 'dark');
       document.documentElement.dataset.scpTheme = theme;
       document.documentElement.style.colorScheme = theme;
     } catch (error) {
