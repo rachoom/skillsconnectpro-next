@@ -26,8 +26,21 @@ export async function GET() {
     callbackUsesPreviewHost: callbackSiteIsStaging,
     separateStagingDatabase: databaseIsStaging,
   };
-  const ready = Object.values(checks).every(Boolean);
-  return NextResponse.json({ ready, checks }, {
+  // Verify Vercel actually honours the bypass on the callback route,
+  // using a harmless GET (Payfast sends POST). Never return the secret or URL.
+  let callbackBypassWorks = false;
+  if (Object.values(checks).every(Boolean)) {
+    try {
+      const probe = new URL('/api/payments/payfast/itn', configuredSiteUrl);
+      probe.searchParams.set('x-vercel-protection-bypass', process.env.VERCEL_AUTOMATION_BYPASS_SECRET!);
+      const response = await fetch(probe, { method: 'GET', redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(6000) });
+      // Next.js reports 405 for GET on a POST-only endpoint.
+      callbackBypassWorks = response.status === 405;
+    } catch { /* Deployment may still be starting or egress unavailable */ }
+  }
+  const fullChecks = { ...checks, callbackBypassWorks };
+  const ready = Object.values(fullChecks).every(Boolean);
+  return NextResponse.json({ ready, checks: fullChecks }, {
     status: ready ? 200 : 503,
     headers: { 'Cache-Control': 'no-store' },
   });
