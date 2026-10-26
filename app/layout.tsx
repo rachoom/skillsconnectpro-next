@@ -19,7 +19,7 @@ const themeInitialiser = `
   (function () {
     try {
       var saved = window.localStorage.getItem('scp-theme');
-      var onProviderPage = window.location.pathname.indexOf('/provider-opportunity/') === 0;
+      var onProviderPage = window.location.pathname.indexOf('/provider-opportunity/') === 0 || window.location.pathname === '/provider-opportunity-preview';
       var deviceTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       var theme = saved === 'light' || saved === 'dark' ? saved : (onProviderPage ? deviceTheme : 'dark');
       document.documentElement.dataset.scpTheme = theme;
@@ -34,7 +34,7 @@ const themeInitialiser = `
 const surfaceInitialiser = `
   (function () {
     var path = window.location.pathname;
-    var surface = path.indexOf('/provider-opportunity/') === 0
+    var surface = (path.indexOf('/provider-opportunity/') === 0 || path === '/provider-opportunity-preview')
       ? 'provider'
       : path === '/get-help'
         ? 'intake'
