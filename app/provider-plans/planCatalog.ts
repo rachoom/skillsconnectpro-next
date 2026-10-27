@@ -53,7 +53,7 @@ export const providerPlans: ProviderPlan[] = [
   },
   {
     slug: 'pro', code: 'pro_monthly', name: 'Pro', price: 'R199', cadence: 'per month', kind: 'subscription',
-    audience: 'For established providers assessing Pro access', headline: 'Explore Pro with full visibility of today's features.',
+    audience: 'For established providers assessing Pro access', headline: "Explore Pro with full visibility of today's features.",
     summary: 'The same currently available marketplace-response and business-workspace tools as Starter and Growth. Priority ranking and advanced team features are not yet enabled.',
     benefits: [
       { title: 'Respond to suitable jobs', description: 'Access and respond to standard marketplace invitations while your subscription is active.' },
