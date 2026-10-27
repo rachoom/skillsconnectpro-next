@@ -15,16 +15,16 @@ function money(value: number) {
 
 const planStories = {
   basic_30: {
-    eyebrow: 'A focused 30-day workspace',
-    heading: 'Give one project the clarity it deserves.',
-    detail: 'Bring the brief, materials thinking, basic budget and supporting detail into one calm place.',
-    moments: ['Full materials calculations', 'A private project workspace', 'Track expenses as work progresses'],
+    eyebrow: '30 days of expanded project limits',
+    heading: 'Do more with your project for R29.',
+    detail: 'Keep the tools you already know, with two photo analyses, 20 document slots and more room for quotes, receipts and project photos.',
+    moments: ['2 project photo analyses', '20 project document slots', '200 MB project storage'],
   },
   project_pass_90: {
     eyebrow: 'Your 90-day project command centre',
     heading: 'Keep a bigger project moving with confidence.',
-    detail: 'Coordinate plans, budget, documents, milestones and artisan collaboration without losing the thread.',
-    moments: ['Up to 3 active projects', 'Timeline, milestones and reports', 'Expanded storage and document export'],
+    detail: 'Manage up to three projects, store more documents and track milestones, with 90 days of expanded capacity.',
+    moments: ['Up to 3 active projects', 'Milestone management', '500 MB project document storage'],
   },
 } as const;
 
