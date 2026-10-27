@@ -41,19 +41,31 @@ const customerPlans: Array<{
     visual: { icon: Sparkles, image: '/mzansi-services-hero-v2.webp', eyebrow: 'Get started', outcome: 'Turn a problem into a clear next step.' },
   },
   {
-    code: 'basic_30', name: 'Basic', price: 'R29', period: 'for 30 days', description: 'For a single project that needs clearer planning, costs and documents in one place.', button: 'Choose Basic', featured: false,
+    code: 'basic_30', name: 'Basic', price: 'R29', period: 'for 30 days', description: 'More photo analyses and four times the document slots for a focused project. Same easy tools, more room to use them.', button: 'Choose Basic', featured: false,
     features: [...customerPlanBenefits.basic_30, ...(hardwareQuotesEnabled() ? ['Hardware quotation requests'] : [])],
     visual: { icon: ClipboardCheck, image: '/calculator-planning-desk.jpg', eyebrow: 'For a focused project', outcome: 'Keep costs, materials and project details together.' },
   },
   {
-    code: 'project_pass_90', name: 'Home Project Pass', price: 'R79', period: 'for 90 days', description: 'The complete project workspace for homeowners coordinating a bigger build or renovation.', button: 'Choose Project Pass', featured: true,
+    code: 'project_pass_90', name: 'Home Project Pass', price: 'R79', period: 'for 90 days', description: 'More active projects, more analyses, more document storage and milestone management for a longer project.', button: 'Choose Project Pass', featured: true,
     features: [...customerPlanBenefits.project_pass_90, ...(hardwareQuotesEnabled() ? ['Hardware quotation requests'] : [])],
     visual: { icon: HardHat, image: '/Cards/builders.png', eyebrow: 'Best value', outcome: 'Stay in control from first idea to final handover.' },
   },
 ];
 
 const comparisonRows = [
-  ['Account registration', 'Included', 'Included', 'Included'], ['Basic AI Project Assistant', 'Included', 'Included', 'Included'], ['Project photo analysis', '1', '2', '5'], ['Materials calculations', 'Basic', 'Full', 'Full'], ...(hardwareQuotesEnabled() ? [['Hardware quotation requests', 'Included', 'Included', 'Included']] : []), ['Find artisans', 'Included', 'Included', 'Included'], ['Active projects', '1', '1', '3'], ['Project budget', 'Basic', 'Basic', 'Advanced'], ['Expense tracking', 'Limited', 'Included', 'Included'], ['Receipt storage', 'Limited', 'Limited', 'Expanded'], ['Project timeline', '—', '—', 'Included'], ['Milestone management', '—', '—', 'Included'], ['Project reports', '—', '—', 'Included'], ['Collaborate with artisans', '—', 'Limited', 'Included'], ['Project document export', '—', 'Limited', 'Included'],
+  ['Account registration', 'Included', 'Included', 'Included'],
+  ['AI Project Assistant', 'Included', 'Included', 'Included'],
+  ['Project photo analyses', '1', '2', '5'],
+  ['Active project workspaces', '1', '1', '3'],
+  ['Documents per project', '5', '20', '50'],
+  ['Maximum document size', '5 MB', '10 MB', '10 MB'],
+  ['Storage per project', '25 MB', '200 MB', '500 MB'],
+  ['Materials estimates and editable lists', 'Included', 'Included', 'Included'],
+  ['Expense and budget records', 'Included', 'Included', 'Included'],
+  ...(hardwareQuotesEnabled() ? [['Hardware quotation requests', '1', '3', '10']] : []),
+  ['Find and contact artisans', 'Included', 'Included', 'Included'],
+  ['Milestone management', '—', '—', 'Included'],
+  ['Expanded pass duration', '—', '30 days', '90 days'],
 ];
 
 const journeySteps: Array<{ icon: PlanVisual['icon']; step: string; title: string; text: string; image: string; note: string }> = [
