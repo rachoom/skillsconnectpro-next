@@ -446,11 +446,14 @@ export async function POST(request: NextRequest) {
       return intakeResponse(cachedAssessment, false, description, answers, questionsAlreadyAsked);
     }
 
-    // Charge a signed-in customer once for a new image-led brief, not for each
-    // clarification round carrying the same photo forward.
-    if (image && questionsAlreadyAsked === 0) {
-      const { user } = await getAuthenticatedAccount();
-      if (user) {
+    // Charge one customer photo allowance for the initial image-led brief.
+    // For clarification rounds, recheck the paid subscription so that the
+    // general anti-abuse guard does not override a valid paid photo allowance.
+    // Never derive paid access from browser-controlled fields.
+    let verifiedPlanCode: string | null = null;
+    if (image) {
+      const { supabase, user } = await getAuthenticatedAccount();
+      if (user && questionsAlreadyAsked === 0) {
         const photoUsage = await reserveCustomerPhotoAssessment(user.id);
         if (!photoUsage.allowed) {
           return NextResponse.json({
@@ -461,10 +464,23 @@ export async function POST(request: NextRequest) {
           }, { status: 403 });
         }
         photoReservation = photoUsage.reservation;
+        verifiedPlanCode = photoUsage.planCode;
+      } else if (user) {
+        const { data: subscription, error: subscriptionError } = await supabase
+          .from('account_subscriptions')
+          .select('plan_code')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .gt('ends_at', new Date().toISOString())
+          .order('starts_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        // When the subscription cannot be checked, keep the safer free guard.
+        if (!subscriptionError) verifiedPlanCode = subscription?.plan_code ?? null;
       }
     }
 
-    const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image)));
+    const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image), verifiedPlanCode));
     if (!guarded.allowed) {
       await releaseCustomerPhotoAssessment(photoReservation);
       return guarded.response;
