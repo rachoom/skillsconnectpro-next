@@ -252,14 +252,24 @@ export function withAiUsageCookie(response: NextResponse, reservation: UsageRese
   return response;
 }
 
-export const customerProjectUsage = (hasImage: boolean): UsageProfile => ({
-  kind: 'customer_project',
-  hasImage,
-  reserveCents: hasImage ? 100 : 50,
-  sessionLimit: 4,
-  imageLimit: 1,
-  windowSeconds: 60 * 60 * 24 * 7,
-});
+/**
+ * The signed-in customer's plan allowance is enforced independently by
+ * consume_customer_photo_assessment. Paid users need enough headroom here for
+ * both photos *and* follow-up clarification rounds carrying those same images.
+ * Retain a finite anti-abuse ceiling and the independent monthly AI budget.
+ * Only a server-verified current subscription may request the paid profile.
+ */
+export const customerProjectUsage = (hasImage: boolean, verifiedPlanCode: string | null = null): UsageProfile => {
+  const paid = verifiedPlanCode === 'basic_30' || verifiedPlanCode === 'project_pass_90';
+  return {
+    kind: 'customer_project',
+    hasImage,
+    reserveCents: hasImage ? 100 : 50,
+    sessionLimit: paid ? 30 : 4,
+    imageLimit: paid ? 30 : 1,
+    windowSeconds: 60 * 60 * 24 * 7,
+  };
+};
 
 export const quickIntentUsage = (hasImage: boolean): UsageProfile => ({
   kind: 'quick_intent',
