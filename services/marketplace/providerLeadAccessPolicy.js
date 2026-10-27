@@ -11,14 +11,14 @@ export const PROVIDER_SUBSCRIPTION_PLANS = [
     name: 'Growth',
     price: 99,
     cadence: 'month',
-    description: 'More visibility for a steadily growing service business.',
+    description: 'Standard provider access; higher-tier visibility is not yet enabled.',
   },
   {
     code: 'pro_monthly',
     name: 'Pro',
     price: 199,
     cadence: 'month',
-    description: 'Priority positioning for established providers.',
+    description: 'Standard provider access; Pro priority ranking is not yet enabled.',
   },
 ];
 
