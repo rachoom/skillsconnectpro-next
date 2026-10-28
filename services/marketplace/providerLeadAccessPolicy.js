@@ -4,21 +4,21 @@ export const PROVIDER_SUBSCRIPTION_PLANS = [
     name: 'Starter',
     price: 49,
     cadence: 'month',
-    description: 'Keep receiving local customer opportunities.',
+    description: '15 customer-opportunity responses per paid month after the three complimentary responses.',
   },
   {
     code: 'growth_monthly',
     name: 'Growth',
     price: 99,
     cadence: 'month',
-    description: 'Standard provider access; higher-tier visibility is not yet enabled.',
+    description: '40 customer-opportunity responses per paid month, with standard matching.',
   },
   {
     code: 'pro_monthly',
     name: 'Pro',
     price: 199,
     cadence: 'month',
-    description: 'Standard provider access; Pro priority ranking is not yet enabled.',
+    description: '100 customer-opportunity responses per paid month, with standard matching.',
   },
 ];
 
@@ -29,6 +29,7 @@ export const PROVIDER_LEAD_PACKS = [
 ];
 
 export const DEFAULT_FREE_LEAD_LIMIT = 3;
+export const PROVIDER_MONTHLY_RESPONSE_LIMITS = Object.freeze({ starter_monthly: 15, growth_monthly: 40, pro_monthly: 100 });
 
 export function parseFreeLeadLimit(value) {
   const parsed = Number(value);
@@ -54,7 +55,12 @@ export function buildProviderLeadAccess({
   const subscriptionCodes = new Set(PROVIDER_SUBSCRIPTION_PLANS.map((plan) => plan.code));
   const leadPackCodes = new Set(PROVIDER_LEAD_PACKS.map((pack) => pack.code));
   const activeEntitlements = (entitlements || []).filter((entitlement) => activeEntitlement([entitlement], now));
-  const paidSubscription = activeEntitlements.find((entitlement) => subscriptionCodes.has(entitlement.plan_code)) || null;
+  const paidSubscription = activeEntitlements
+    .filter((entitlement) => subscriptionCodes.has(entitlement.plan_code))
+    .sort((a, b) => (PROVIDER_MONTHLY_RESPONSE_LIMITS[b.plan_code] ?? 0) - (PROVIDER_MONTHLY_RESPONSE_LIMITS[a.plan_code] ?? 0))
+    .find((entitlement) => Number(entitlement.qualified_leads_used || 0) < Number(
+      entitlement.qualified_leads_limit ?? PROVIDER_MONTHLY_RESPONSE_LIMITS[entitlement.plan_code] ?? 0
+    )) || null;
   const leadPack = activeEntitlements.find((entitlement) => (
     leadPackCodes.has(entitlement.plan_code)
     && Number(entitlement.qualified_leads_used || 0) < Number(entitlement.qualified_leads_limit || 0)
@@ -74,7 +80,7 @@ export function buildProviderLeadAccess({
     hasPaidAccess,
     locked: freeLeadsRemaining === 0 && !hasPaidAccess,
     activePlan: paidSubscription
-      ? { id: paidSubscription.id, code: paidSubscription.plan_code, type: 'subscription' }
+      ? { id: paidSubscription.id, code: paidSubscription.plan_code, type: 'subscription', remaining: Math.max(0, Number(paidSubscription.qualified_leads_limit ?? PROVIDER_MONTHLY_RESPONSE_LIMITS[paidSubscription.plan_code]) - Number(paidSubscription.qualified_leads_used || 0)), qualifiedLeadsUsed: Number(paidSubscription.qualified_leads_used || 0), qualifiedLeadsLimit: Number(paidSubscription.qualified_leads_limit ?? PROVIDER_MONTHLY_RESPONSE_LIMITS[paidSubscription.plan_code]) }
       : leadPack
         ? {
             id: leadPack.id,
