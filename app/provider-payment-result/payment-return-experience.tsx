@@ -192,15 +192,17 @@ export function ProviderPaymentReturnExperience({
             )}
           </div>
           <div className="flex flex-col gap-3">
-            <Link href={isConfirmed ? '/artisan-business' : '/provider-plans'}
-              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-[#F5C518] px-5 py-4 text-center text-sm font-extrabold text-[#191909] shadow-[0_12px_30px_rgba(245,197,24,.14)] transition hover:bg-[#ffdf4c]">
-              {isConfirmed ? 'Open artisan workspace' : 'View provider plans'} <ArrowRight size={19}/>
-            </Link>
-            {isPending && paymentReference && !demoState && (
+            {isPending && paymentReference && !demoState ? (
               <button type="button" disabled={checking} onClick={() => { setAttempts(0); void refresh(); }}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-[#F5C518]/35 bg-white/[.035] px-5 py-3 text-sm font-bold text-[#f6e3a1] hover:bg-white/[.08] disabled:opacity-60">
-                <RefreshCw size={16} className={checking ? 'animate-spin' : ''} /> {checking ? 'Checking securely…' : 'Check payment status'}
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#F5C518] px-5 py-4 text-sm font-extrabold text-[#191909] shadow-[0_12px_30px_rgba(245,197,24,.14)] transition hover:bg-[#ffdf4c] disabled:opacity-60">
+                <RefreshCw size={18} className={checking ? 'animate-spin' : ''}/>
+                {checking ? 'Checking securely…' : 'Check payment status'}
               </button>
+            ) : (
+              <Link href={isConfirmed ? '/artisan-business' : '/provider-plans'}
+                className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-[#F5C518] px-5 py-4 text-center text-sm font-extrabold text-[#191909] shadow-[0_12px_30px_rgba(245,197,24,.14)] transition hover:bg-[#ffdf4c]">
+                {isConfirmed ? 'Open artisan workspace' : 'View provider plans'} <ArrowRight size={19}/>
+              </Link>
             )}
             <Link href={isConfirmed ? '/provider-plans' : '/artisan-business'}
               className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#dbd8c8] hover:text-[#F5C518]">
