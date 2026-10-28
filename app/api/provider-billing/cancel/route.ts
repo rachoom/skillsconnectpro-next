@@ -11,7 +11,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
   const host = request.headers.get('host');
-  if (!origin || !host || new URL(origin).host !== host) {
+  let sameOrigin = false;
+  try { sameOrigin = Boolean(origin && host && new URL(origin).host === host); } catch {}
+  if (!sameOrigin) {
     return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 });
   }
   const { supabase, user } = await getAuthenticatedAccount();
@@ -55,8 +57,8 @@ export async function POST(request: Request) {
     const result = await admin.rpc('record_provider_subscription_cancellation', {
       p_provider_id: providerId, p_plan_code: subscription.plan_code,
     });
-    if (result.error) {
-      console.error('Subscription cancelled at Payfast but local reconciliation failed:', result.error.message);
+    if (result.error || result.data !== true) {
+      console.error('Subscription cancelled at Payfast but local reconciliation failed:', result.error?.message ?? 'no active entitlement');
       return NextResponse.json({ error: 'Payfast accepted cancellation; support must confirm the local update.' }, { status: 503 });
     }
     return NextResponse.json({ ok: true, message: 'Future recurring payments cancelled. Current access remains until the paid period ends.' });
