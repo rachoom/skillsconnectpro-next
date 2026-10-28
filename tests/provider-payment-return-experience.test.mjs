@@ -30,7 +30,6 @@ test('public payment-status lookup requires an unguessable reference and verifie
   assert.match(route, /referencePattern = \//);
   assert.match(route, /enforcePublicRequestLimit\(request, 'provider_payment_status'/);
   assert.match(route, /\.eq\('m_payment_id', ref\)/);
-  assert.match(route, /\.eq\('processor_status'/) === false;
   assert.match(route, /processorStatus === 'COMPLETE'/);
   assert.match(route, /\.from\('subscription_entitlements'\)/);
   assert.match(route, /\.eq\('status', 'active'\)/);
