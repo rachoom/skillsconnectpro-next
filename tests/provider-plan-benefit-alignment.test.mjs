@@ -12,7 +12,10 @@ test('provider tiers publish differentiated, enforceable monthly response limits
     assert.match(policy, new RegExp(code + ': ' + amount));
     assert.match(migration, new RegExp("when '" + code + "' then " + amount));
   }
-  assert.match(catalog, /without paid priority ranking/i);
+  assert.match(catalog, /100 paid opportunity responses each month/);
+  assert.match(catalog, /40 paid opportunity responses each month/);
+  assert.match(catalog, /15 paid opportunity responses each month/);
+  assert.doesNotMatch(catalog, /without paid priority ranking|No advanced multi-artisan|Recurring payment via Payfast/i);
   assert.doesNotMatch(policy, /Priority positioning for established providers/);
 });
 
