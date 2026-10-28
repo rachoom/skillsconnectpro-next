@@ -86,3 +86,31 @@ export function payfastNotificationUrl(siteOrigin: string, mode: PayfastMode): s
   }
   return notify.toString();
 }
+
+/** Signed Payfast merchant API request; distinct from the checkout signature. */
+export function payfastApiSignature(fields: Record<string, string>, passphrase: string): string {
+  const sorted = Object.entries({ ...fields, passphrase }).filter(([, value]) => value !== '')
+    .sort(([a], [b]) => a.localeCompare(b));
+  const params = new URLSearchParams();
+  for (const [key, value] of sorted) params.append(key, value);
+  return createHash('md5').update(params.toString()).digest('hex');
+}
+
+/** Only used after authenticated ownership and subscription-token lookup. */
+export async function cancelPayfastSubscription(subscriptionToken: string): Promise<boolean> {
+  if (!/^[a-zA-Z0-9-]{20,80}$/.test(subscriptionToken)) throw new Error('Invalid Payfast subscription token');
+  const config = getPayfastConfig();
+  const timestamp = new Date().toISOString().slice(0, 19) + '+00:00';
+  const unsigned = { 'merchant-id': config.merchantId, version: 'v1', timestamp };
+  const signature = payfastApiSignature(unsigned, config.passphrase);
+  const endpoint = new URL(`https://api.payfast.co.za/subscriptions/${encodeURIComponent(subscriptionToken)}/cancel`);
+  if (config.mode === 'sandbox') endpoint.searchParams.set('testing', 'true');
+  const response = await fetch(endpoint, {
+    method: 'PUT',
+    headers: { ...unsigned, signature },
+    redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(12_000),
+  });
+  if (!response.ok) return false;
+  const body = await response.json().catch(() => null);
+  return body?.status === 'success' && body?.data?.response === true;
+}
