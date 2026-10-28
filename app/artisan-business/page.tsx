@@ -18,6 +18,7 @@ import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { buildProviderLeadAccess, parseFreeLeadLimit } from '@/services/marketplace/providerLeadAccessPolicy.js';
 import { WorkspaceThemeToggle } from '../my-projects/workspace-theme-toggle';
+import { ProviderBillingControls } from './provider-billing-controls';
 import styles from '../my-projects/workspace.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -162,7 +163,7 @@ export default async function ArtisanBusinessPage() {
       .order('created_at', { ascending: false })
       .limit(40),
     admin.from('subscription_entitlements')
-      .select('id,plan_code,status,qualified_leads_used,qualified_leads_limit,starts_at,ends_at')
+      .select('id,plan_code,status,qualified_leads_used,qualified_leads_limit,starts_at,ends_at,metadata')
       .eq('subject_type', 'provider')
       .eq('subject_id', String(providerId))
       .in('status', ['trial', 'active'])
@@ -201,8 +202,11 @@ export default async function ArtisanBusinessPage() {
   const projectById = new Map(projects.map((project) => [project.id, project]));
   const responseByInvitation = new Map(responses.map((response) => [response.lead_invitation_id, response]));
 
-  const countedLeadStatuses = new Set(['sent', 'delivered', 'viewed', 'accepted']);
-  const usedFreeLeads = invitations.filter((row) => countedLeadStatuses.has(row.status)).length;
+  // Complimentary leads count submitted, non-declined responses, not invitations sent.
+  const historicalResponseCount = await admin.from('provider_responses')
+    .select('id', { head: true, count: 'exact' }).eq('provider_id', providerId).neq('response_type', 'declined');
+  if (historicalResponseCount.error) console.error('Provider free response count unavailable:', historicalResponseCount.error.message);
+  const usedFreeLeads = historicalResponseCount.count ?? responses.filter((row) => row.response_type !== 'declined').length;
   const leadAccess = buildProviderLeadAccess({
     usedFreeLeads,
     freeLeadLimit: parseFreeLeadLimit(process.env.PROVIDER_FREE_LEAD_LIMIT),
@@ -213,6 +217,8 @@ export default async function ArtisanBusinessPage() {
   const selectedJobs = matches.filter((row) => ['selected', 'accepted', 'contact_released', 'in_progress'].includes(row.status));
   const completedJobs = matches.filter((row) => row.status === 'completed');
   const providerPlan = leadAccess.activePlan?.code ?? null;
+  const activeSubscription = entitlements.find((row) => ['starter_monthly','growth_monthly','pro_monthly'].includes(row.plan_code)
+    && row.status === 'active' && (!row.ends_at || new Date(row.ends_at).getTime() > Date.now()));
   const availability = availabilityResult.data;
   const providerPlansHref = '/provider-plans?provider=' + providerId;
 
@@ -248,6 +254,16 @@ export default async function ArtisanBusinessPage() {
           <div className={styles.stat}><span>Active jobs</span><strong>{selectedJobs.length}</strong></div>
           <div className={styles.stat}><span>Lead access</span><strong style={{ fontSize: '1.05rem' }}>{planLabel(providerPlan)}</strong></div>
         </section>
+
+        {activeSubscription && (
+          <ProviderBillingControls
+            plan={planLabel(activeSubscription.plan_code)}
+            limit={Number(activeSubscription.qualified_leads_limit ?? (activeSubscription.plan_code === 'pro_monthly' ? 100 : activeSubscription.plan_code === 'growth_monthly' ? 40 : 15))}
+            remaining={Math.max(0, Number(activeSubscription.qualified_leads_limit ?? (activeSubscription.plan_code === 'pro_monthly' ? 100 : activeSubscription.plan_code === 'growth_monthly' ? 40 : 15)) - Number(activeSubscription.qualified_leads_used || 0))}
+            periodEnd={activeSubscription.ends_at}
+            cancellationPending={Boolean((activeSubscription as { metadata?: { cancel_at_period_end?: boolean } }).metadata?.cancel_at_period_end)}
+          />
+        )}
 
         <section className={styles.panelGrid}>
           <div className={styles.panel}>
