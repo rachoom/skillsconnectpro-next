@@ -58,6 +58,23 @@ export async function POST(request: Request) {
 
     const provider = await findProvider(body);
     if (!provider) return NextResponse.json({ error: 'We could not find that provider account. Use the email address or mobile number you used when joining Skills Connect Pro.' }, { status: 404 });
+    // Prevent an artisan from unintentionally paying for two automatically
+    // renewing monthly plans. Changing tiers is available once the current
+    // paid period ends, after the old recurring subscription is cancelled.
+    if (plan.kind === 'subscription') {
+      const existing = await getSupabaseAdmin().from('subscription_entitlements')
+        .select('plan_code,ends_at').eq('subject_type', 'provider')
+        .eq('subject_id', String(provider.id)).eq('status', 'active')
+        .in('plan_code', ['starter_monthly','growth_monthly','pro_monthly'])
+        .gt('ends_at', new Date().toISOString()).limit(1).maybeSingle();
+      if (existing.error) throw new Error('Unable to verify existing provider subscriptions.');
+      if (existing.data) {
+        return NextResponse.json({
+          error: 'You already have an active monthly plan. Cancel its future renewals from your Artisan Business Workspace and choose a new tier when the current paid period ends.',
+          currentPlan: existing.data.plan_code,
+        }, { status: 409 });
+      }
+    }
     const config = getPayfastConfig();
     const amount = Number(plan.price.replace(/[^\d.]/g, ''));
     if (!Number.isFinite(amount) || amount < 5) throw new Error('This plan has an invalid payment amount.');
