@@ -29,7 +29,7 @@ test('Payfast ITN still validates signatures, Payfast transaction authenticity a
   const itn = read('../app/api/payments/payfast/itn/route.ts');
   assert.match(itn, /secureEqualHex\(signature, payfastSignature\(fields, config\.passphrase\)\)/);
   assert.match(itn, /validateWithPayfast\(rawPayload, config\.validateUrl\)/);
-  assert.match(itn, /paidCents !== Number\(payment\.amount_cents\)/);
+  assert.match(itn, /paidCents !== Number\(payment!\.amount_cents\)/);
   assert.match(itn, /grant_customer_payment_entitlement/);
   assert.match(itn, /grant_provider_payment_entitlement/);
 });
