@@ -126,11 +126,10 @@ async function loadProviderLeadAccess(
   const providerSubjectId = String(providerId);
   const [{ count, error: countError }, { data: entitlementData, error: entitlementError }] = await Promise.all([
     supabase
-      .from('lead_invitations')
+      .from('provider_responses')
       .select('id', { count: 'exact', head: true })
-      .eq('provider_id', providerId)
-      .neq('id', currentInvitationId)
-      .in('status', ['sent', 'delivered', 'viewed', 'accepted']),
+      .eq('provider_id', providerSubjectId)
+      .neq('response_type', 'declined'),
     supabase
       .from('subscription_entitlements')
       .select('id, plan_code, status, qualified_leads_used, qualified_leads_limit, starts_at, ends_at')
@@ -150,24 +149,6 @@ async function loadProviderLeadAccess(
   }) as ProviderLeadAccess;
 }
 
-async function consumeLeadPackCredit(access: ProviderLeadAccess): Promise<void> {
-  if (access.activePlan?.type !== 'lead_pack' || !access.activePlan.id) return;
-
-  const used = access.activePlan.qualifiedLeadsUsed ?? 0;
-  const limit = access.activePlan.qualifiedLeadsLimit ?? 0;
-  if (used >= limit) throw new Error('Your lead pack has no remaining credits.');
-
-  const { data, error } = await getSupabaseAdmin()
-    .from('subscription_entitlements')
-    .update({ qualified_leads_used: used + 1 })
-    .eq('id', access.activePlan.id)
-    .eq('qualified_leads_used', used)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw new Error(`Unable to use lead credit: ${error.message}`);
-  if (!data) throw new Error('That lead credit was just used. Please reopen this opportunity.');
-}
 
 export async function getProviderOpportunity(token: string): Promise<ProviderOpportunity | null> {
   const invitation = await findInvitationByToken(token);
@@ -285,10 +266,6 @@ export async function submitProviderResponse(
   ensureTokenActive(invitation);
 
   if (!input.responseType) throw new Error('responseType is required.');
-  const leadAccess = await loadProviderLeadAccess(invitation.provider_id, invitation.id);
-  if (leadAccess.locked && input.responseType !== 'declined') {
-    throw new Error('This opportunity is locked. Choose a provider plan to unlock and respond to more leads.');
-  }
   assertOptionalMoney(input.siteVisitFee, 'siteVisitFee');
   assertOptionalMoney(input.estimateMin, 'estimateMin');
   assertOptionalMoney(input.estimateMax, 'estimateMax');
@@ -303,106 +280,32 @@ export async function submitProviderResponse(
     throw new Error('estimateMin cannot be greater than estimateMax.');
   }
 
-  const supabase = getSupabaseAdmin();
-  const { data: projectState, error: projectStateError } = await supabase
-    .from('projects')
-    .select('status')
-    .eq('id', invitation.project_id)
-    .single();
-  if (projectStateError || !projectState) {
-    throw new Error(`Unable to verify project status: ${projectStateError?.message ?? 'Project not found.'}`);
-  }
-  if (['provider_selected', 'contact_released', 'in_progress', 'disputed'].includes(projectState.status)) {
-    throw new Error('This customer has already selected a provider. New responses are closed.');
-  }
-  if (['cancelled', 'completed', 'unfulfilled'].includes(projectState.status)) {
-    throw new Error(`This project is ${projectState.status}. New provider responses are closed.`);
-  }
-  if (['accepted', 'declined'].includes(invitation.status)) {
-    throw new Error('You have already submitted a final response to this opportunity.');
-  }
-
-  const declined = input.responseType === 'declined';
-  const invitationStatus = declined ? 'declined' : 'accepted';
-
-  const { data: responseData, error: responseError } = await supabase
-    .from('provider_responses')
-    .upsert(
-      {
-        lead_invitation_id: invitation.id,
-        project_id: invitation.project_id,
-        provider_id: invitation.provider_id,
-        response_type: input.responseType,
-        arrival_window_start: input.arrivalWindowStart ?? null,
-        arrival_window_end: input.arrivalWindowEnd ?? null,
-        site_visit_fee: input.siteVisitFee ?? null,
-        estimate_min: input.estimateMin ?? null,
-        estimate_max: input.estimateMax ?? null,
-        estimate_currency: input.estimateCurrency ?? 'ZAR',
-        provider_message: input.providerMessage?.trim() || null,
-        valid_until: input.validUntil ?? null,
-      },
-      { onConflict: 'lead_invitation_id' },
-    )
-    .select('id')
-    .single();
-
-  if (responseError) throw new Error(`Unable to save provider response: ${responseError.message}`);
-  if (!responseData) throw new Error('Unable to save provider response: no row returned.');
-
-  if (!declined) {
-    try {
-      await consumeLeadPackCredit(leadAccess);
-    } catch (creditError) {
-      // The provider response is already durable. Keep the customer workflow
-      // intact and surface the reconciliation failure for operational follow-up.
-      console.error('Provider response saved but lead-pack credit was not consumed:', creditError);
-    }
-  }
-
-  const { error: invitationError } = await supabase
-    .from('lead_invitations')
-    .update({ status: invitationStatus })
-    .eq('id', invitation.id);
-
-  if (invitationError) {
-    throw new Error(`Provider response saved but invitation update failed: ${invitationError.message}`);
-  }
-
-  if (!declined) {
-    const { error: projectError } = await supabase
-      .from('projects')
-      .update({ status: 'responses_received' })
-      .eq('id', invitation.project_id)
-      .in('status', ['assessment_complete', 'matching', 'responses_received']);
-
-    if (projectError) {
-      console.error('Provider response saved but project status update failed:', projectError.message);
-    }
-  }
-
-  const { error: eventError } = await supabase.from('project_status_events').insert({
-    project_id: invitation.project_id,
-    event_type: declined ? 'provider_declined' : 'provider_response_received',
-    actor_type: 'provider',
-    actor_id: String(invitation.provider_id),
-    message: declined
-      ? 'A provider declined the opportunity.'
-      : 'A provider submitted an availability or estimate response.',
-    event_data: {
-      invitationId: invitation.id,
-      responseId: responseData.id,
-      responseType: input.responseType,
-    },
+  // The invitation was resolved from an opaque token above; only service_role
+  // can call this RPC. The RPC rechecks project and link state under row locks
+  // and atomically saves the response, invitation, event and lead usage.
+  const { data, error } = await getSupabaseAdmin().rpc('submit_provider_response_billed', {
+    p_invitation_id: invitation.id,
+    p_response_type: input.responseType,
+    p_arrival_window_start: input.arrivalWindowStart ?? null,
+    p_arrival_window_end: input.arrivalWindowEnd ?? null,
+    p_site_visit_fee: input.siteVisitFee ?? null,
+    p_estimate_min: input.estimateMin ?? null,
+    p_estimate_max: input.estimateMax ?? null,
+    p_estimate_currency: input.estimateCurrency ?? 'ZAR',
+    p_provider_message: input.providerMessage?.trim() || null,
+    p_valid_until: input.validUntil ?? null,
   });
 
-  if (eventError) {
-    console.error('Provider response saved but timeline event failed:', eventError.message);
+  if (error) {
+    if (error.message.includes('PROVIDER_RESPONSE_LIMIT')) {
+      throw new Error('Your response allowance is used up. Choose a provider plan or lead pack to continue.');
+    }
+    throw new Error(`Unable to submit your response: ${error.message}`);
   }
-
+  if (!data?.responseId || !data.projectId) throw new Error('Provider response was not confirmed.');
   return {
-    responseId: responseData.id,
-    projectId: invitation.project_id,
-    invitationStatus,
+    responseId: String(data.responseId),
+    projectId: String(data.projectId),
+    invitationStatus: String(data.invitationStatus),
   };
 }
