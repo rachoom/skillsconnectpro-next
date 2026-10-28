@@ -11,7 +11,10 @@ test('invitation reply deadline and secure link expiry are separate', () => {
 });
 test('closed or connected projects do not accept new provider responses', () => {
   const providerResponses = read('../services/marketplace/providerResponses.ts');
-  assert.match(providerResponses, /provider_selected', 'contact_released', 'in_progress', 'disputed'/);
-  assert.match(providerResponses, /cancelled', 'completed', 'unfulfilled'/);
+  const atomic = read('../supabase/migrations/202610280001_provider_atomic_response_quotas.sql');
   assert.match(providerResponses, /ensureTokenActive\(invitation\)/);
+  assert.match(providerResponses, /submit_provider_response_billed/);
+  assert.match(atomic, /provider_selected','contact_released','in_progress','disputed'/);
+  assert.match(atomic, /cancelled','completed','unfulfilled'/);
+  assert.match(atomic, /response_token_expires_at <= now\(\)/);
 });
