@@ -30,7 +30,7 @@ export const providerPlans: ProviderPlan[] = [
       'Customer contact released only after the customer selects you',
       'Existing Artisan Business Workspace tools',
       'Access period: one month after each verified payment',
-      'Recurring payment via Payfast; contact support to request cancellation of future billing',
+      'Recurring payment via Payfast; cancel future renewals from your Artisan Business Workspace',
     ],
   },
   {
@@ -48,7 +48,7 @@ export const providerPlans: ProviderPlan[] = [
       '40 paid responses per month (Starter includes 15)',
       'Customer contact released only after customer selection',
       'Access period: one month after each verified payment',
-      'Recurring payment via Payfast; contact support to request cancellation of future billing',
+      'Recurring payment via Payfast; cancel future renewals from your Artisan Business Workspace',
     ],
   },
   {
@@ -67,7 +67,7 @@ export const providerPlans: ProviderPlan[] = [
       '100 paid responses per month (Growth includes 40)',
       'No advanced multi-artisan team collaboration yet',
       'Access period: one month after each verified payment',
-      'Recurring payment via Payfast; contact support to request cancellation of future billing',
+      'Recurring payment via Payfast; cancel future renewals from your Artisan Business Workspace',
     ],
   },
   {
