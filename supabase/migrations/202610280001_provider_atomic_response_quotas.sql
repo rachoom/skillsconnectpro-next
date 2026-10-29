@@ -64,6 +64,7 @@ begin
 
   if p_response_type not in
     ('available_now','available_today','available_tomorrow',
+     'available_this_week','available_next_week',
      'site_visit','estimate','need_information','declined') then
     raise exception 'Invalid response type';
   end if;
