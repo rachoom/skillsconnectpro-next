@@ -94,6 +94,17 @@ test('anonymous previews and text-only requests do not debit a signed-in photo a
   assert.equal(calls.length, 0);
 });
 
+test('verified paid photo plans retain finite headroom in both image workflows', () => {
+  const guard = load('../services/aiUsageGuard.ts', { './supabaseAdmin': {} });
+  for (const profile of [guard.customerProjectUsage, guard.quickIntentUsage]) {
+    assert.equal(profile(true).imageLimit, 1);
+    assert.equal(profile(true, 'unrecognized').imageLimit, 1);
+    assert.ok(profile(true, 'basic_30').imageLimit >= 2);
+    assert.ok(profile(true, 'project_pass_90').imageLimit >= 5);
+    assert.ok(profile(true, 'project_pass_90').imageLimit <= 30);
+  }
+});
+
 function checkout({ signedIn = true, linked = 7 } = {}) {
   let selectedProvider;
   let inserted;
@@ -132,5 +143,31 @@ test('anonymous and unlinked checkout attempts cannot look up a provider or crea
     assert.equal((await context.route.POST(purchase())).status, status);
     assert.equal(context.selected(), undefined);
     assert.equal(context.inserted(), undefined);
+  }
+});
+
+test('workspace access distinguishes owners, collaborators, viewers and inaccessible projects', async () => {
+  for (const [owner, memberRole, visible, permission, allowed] of [
+    [true, null, true, 'write', true],
+    [false, 'collaborator', true, 'write', true],
+    [false, 'viewer', true, 'read', true],
+    [false, 'viewer', true, 'write', false],
+    [false, 'collaborator', false, 'read', false],
+  ]) {
+    const account = { id: 'current-user' };
+    const supabase = { from: table => {
+      const query = { select: () => query, eq: () => query, maybeSingle: async () => ({ error: null,
+        data: table === 'projects' ? (visible ? { id: 'project-id', customer_id: owner ? account.id : 'other-user' } : null)
+          : { member_role: memberRole } }) };
+      return query;
+    } };
+    const access = load('../services/projectWorkspaceAccess.ts', {
+      'server-only': {},
+      '@/services/supabase/server': { getAuthenticatedAccount: async () => ({ user: account, supabase }) },
+      '@/services/supabaseAdmin': { getSupabaseAdmin: () => ({}) },
+    });
+    const result = await access.requireProjectWorkspaceAccess('project-id', permission);
+    assert.equal(result.ok, allowed, `${owner}/${memberRole}/${visible}/${permission}`);
+    if (result.ok) assert.equal(result.isOwner, owner);
   }
 });

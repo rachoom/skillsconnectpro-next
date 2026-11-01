@@ -271,12 +271,12 @@ export const customerProjectUsage = (hasImage: boolean, verifiedPlanCode: string
   };
 };
 
-export const quickIntentUsage = (hasImage: boolean): UsageProfile => ({
+export const quickIntentUsage = (hasImage: boolean, verifiedPlanCode: string | null = null): UsageProfile => ({
   kind: 'quick_intent',
   hasImage,
   reserveCents: hasImage ? 25 : 10,
-  sessionLimit: 4,
-  imageLimit: 1,
+  sessionLimit: verifiedPlanCode === 'basic_30' || verifiedPlanCode === 'project_pass_90' ? 30 : 4,
+  imageLimit: verifiedPlanCode === 'basic_30' || verifiedPlanCode === 'project_pass_90' ? 30 : 1,
   windowSeconds: 60 * 60 * 24 * 7,
 });
 

@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       const photoAccess = await reserveCustomerPhotoImage(image);
       if (!photoAccess.allowed) return photoAccess.response;
       photoReservation = photoAccess.reservation;
-      const guarded = await reserveAiUsage(request, quickIntentUsage(true));
+      const guarded = await reserveAiUsage(request, quickIntentUsage(true, photoAccess.planCode));
       if (!guarded.allowed) { await releaseCustomerPhotoAssessment(photoReservation); return guarded.response; }
       reservation = guarded.reservation;
       const mimeType = String(body.mimeType ?? 'image/jpeg');

@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const photoAccess = await reserveCustomerPhotoImage(imageStr);
     if (!photoAccess.allowed) return photoAccess.response;
     photoReservation = photoAccess.reservation;
-    const guarded = await reserveAiUsage(req, quickIntentUsage(Boolean(imageStr)));
+    const guarded = await reserveAiUsage(req, quickIntentUsage(Boolean(imageStr), photoAccess.planCode));
     if (!guarded.allowed) { await releaseCustomerPhotoAssessment(photoReservation); return guarded.response; }
     reservation = guarded.reservation;
 

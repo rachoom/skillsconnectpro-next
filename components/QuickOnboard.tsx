@@ -66,6 +66,7 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
   const [photoConsent, setPhotoConsent] = useState(false);
   const [error, setError] = useState('');
   const [addingPhotos, setAddingPhotos] = useState(false);
+  const [manualEntry, setManualEntry] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
   const cardFileRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -80,6 +81,7 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
       return;
     }
     setStep('scanning');
+    setManualEntry(false);
     setError('');
     try {
       const compressed = await compressImage(file, 900 * 1024);
@@ -218,6 +220,10 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 p-3 text-sm font-bold text-white hover:bg-white/10">
                 <Upload size={18} /> Upload an existing photo
               </button>
+              <button type="button" onClick={() => { setManualEntry(true); setError(''); setStep('review'); }}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/20 p-3 text-sm font-bold text-white hover:bg-white/10">
+                <PencilLine size={18} /> Enter my details myself
+              </button>
             </div>
             <p className="mt-4 text-center text-[11px] leading-5 text-emerald-100/50">No long forms. Your application is reviewed before activation.</p>
           </div>
@@ -237,7 +243,7 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
               <span className="rounded-2xl bg-amber-300/15 p-3 text-amber-300"><PencilLine size={25} /></span>
               <div><h2 className="text-2xl font-black tracking-tight">Almost there!</h2><p className="text-xs text-emerald-100/60">Step 2 of 2 · Check and complete</p></div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-emerald-50/75">AI filled in what it could find. Make sure these details are correct before submitting.</p>
+            <p className="mt-4 text-sm leading-6 text-emerald-50/75">{manualEntry ? 'Enter your contact details and the service you offer. You can add work photos below.' : 'AI filled in what it could find. Make sure these details are correct before submitting.'}</p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {([
                 ['name', 'Your name'],
