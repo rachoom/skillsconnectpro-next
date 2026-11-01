@@ -1,3 +1,4 @@
+import { reserveCustomerPhotoImage, settleCustomerPhotoAssessment, releaseCustomerPhotoAssessment, type CustomerPhotoUsageReservation } from '@/services/customerPlanUsage';
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { customerProjectUsage, readAiResponseCache, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie, writeAiResponseCache } from '@/services/aiUsageGuard';
 import { NextResponse } from 'next/server';
@@ -197,6 +198,7 @@ function baselineEstimate(prompt: string): EstimatePayload | null {
 
 export async function POST(req: Request) {
   let reservation: UsageReservation | null = null;
+  let photoReservation: CustomerPhotoUsageReservation | null = null;
   try {
     const blocked = await enforcePublicRequestLimit(req, 'estimate', 20);
     if (blocked) return blocked;
@@ -218,15 +220,19 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join('\n');
 
+    const photoAccess = await reserveCustomerPhotoImage(imageStr);
+    if (!photoAccess.allowed) return photoAccess.response;
+    photoReservation = photoAccess.reservation;
     // Version the cache source so previously cached empty/truncated estimates are ignored.
     const cacheSource = JSON.stringify({ version: 2, prompt, image: imageStr, qaHistory });
     const cachedEstimate = await readAiResponseCache<{ estimate?: string }>('estimate', cacheSource);
     if (cachedEstimate?.estimate && usableEstimate(cachedEstimate.estimate, prompt)) {
+      await settleCustomerPhotoAssessment(photoReservation);
       return NextResponse.json(cachedEstimate);
     }
 
-    const guarded = await reserveAiUsage(req, customerProjectUsage(Boolean(imageStr)));
-    if (!guarded.allowed) return guarded.response;
+    const guarded = await reserveAiUsage(req, customerProjectUsage(Boolean(imageStr), photoAccess.planCode));
+    if (!guarded.allowed) { await releaseCustomerPhotoAssessment(photoReservation); return guarded.response; }
     reservation = guarded.reservation;
 
     const contents: any[] = [
@@ -254,6 +260,7 @@ export async function POST(req: Request) {
     if (!usableEstimate(responseText, prompt)) {
       const fallback = baselineEstimate(prompt);
       if (!fallback) {
+        await releaseCustomerPhotoAssessment(photoReservation);
         console.warn('Estimator returned unusable output', {
           hasText: Boolean(responseText),
           outputTokens: (response as any)?.usageMetadata?.candidatesTokenCount ?? null,
@@ -267,10 +274,12 @@ export async function POST(req: Request) {
       responseText = JSON.stringify(fallback);
     }
 
+    await settleCustomerPhotoAssessment(photoReservation);
     await writeAiResponseCache('estimate', cacheSource, { estimate: responseText });
     return withAiUsageCookie(NextResponse.json({ estimate: responseText }), reservation);
   } catch (error: any) {
     await releaseAiUsage(reservation);
+    await releaseCustomerPhotoAssessment(photoReservation);
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('Backend Error:', error);

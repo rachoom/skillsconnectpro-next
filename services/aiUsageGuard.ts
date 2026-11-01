@@ -131,11 +131,11 @@ export async function reserveAiUsage(request: Request, profile: UsageProfile): P
     });
 
     if (error) {
-      // Code may deploy before the migration. Existing IP limits remain active
-      // until the durable ledger is installed, rather than breaking the pilot.
       if (unavailableMigrationError(error)) {
-        console.warn('AI usage guard migration has not been applied yet.');
-        return { allowed: true, reservation: null };
+        console.error('AI usage guard migration is missing.');
+        return { allowed: false, response: NextResponse.json(
+          { error: 'AI service is temporarily unavailable. Please try again shortly.' }, { status: 503 },
+        ) };
       }
       console.error('AI usage reservation failed:', error.message);
       return { allowed: false, response: NextResponse.json(

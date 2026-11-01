@@ -30,9 +30,8 @@ test('paid photo allowance is verified on server before the AI rate guard uses p
   assert.match(guard, /verifiedPlanCode === 'basic_30' \|\| verifiedPlanCode === 'project_pass_90'/);
   assert.match(guard, /sessionLimit: paid \? 30 : 4/);
   assert.match(guard, /imageLimit: paid \? 30 : 1/);
-  assert.match(assessment, /verifiedPlanCode = photoUsage\.planCode/);
-  assert.match(assessment, /\.from\('account_subscriptions'\)/);
-  assert.match(assessment, /\.gt\('ends_at', new Date\(\)\.toISOString\(\)\)/);
-  assert.match(assessment, /customerProjectUsage\(Boolean\(image\), verifiedPlanCode\)/);
+  assert.match(assessment, /reserveCustomerPhotoImage\(image\)/);
+  assert.match(assessment, /customerProjectUsage\(Boolean\(image\), photoAccess.planCode\)/);
+  assert.doesNotMatch(assessment, /user && questionsAlreadyAsked === 0/);
   assert.match(assessment, /releaseCustomerPhotoAssessment\(photoReservation\)/);
 });

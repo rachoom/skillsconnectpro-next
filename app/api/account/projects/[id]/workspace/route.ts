@@ -25,6 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { admin, user } = access;
 
   if (body.action === 'update_project_status') {
+    if (!access.isOwner) return NextResponse.json({ error: 'Only the project owner can close this project.' }, { status: 403 });
     const nextStatus = body.status === 'completed' || body.status === 'cancelled' ? body.status : null;
     if (!nextStatus) {
       return NextResponse.json({ error: 'Choose completed or cancelled.' }, { status: 400 });
@@ -112,6 +113,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }).eq('id', body.itemId).eq('project_id', projectId);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
+  }
+
+  if (body.action === 'add_milestone' || body.action === 'toggle_milestone') {
+    const { data: subscription, error } = await admin.from('account_subscriptions')
+      .select('id').eq('user_id', user.id).eq('status', 'active')
+      .eq('plan_code', 'project_pass_90').lte('starts_at', new Date().toISOString())
+      .gt('ends_at', new Date().toISOString()).limit(1).maybeSingle();
+    if (error) return NextResponse.json({ error: 'Unable to verify milestone access.' }, { status: 503 });
+    if (!subscription) return NextResponse.json({ error: 'Milestone management is included with the Home Project Pass.', code: 'MILESTONE_PLAN_LIMIT', upgradeUrl: '/plans#homeowners' }, { status: 403 });
   }
 
   if (body.action === 'add_milestone') {

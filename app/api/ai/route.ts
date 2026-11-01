@@ -1,3 +1,4 @@
+import { reserveCustomerPhotoImage, settleCustomerPhotoAssessment, releaseCustomerPhotoAssessment, type CustomerPhotoUsageReservation } from '@/services/customerPlanUsage';
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { quickIntentUsage, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie } from '@/services/aiUsageGuard';
 import { NextResponse } from 'next/server';
@@ -7,6 +8,7 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   let reservation: UsageReservation | null = null;
+  let photoReservation: CustomerPhotoUsageReservation | null = null;
   try {
     const blocked = await enforcePublicRequestLimit(req, 'ai', 20);
     if (blocked) return blocked;
@@ -26,8 +28,11 @@ export async function POST(req: Request) {
       contents.push({ inlineData: { mimeType: 'image/jpeg', data: cleanBase64 } });
     }
 
+    const photoAccess = await reserveCustomerPhotoImage(imageStr);
+    if (!photoAccess.allowed) return photoAccess.response;
+    photoReservation = photoAccess.reservation;
     const guarded = await reserveAiUsage(req, quickIntentUsage(Boolean(imageStr)));
-    if (!guarded.allowed) return guarded.response;
+    if (!guarded.allowed) { await releaseCustomerPhotoAssessment(photoReservation); return guarded.response; }
     reservation = guarded.reservation;
 
     const response = await ai.models.generateContent({
@@ -37,9 +42,11 @@ export async function POST(req: Request) {
     });
 
     await settleAiUsage(reservation, 'gemini-3.5-flash-lite', response);
+    await settleCustomerPhotoAssessment(photoReservation);
     return withAiUsageCookie(NextResponse.json({ result: response.text }), reservation);
   } catch (error: any) {
     await releaseAiUsage(reservation);
+    await releaseCustomerPhotoAssessment(photoReservation);
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error("AI Route Error:", error);

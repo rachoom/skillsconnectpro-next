@@ -298,7 +298,7 @@ export function PremiumLanding() {
 
       <footer className={styles.footer}>
         <Link href="/" className={styles.brand} aria-label="Skills Connect Pro home"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={220} height={58} /></Link>
-        <div><Link href="/get-help">Request a service</Link><Link href="/browse-providers">Find a provider</Link><Link href="/assistant">AI Project Assistant</Link><Link href="/plans">Plans</Link></div>
+        <div><Link href="/get-help">Request a service</Link><Link href="/browse-providers">Find a provider</Link><Link href="/assistant">AI Project Assistant</Link><Link href="/plans">Plans</Link><Link href="/privacy-policy">Privacy policy</Link><Link href="/terms">Terms</Link></div>
         <p>Starting in Ekurhuleni. Built to grow across Mzansi. Customers contract directly with independent providers.</p>
       </footer>
     </main>

@@ -5,6 +5,8 @@ import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '
 import { getPayfastConfig, normalisePayfastFields, payfastNotificationUrl, payfastSignature } from '@/services/payments/payfast';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
+import { getAuthenticatedAccount } from '@/services/supabase/server';
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -14,50 +16,30 @@ function siteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.skillsconnectpro.co.za').replace(/\/+$/, '');
 }
 
-function normalisePhone(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  if (digits.startsWith('00')) return digits.slice(2);
-  return digits.startsWith('0') ? `27${digits.slice(1)}` : digits;
-}
-
-async function findProvider(body: Record<string, unknown>): Promise<Provider | null> {
-  const supabase = getSupabaseAdmin();
-  const providerId = Number(body.providerId);
-  if (Number.isInteger(providerId) && providerId > 0) {
-    const { data, error } = await supabase.from('artisans').select('id, first_name, last_name, email, phone').eq('id', providerId).maybeSingle();
-    if (error) throw new Error(`Unable to find provider: ${error.message}`);
-    return data as Provider | null;
-  }
-
-  const identity = String(body.providerIdentity || '').trim();
-  if (!identity) return null;
-  if (identity.includes('@')) {
-    const { data, error } = await supabase.from('artisans').select('id, first_name, last_name, email, phone').ilike('email', identity).maybeSingle();
-    if (error) throw new Error(`Unable to find provider: ${error.message}`);
-    return data as Provider | null;
-  }
-
-  const normalisedIdentity = normalisePhone(identity);
-  const localIdentity = normalisedIdentity.startsWith('27') ? `0${normalisedIdentity.slice(2)}` : '';
-  const candidates = [...new Set([identity, identity.replace(/\D/g, ''), normalisedIdentity, localIdentity, `+${normalisedIdentity}`].filter(Boolean))];
-  for (const phone of candidates) {
-    const { data, error } = await supabase.from('artisans').select('id, first_name, last_name, email, phone').eq('phone', phone).maybeSingle();
-    if (error) throw new Error(`Unable to find provider: ${error.message}`);
-    if (data) return data as Provider;
-  }
-  return null;
-}
-
 export async function POST(request: Request) {
   try {
+    const { supabase, user } = await getAuthenticatedAccount();
+    if (!user) return NextResponse.json({ error: 'Sign in to your artisan account to continue.' }, { status: 401 });
     const blocked = await enforcePublicRequestLimit(request, 'payfast_checkout', 10);
     if (blocked) return blocked;
     const body = await readBoundedJson(request, 10_000) as Record<string, unknown>;
     const plan = getProviderPlan(String(body.plan || ''));
     if (!plan) return NextResponse.json({ error: 'Please choose a valid provider plan.' }, { status: 400 });
 
-    const provider = await findProvider(body);
-    if (!provider) return NextResponse.json({ error: 'We could not find that provider account. Use the email address or mobile number you used when joining Skills Connect Pro.' }, { status: 404 });
+    // Identity is derived exclusively from a trusted account-role linkage.
+    // Ignore all browser-supplied provider IDs, email addresses and phone numbers.
+    const { data: role, error: roleError } = await supabase.from('account_roles')
+      .select('linked_artisan_id').eq('user_id', user.id)
+      .eq('role', 'artisan').eq('status', 'active').maybeSingle();
+    const providerId = Number(role?.linked_artisan_id);
+    if (roleError || !Number.isInteger(providerId) || providerId <= 0) {
+      return NextResponse.json({ error: 'An approved, linked artisan account is required. Open your Artisan Business Workspace or contact support.' }, { status: 403 });
+    }
+    const { data, error: providerError } = await getSupabaseAdmin().from('artisans')
+      .select('id, first_name, last_name, email, phone').eq('id', providerId).maybeSingle();
+    if (providerError) throw providerError;
+    const provider = data as Provider | null;
+    if (!provider) return NextResponse.json({ error: 'Your artisan account is unavailable. Contact support.' }, { status: 403 });
     // Prevent an artisan from unintentionally paying for two automatically
     // renewing monthly plans. Changing tiers is available once the current
     // paid period ends, after the old recurring subscription is cancelled.
@@ -110,7 +92,7 @@ export async function POST(request: Request) {
     const technicalMessage = error instanceof Error ? error.message : '';
     const publicMessage = technicalMessage.includes('Payfast is not configured')
       ? 'Secure checkout is temporarily unavailable while payment configuration is being restored. Please try again shortly.'
-      : technicalMessage || 'Unable to start secure checkout.';
+      : 'Unable to start secure checkout. Please try again shortly.';
     return NextResponse.json({ error: publicMessage }, { status: technicalMessage.includes('Payfast is not configured') ? 503 : 500 });
   }
 }

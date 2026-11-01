@@ -1,3 +1,4 @@
+import { reserveCustomerPhotoImage, settleCustomerPhotoAssessment, releaseCustomerPhotoAssessment, type CustomerPhotoUsageReservation } from '@/services/customerPlanUsage';
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { customerProjectUsage, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie } from '@/services/aiUsageGuard';
 import { GoogleGenAI } from '@google/genai';
@@ -328,6 +329,7 @@ export async function POST(request: NextRequest) {
   let image = '';
   let questionsAlreadyAsked = 0;
   let reservation: UsageReservation | null = null;
+  let photoReservation: CustomerPhotoUsageReservation | null = null;
 
   try {
     const blocked = await enforcePublicRequestLimit(request, 'assessment', 30);
@@ -360,8 +362,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image)));
-    if (!guarded.allowed) return guarded.response;
+    const photoAccess = await reserveCustomerPhotoImage(image);
+    if (!photoAccess.allowed) return photoAccess.response;
+    photoReservation = photoAccess.reservation;
+    const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image), photoAccess.planCode));
+    if (!guarded.allowed) { await releaseCustomerPhotoAssessment(photoReservation); return guarded.response; }
     reservation = guarded.reservation;
 
     const answerContext = answers.length > 0
@@ -430,6 +435,7 @@ Rules:
 
     const parsed = parseModelJson(response.text ?? '{}');
     await settleAiUsage(reservation, 'gemini-3.6-flash', response);
+    await settleCustomerPhotoAssessment(photoReservation);
     return withAiUsageCookie(intakeResponse(
       normaliseAssessment(parsed, 'gemini-3.6-flash'),
       false,
@@ -437,6 +443,7 @@ Rules:
     ), reservation);
   } catch (error) {
     await releaseAiUsage(reservation);
+    await releaseCustomerPhotoAssessment(photoReservation);
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('POST /api/project-intake/assess failed:', error);

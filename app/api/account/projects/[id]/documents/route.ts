@@ -81,7 +81,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id: projectId } = await params;
   if (!uuidLike(projectId)) return NextResponse.json({ error: 'Invalid project.' }, { status: 400 });
 
-  const access = await requireProjectWorkspaceAccess(projectId);
+  const access = await requireProjectWorkspaceAccess(projectId, 'read');
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
   const url = new URL(request.url);

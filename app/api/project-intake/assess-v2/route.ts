@@ -1,7 +1,6 @@
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { customerProjectUsage, readAiResponseCache, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie, writeAiResponseCache } from '@/services/aiUsageGuard';
-import { releaseCustomerPhotoAssessment, reserveCustomerPhotoAssessment, type CustomerPhotoUsageReservation } from '@/services/customerPlanUsage';
-import { getAuthenticatedAccount } from '@/services/supabase/server';
+import { reserveCustomerPhotoImage, settleCustomerPhotoAssessment, releaseCustomerPhotoAssessment, type CustomerPhotoUsageReservation } from '@/services/customerPlanUsage';
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -440,47 +439,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const photoAccess = await reserveCustomerPhotoImage(image);
+    if (!photoAccess.allowed) return photoAccess.response;
+    photoReservation = photoAccess.reservation;
     const cacheSource = JSON.stringify({ description, image, answers, questionsAlreadyAsked });
     const cachedAssessment = await readAiResponseCache<IntakeAssessment>('project_assessment', cacheSource);
     if (cachedAssessment) {
+      await settleCustomerPhotoAssessment(photoReservation);
       return intakeResponse(cachedAssessment, false, description, answers, questionsAlreadyAsked);
     }
 
-    // Charge one customer photo allowance for the initial image-led brief.
-    // For clarification rounds, recheck the paid subscription so that the
-    // general anti-abuse guard does not override a valid paid photo allowance.
-    // Never derive paid access from browser-controlled fields.
-    let verifiedPlanCode: string | null = null;
-    if (image) {
-      const { supabase, user } = await getAuthenticatedAccount();
-      if (user && questionsAlreadyAsked === 0) {
-        const photoUsage = await reserveCustomerPhotoAssessment(user.id);
-        if (!photoUsage.allowed) {
-          return NextResponse.json({
-            error: 'You have used the project-photo analyses included with your current plan.',
-            code: 'PHOTO_ANALYSIS_LIMIT',
-            upgradeUrl: '/plans#homeowners',
-            planCode: photoUsage.planCode,
-          }, { status: 403 });
-        }
-        photoReservation = photoUsage.reservation;
-        verifiedPlanCode = photoUsage.planCode;
-      } else if (user) {
-        const { data: subscription, error: subscriptionError } = await supabase
-          .from('account_subscriptions')
-          .select('plan_code')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .gt('ends_at', new Date().toISOString())
-          .order('starts_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        // When the subscription cannot be checked, keep the safer free guard.
-        if (!subscriptionError) verifiedPlanCode = subscription?.plan_code ?? null;
-      }
-    }
-
-    const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image), verifiedPlanCode));
+    const guarded = await reserveAiUsage(request, customerProjectUsage(Boolean(image), photoAccess.planCode));
     if (!guarded.allowed) {
       await releaseCustomerPhotoAssessment(photoReservation);
       return guarded.response;
@@ -564,7 +533,7 @@ Rules:
 
     const assessment = normaliseAssessment(parseModelJson(response.text ?? '{}'), 'gemini-3.6-flash');
     await settleAiUsage(reservation, 'gemini-3.6-flash', response);
-    if (photoReservation) photoReservation.settled = true;
+    await settleCustomerPhotoAssessment(photoReservation);
     await writeAiResponseCache('project_assessment', cacheSource, assessment);
     return withAiUsageCookie(intakeResponse(
       assessment,
