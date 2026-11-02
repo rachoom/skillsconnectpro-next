@@ -14,6 +14,7 @@ type StatusPayload = {
   planPrice: string | null;
   kind: 'subscription' | 'lead_pack';
   verified: boolean;
+  accessActive?: boolean;
 };
 
 const demoPlans: Record<PaymentState, StatusPayload> = {
@@ -41,6 +42,7 @@ export function ProviderPaymentReturnExperience({
       const response = await fetch('/api/payments/payfast/provider-status?payment=' +
         encodeURIComponent(paymentReference), { cache: 'no-store', credentials: 'same-origin' });
       if (!response.ok) {
+        if (response.status === 401) throw new Error('Sign in to your artisan account to check this payment.');
         if (response.status === 404) throw new Error('We could not find this payment reference. Please contact support if you have been charged.');
         throw new Error('We could not check your payment yet. Please try again.');
       }
@@ -65,12 +67,12 @@ export function ProviderPaymentReturnExperience({
     return () => clearTimeout(timer);
   }, [attempts, demoState, paymentReference, payment?.status, refresh]);
 
-  const status: PaymentState = payment?.status === 'confirmed'
-    ? 'confirmed' : cancelled || payment?.status === 'cancelled' ? 'cancelled' : 'processing';
+  const status: PaymentState = payment?.status === 'confirmed' && payment.verified
+    ? 'confirmed' : payment?.status === 'cancelled' ? 'cancelled' : 'processing';
   const isConfirmed = status === 'confirmed';
   const isCancelled = status === 'cancelled';
   const isPending = status === 'processing';
-  const badge = isConfirmed ? 'Payment verified · Access active'
+  const badge = isConfirmed ? payment?.accessActive === false ? 'Payment verified · Check current access' : 'Payment verified · Access active'
     : isCancelled ? 'Checkout not completed' : 'Secure verification in progress';
   const headline = isConfirmed
     ? <>You are ready for <span className="text-[#F6CD39]">what comes next.</span></>
@@ -78,9 +80,11 @@ export function ProviderPaymentReturnExperience({
       ? <>Your next opportunity can <span className="text-[#F6CD39]">wait for you.</span></>
       : <>Almost there. <span className="text-[#F6CD39]">Good things are in motion.</span></>;
   const description = isConfirmed
-    ? 'Your Payfast payment has been verified and your provider access is active. You can get back to reviewing suitable opportunities and responding with confidence.'
+    ? payment?.accessActive === false
+      ? 'This payment was verified previously. Its paid access is no longer active. Open your artisan workspace to check your current plan before purchasing again.'
+      : 'Your Payfast payment has been verified and your provider access is active. You can get back to reviewing suitable opportunities and responding with confidence.'
     : isCancelled
-      ? 'This checkout was not completed. Nothing needs to be purchased right now. You can return to the provider plans whenever you are ready.'
+      ? 'You returned from a cancelled checkout. This return link alone does not establish whether a charge occurred. If charged, contact support before paying again.'
       : 'You have returned from Payfast. We are checking the verified payment notification before activating your provider plan. You do not need to make another payment.';
 
   const steps = [
@@ -102,6 +106,8 @@ export function ProviderPaymentReturnExperience({
           </Link>
           <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[.04] px-3 py-2 text-[10px] font-bold uppercase tracking-[.12em] text-[#d7d1bd] sm:text-xs"><ShieldCheck size={15} className="text-[#F5C518]"/> Secure checkout</span>
         </header>
+
+        {cancelled && !isConfirmed && !demoState && <p role="status" className="mt-4 rounded-xl border border-amber-300/30 bg-amber-300/[.08] p-4 text-sm text-amber-200">You returned using the checkout cancellation link. We are checking the recorded payment status; this link alone does not establish whether a charge occurred.</p>}
 
         {demoState && (
           <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#F5C518]/30 bg-[#F5C518]/[.08] px-4 py-3 text-xs font-bold text-[#F6DC7C]" role="status">
@@ -192,6 +198,7 @@ export function ProviderPaymentReturnExperience({
             )}
           </div>
           <div className="flex flex-col gap-3">
+            {!demoState && <Link href={'/sign-in?next=' + encodeURIComponent('/provider-payment-result?payment=' + encodeURIComponent(paymentReference || ''))} className="text-sm font-semibold text-[#F5C518]">Sign in to check your payment</Link>}
             {isPending && paymentReference && !demoState ? (
               <button type="button" disabled={checking} onClick={() => { setAttempts(0); void refresh(); }}
                 className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#F5C518] px-5 py-4 text-sm font-extrabold text-[#191909] shadow-[0_12px_30px_rgba(245,197,24,.14)] transition hover:bg-[#ffdf4c] disabled:opacity-60">
@@ -216,6 +223,7 @@ export function ProviderPaymentReturnExperience({
             This link does not contain a payment reference, so we cannot verify a specific transaction. Reopen the return link from your original checkout, or contact support if you have been charged.
           </p>
         )}
+        <p className="mt-5 text-sm"><a href="https://wa.me/27697026088" className="text-[#F5C518] underline">Contact support about your payment</a></p>
         <footer className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-[#a7b1a5]">
           <span className="inline-flex items-center gap-2"><LockKeyhole size={14} className="text-[#F5C518]"/> Provider payments secured through Payfast</span>
           <Link href="/" className="inline-flex items-center gap-2 hover:text-white"><ArrowLeft size={14}/> Skills Connect Pro home</Link>

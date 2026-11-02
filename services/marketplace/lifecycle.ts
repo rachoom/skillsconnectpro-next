@@ -308,7 +308,7 @@ async function applyLifecycleAction(input: {
   const finalPrice = assertMoney(input.finalPrice);
   const now = new Date().toISOString();
 
-  if (!match.contact_released_at) {
+  if (!match.contact_released_at && !(input.actorType === 'customer' && input.action === 'cancel_project')) {
     throw new Error('Job controls become available after customer and provider contact details are released.');
   }
 

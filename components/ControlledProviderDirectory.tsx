@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import styles from './ControlledProviderDirectory.module.css';
+import { directoryServiceCategories } from '../services/directoryServices';
 
 type Provider = {
   id: number;
@@ -105,15 +106,14 @@ export const ControlledProviderDirectory = () => {
 
   const categories = useMemo(() => {
     const values = providers
-      .map((provider) => provider.category?.trim())
-      .filter((value): value is string => Boolean(value));
+      .flatMap((provider) => directoryServiceCategories(provider.category));
     return ['All services', ...Array.from(new Set(values)).sort((a, b) => a.localeCompare(b))];
   }, [providers]);
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
     return providers.filter((provider) => {
-      const matchesCategory = category === 'All services' || provider.category === category;
+      const matchesCategory = category === 'All services' || directoryServiceCategories(provider.category).includes(category);
       const text = `${displayName(provider)} ${provider.category || ''} ${provider.location || ''}`.toLowerCase();
       return matchesCategory && (!query || text.includes(query));
     });

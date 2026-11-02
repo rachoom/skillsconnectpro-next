@@ -25,7 +25,7 @@ test('payment-return page never interprets Payfast browser redirect as confirmed
   assert.match(experience, /status === 'processing'/);
 });
 
-test('public payment-status lookup requires an unguessable reference and verified entitlement', () => {
+test('provider payment-status lookup requires ownership and verified activation history', () => {
   const route = read('../app/api/payments/payfast/provider-status/route.ts');
   assert.match(route, /referencePattern = \//);
   assert.match(route, /enforcePublicRequestLimit\(request, 'provider_payment_status'/);
@@ -33,7 +33,9 @@ test('public payment-status lookup requires an unguessable reference and verifie
   assert.match(route, /processorStatus === 'COMPLETE'/);
   assert.match(route, /\.from\('subscription_entitlements'\)/);
   assert.match(route, /\.eq\('status', 'active'\)/);
-  assert.match(route, /if \(entitlement\) status = 'confirmed'/);
+  assert.match(route, /if \(event.data\)/);
+  assert.match(route, /getAuthenticatedAccount/);
+  assert.match(route, /\.eq\('provider_id', role.linked_artisan_id\)/);
   assert.match(route, /no-store/);
   assert.doesNotMatch(route, /payfast_payment_id.*NextResponse\.json/);
 });

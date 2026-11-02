@@ -3,7 +3,7 @@
 ## Current result
 
 The interrupted source changes have been recovered and extended in PR #23.
-The current source passes all 132 regression tests, TypeScript and the full
+The current source passes all 147 regression tests, TypeScript and the full
 production build using explicit non-secret public Supabase placeholders.
 These checks do not establish authenticated runtime acceptance.
 
@@ -114,3 +114,32 @@ steps requires a purchase or a provider-message test.
 
 No production code/database changes or outbound WhatsApp messages were performed
 in this recovery continuation. This separate thread cannot cancel the old chat run.
+
+## Launch-readiness audit corrections — 2 November 2026
+
+The recovery branch now also includes:
+
+- Customer payment returns query an authenticated, owner-scoped status endpoint.
+  COMPLETE alone is not treated as activation: a subscription tied to that
+  payment must exist. Historical receipts distinguish ended/replaced access.
+- Provider payment status now requires the linked artisan account and a matching
+  payment-event record; another existing entitlement cannot falsely confirm a
+  new checkout whose activation failed. Expired access is distinguished from a
+  verified historical payment. Status reads never return private processor tokens.
+- Both return journeys include support and sign-in recovery. Cancellation URL
+  flags are advisory UI notices, never proof of charge or entitlement state.
+- Customer cancellation is allowed after selection and before contact release;
+  other lifecycle actions and provider cancellation remain restricted.
+- Directory filters normalise duplicate legacy trade names and split combined
+  categories. Quick Request offers all relevant problems for a multi-trade provider.
+- Billing terms point to the existing workspace cancellation control, with support
+  as a fallback. No cancellation request was sent to Payfast during this work.
+
+Validation for this continuation: 147 automated tests passed; TypeScript and the
+production build passed using non-secret placeholder public Supabase settings.
+New behavioural tests cover signed-out status requests, owner filtering, COMPLETE
+without a grant, verified activation, historical expiry, selection-stage customer
+cancellation, provider rejection and multi-trade category/problem handling.
+These checks use mocks and do not replace live payment or authenticated database
+acceptance. Production and all database schemas remain unchanged by this work.
+The coordinated migration/release requirements above still apply.
