@@ -283,6 +283,8 @@ export const MarketplaceLandingPage = () => {
           <Link href="/browse-providers">Browse providers</Link>
           <Link href="/estimator">Project estimator</Link>
           <Link href="/join">Join as a provider</Link>
+          <Link href="/privacy-policy">Privacy policy</Link>
+          <Link href="/terms">Terms</Link>
         </div>
         <p className={styles.footerNote}>Preliminary estimates are not final quotations. Customers choose and contract directly with independent providers.</p>
       </footer>

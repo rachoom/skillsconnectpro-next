@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { quickRequestIssueOptions as issueOptions } from '../services/directoryServices';
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { AlertTriangle, ArrowLeft, ArrowRight, Camera, CheckCircle2, Clock3, Loader2, MapPin, Search, ShieldCheck, Wrench, X } from 'lucide-react';
 
@@ -30,20 +31,6 @@ const SERVICES: Array<{ value: string; label: string }> = [
   { value: 'General Contractor', label: 'General contractor' },
   { value: 'Other', label: 'Other professional' },
 ];
-
-const JOBS: Record<string, string[]> = {
-  plumbing: ['Burst pipe / flooding', 'Blocked drain', 'Leaking geyser', 'Leaking tap', 'Other plumbing problem'],
-  electrical: ['No power', 'Exposed wires / sparks', 'Tripping power', 'Faulty lights', 'Other electrical problem'],
-  mechanics: ['Car will not start', 'Vehicle breakdown', 'Brake problem', 'Engine overheating', 'Other mechanical problem'],
-};
-
-function issueOptions(service: string): string[] {
-  const key = service.toLowerCase();
-  if (key.includes('plumb')) return JOBS.plumbing;
-  if (key.includes('electri')) return JOBS.electrical;
-  if (key.includes('mechanic')) return JOBS.mechanics;
-  return ['Service or repair', 'Urgent assistance', 'Inspection / assessment', 'Other'];
-}
 
 function quickImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

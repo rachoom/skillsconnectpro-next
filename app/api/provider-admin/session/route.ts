@@ -3,6 +3,8 @@ import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '
 import {
   isProviderAdminRequest,
   providerAdminSessionToken,
+  revokeProviderAdminSession,
+  PROVIDER_ADMIN_SESSION_SECONDS,
   PROVIDER_ADMIN_COOKIE,
   verifyProviderAdminPassword,
 } from '@/services/providerAdminSession';
@@ -15,12 +17,12 @@ const cookieOptions = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict' as const,
   path: '/',
-  maxAge: 60 * 60 * 12,
+  maxAge: PROVIDER_ADMIN_SESSION_SECONDS,
 };
 
 export async function GET(request: Request) {
   try {
-    return NextResponse.json({ authenticated: isProviderAdminRequest(request) });
+    return NextResponse.json({ authenticated: await isProviderAdminRequest(request) });
   } catch {
     return NextResponse.json({ authenticated: false });
   }
@@ -39,7 +41,7 @@ export async function POST(request: Request) {
     }
 
     const response = NextResponse.json({ authenticated: true });
-    response.cookies.set(PROVIDER_ADMIN_COOKIE, providerAdminSessionToken(), cookieOptions);
+    response.cookies.set(PROVIDER_ADMIN_COOKIE, await providerAdminSessionToken(), cookieOptions);
     return response;
   } catch (error) {
     const publicError = publicRequestError(error);
@@ -49,7 +51,12 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  try {
+    await revokeProviderAdminSession(request);
+  } catch {
+    return NextResponse.json({ error: 'Unable to sign out securely. Please try again.' }, { status: 503 });
+  }
   const response = NextResponse.json({ authenticated: false });
   response.cookies.set(PROVIDER_ADMIN_COOKIE, '', { ...cookieOptions, maxAge: 0 });
   return response;

@@ -14,7 +14,7 @@ function numericId(value: unknown): number {
 
 export async function GET(request: Request) {
   try {
-    requireProviderAdmin(request);
+    await requireProviderAdmin(request);
     const supabase = getSupabaseAdmin();
 
     const [applicationsResult, unclaimedResult, suggestionsResult, reviewsResult] = await Promise.all([
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    requireProviderAdmin(request);
+    await requireProviderAdmin(request);
     const body = await readBoundedJson(request, 80_000);
     const action = typeof body.action === 'string' ? body.action : '';
     const supabase = getSupabaseAdmin();

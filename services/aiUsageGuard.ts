@@ -131,11 +131,11 @@ export async function reserveAiUsage(request: Request, profile: UsageProfile): P
     });
 
     if (error) {
-      // Code may deploy before the migration. Existing IP limits remain active
-      // until the durable ledger is installed, rather than breaking the pilot.
       if (unavailableMigrationError(error)) {
-        console.warn('AI usage guard migration has not been applied yet.');
-        return { allowed: true, reservation: null };
+        console.error('AI usage guard migration is missing.');
+        return { allowed: false, response: NextResponse.json(
+          { error: 'AI service is temporarily unavailable. Please try again shortly.' }, { status: 503 },
+        ) };
       }
       console.error('AI usage reservation failed:', error.message);
       return { allowed: false, response: NextResponse.json(
@@ -271,12 +271,12 @@ export const customerProjectUsage = (hasImage: boolean, verifiedPlanCode: string
   };
 };
 
-export const quickIntentUsage = (hasImage: boolean): UsageProfile => ({
+export const quickIntentUsage = (hasImage: boolean, verifiedPlanCode: string | null = null): UsageProfile => ({
   kind: 'quick_intent',
   hasImage,
   reserveCents: hasImage ? 25 : 10,
-  sessionLimit: 4,
-  imageLimit: 1,
+  sessionLimit: verifiedPlanCode === 'basic_30' || verifiedPlanCode === 'project_pass_90' ? 30 : 4,
+  imageLimit: verifiedPlanCode === 'basic_30' || verifiedPlanCode === 'project_pass_90' ? 30 : 1,
   windowSeconds: 60 * 60 * 24 * 7,
 });
 

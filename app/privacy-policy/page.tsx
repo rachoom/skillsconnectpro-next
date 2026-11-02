@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
         <Link href="/" className="text-sm font-semibold text-[#f9c62b] hover:underline">← Skills Connect Pro</Link>
         <p className="mt-12 text-xs font-bold uppercase tracking-[0.22em] text-[#f9c62b]">Your information</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Privacy Policy</h1>
-        <p className="mt-4 text-sm text-[#b9beb9]">Last updated: 29 September 2026</p>
+        <p className="mt-4 text-sm text-[#b9beb9]">Last updated: 1 November 2026</p>
         <div className="mt-10 space-y-10 leading-7 text-[#d6dad5]">
           <section>
             <h2 className="mb-3 text-xl font-semibold text-white">Who this covers</h2>
@@ -31,6 +31,10 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="mb-3 text-xl font-semibold text-white">Sharing and service providers</h2>
             <p>Project information may be shown to providers invited to respond. Customer and provider contact details are shared for the job when the relevant contact sharing step is completed. We also use technology providers to host the website, store data and deliver communications. If you communicate with us through WhatsApp, Meta processes those communications under its own terms and privacy practices. We do not publish private contact details in the public provider directory.</p>
+          </section>
+          <section>
+            <h2 className="mb-3 text-xl font-semibold text-white">AI-assisted features and images</h2>
+            <p>When you use an AI feature, the project description, answers and images needed for that feature may be sent to Google&apos;s Gemini service to prepare an assessment, estimate or extracted business details. Avoid uploading identity documents, private financial records or identifiable people without permission. You can enter provider registration details manually without using the AI photo scan. Project photos, application work photos and documents may be stored to support your request or application. We also keep image fingerprints and usage records to enforce allowances and prevent duplicate charges; these fingerprints are not copies of the images. AI responses may be cached to avoid repeating a request.</p>
           </section>
           <section>
             <h2 className="mb-3 text-xl font-semibold text-white">Storage and your choices</h2>

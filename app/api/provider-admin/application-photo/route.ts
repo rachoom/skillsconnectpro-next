@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    requireProviderAdmin(request);
+    await requireProviderAdmin(request);
     const url = new URL(request.url);
     const id = Number(url.searchParams.get('applicationId'));
     const index = Number(url.searchParams.get('index'));

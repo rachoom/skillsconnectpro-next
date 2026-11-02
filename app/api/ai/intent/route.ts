@@ -1,3 +1,4 @@
+import { reserveCustomerPhotoImage, settleCustomerPhotoAssessment, releaseCustomerPhotoAssessment, type CustomerPhotoUsageReservation } from '@/services/customerPlanUsage';
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
 import { quickIntentUsage, releaseAiUsage, reserveAiUsage, settleAiUsage, type UsageReservation, withAiUsageCookie } from '@/services/aiUsageGuard';
 import { GoogleGenAI } from '@google/genai';
@@ -18,6 +19,7 @@ function cleanJson(text: string) {
 
 export async function POST(request: Request) {
   let reservation: UsageReservation | null = null;
+  let photoReservation: CustomerPhotoUsageReservation | null = null;
   try {
     const blocked = await enforcePublicRequestLimit(request, 'ai_intent', 20);
     if (blocked) return blocked;
@@ -28,8 +30,11 @@ export async function POST(request: Request) {
     if (type === 'image') {
       const image = String(body.image ?? '');
       if (!image || image.length > 1_000_000) return NextResponse.json({ error: 'Invalid image.' }, { status: 400 });
-      const guarded = await reserveAiUsage(request, quickIntentUsage(true));
-      if (!guarded.allowed) return guarded.response;
+      const photoAccess = await reserveCustomerPhotoImage(image);
+      if (!photoAccess.allowed) return photoAccess.response;
+      photoReservation = photoAccess.reservation;
+      const guarded = await reserveAiUsage(request, quickIntentUsage(true, photoAccess.planCode));
+      if (!guarded.allowed) { await releaseCustomerPhotoAssessment(photoReservation); return guarded.response; }
       reservation = guarded.reservation;
       const mimeType = String(body.mimeType ?? 'image/jpeg');
       const response = await ai.models.generateContent({
@@ -41,6 +46,7 @@ export async function POST(request: Request) {
         config: { responseMimeType: 'application/json', maxOutputTokens: 160 },
       });
       await settleAiUsage(reservation, 'gemini-3.5-flash-lite', response);
+      await settleCustomerPhotoAssessment(photoReservation);
       return withAiUsageCookie(NextResponse.json(cleanJson(response.text ?? '{}')), reservation);
     }
 
@@ -62,6 +68,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unsupported AI request.' }, { status: 400 });
   } catch (error) {
     await releaseAiUsage(reservation);
+    await releaseCustomerPhotoAssessment(photoReservation);
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('POST /api/ai/intent failed:', error);

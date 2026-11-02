@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { getAuthenticatedAccount } from '@/services/supabase/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, BriefcaseBusiness, Check, CreditCard, LockKeyhole, ShieldCheck, Sparkles } from 'lucide-react';
@@ -6,9 +8,14 @@ import { ProviderCheckoutForm } from './ProviderCheckoutForm';
 import { providerTheme } from '@/services/planPresentation';
 
 export default async function ProviderCheckoutPage({ searchParams }: { searchParams: Promise<{ plan?: string; provider?: string }> }) {
-  const { plan: slug, provider } = await searchParams;
+  const { plan: slug } = await searchParams;
   const plan = slug ? getProviderPlan(slug) : undefined;
-  const providerId = provider && /^\d+$/.test(provider) ? provider : undefined;
+  const { supabase, user } = await getAuthenticatedAccount();
+  if (plan && !user) redirect('/sign-in?next=' + encodeURIComponent('/provider-checkout?plan=' + plan.slug));
+  const { data: role } = user ? await supabase.from('account_roles')
+    .select('linked_artisan_id').eq('user_id', user.id)
+    .eq('role', 'artisan').eq('status', 'active').maybeSingle() : { data: null };
+  const canCheckout = Boolean(role?.linked_artisan_id);
   const theme = plan ? providerTheme(plan.slug) : providerTheme('starter');
 
   return (
@@ -40,7 +47,7 @@ export default async function ProviderCheckoutPage({ searchParams }: { searchPar
               {plan.included.map((item) => <li key={item} className="flex gap-2.5 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm leading-5 text-white/82"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{item}</li>)}
             </ul>
           </div>}
-          {plan ? <div className="mt-8 border-t border-white/12 pt-7"><ProviderCheckoutForm plan={{ slug: plan.slug, name: plan.name, price: plan.price, kind: plan.kind }} providerId={providerId} /></div> : <Link href="/provider-plans" className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#ffd75f] px-4 py-4 text-sm font-black text-[#241b00] shadow-[0_14px_32px_rgba(255,215,95,.18)] transition hover:-translate-y-0.5">Review provider options <BriefcaseBusiness size={18} /></Link>}
+          {plan ? <div className="mt-8 border-t border-white/12 pt-7">{canCheckout ? <ProviderCheckoutForm plan={{ slug: plan.slug, name: plan.name, price: plan.price, kind: plan.kind }} /> : <div role="status" className="rounded-2xl border border-[#ffd75f]/40 bg-black/20 p-5"><p className="font-bold">Your artisan account needs approval or linking before payment.</p><p className="mt-2 text-sm text-white/75">Please do not pay for someone else’s account. Check your workspace or contact support if you have already been approved.</p><Link href="/artisan-business" className="mt-4 inline-block font-bold text-[#ffe17a] underline">Open Artisan Business Workspace</Link><Link href="/join" className="ml-4 inline-block font-bold text-[#ffe17a] underline">Apply as a provider</Link></div>}</div> : <Link href="/provider-plans" className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#ffd75f] px-4 py-4 text-sm font-black text-[#241b00] shadow-[0_14px_32px_rgba(255,215,95,.18)] transition hover:-translate-y-0.5">Review provider options <BriefcaseBusiness size={18} /></Link>}
         </section>
 
         <aside className="space-y-4">

@@ -1,7 +1,9 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { getSupabaseAdmin } from './supabaseAdmin';
 
 export const PROVIDER_ADMIN_COOKIE = 'scp_provider_admin';
 const SESSION_PURPOSE = 'provider-admin-session-v1';
+export const PROVIDER_ADMIN_SESSION_SECONDS = 60 * 60 * 12;
 
 function configuredPasswordHash(): string {
   const hash = process.env.PROVIDER_ADMIN_PASSWORD_SHA256?.trim().toLowerCase();
@@ -22,23 +24,51 @@ export function verifyProviderAdminPassword(candidate: string): boolean {
   return supplied.length === expected.length && timingSafeEqual(supplied, expected);
 }
 
-export function providerAdminSessionToken(): string {
-  return digest(SESSION_PURPOSE).toString('hex');
+function tokenHash(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
 }
 
-export function isProviderAdminRequest(request: Request): boolean {
+function requestToken(request: Request): string | null {
   const cookie = request.headers.get('cookie') || '';
   const raw = cookie.split(';').map(part => part.trim()).find(part => part.startsWith(`${PROVIDER_ADMIN_COOKIE}=`));
-  if (!raw) return false;
-  const value = decodeURIComponent(raw.slice(PROVIDER_ADMIN_COOKIE.length + 1));
-  const expected = providerAdminSessionToken();
-  const suppliedBuffer = Buffer.from(value);
-  const expectedBuffer = Buffer.from(expected);
-  return suppliedBuffer.length === expectedBuffer.length && timingSafeEqual(suppliedBuffer, expectedBuffer);
+  if (!raw) return null;
+  try {
+    const value = decodeURIComponent(raw.slice(PROVIDER_ADMIN_COOKIE.length + 1));
+    return /^[a-f0-9]{64}$/.test(value) ? value : null;
+  } catch { return null; }
 }
 
-export function requireProviderAdmin(request: Request): void {
-  if (!isProviderAdminRequest(request)) {
+export async function providerAdminSessionToken(): Promise<string> {
+  const token = randomBytes(32).toString('hex');
+  const { error } = await getSupabaseAdmin().from('provider_admin_sessions').insert({
+    token_hash: tokenHash(token), credential_version: digest(SESSION_PURPOSE).toString('hex'),
+    expires_at: new Date(Date.now() + PROVIDER_ADMIN_SESSION_SECONDS * 1000).toISOString(),
+  });
+  if (error) throw new Error('Unable to create administrator session.');
+  return token;
+}
+
+export async function isProviderAdminRequest(request: Request): Promise<boolean> {
+  const token = requestToken(request);
+  if (!token) return false;
+  const { data, error } = await getSupabaseAdmin().from('provider_admin_sessions')
+    .select('expires_at').eq('token_hash', tokenHash(token))
+    .eq('credential_version', digest(SESSION_PURPOSE).toString('hex'))
+    .is('revoked_at', null).gt('expires_at', new Date().toISOString()).maybeSingle();
+  if (error) throw new Error('Unable to verify administrator session.');
+  return Boolean(data && new Date(data.expires_at).getTime() > Date.now());
+}
+
+export async function revokeProviderAdminSession(request: Request): Promise<void> {
+  const token = requestToken(request);
+  if (!token) return;
+  const { error } = await getSupabaseAdmin().from('provider_admin_sessions')
+    .update({ revoked_at: new Date().toISOString() }).eq('token_hash', tokenHash(token));
+  if (error) throw new Error('Unable to revoke administrator session.');
+}
+
+export async function requireProviderAdmin(request: Request): Promise<void> {
+  if (!await isProviderAdminRequest(request)) {
     const error = new Error('Unauthorised.');
     error.name = 'UnauthorisedError';
     throw error;
