@@ -28,7 +28,8 @@ test('both customer and artisan checkouts use the same protected sandbox callbac
 test('Payfast ITN still validates signatures, Payfast transaction authenticity and amounts', () => {
   const itn = read('../app/api/payments/payfast/itn/route.ts');
   assert.match(itn, /secureEqualHex\(signature, payfastSignature\(fields, config\.passphrase\)\)/);
-  assert.match(itn, /validateWithPayfast\(rawPayload, config\.validateUrl\)/);
+  assert.match(itn, /validateWithPayfast\(fields, config\.validateUrl\)/);
+  assert.match(itn, /body: payfastParamString\(fields\)/);
   assert.match(itn, /paidCents !== Number\(payment!\.amount_cents\)/);
   assert.match(itn, /grant_customer_payment_entitlement/);
   assert.match(itn, /grant_provider_payment_entitlement/);
