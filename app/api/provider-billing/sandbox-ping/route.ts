@@ -23,8 +23,16 @@ export async function GET() {
   } catch {
     callbackConfigured = false;
   }
+  let cfg: ReturnType<typeof getPayfastConfig>;
   try {
-    const cfg = getPayfastConfig();
+    cfg = getPayfastConfig();
+  } catch {
+    return NextResponse.json({
+      configured: false, sandbox: true, callbackConfigured,
+      apiAuthenticated: false, apiReachable: false, check: 'merchant_configuration',
+    }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
+  }
+  try {
     const timestamp = new Date().toISOString().slice(0, 19) + '+00:00';
     const signed = { 'merchant-id': cfg.merchantId, version: 'v1', timestamp };
     const signature = payfastApiSignature(signed, cfg.passphrase);
@@ -36,14 +44,16 @@ export async function GET() {
     });
     const apiAuthenticated = response.ok;
     return NextResponse.json({
-      configured: true, sandbox: true, apiAuthenticated, callbackConfigured,
+      configured: true, sandbox: true, apiAuthenticated, apiReachable: true,
+      callbackConfigured, apiHttpStatus: response.status,
     }, {
       status: apiAuthenticated && callbackConfigured ? 200 : 503,
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch {
     return NextResponse.json({
-      configured: false, sandbox: true, apiAuthenticated: false, callbackConfigured,
+      configured: true, sandbox: true, apiAuthenticated: false,
+      apiReachable: false, callbackConfigured, check: 'api_network',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
 }
