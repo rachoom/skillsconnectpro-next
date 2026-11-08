@@ -13,6 +13,8 @@ export async function GET() {
   let callbackConfigured = false;
   let callbackReachable = false;
   let callbackHttpStatus: number | null = null;
+  let validationEndpointReachable = false;
+  let validationHttpStatus: number | null = null;
   try {
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '').trim();
     if (baseUrl) {
@@ -49,8 +51,6 @@ export async function GET() {
       apiAuthenticated: false, apiReachable: false, check: 'merchant_configuration',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
-  let validationEndpointReachable = false;
-  let validationHttpStatus: number | null = null;
   try {
     // Connectivity only. GET cannot validate a transaction; no payment
     // references, merchant keys, signatures or customer data are transmitted.
