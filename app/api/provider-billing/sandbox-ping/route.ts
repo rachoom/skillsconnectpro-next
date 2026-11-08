@@ -12,7 +12,7 @@ export async function GET() {
   }
   let callbackConfigured = false;
   try {
-    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '').replace(/\\/+$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '').trim();
     if (baseUrl) {
       const notify = new URL(payfastNotificationUrl(baseUrl, 'sandbox'));
       callbackConfigured =
