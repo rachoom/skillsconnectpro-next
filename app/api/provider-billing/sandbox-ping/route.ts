@@ -12,6 +12,7 @@ export async function GET() {
   }
   let callbackConfigured = false;
   let callbackReachable = false;
+  let callbackHttpStatus: number | null = null;
   try {
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '').trim();
     if (baseUrl) {
@@ -29,6 +30,7 @@ export async function GET() {
             method: 'GET', cache: 'no-store', redirect: 'manual',
             signal: AbortSignal.timeout(6_000),
           });
+          callbackHttpStatus = probe.status;
           callbackReachable = probe.status === 405;
         } catch {
           callbackReachable = false;
@@ -43,7 +45,7 @@ export async function GET() {
     cfg = getPayfastConfig();
   } catch {
     return NextResponse.json({
-      configured: false, sandbox: true, callbackConfigured, callbackReachable,
+      configured: false, sandbox: true, callbackConfigured, callbackReachable, callbackHttpStatus,
       apiAuthenticated: false, apiReachable: false, check: 'merchant_configuration',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
@@ -68,7 +70,7 @@ export async function GET() {
   } catch {
     return NextResponse.json({
       configured: true, sandbox: true, apiAuthenticated: false,
-      apiReachable: false, callbackConfigured, check: 'api_network',
+      apiReachable: false, callbackConfigured, callbackReachable, callbackHttpStatus, check: 'api_network',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
 }
