@@ -11,6 +11,7 @@ export async function GET() {
     return new NextResponse('Not found', { status: 404 });
   }
   let callbackConfigured = false;
+  let callbackReachable = false;
   try {
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '').trim();
     if (baseUrl) {
@@ -19,6 +20,20 @@ export async function GET() {
         notify.protocol === 'https:' &&
         notify.hostname.endsWith('.vercel.app') &&
         notify.searchParams.has('x-vercel-protection-bypass');
+      if (callbackConfigured) {
+        // GET cannot process an ITN because the route only exports POST.
+        // A 405 from the actual callback URL confirms Vercel routed through
+        // deployment protection without creating or modifying any payment.
+        try {
+          const probe = await fetch(notify.toString(), {
+            method: 'GET', cache: 'no-store', redirect: 'manual',
+            signal: AbortSignal.timeout(6_000),
+          });
+          callbackReachable = probe.status === 405;
+        } catch {
+          callbackReachable = false;
+        }
+      }
     }
   } catch {
     callbackConfigured = false;
@@ -28,7 +43,7 @@ export async function GET() {
     cfg = getPayfastConfig();
   } catch {
     return NextResponse.json({
-      configured: false, sandbox: true, callbackConfigured,
+      configured: false, sandbox: true, callbackConfigured, callbackReachable,
       apiAuthenticated: false, apiReachable: false, check: 'merchant_configuration',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
@@ -45,9 +60,9 @@ export async function GET() {
     const apiAuthenticated = response.ok;
     return NextResponse.json({
       configured: true, sandbox: true, apiAuthenticated, apiReachable: true,
-      callbackConfigured, apiHttpStatus: response.status,
+      callbackConfigured, callbackReachable, apiHttpStatus: response.status,
     }, {
-      status: apiAuthenticated && callbackConfigured ? 200 : 503,
+      status: apiAuthenticated && callbackReachable ? 200 : 503,
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch {
