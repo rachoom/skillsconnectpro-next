@@ -45,9 +45,23 @@ export async function GET() {
     cfg = getPayfastConfig();
   } catch {
     return NextResponse.json({
-      configured: false, sandbox: true, callbackConfigured, callbackReachable, callbackHttpStatus,
+      configured: false, sandbox: true, callbackConfigured, callbackReachable, callbackHttpStatus, validationEndpointReachable, validationHttpStatus,
       apiAuthenticated: false, apiReachable: false, check: 'merchant_configuration',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
+  }
+  let validationEndpointReachable = false;
+  let validationHttpStatus: number | null = null;
+  try {
+    // Connectivity only. GET cannot validate a transaction; no payment
+    // references, merchant keys, signatures or customer data are transmitted.
+    const response = await fetch(cfg.validateUrl, {
+      method: 'GET', redirect: 'manual', cache: 'no-store',
+      signal: AbortSignal.timeout(6_000),
+    });
+    validationEndpointReachable = true;
+    validationHttpStatus = response.status;
+  } catch {
+    validationEndpointReachable = false;
   }
   try {
     const timestamp = new Date().toISOString().slice(0, 19) + '+00:00';
@@ -70,7 +84,7 @@ export async function GET() {
   } catch {
     return NextResponse.json({
       configured: true, sandbox: true, apiAuthenticated: false,
-      apiReachable: false, callbackConfigured, callbackReachable, callbackHttpStatus, check: 'api_network',
+      apiReachable: false, callbackConfigured, callbackReachable, callbackHttpStatus, validationEndpointReachable, validationHttpStatus, check: 'api_network',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
 }
