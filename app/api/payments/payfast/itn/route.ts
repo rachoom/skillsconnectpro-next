@@ -1,18 +1,29 @@
 import { NextResponse } from 'next/server';
-import { getPayfastConfig, payfastSignature, secureEqualHex } from '@/services/payments/payfast';
+import { getPayfastConfig, payfastParamString, payfastSignature, secureEqualHex } from '@/services/payments/payfast';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-async function validateWithPayfast(rawPayload: string, validationUrl: string): Promise<boolean> {
-  const response = await fetch(validationUrl, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: rawPayload, cache: 'no-store' });
+async function validateWithPayfast(fields: Record<string, string>, validationUrl: string): Promise<boolean> {
+  // Payfast validates the unsigned ITN parameter string: the inbound
+  // 'signature' field is excluded, and the merchant passphrase is never sent.
+  // Preserve the received field order, as Payfast expects.
+  const response = await fetch(validationUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: payfastParamString(fields),
+    cache: 'no-store',
+    redirect: 'error',
+    signal: AbortSignal.timeout(12_000),
+  });
   return response.ok && (await response.text()).trim() === 'VALID';
 }
 
 export async function POST(request: Request) {
   try {
     const rawPayload = await request.text();
+    if (rawPayload.length > 12_000) return new NextResponse('Notification too large', { status: 413 });
     const received = new URLSearchParams(rawPayload);
     const signature = received.get('signature');
     const fields: Record<string, string> = {};
@@ -20,7 +31,7 @@ export async function POST(request: Request) {
     const config = getPayfastConfig();
     if (fields.merchant_id !== config.merchantId) return new NextResponse('Unknown merchant', { status: 400 });
     if (!secureEqualHex(signature, payfastSignature(fields, config.passphrase))) return new NextResponse('Invalid signature', { status: 400 });
-    if (!await validateWithPayfast(rawPayload, config.validateUrl)) return new NextResponse('Payment validation failed', { status: 400 });
+    if (!await validateWithPayfast(fields, config.validateUrl)) return new NextResponse('Payment validation failed', { status: 400 });
 
     const paymentReference = fields.m_payment_id;
     const paymentStatus = String(fields.payment_status || '').toUpperCase();
