@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getProviderPlan } from '@/app/provider-plans/planCatalog';
 import { getPayfastConfig, normalisePayfastFields, payfastNotificationUrl, payfastSignature } from '@/services/payments/payfast';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
-import { GROWTH_TEST_PROVIDER_ID, GROWTH_GROWTH_TEST_COOKIE, growthSandboxEnabled, growthSandboxSecret, isValidGrowthTestToken, growthTestReceipt } from '@/services/payments/sandboxGrowthTest';
+import { GROWTH_TEST_PROVIDER_ID, GROWTH_TEST_COOKIE, growthSandboxEnabled, growthSandboxSecret, isValidGrowthTestToken, growthTestReceipt } from '@/services/payments/sandboxGrowthTest';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
