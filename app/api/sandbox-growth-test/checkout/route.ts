@@ -1,41 +1,15 @@
-import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { getProviderPlan } from '@/app/provider-plans/planCatalog';
 import { getPayfastConfig, normalisePayfastFields, payfastNotificationUrl, payfastSignature } from '@/services/payments/payfast';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
+import { GROWTH_TEST_PROVIDER_ID, GROWTH_GROWTH_TEST_COOKIE, growthSandboxEnabled, growthSandboxSecret, isValidGrowthTestToken, growthTestReceipt } from '@/services/payments/sandboxGrowthTest';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const FAKE_GROWTH_PROVIDER_ID = 900000002;
-const STAGING_PROJECT = 'bvzsbcpoxdvuvpskavho';
-const TEST_COOKIE = 'scp_growth_sandbox_receipt';
-
-function enabled() {
-  const configured = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const serverUrl = process.env.SUPABASE_URL || configured;
-  return process.env.VERCEL_ENV === 'preview'
-    && process.env.PAYFAST_MODE === 'sandbox'
-    && configured.includes(STAGING_PROJECT)
-    && serverUrl.includes(STAGING_PROJECT)
-    && Boolean(process.env.SCP_SANDBOX_GROWTH_TEST_TOKEN);
-}
-function testSecret() {
-  const secret = process.env.SCP_SANDBOX_GROWTH_TEST_TOKEN || '';
-  if (!/^[a-f0-9]{64}$/.test(secret)) throw new Error('Sandbox authorization unavailable');
-  return secret;
-}
-function safeEqual(candidate: string, expected: string) {
-  if (!/^[a-f0-9]{64}$/.test(candidate)) return false;
-  return timingSafeEqual(Buffer.from(candidate), Buffer.from(expected));
-}
-function receipt(ref: string, secret: string) {
-  return createHmac('sha256', secret).update('growth-sandbox:' + ref).digest('hex');
-}
-export { enabled, receipt, TEST_COOKIE };
-
 export async function POST(request: Request) {
-  if (!enabled()) return new NextResponse('Not found', { status: 404 });
+  if (!growthSandboxEnabled()) return new NextResponse('Not found', { status: 404 });
   const url = new URL(request.url);
   const origin = request.headers.get('origin');
   if (!origin || origin !== url.origin) return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 });
@@ -51,19 +25,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
   let secret: string;
-  try { secret = testSecret(); } catch { return NextResponse.json({ error: 'Test checkout unavailable' }, { status: 503 }); }
-  if (!safeEqual(String(body.testToken ?? ''), secret)) return NextResponse.json({ error: 'Invalid or expired test link' }, { status: 403 });
+  try { secret = growthSandboxSecret(); } catch { return NextResponse.json({ error: 'Test checkout unavailable' }, { status: 503 }); }
+  if (!isValidGrowthTestToken(String(body.testToken ?? ''), secret)) return NextResponse.json({ error: 'Invalid or expired test link' }, { status: 403 });
 
   try {
     const admin = getSupabaseAdmin();
     const { data: existing, error: existingError } = await admin.from('subscription_entitlements')
-      .select('id').eq('subject_type', 'provider').eq('subject_id', String(FAKE_GROWTH_PROVIDER_ID))
+      .select('id').eq('subject_type', 'provider').eq('subject_id', String(GROWTH_TEST_PROVIDER_ID))
       .eq('plan_code', 'growth_monthly').eq('status', 'active').gt('ends_at', new Date().toISOString()).limit(1).maybeSingle();
     if (existingError) throw existingError;
     if (existing) return NextResponse.json({ error: 'The Growth sandbox test already activated. Please inspect the staging entitlement before paying again.' }, { status: 409 });
 
     const { data: provider, error: providerError } = await admin.from('artisans')
-      .select('id,first_name,last_name,email').eq('id', FAKE_GROWTH_PROVIDER_ID).maybeSingle();
+      .select('id,first_name,last_name,email').eq('id', GROWTH_TEST_PROVIDER_ID).maybeSingle();
     if (providerError || !provider) throw new Error('The staging-only Growth test provider is missing');
 
     const plan = getProviderPlan('growth');
@@ -85,12 +59,12 @@ export async function POST(request: Request) {
       m_payment_id: ref, amount: '99.00',
       item_name: 'Skills Connect Pro Growth SANDBOX TEST',
       item_description: 'Simulated R99 Growth recurring subscription - not a real payment',
-      custom_str1: String(FAKE_GROWTH_PROVIDER_ID), custom_str2: plan.code, custom_str3: plan.kind,
+      custom_str1: String(GROWTH_TEST_PROVIDER_ID), custom_str2: plan.code, custom_str3: plan.kind,
       subscription_type: 1, recurring_amount: '99.00', frequency: 3, cycles: 0,
     });
 
     const { error: insertError } = await admin.from('payment_transactions').insert({
-      m_payment_id: ref, provider_id: FAKE_GROWTH_PROVIDER_ID, plan_code: 'growth_monthly',
+      m_payment_id: ref, provider_id: GROWTH_TEST_PROVIDER_ID, plan_code: 'growth_monthly',
       plan_kind: 'subscription', amount_cents: 9900, processor_status: 'INITIATED',
       metadata: { payfast_mode: 'sandbox', purpose: 'isolated_growth_checkout_test' },
     });
@@ -100,7 +74,7 @@ export async function POST(request: Request) {
       paymentUrl: config.processUrl,
       fields: { ...fields, signature: payfastSignature(fields, config.passphrase) },
     }, { headers: { 'Cache-Control': 'no-store' } });
-    response.cookies.set(TEST_COOKIE, ref + '.' + receipt(ref, secret), {
+    response.cookies.set(GROWTH_TEST_COOKIE, ref + '.' + growthTestReceipt(ref, secret), {
       httpOnly: true, secure: true, sameSite: 'lax', path: '/api/sandbox-growth-test',
       maxAge: 3600,
     });
