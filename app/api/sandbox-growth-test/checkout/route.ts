@@ -43,6 +43,11 @@ export async function POST(request: Request) {
     const plan = getProviderPlan('growth');
     const config = getPayfastConfig();
     if (!plan || config.mode !== 'sandbox') throw new Error('Sandbox payment is unavailable');
+    // Payfast requires an eight-digit sandbox merchant ID and its matching key.
+    // A misconfigured merchant should fail before creating a checkout record.
+    if (!/^\\d{8}$/.test(config.merchantId) || !/^[A-Za-z0-9]{5,32}$/.test(config.merchantKey)) {
+      throw new Error('Sandbox merchant credentials do not match Payfast field requirements');
+    }
     const ref = randomUUID();
     const siteOrigin = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
     const target = new URL(siteOrigin);
@@ -54,12 +59,14 @@ export async function POST(request: Request) {
       return_url: siteOrigin + '/sandbox-growth-test/return?payment=' + encodeURIComponent(ref),
       cancel_url: siteOrigin + '/sandbox-growth-test/return?payment=' + encodeURIComponent(ref) + '&cancelled=1',
       notify_url: payfastNotificationUrl(siteOrigin, config.mode),
-      name_first: provider.first_name || 'Sandbox', name_last: provider.last_name || 'Growth',
-      email_address: provider.email || undefined,
+      name_first: 'Test', name_last: 'Buyer',
+      // Payfast's published sandbox buyer, not a synthetic example.com address.
+      email_address: 'sbtu01@payfast.io',
       m_payment_id: ref, amount: '99.00',
       item_name: 'Skills Connect Pro Growth SANDBOX TEST',
-      item_description: 'Simulated R99 Growth recurring subscription - not a real payment',
+      item_description: 'Growth monthly subscription sandbox test',
       custom_str1: String(GROWTH_TEST_PROVIDER_ID), custom_str2: plan.code, custom_str3: plan.kind,
+      email_confirmation: 1,
       subscription_type: 1, recurring_amount: '99.00', frequency: 3, cycles: 0,
     });
 
