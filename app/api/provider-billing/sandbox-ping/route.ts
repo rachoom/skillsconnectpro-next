@@ -51,6 +51,10 @@ export async function GET() {
       apiAuthenticated: false, apiReachable: false, check: 'merchant_configuration',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
+  // Return safe format checks, never the merchant ID/key/passphrase itself.
+  const merchantIdFormatValid = /^\\d{8}$/.test(cfg.merchantId);
+  const merchantKeyFormatValid = /^[A-Za-z0-9]{5,32}$/.test(cfg.merchantKey);
+  const recurringPassphrasePresent = cfg.passphrase.length > 0;
   try {
     // Connectivity only. GET cannot validate a transaction; no payment
     // references, merchant keys, signatures or customer data are transmitted.
@@ -77,6 +81,7 @@ export async function GET() {
     return NextResponse.json({
       configured: true, sandbox: true, apiAuthenticated, apiReachable: true,
       callbackConfigured, callbackReachable, apiHttpStatus: response.status,
+      merchantIdFormatValid, merchantKeyFormatValid, recurringPassphrasePresent,
     }, {
       status: apiAuthenticated && callbackReachable ? 200 : 503,
       headers: { 'Cache-Control': 'no-store' },
@@ -84,7 +89,8 @@ export async function GET() {
   } catch {
     return NextResponse.json({
       configured: true, sandbox: true, apiAuthenticated: false,
-      apiReachable: false, callbackConfigured, callbackReachable, callbackHttpStatus, validationEndpointReachable, validationHttpStatus, check: 'api_network',
+      apiReachable: false, callbackConfigured, callbackReachable, callbackHttpStatus, validationEndpointReachable, validationHttpStatus,
+      merchantIdFormatValid, merchantKeyFormatValid, recurringPassphrasePresent, check: 'api_network',
     }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
 }
