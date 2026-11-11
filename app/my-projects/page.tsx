@@ -117,19 +117,24 @@ export default async function MyProjectsPage({ searchParams }: Props) {
 
         <section className={styles.grid} aria-label="Saved projects">
           {(projects ?? []).map((project) => (
-            <Link href={`/my-projects/${project.id}`} className={styles.projectCard} key={project.id}>
-              <div className={styles.cardTop}>
-                <span className={styles.category}>{project.category}</span>
-                <span className={styles.status}>{project.status.replaceAll('_', ' ')}</span>
-              </div>
-              <h2>{project.title}</h2>
-              <p className={styles.description}>{project.customer_description}</p>
-              <div className={styles.meta}>
-                <span><MapPin size={15} /> {project.location_text}</span>
-                <span><CalendarDays size={15} /> {new Date(project.updated_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</span>
-              </div>
-              <div className={styles.open}><span>{money(project.estimated_min, project.estimated_max)}</span><ArrowRight size={19} /></div>
-            </Link>
+            <article className={styles.projectCard} key={project.id}>
+              <Link href={`/my-projects/${project.id}`} className={styles.projectCardBody}>
+                <div className={styles.cardTop}>
+                  <span className={styles.category}>{project.category}</span>
+                  <span className={styles.status}>{project.status.replaceAll('_', ' ')}</span>
+                </div>
+                <h2>{project.title}</h2>
+                <p className={styles.description}>{project.customer_description}</p>
+                <div className={styles.meta}>
+                  <span><MapPin size={15} /> {project.location_text}</span>
+                  <span><CalendarDays size={15} /> {new Date(project.updated_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</span>
+                </div>
+                <div className={styles.open}><span>Open project workspace</span><ArrowRight size={19} /></div>
+              </Link>
+              <Link href={`/project/${project.id}?token=account-session`} className={styles.customerDashboardLink}>
+                <span>Open Customer Dashboard</span><ArrowRight size={19} aria-hidden="true" />
+              </Link>
+            </article>
           ))}
           {!projects?.length && (
             <div className={styles.empty}>
