@@ -78,7 +78,7 @@ export default async function ProviderPlanDetailPage({
 
               <div className="mt-6 flex items-start gap-3 rounded-xl border border-white/20 bg-black/30 px-4 py-4 text-xs leading-6 text-white/80">
                 <ShieldCheck size={19} className={`mt-0.5 shrink-0 ${theme.check}`} aria-hidden="true" />
-                <p>{isSubscription ? 'This plan renews automatically each month. Cancel future renewals in your Artisan Business Workspace.' : 'One-time purchase. No automatic renewal or monthly commitment.'}</p>
+                <p>{isSubscription ? 'Automatically renewing monthly. Cancel future renewals in your Artisan Business Workspace.' : 'One-time purchase. No automatic renewal or monthly commitment.'}</p>
               </div>
               <Link href={checkoutHref} className={`mt-6 flex min-h-[58px] w-full items-center justify-center gap-3 rounded-2xl px-4 py-4 text-center text-base font-black shadow-[0_14px_35px_rgba(0,0,0,.24)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white ${theme.button}`}>
                 Continue to secure checkout <ArrowRight size={20} aria-hidden="true" />
