@@ -21,7 +21,10 @@ export function ConnectProjectForm({ expectedProjectId }: { expectedProjectId: s
         throw new Error('Please paste the original Skills Connect Pro private project link.');
       }
       const match = /^\/project\/([0-9a-f-]{36})\/?$/i.exec(link.pathname);
-      const projectId = match?.[1] || '';
+      // The original completion page offers both "Open dashboard" and
+      // "Save & manage" links. Either contains the verified guest token.
+      const isSavedLink = link.pathname === '/sign-in' && link.searchParams.has('projectId');
+      const projectId = match?.[1] || (isSavedLink ? link.searchParams.get('projectId') : '') || '';
       const token = link.searchParams.get('token') || '';
       if (!UUID.test(projectId) || !TOKEN.test(token) || token === 'account-session') {
         throw new Error('This is not a complete private customer dashboard link.');
@@ -47,7 +50,7 @@ export function ConnectProjectForm({ expectedProjectId }: { expectedProjectId: s
 
   return (
     <form className="mt-7" onSubmit={connect}>
-      <label htmlFor="saved-project-link" className="block text-sm font-bold text-[#f1e4bb]">Original private customer dashboard link</label>
+      <label htmlFor="saved-project-link" className="block text-sm font-bold text-[#f1e4bb]">Original private dashboard or Save &amp; manage link</label>
       <input id="saved-project-link" type="url" required autoCapitalize="off" autoComplete="off" spellCheck={false}
         value={privateLink} onChange={(event) => setPrivateLink(event.target.value)}
         placeholder="https://skillsconnectpro.co.za/project/..."
@@ -56,7 +59,7 @@ export function ConnectProjectForm({ expectedProjectId }: { expectedProjectId: s
       <button type="submit" disabled={working} className="mt-5 flex min-h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-4 font-black text-[#111] disabled:opacity-50">
         {working ? <Loader2 size={20} className="animate-spin" /> : <>Connect & Open Customer Dashboard <ArrowRight size={20} /></>}
       </button>
-      <p className="mt-5 text-sm leading-6 text-[#aaa]">Your original link may be available in your browser history or the page shown after submitting your request. Keep it private: it grants access to the request.</p>
+      <p className="mt-5 text-sm leading-6 text-[#aaa]">Your original private dashboard or Save &amp; manage link may be available in your browser history or the page shown after submitting your request. Keep it private: it grants access to the request.</p>
     </form>
   );
 }
