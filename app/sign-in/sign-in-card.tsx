@@ -60,10 +60,21 @@ export function SignInCard({ nextPath, projectId, projectToken, initialError }: 
       const { data } = await supabase.auth.getUser();
       if (!active || !data.user) return;
       if (projectId && projectToken) {
-        const { data: claimed } = await supabase.rpc('claim_guest_project', {
-          target_project_id: projectId,
-          raw_access_token: projectToken,
-        });
+        // Existing users need the same server-verified claim as new sign-ins.
+        // The SQL claim RPC is deliberately restricted to server-side access.
+        let claimed = false;
+        try {
+          const response = await fetch('/api/projects/claim', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId, token: projectToken }),
+          });
+          const result = await response.json().catch(() => ({}));
+          claimed = response.ok && result.claimed === true;
+        } catch {
+          claimed = false;
+        }
         window.location.replace(`${nextPath}${nextPath.includes('?') ? '&' : '?'}claim=${claimed ? 'saved' : 'failed'}`);
         return;
       }
