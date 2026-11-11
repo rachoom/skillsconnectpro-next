@@ -68,29 +68,29 @@ export const customerPlanThemes = {
 } as const;
 
 export const providerPlanThemes = {
-  'starter': {
-    card: 'border-[#b49457]/65 bg-[linear-gradient(146deg,rgba(176,142,77,.20),rgba(23,22,19,.96)_42%,rgba(11,11,11,.99)_100%)] text-[#fbf7eb]',
-    price: 'text-[#dec88a]',
-    badge: 'border-[#b49457]/55 bg-[#f5c518]/10 text-[#dec88a]',
-    button: 'bg-[#f5c518] text-[#17120a] hover:bg-[#ffdd55]',
-    panel: 'bg-[linear-gradient(132deg,#ffe18a_0%,#f5c518_52%,#d4a21c_100%)] text-[#1f1806]',
-    check: 'text-[#f5c518]',
+  starter: {
+    card: 'border-[#51d8b6]/65 bg-[linear-gradient(145deg,#10372f_0%,#102822_37%,#111617_100%)] text-[#f1fff9]',
+    price: 'text-[#77f1d0]',
+    badge: 'border-[#62d9ba]/50 bg-[#126b54]/40 text-[#a6ffe4]',
+    button: 'bg-[#61e2bc] text-[#0b3027] hover:bg-[#8bf0d4]',
+    panel: 'bg-[linear-gradient(135deg,#b5ffe7_0%,#5bddb5_60%,#29ac84_100%)] text-[#08352a]',
+    check: 'text-[#67eac5]',
   },
-  'growth': {
-    card: 'border-[#f5c518]/65 bg-[linear-gradient(146deg,rgba(245,197,24,.16),rgba(23,22,19,.96)_42%,rgba(11,11,11,.99)_100%)] text-[#fbf7eb]',
-    price: 'text-[#ffe49a]',
-    badge: 'border-[#f5c518]/55 bg-[#f5c518]/10 text-[#ffe49a]',
-    button: 'bg-[#f5c518] text-[#17120a] hover:bg-[#ffdd55]',
-    panel: 'bg-[linear-gradient(132deg,#ffe18a_0%,#f5c518_52%,#d4a21c_100%)] text-[#1f1806]',
-    check: 'text-[#f5c518]',
+  growth: {
+    card: 'border-[#b3a0ff]/65 bg-[linear-gradient(145deg,#362a51_0%,#221b35_42%,#15131e_100%)] text-[#f7f4ff]',
+    price: 'text-[#d0bbff]',
+    badge: 'border-[#ad97ff]/50 bg-[#7051b2]/35 text-[#e1d6ff]',
+    button: 'bg-[#bba3ff] text-[#211534] hover:bg-[#d4c3ff]',
+    panel: 'bg-[linear-gradient(135deg,#eadfff_0%,#af94f2_55%,#7e60d1_100%)] text-[#251637]',
+    check: 'text-[#c2adff]',
   },
-  'pro': {
-    card: 'border-[#e1b969]/65 bg-[linear-gradient(146deg,rgba(195,146,65,.22),rgba(23,22,19,.96)_42%,rgba(11,11,11,.99)_100%)] text-[#fbf7eb]',
-    price: 'text-[#f9d98b]',
-    badge: 'border-[#e1b969]/55 bg-[#f5c518]/10 text-[#f9d98b]',
-    button: 'bg-[#f5c518] text-[#17120a] hover:bg-[#ffdd55]',
-    panel: 'bg-[linear-gradient(132deg,#ffe18a_0%,#f5c518_52%,#d4a21c_100%)] text-[#1f1806]',
-    check: 'text-[#f5c518]',
+  pro: {
+    card: 'border-[#f5ca56]/80 bg-[linear-gradient(145deg,#463414_0%,#29200f_42%,#15130f_100%)] text-[#fff7e4]',
+    price: 'text-[#f6d66e]',
+    badge: 'border-[#e5bd53]/60 bg-[#725018]/35 text-[#ffe5a1]',
+    button: 'bg-[#f5c518] text-[#1d1706] hover:bg-[#ffdd55]',
+    panel: 'bg-[linear-gradient(135deg,#ffeaa5_0%,#f4c953_55%,#c99318_100%)] text-[#2b1b02]',
+    check: 'text-[#f5cf62]',
   },
   'lead-pack-4': {
     card: 'border-[#b49457]/65 bg-[linear-gradient(146deg,rgba(176,142,77,.17),rgba(23,22,19,.96)_42%,rgba(11,11,11,.99)_100%)] text-[#fbf7eb]',
