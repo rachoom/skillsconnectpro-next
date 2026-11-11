@@ -36,7 +36,7 @@ export default async function ProviderCheckoutPage({ searchParams }: { searchPar
           <span className="inline-flex items-center gap-2 rounded-full border border-[#c5a757]/30 bg-[#f5c518]/[.07] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[.13em] text-[#e6d39e]"><LockKeyhole size={14} /> Step 2 of 2 · Review &amp; pay</span>
         </div>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.04] tracking-[-.05em] text-white sm:text-5xl md:text-6xl">
-          {plan ? <>Ready to grow with <span className="text-[#f5c518]">{plan.name}?</span></> : <>Choose the plan that <span className="text-[#f5c518]">works for you.</span></>}
+          {plan ? <>Ready to grow with <span className={theme.price}>{plan.name}?</span></> : <>Choose the plan that <span className="text-[#f5c518]">works for you.</span></>}
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-[#beb8aa] sm:text-base">
           Everything in one place. Review your membership, understand the payment terms and continue to PayFast only when you are ready.
@@ -65,14 +65,14 @@ export default async function ProviderCheckoutPage({ searchParams }: { searchPar
           </section>
 
           <aside className="order-1 lg:sticky lg:top-6 lg:order-2" aria-label="Order summary and payment">
-            <div className="overflow-hidden rounded-[1.65rem] border border-[#f5c518]/40 bg-[#15130f] shadow-[0_26px_80px_rgba(0,0,0,.38)]">
-              <div className="border-b border-[#f5c518]/25 bg-[linear-gradient(120deg,rgba(245,197,24,.17),rgba(245,197,24,.035))] px-5 py-6 sm:px-7">
+            <div className={`overflow-hidden rounded-[1.65rem] border shadow-[0_26px_80px_rgba(0,0,0,.38)] ${theme.card}`}>
+              <div className="border-b border-white/20 bg-white/[.045] px-5 py-6 sm:px-7">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[10px] font-black uppercase tracking-[.18em] text-[#dfc67e]">Your order summary</span>
-                  <span className="rounded-full border border-[#f5c518]/35 bg-[#f5c518]/10 px-3 py-1 text-[10px] font-bold text-[#ffe59a]">{plan?.kind === 'subscription' ? 'Monthly membership' : 'Once-off'}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-[.18em] ${theme.price}`}>Your order summary</span>
+                  <span className={`rounded-full border px-3 py-1 text-[10px] font-bold ${theme.badge}`}>{plan?.kind === 'subscription' ? 'Monthly membership' : 'Once-off'}</span>
                 </div>
                 <h2 className="mt-3 text-2xl font-black text-white">{plan?.name ?? 'Select a plan'}</h2>
-                {plan && <div className="mt-4 flex items-end gap-2"><span className="text-5xl font-black tracking-[-.05em] text-[#f5c518]">{plan.price}</span><span className="pb-1 text-sm font-semibold text-[#dbd1b9]">{plan.kind === 'subscription' ? 'per month' : 'once-off'}</span></div>}
+                {plan && <div className="mt-4 flex items-end gap-2"><span className={`text-5xl font-black tracking-[-.05em] ${theme.price}`}>{plan.price}</span><span className="pb-1 text-sm font-semibold text-[#dbd1b9]">{plan.kind === 'subscription' ? 'per month' : 'once-off'}</span></div>}
                 {plan && <p className="mt-3 text-xs leading-6 text-[#e1d8c1]">{plan.included[0]}</p>}
               </div>
 
