@@ -31,7 +31,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
   if (!user) redirect('/sign-in?next=/my-projects');
 
   const [{ data: projects, error }, { data: roles }, { data: subscriptions }] = await Promise.all([
-    supabase.from('projects').select('id,title,customer_description,category,status,location_text,estimated_min,estimated_max,estimate_currency,created_at,updated_at').order('updated_at', { ascending: false }),
+    supabase.from('projects').select('id,customer_id,title,customer_description,category,status,location_text,estimated_min,estimated_max,estimate_currency,created_at,updated_at').order('updated_at', { ascending: false }),
     supabase.from('account_roles').select('role,status,is_primary,linked_artisan_id').eq('user_id', user.id),
     supabase.from('account_subscriptions').select('plan_code,ends_at,starts_at').eq('user_id', user.id).eq('status', 'active').order('starts_at', { ascending: false }).limit(1),
   ]);
@@ -131,9 +131,11 @@ export default async function MyProjectsPage({ searchParams }: Props) {
                 </div>
                 <div className={styles.open}><span>{money(project.estimated_min, project.estimated_max)}</span><ArrowRight size={19} /></div>
               </Link>
-              <Link href={`/project/${project.id}?token=account-session`} className={styles.customerDashboardLink}>
-                <span>Open Customer Dashboard</span><ArrowRight size={19} aria-hidden="true" />
-              </Link>
+              {project.customer_id === user.id && (
+                <Link href={`/project/${project.id}?token=account-session`} className={styles.customerDashboardLink}>
+                  <span>Open Customer Dashboard</span><ArrowRight size={19} aria-hidden="true" />
+                </Link>
+              )}
             </article>
           ))}
           {!projects?.length && (
