@@ -222,7 +222,7 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
                   {plan.included.slice(1).map((feature) => <li key={feature} className="flex items-start gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={17} aria-hidden="true" />{feature}</li>)}
                 </ul>
                 <Link href={`/provider-plans/${plan.slug}${providerQuery}`} className={`mt-8 flex min-h-14 items-center justify-center gap-3 rounded-2xl px-4 py-4 text-sm font-black transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white ${theme.button}`}>Explore {plan.name}<ArrowRight size={19} /></Link>
-                <p className="mt-4 text-center text-xs leading-5 text-white/70">Recurring monthly billing · Cancel future renewals in your workspace</p>
+                <p className="mt-4 text-center text-xs leading-5 text-white/70">Monthly recurring billing · Cancel future renewals in your workspace</p>
               </article>
             );
           })}
