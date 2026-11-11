@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
+import { getAuthenticatedAccount } from '../supabase/server';
 import type {
   CreateProjectInput,
   Project,
@@ -228,10 +229,28 @@ export async function createProject(input: CreateProjectInput): Promise<CreatedP
   return { project: mapProjectRow(projectRow), accessToken: access.token };
 }
 
+// The account-scoped marker is never a bearer token. Each request must prove
+// ownership using the signed-in Supabase session and the project's customer_id.
+// Guest links continue to use their original, hashed opaque access token.
+export const ACCOUNT_CUSTOMER_ACCESS_TOKEN = 'account-session';
+
 export async function getProjectByAccessToken(
   projectId: string,
   accessToken: string,
 ): Promise<Project | null> {
+  if (accessToken === ACCOUNT_CUSTOMER_ACCESS_TOKEN) {
+    const { supabase: accountSupabase, user } = await getAuthenticatedAccount();
+    if (!user) return null;
+    const { data, error } = await accountSupabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .eq('customer_id', user.id)
+      .maybeSingle();
+    if (error) throw new Error(`Unable to load your saved project: ${error.message}`);
+    return data ? mapProjectRow(data as ProjectRow) : null;
+  }
+
   const supabase = getSupabaseAdmin();
   const accessTokenHash = hashOpaqueToken(accessToken);
 
