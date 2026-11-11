@@ -61,7 +61,10 @@ export default async function MyProjectsPage({ searchParams }: Props) {
             <h1>My Projects</h1>
             <p>Keep project briefs, preliminary estimates, materials, milestones and documents together—separate from any public service-provider profile.</p>
           </div>
-          <Link href="/assistant" className={styles.primaryLink}><Sparkles size={17} /> Start with the AI Assistant</Link>
+          <div className={styles.heroLinks}>
+            <Link href="/my-projects/connect" className={styles.navLink}>Link an existing request</Link>
+            <Link href="/assistant" className={styles.primaryLink}><Sparkles size={17} /> Start with the AI Assistant</Link>
+          </div>
         </section>
 
         <section className={styles.stats} aria-label="Account summary">
@@ -131,11 +134,15 @@ export default async function MyProjectsPage({ searchParams }: Props) {
                 </div>
                 <div className={styles.open}><span>{money(project.estimated_min, project.estimated_max)}</span><ArrowRight size={19} /></div>
               </Link>
-              {project.customer_id === user.id && (
+              {project.customer_id === user.id ? (
                 <Link href={`/project/${project.id}?token=account-session`} className={styles.customerDashboardLink}>
                   <span>Open Customer Dashboard</span><ArrowRight size={19} aria-hidden="true" />
                 </Link>
-              )}
+              ) : !project.customer_id ? (
+                <Link href={`/my-projects/connect?project=${project.id}`} className={styles.customerDashboardLink}>
+                  <span>Connect Customer Dashboard</span><ArrowRight size={19} aria-hidden="true" />
+                </Link>
+              ) : null}
             </article>
           ))}
           {!projects?.length && (
