@@ -68,7 +68,7 @@ export const customerPlanThemes = {
 } as const;
 
 export const providerPlanThemes = {
-  starter: {
+  'starter': {
     card: 'border-[#51d8b6]/65 bg-[linear-gradient(145deg,#10372f_0%,#102822_37%,#111617_100%)] text-[#f1fff9]',
     price: 'text-[#77f1d0]',
     badge: 'border-[#62d9ba]/50 bg-[#126b54]/40 text-[#a6ffe4]',
@@ -76,7 +76,7 @@ export const providerPlanThemes = {
     panel: 'bg-[linear-gradient(135deg,#b5ffe7_0%,#5bddb5_60%,#29ac84_100%)] text-[#08352a]',
     check: 'text-[#67eac5]',
   },
-  growth: {
+  'growth': {
     card: 'border-[#b3a0ff]/65 bg-[linear-gradient(145deg,#362a51_0%,#221b35_42%,#15131e_100%)] text-[#f7f4ff]',
     price: 'text-[#d0bbff]',
     badge: 'border-[#ad97ff]/50 bg-[#7051b2]/35 text-[#e1d6ff]',
@@ -84,7 +84,7 @@ export const providerPlanThemes = {
     panel: 'bg-[linear-gradient(135deg,#eadfff_0%,#af94f2_55%,#7e60d1_100%)] text-[#251637]',
     check: 'text-[#c2adff]',
   },
-  pro: {
+  'pro': {
     card: 'border-[#f5ca56]/80 bg-[linear-gradient(145deg,#463414_0%,#29200f_42%,#15130f_100%)] text-[#fff7e4]',
     price: 'text-[#f6d66e]',
     badge: 'border-[#e5bd53]/60 bg-[#725018]/35 text-[#ffe5a1]',
