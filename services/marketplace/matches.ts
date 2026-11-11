@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
-import { getProjectByAccessToken } from './projects';
+import { ACCOUNT_CUSTOMER_ACCESS_TOKEN, getProjectByAccessToken } from './projects';
 import { hashOpaqueToken } from './tokens';
 
 export interface ReleasedPartyContact {
@@ -135,9 +135,26 @@ export async function releaseContactsForProject(input: {
   }
 
   const supabase = getSupabaseAdmin();
+  // The existing atomic contact-release RPC accepts the stored token hash.
+  // For a verified signed-in owner, reuse that hash server-side only; never
+  // expose it to the browser or replace/revoke the original guest link.
+  let verifiedTokenHash = hashOpaqueToken(input.projectAccessToken);
+  if (input.projectAccessToken === ACCOUNT_CUSTOMER_ACCESS_TOKEN) {
+    if (!project.customerId) throw new Error('Project not found.');
+    const { data: owned, error: ownedError } = await supabase
+      .from('projects')
+      .select('customer_access_token_hash')
+      .eq('id', input.projectId)
+      .eq('customer_id', project.customerId)
+      .maybeSingle();
+    if (ownedError || !owned?.customer_access_token_hash) {
+      throw new Error('This saved project has no active customer dashboard link.');
+    }
+    verifiedTokenHash = owned.customer_access_token_hash;
+  }
   const { data, error } = await supabase.rpc('release_marketplace_contacts', {
     p_project_id: input.projectId,
-    p_customer_access_token_hash: hashOpaqueToken(input.projectAccessToken),
+    p_customer_access_token_hash: verifiedTokenHash,
   });
 
   if (error) throw new Error(`Unable to release contact details: ${error.message}`);
