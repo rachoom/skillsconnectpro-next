@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { ProjectWorkspace } from './project-workspace';
@@ -64,6 +64,15 @@ export default async function ProjectWorkspacePage({ params }: Props) {
           <div><span className={styles.eyebrow}>{project.category} · {project.location_text}</span><h1>{project.title}</h1><p>{project.ai_summary || project.customer_description}</p></div>
           <div className={styles.estimate}><span>Preliminary project range</span><strong>{formatRange(project.estimated_min, project.estimated_max, project.estimate_currency)}</strong></div>
         </header>
+        <section className={styles.customerDashboardCallout} aria-label="Customer dashboard access">
+          <div>
+            <span className={styles.eyebrow}>Customer dashboard</span>
+            <p>Check provider responses, matching progress and project updates. Return here any time from My Projects.</p>
+          </div>
+          <Link href={`/project/${project.id}?token=account-session`} className={styles.customerDashboardAction}>
+            Open Customer Dashboard <ArrowRight size={19} aria-hidden="true" />
+          </Link>
+        </section>
         {workspaceReadError && <div className={styles.error}>Some saved project records could not be loaded. Please refresh the page.</div>}
         <ProjectWorkspace
           project={project}
