@@ -64,7 +64,7 @@ export default async function ProjectWorkspacePage({ params }: Props) {
           <div><span className={styles.eyebrow}>{project.category} · {project.location_text}</span><h1>{project.title}</h1><p>{project.ai_summary || project.customer_description}</p></div>
           <div className={styles.estimate}><span>Preliminary project range</span><strong>{formatRange(project.estimated_min, project.estimated_max, project.estimate_currency)}</strong></div>
         </header>
-        {project.customer_id === user.id && (
+        {project.customer_id === user.id ? (
           <section className={styles.customerDashboardCallout} aria-label="Customer dashboard access">
             <div>
               <span className={styles.eyebrow}>Customer dashboard</span>
@@ -74,7 +74,17 @@ export default async function ProjectWorkspacePage({ params }: Props) {
               Open Customer Dashboard <ArrowRight size={19} aria-hidden="true" />
             </Link>
           </section>
-        )}
+        ) : !project.customer_id ? (
+          <section className={styles.customerDashboardCallout} aria-label="Connect customer dashboard">
+            <div>
+              <span className={styles.eyebrow}>Complete project saving</span>
+              <p>This request is in the workspace, but its private customer dashboard is not yet linked to your account. Use the original private link to connect it securely.</p>
+            </div>
+            <Link href={`/my-projects/connect?project=${project.id}`} className={styles.customerDashboardAction}>
+              Connect Customer Dashboard <ArrowRight size={19} aria-hidden="true" />
+            </Link>
+          </section>
+        ) : null}
         {workspaceReadError && <div className={styles.error}>Some saved project records could not be loaded. Please refresh the page.</div>}
         <ProjectWorkspace
           project={project}
