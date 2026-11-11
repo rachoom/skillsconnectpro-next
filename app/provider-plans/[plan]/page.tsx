@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Check, CircleCheckBig, LockKeyhole, MapPin, ShieldCheck, Sparkles, UsersRound } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { getProviderPlan, providerPlans } from '../planCatalog';
+import { providerTheme } from '@/services/planPresentation';
 
 export function generateStaticParams() {
   return providerPlans.map((plan) => ({ plan: plan.slug }));
@@ -21,6 +22,7 @@ export default async function ProviderPlanDetailPage({
   if (!plan) notFound();
   const isSubscription = plan.kind === 'subscription';
   const checkoutHref = `/provider-checkout?plan=${plan.slug}${providerQuery}`;
+  const theme = providerTheme(plan.slug);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090909] text-[#faf6ec]">
@@ -46,19 +48,42 @@ export default async function ProviderPlanDetailPage({
             </div>
           </div>
 
-          <aside className="overflow-hidden rounded-[1.8rem] border border-[#f5c518]/55 bg-[#15130f] shadow-[0_30px_80px_rgba(0,0,0,.42)]">
-            <div className="relative overflow-hidden border-b border-[#f5c518]/25 bg-[linear-gradient(125deg,rgba(245,197,24,.18),rgba(245,197,24,.03))] px-6 py-7 sm:px-8">
-              <span className="text-[11px] font-black uppercase tracking-[.17em] text-[#edcf7f]">{plan.name} {isSubscription ? 'monthly plan' : 'lead pack'}</span>
-              <div className="mt-4 flex flex-wrap items-baseline gap-2">
-                <span className="text-6xl font-black tracking-[-.07em] text-[#f5c518]">{plan.price}</span>
-                <span className="text-base font-semibold text-[#e6dbbf]">{isSubscription ? '/ month' : 'once-off'}</span>
+          <aside className={`relative isolate overflow-hidden rounded-[2rem] border shadow-[0_35px_100px_rgba(0,0,0,.48)] ${theme.card}`} aria-label={`${plan.name} complete plan benefits and price`}>
+            <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-28 size-80 rounded-full bg-white/[.085] blur-3xl" />
+            <div className="relative px-6 pb-7 pt-7 sm:px-8 sm:pt-9">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className={`text-[11px] font-black uppercase tracking-[.19em] ${theme.price}`}>{plan.name} {isSubscription ? 'monthly membership' : 'lead pack'}</span>
+                <span className={`rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[.1em] ${theme.badge}`}>{plan.slug === 'growth' ? 'Growing businesses' : plan.slug === 'pro' ? 'Maximum access' : plan.slug === 'starter' ? 'Start strong' : 'Flexible access'}</span>
               </div>
-              <p className="mt-4 text-sm font-bold leading-6 text-[#f2e5c7]">{plan.included[0]}</p>
-              <div className="mt-6 flex gap-2 rounded-xl border border-[#f5c518]/25 bg-black/25 px-3.5 py-3 text-xs leading-5 text-[#d9cfb4]"><ShieldCheck size={18} className="shrink-0 text-[#f5c518]" />{isSubscription ? 'Automatically renewing monthly. Cancel future renewals from your Artisan Business Workspace.' : 'One-time purchase with no automatic renewal.'}</div>
-            </div>
-            <div className="p-6 sm:p-8">
-              <Link href={checkoutHref} className="flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-[#f5c518] px-5 py-4 text-center text-base font-black text-[#171207] shadow-[0_18px_36px_rgba(245,197,24,.17)] transition hover:-translate-y-0.5 hover:bg-[#ffe05a]">Continue to secure checkout <ArrowRight size={20} /></Link>
-              <p className="mt-4 flex items-start gap-2 text-xs leading-6 text-[#bdb5a5]"><LockKeyhole size={16} className="mt-1 shrink-0 text-[#f5c518]" /> Paid through PayFast. Access activates only after payment is verified. Responses do not guarantee jobs.</p>
+              <div className="mt-5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                <span className={`text-[clamp(3.8rem,12vw,5.1rem)] font-black leading-none tracking-[-.07em] ${theme.price}`}>{plan.price}</span>
+                <span className="text-base font-semibold text-white/80">{isSubscription ? '/ month' : 'once-off'}</span>
+              </div>
+              <p className="mt-4 max-w-md text-sm font-medium leading-6 text-white/80">{isSubscription ? 'Choose the right customer requests and keep your business ready for more work.' : 'Get extra response capacity without a monthly subscription.'}</p>
+
+              <div className="mt-7 border-t border-white/20 pt-6">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-[12px] font-black uppercase tracking-[.17em] text-white">Everything included</h2>
+                  <span className={`text-xs font-bold ${theme.price}`}>{plan.included.length} plan benefits</span>
+                </div>
+                <ul className="mt-5 grid gap-3.5">
+                  {plan.included.map((feature, index) => (
+                    <li key={feature} className={`flex items-start gap-3 rounded-xl border px-3.5 py-3 text-sm font-semibold leading-6 ${index === 0 ? 'border-white/25 bg-white/[.10] text-white' : 'border-white/[.09] bg-black/20 text-white/85'}`}>
+                      <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/20 ${theme.check}`}><Check size={15} strokeWidth={3} aria-hidden="true" /></span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-6 flex items-start gap-3 rounded-xl border border-white/20 bg-black/30 px-4 py-4 text-xs leading-6 text-white/80">
+                <ShieldCheck size={19} className={`mt-0.5 shrink-0 ${theme.check}`} aria-hidden="true" />
+                <p>{isSubscription ? 'This plan renews automatically each month. Cancel future renewals in your Artisan Business Workspace.' : 'One-time purchase. No automatic renewal or monthly commitment.'}</p>
+              </div>
+              <Link href={checkoutHref} className={`mt-6 flex min-h-[58px] w-full items-center justify-center gap-3 rounded-2xl px-4 py-4 text-center text-base font-black shadow-[0_14px_35px_rgba(0,0,0,.24)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white ${theme.button}`}>
+                Continue to secure checkout <ArrowRight size={20} aria-hidden="true" />
+              </Link>
+              <p className="mt-4 flex items-start gap-2 text-xs leading-6 text-white/70"><LockKeyhole size={16} className={`mt-1 shrink-0 ${theme.check}`} aria-hidden="true" /> Paid through PayFast. Access activates only after verified payment. Responding to an opportunity does not guarantee a job.</p>
             </div>
           </aside>
         </div>
