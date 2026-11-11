@@ -37,14 +37,14 @@ export default async function ProviderPlanDetailPage({
         <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_80%_18%,rgba(245,197,24,.14),transparent_30rem)]" />
         <div className="mx-auto grid max-w-6xl gap-7 px-4 py-10 sm:px-7 sm:py-16 lg:grid-cols-[minmax(0,1.06fr)_minmax(340px,.94fr)] lg:items-center lg:gap-12">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#f5c518]/40 bg-[#f5c518]/[.075] px-3.5 py-2 text-[10px] font-black uppercase tracking-[.17em] text-[#f5d981]"><Sparkles size={14} /> {plan.audience}</div>
-            <p className="mt-7 text-[11px] font-black uppercase tracking-[.22em] text-[#bba46c]">Skills Connect Pro / Provider membership</p>
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[10px] font-black uppercase tracking-[.17em] ${theme.badge}`}><Sparkles size={14} /> {plan.audience}</div>
+            <p className={`mt-7 text-[11px] font-black uppercase tracking-[.22em] ${theme.price}`}>Skills Connect Pro / Provider membership</p>
             <h1 className="mt-3 max-w-3xl text-4xl font-black leading-[1.025] tracking-[-.05em] text-white sm:text-5xl lg:text-6xl">{plan.headline}</h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-[#c9c2b3]">{plan.summary}</p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <span className="inline-flex items-center gap-2 rounded-xl border border-[#ab8b4d]/30 bg-white/[.04] px-4 py-3 text-xs font-bold text-[#ece0c3]"><MapPin size={17} className="text-[#f5c518]" /> Starting in Ekurhuleni</span>
-              <span className="inline-flex items-center gap-2 rounded-xl border border-[#ab8b4d]/30 bg-white/[.04] px-4 py-3 text-xs font-bold text-[#ece0c3]"><UsersRound size={17} className="text-[#f5c518]" /> You choose which jobs to pursue</span>
+              <span className="inline-flex items-center gap-2 rounded-xl border border-[#ab8b4d]/30 bg-white/[.04] px-4 py-3 text-xs font-bold text-[#ece0c3]"><MapPin size={17} className={theme.check} /> Starting in Ekurhuleni</span>
+              <span className="inline-flex items-center gap-2 rounded-xl border border-[#ab8b4d]/30 bg-white/[.04] px-4 py-3 text-xs font-bold text-[#ece0c3]"><UsersRound size={17} className={theme.check} /> You choose which jobs to pursue</span>
             </div>
           </div>
 
@@ -91,14 +91,14 @@ export default async function ProviderPlanDetailPage({
 
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-7 sm:py-20">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-black uppercase tracking-[.2em] text-[#f5c518]">Why choose {plan.name}?</p>
+          <p className={`text-[11px] font-black uppercase tracking-[.2em] ${theme.price}`}>Why choose {plan.name}?</p>
           <h2 className="mt-3 text-3xl font-black leading-tight tracking-[-.04em] text-white sm:text-4xl">A professional way to pursue the work that fits.</h2>
           <p className="mt-4 text-sm leading-7 text-[#c2baaa]">Designed for real local service businesses, with clear terms and practical tools rather than vague promises.</p>
         </div>
         <div className="mt-9 grid gap-4 md:grid-cols-3">
           {plan.benefits.map((benefit, index) => (
             <article key={benefit.title} className="rounded-[1.55rem] border border-[#ae8d49]/30 bg-[linear-gradient(150deg,#1d1a14,#101010)] p-6 shadow-[0_16px_44px_rgba(0,0,0,.16)]">
-              <span className="grid size-11 place-items-center rounded-xl border border-[#f5c518]/40 bg-[#f5c518]/10 text-sm font-black text-[#ffe292]">0{index + 1}</span>
+              <span className={`grid size-11 place-items-center rounded-xl border text-sm font-black ${theme.badge}`}>0{index + 1}</span>
               <h3 className="mt-6 text-xl font-black leading-6 text-white">{benefit.title}</h3>
               <p className="mt-3 text-sm leading-7 text-[#c5bdad]">{benefit.description}</p>
             </article>
@@ -109,7 +109,7 @@ export default async function ProviderPlanDetailPage({
       <section className="border-y border-[#ac8842]/20 bg-[#15120e] px-4 py-14 sm:px-7 sm:py-20">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[.2em] text-[#f5c518]">Plan details</p>
+            <p className={`text-[11px] font-black uppercase tracking-[.2em] ${theme.price}`}>Plan details</p>
             <h2 className="mt-4 text-3xl font-black leading-tight tracking-[-.04em] text-white sm:text-4xl">Know exactly what is included.</h2>
             <p className="mt-5 text-sm leading-7 text-[#c0b8aa]">Review opportunities and submit structured responses. Contact details are released only after the customer selects and confirms a provider connection.</p>
             <div className="relative mt-7 h-44 overflow-hidden rounded-[1.4rem] border border-[#b49457]/25 sm:h-52">
@@ -119,7 +119,7 @@ export default async function ProviderPlanDetailPage({
           </div>
           <ul className="grid gap-3 sm:grid-cols-2">
             {plan.included.map((feature) => (
-              <li key={feature} className="flex items-start gap-3 rounded-2xl border border-[#b1955c]/25 bg-[#201c16] px-4 py-4 text-sm font-semibold leading-6 text-[#f3ecdc]"><CircleCheckBig size={20} className="mt-0.5 shrink-0 text-[#f5c518]" />{feature}</li>
+              <li key={feature} className="flex items-start gap-3 rounded-2xl border border-[#b1955c]/25 bg-[#201c16] px-4 py-4 text-sm font-semibold leading-6 text-[#f3ecdc]"><CircleCheckBig size={20} className={`mt-0.5 shrink-0 ${theme.check}`} />{feature}</li>
             ))}
           </ul>
         </div>
@@ -132,7 +132,7 @@ export default async function ProviderPlanDetailPage({
             <h2 className="mt-3 text-2xl font-black leading-tight text-white sm:text-3xl">Put your skills forward with confidence.</h2>
             <p className="mt-3 text-sm leading-7 text-[#c8bfae]">You stay in control. View the details, decide whether to respond, and keep your opportunities organised.</p>
           </div>
-          <Link href={checkoutHref} className="inline-flex min-h-14 items-center justify-center gap-3 rounded-xl bg-[#f5c518] px-6 py-4 text-sm font-black text-[#171107] transition hover:bg-[#ffdc51]">Choose {plan.name} <ArrowRight size={19} /></Link>
+          <Link href={checkoutHref} className={`inline-flex min-h-14 items-center justify-center gap-3 rounded-xl px-6 py-4 text-sm font-black transition hover:-translate-y-0.5 ${theme.button}`}>Choose {plan.name} <ArrowRight size={19} /></Link>
         </div>
         <div className="mt-8 flex flex-wrap gap-7 border-t border-white/10 pt-6 text-xs leading-6 text-[#b3aa99]">
           <span className="inline-flex items-center gap-2"><LockKeyhole size={17} className="text-[#f5c518]" /> Secure PayFast checkout</span>
