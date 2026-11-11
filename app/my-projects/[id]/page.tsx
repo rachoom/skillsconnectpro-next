@@ -21,7 +21,7 @@ export default async function ProjectWorkspacePage({ params }: Props) {
 
   const projectResult = await supabase
     .from('projects')
-    .select('id,title,customer_description,ai_summary,likely_issue,category,urgency,status,location_text,estimated_min,estimated_max,estimate_currency,safety_notes,materials,assessment_payload,created_at,updated_at')
+    .select('id,customer_id,title,customer_description,ai_summary,likely_issue,category,urgency,status,location_text,estimated_min,estimated_max,estimate_currency,safety_notes,materials,assessment_payload,created_at,updated_at')
     .eq('id', id)
     .maybeSingle();
 
@@ -64,15 +64,17 @@ export default async function ProjectWorkspacePage({ params }: Props) {
           <div><span className={styles.eyebrow}>{project.category} · {project.location_text}</span><h1>{project.title}</h1><p>{project.ai_summary || project.customer_description}</p></div>
           <div className={styles.estimate}><span>Preliminary project range</span><strong>{formatRange(project.estimated_min, project.estimated_max, project.estimate_currency)}</strong></div>
         </header>
-        <section className={styles.customerDashboardCallout} aria-label="Customer dashboard access">
-          <div>
-            <span className={styles.eyebrow}>Customer dashboard</span>
-            <p>Check provider responses, matching progress and project updates. Return here any time from My Projects.</p>
-          </div>
-          <Link href={`/project/${project.id}?token=account-session`} className={styles.customerDashboardAction}>
-            Open Customer Dashboard <ArrowRight size={19} aria-hidden="true" />
-          </Link>
-        </section>
+        {project.customer_id === user.id && (
+          <section className={styles.customerDashboardCallout} aria-label="Customer dashboard access">
+            <div>
+              <span className={styles.eyebrow}>Customer dashboard</span>
+              <p>Check provider responses, matching progress and project updates. Return here any time from My Projects.</p>
+            </div>
+            <Link href={`/project/${project.id}?token=account-session`} className={styles.customerDashboardAction}>
+              Open Customer Dashboard <ArrowRight size={19} aria-hidden="true" />
+            </Link>
+          </section>
+        )}
         {workspaceReadError && <div className={styles.error}>Some saved project records could not be loaded. Please refresh the page.</div>}
         <ProjectWorkspace
           project={project}
