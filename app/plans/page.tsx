@@ -201,27 +201,28 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
           </div>
         </div>
 
-        <div className="mt-9 grid gap-5 lg:grid-cols-3">
+        <div className="mt-9 grid items-stretch gap-5 lg:grid-cols-3">
           {subscriptions.map((plan) => {
+            const theme = providerTheme(plan.slug);
             const featured = plan.slug === 'growth';
             return (
-              <article key={plan.slug} className={`group relative flex flex-col overflow-hidden rounded-[1.8rem] border bg-[linear-gradient(148deg,#272116_0%,#171512_48%,#101010_100%)] p-6 shadow-[0_22px_60px_rgba(0,0,0,.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(245,197,24,.08)] sm:p-7 ${featured ? 'border-[#f5c518] ring-1 ring-[#f5c518]/35' : 'border-[#9b8051]/35'}`}>
-                {featured && <span className="absolute right-0 top-0 rounded-bl-2xl bg-[#f5c518] px-4 py-2 text-[10px] font-black uppercase tracking-[.12em] text-[#191105]">Most popular</span>}
-                <span className="text-[10px] font-black uppercase tracking-[.16em] text-[#d1b579]">{plan.audience}</span>
+              <article key={plan.slug} className={`group relative flex flex-col overflow-hidden rounded-[1.8rem] border p-6 shadow-[0_22px_60px_rgba(0,0,0,.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(0,0,0,.4)] sm:p-7 ${theme.card} ${featured ? 'ring-2 ring-[#bba3ff]/40' : ''}`}>
+                {featured && <span className="absolute right-0 top-0 rounded-bl-2xl bg-[#bba3ff] px-4 py-2 text-[10px] font-black uppercase tracking-[.12em] text-[#231636]">Most popular</span>}
+                <span className={`max-w-[80%] text-[10px] font-black uppercase tracking-[.16em] ${theme.price}`}>{plan.audience}</span>
                 <h3 className="mt-4 text-3xl font-black tracking-[-.035em] text-white">{plan.name}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-5xl font-black tracking-[-.05em] text-[#f5c518]">{plan.price}</span>
-                  <span className="text-sm font-semibold text-[#d4c9ac]">/ month</span>
+                  <span className={`text-5xl font-black tracking-[-.05em] ${theme.price}`}>{plan.price}</span>
+                  <span className="text-sm font-semibold text-white/75">/ month</span>
                 </div>
-                <p className="mt-3 text-sm font-bold leading-6 text-[#f2e3be]">{plan.included[0]}</p>
-                <p className="mt-3 min-h-14 text-sm leading-6 text-[#beb5a4]">{plan.summary}</p>
-                <div className="my-6 h-px bg-[#e6c36c]/20" />
-                <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#d1b579]">Your membership includes</p>
-                <ul className="mt-4 flex-1 space-y-3 text-sm leading-6 text-[#eee8dc]">
-                  {plan.included.slice(1, 5).map((feature) => <li key={feature} className="flex items-start gap-2.5"><Check className="mt-0.5 shrink-0 text-[#f5c518]" size={17} />{feature}</li>)}
+                <p className="mt-3 text-sm font-bold leading-6 text-white/90">{plan.included[0]}</p>
+                <p className="mt-3 min-h-14 text-sm leading-6 text-white/75">{plan.summary}</p>
+                <div className="my-6 h-px bg-white/20" />
+                <p className={`text-[11px] font-black uppercase tracking-[.16em] ${theme.price}`}>Complete plan benefits</p>
+                <ul className="mt-4 flex-1 space-y-3 text-sm leading-6 text-white/90">
+                  {plan.included.slice(1).map((feature) => <li key={feature} className="flex items-start gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={17} aria-hidden="true" />{feature}</li>)}
                 </ul>
-                <Link href={`/provider-plans/${plan.slug}${providerQuery}`} className="mt-8 flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-[#f5c518] px-4 py-4 text-sm font-black text-[#191206] transition hover:bg-[#ffe05c]">Explore {plan.name} <ArrowRight size={19} /></Link>
-                <p className="mt-4 text-center text-xs leading-5 text-[#b8aa87]">Monthly recurring billing · Cancel future renewals in your workspace</p>
+                <Link href={`/provider-plans/${plan.slug}${providerQuery}`} className={`mt-8 flex min-h-14 items-center justify-center gap-3 rounded-2xl px-4 py-4 text-sm font-black transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white ${theme.button}`}>Explore {plan.name}<ArrowRight size={19} /></Link>
+                <p className="mt-4 text-center text-xs leading-5 text-white/70">Recurring monthly billing · Cancel future renewals in your workspace</p>
               </article>
             );
           })}
