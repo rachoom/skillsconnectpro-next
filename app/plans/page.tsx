@@ -95,11 +95,11 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
       <div className="mx-auto grid min-h-[720px] max-w-7xl gap-10 px-4 py-12 md:px-8 md:py-20 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
         <div className="max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffd21f] md:text-sm">Real projects. Real people. Real progress.</p>
-          <h1 className="mt-5 max-w-3xl text-5xl font-black leading-[.94] tracking-[-0.055em] text-white sm:text-6xl md:text-7xl">Turn your home ideas into <span className="text-[#ffd21f]">real results.</span></h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 md:text-xl md:leading-8">Plan with confidence, understand the numbers, keep your project organised and connect with trusted local professionals—all from one place.</p>
+          <h1 className="mt-5 max-w-3xl text-5xl font-black leading-[.94] tracking-[-0.055em] text-white sm:text-6xl md:text-7xl">Whatever the job, <span className="text-[#ffd21f]">find the right help.</span></h1>
+          <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 md:text-xl md:leading-8">Tell us what you need. From everyday repairs and urgent assistance to bigger projects, Skills Connect Pro helps you connect with suitable local service providers.</p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/assistant" className="inline-flex items-center gap-2 rounded-2xl bg-[#ffd21f] px-6 py-4 text-sm font-black text-[#211800] shadow-[0_18px_45px_rgba(255,199,27,.26)] transition hover:-translate-y-0.5 hover:bg-[#ffe06b]">Start a project <ArrowRight size={18} /></Link>
+            <Link href="/assistant" className="inline-flex items-center gap-2 rounded-2xl bg-[#ffd21f] px-6 py-4 text-sm font-black text-[#211800] shadow-[0_18px_45px_rgba(255,199,27,.26)] transition hover:-translate-y-0.5 hover:bg-[#ffe06b]">Let's Get Started <ArrowRight size={18} /></Link>
             <a href="#homeowners" className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-black/25 px-6 py-4 text-sm font-black text-white backdrop-blur-xl transition hover:border-[#ffd21f] hover:text-[#ffd21f]">View plans</a>
           </div>
 
@@ -178,11 +178,11 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
       <p className="mt-5 text-xs leading-5 text-white/45">Project plans provide private planning and workspace access. A provider may still need to inspect the site before confirming work, price or construction detail.</p>
     </div></section>
 
-    <section id="providers" className="relative scroll-mt-5 border-t border-white/10 px-4 py-14 md:px-8 md:py-20">
+    <section id="providers" className="relative scroll-mt-5 border-t border-[#c4a458]/20 bg-[#0b0b0b] px-4 py-14 md:px-8 md:py-20">
       <div className="mx-auto max-w-7xl">
         <div className="relative overflow-hidden rounded-[2.25rem] border border-white/15 shadow-2xl shadow-black/30">
           <Image src="/artisans/hero-welder.jpg" alt="Skilled South African provider at work" fill className="-z-20 object-cover object-center" sizes="100vw" />
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(3,12,7,.98),rgba(5,16,9,.85)_54%,rgba(5,13,8,.42))]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,10,10,.99),rgba(12,12,11,.89)_54%,rgba(12,10,8,.50))]" />
           <div className="grid min-h-[420px] gap-8 p-6 md:p-10 lg:grid-cols-[1.1fr_.9fr] lg:items-end">
             <div className="max-w-3xl">
               <div className="flex w-fit items-center gap-2 rounded-full border border-[#ffd75f]/35 bg-black/30 px-4 py-2 text-[10px] font-black uppercase tracking-[.16em] text-[#ffe17a] backdrop-blur"><UsersRound size={14} /> For providers ready for a steadier pipeline</div>
@@ -201,9 +201,31 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
           </div>
         </div>
 
-        <div className="mt-9 grid gap-4 md:grid-cols-3">{subscriptions.map((plan) => { const theme = providerTheme(plan.slug); return <article key={plan.slug} className={`relative overflow-hidden rounded-[2rem] border p-6 shadow-xl shadow-black/20 backdrop-blur-2xl transition hover:-translate-y-1 ${theme.card}`}>
-          {plan.name === 'Growth' && <span className="absolute left-6 top-0 rounded-b-xl bg-[#191207] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#ffe17a]">Most popular</span>}<p className={`text-[11px] font-black uppercase tracking-[0.14em] ${theme.price}`}>{plan.audience}</p><h3 className="mt-5 text-3xl font-black tracking-[-.035em]">{plan.name}</h3><p className="mt-3 text-4xl font-black">{plan.price}<span className="text-sm font-bold"> / month</span></p><div className="mt-5 h-px bg-white/15" /><ul className="mt-5 space-y-3 text-sm leading-5">{plan.included.map((feature) => <li key={feature} className="flex gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{feature}</li>)}</ul><Link href={`/provider-plans/${plan.slug}${providerQuery}`} className={`mt-7 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black ${theme.button}`}>Explore {plan.name}<ArrowRight size={17} /></Link>
-        </article>; })}</div>
+        <div className="mt-9 grid gap-5 lg:grid-cols-3">
+          {subscriptions.map((plan) => {
+            const featured = plan.slug === 'growth';
+            return (
+              <article key={plan.slug} className={`group relative flex flex-col overflow-hidden rounded-[1.8rem] border bg-[linear-gradient(148deg,#272116_0%,#171512_48%,#101010_100%)] p-6 shadow-[0_22px_60px_rgba(0,0,0,.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(245,197,24,.08)] sm:p-7 ${featured ? 'border-[#f5c518] ring-1 ring-[#f5c518]/35' : 'border-[#9b8051]/35'}`}>
+                {featured && <span className="absolute right-0 top-0 rounded-bl-2xl bg-[#f5c518] px-4 py-2 text-[10px] font-black uppercase tracking-[.12em] text-[#191105]">Most popular</span>}
+                <span className="text-[10px] font-black uppercase tracking-[.16em] text-[#d1b579]">{plan.audience}</span>
+                <h3 className="mt-4 text-3xl font-black tracking-[-.035em] text-white">{plan.name}</h3>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="text-5xl font-black tracking-[-.05em] text-[#f5c518]">{plan.price}</span>
+                  <span className="text-sm font-semibold text-[#d4c9ac]">/ month</span>
+                </div>
+                <p className="mt-3 text-sm font-bold leading-6 text-[#f2e3be]">{plan.included[0]}</p>
+                <p className="mt-3 min-h-14 text-sm leading-6 text-[#beb5a4]">{plan.summary}</p>
+                <div className="my-6 h-px bg-[#e6c36c]/20" />
+                <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#d1b579]">Your membership includes</p>
+                <ul className="mt-4 flex-1 space-y-3 text-sm leading-6 text-[#eee8dc]">
+                  {plan.included.slice(1, 5).map((feature) => <li key={feature} className="flex items-start gap-2.5"><Check className="mt-0.5 shrink-0 text-[#f5c518]" size={17} />{feature}</li>)}
+                </ul>
+                <Link href={`/provider-plans/${plan.slug}${providerQuery}`} className="mt-8 flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-[#f5c518] px-4 py-4 text-sm font-black text-[#191206] transition hover:bg-[#ffe05c]">Explore {plan.name} <ArrowRight size={19} /></Link>
+                <p className="mt-4 text-center text-xs leading-5 text-[#b8aa87]">Monthly recurring billing · Cancel future renewals in your workspace</p>
+              </article>
+            );
+          })}
+        </div>
 
         <div className="mt-6 rounded-[2rem] border border-white/15 bg-white/[.06] p-6 shadow-xl shadow-black/15 backdrop-blur-2xl md:flex md:items-center md:justify-between md:gap-10 md:p-8"><div><div className="flex items-center gap-2 text-[#ffe17a]"><BadgeCheck size={18} /><span className="text-xs font-black uppercase tracking-[0.14em]">Flexible lead packs</span></div><h3 className="mt-3 text-2xl font-black text-[#fff8e8]">Prefer to top up only when you need to?</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">Use lead credits when your capacity and appetite for new work changes.</p></div><div className="mt-5 grid grid-cols-3 gap-2 md:mt-0">{packs.map((pack) => <Link key={pack.slug} href={`/provider-plans/${pack.slug}${providerQuery}`} className="rounded-2xl border border-white/15 bg-black/25 px-3 py-3.5 text-center text-xs font-bold transition hover:-translate-y-0.5 hover:border-[#ffd75f] hover:bg-[#ffd75f]/10"><span className="block text-[#ffe17a]">{pack.price}</span><span className="mt-1 block text-white/75">{pack.name}</span></Link>)}</div></div>
       </div>
