@@ -278,3 +278,6 @@
   .customerDashboardCallout { align-items:stretch; flex-direction:column; }
   .customerDashboardAction { width:100%; }
 }
+
+.heroLinks { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+@media (max-width:600px) { .heroLinks { width:100%; } .heroLinks .navLink { width:100%; justify-content:center; } }
