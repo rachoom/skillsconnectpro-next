@@ -139,7 +139,7 @@ export function PremiumLanding() {
             <div className={styles.heroActions}>
               <Link href="/assistant" className={styles.heroPrimary}>
                 <Sparkles size={19} aria-hidden="true" />
-                <span>Start a project</span>
+                <span>Let's Get Started</span>
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
               <Link href="/browse-providers" className={styles.heroSecondary}>
