@@ -4,7 +4,6 @@ import { getInvitationResponseDeadline } from './routing';
 import { createTokenPair } from './tokens';
 import { projectStatusAfterInvitation } from './invitationStatusPolicy.js';
 import { dispatchProviderInvitations } from './whatsappDelivery';
-import { notifyAdminProviderDispatch } from './adminDispatchAlerts';
 import { withMarketplaceLease } from './dispatchSafeguards';
 
 export interface ProviderInvitationTarget {
@@ -89,7 +88,6 @@ export async function createProviderInvitations(input: {
   projectId: string;
   targets: ProviderInvitationTarget[];
   waveNumber?: number;
-  notifyAdminDispatch?: boolean;
 }): Promise<CreatedProviderInvitation[]> {
   return withMarketplaceLease(`invitations:${input.projectId}`, () => createInvitationsLocked(input));
 }
@@ -98,7 +96,6 @@ async function createInvitationsLocked(input: {
   projectId: string;
   targets: ProviderInvitationTarget[];
   waveNumber?: number;
-  notifyAdminDispatch?: boolean;
 }): Promise<CreatedProviderInvitation[]> {
   if (!input.projectId) throw new Error('projectId is required.');
   if (!Array.isArray(input.targets) || input.targets.length === 0) {
@@ -297,29 +294,6 @@ async function createInvitationsLocked(input: {
   const deliveryByInvitationId = new Map(
     deliveryResults.map((delivery) => [delivery.invitationId, delivery]),
   );
-  const manualInvitationCount = deliveryResults.filter((delivery) => delivery.status === 'manual').length;
-  const sentInvitationCount = deliveryResults.filter((delivery) => delivery.status === 'sent').length;
-  const failedInvitationCount = deliveryResults.filter((delivery) => delivery.status === 'failed').length;
-
-  if (deliveryResults.length > 0 && input.notifyAdminDispatch !== false) {
-    try {
-      const alertResult = await notifyAdminProviderDispatch({
-        projectId: input.projectId,
-        projectTitle: project.title,
-        invitationsTotal: deliveryResults.length,
-        sentCount: sentInvitationCount,
-        failedCount: failedInvitationCount,
-        manualCount: manualInvitationCount,
-      });
-
-      if (alertResult.status === 'failed') {
-        console.error('Admin WhatsApp dispatch alert failed:', alertResult.reason);
-      }
-    } catch (alertError) {
-      console.error('Admin WhatsApp dispatch alert failed:', alertError);
-    }
-  }
-
   return createdInvitations.map((invitation) => {
     const delivery = deliveryByInvitationId.get(invitation.invitationId);
     return {
