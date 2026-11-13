@@ -86,14 +86,9 @@ export function getWhatsAppAutomationReadiness(): WhatsAppAutomationReadiness {
     'META_WHATSAPP_CUSTOMER_CONFIRMATION_TEMPLATE_LANGUAGE',
     'META_WHATSAPP_TEMPLATE_LANGUAGE',
   );
-  const adminLanguage = templateLanguage(
-    'META_WHATSAPP_ADMIN_ALERT_TEMPLATE_LANGUAGE',
-    'META_WHATSAPP_TEMPLATE_LANGUAGE',
-  );
   const providerLanguage = templateLanguage('META_WHATSAPP_TEMPLATE_LANGUAGE');
 
   const customerEnabled = isTrue('MARKETPLACE_CUSTOMER_WHATSAPP_ENABLED');
-  const adminEnabled = isTrue('MARKETPLACE_ADMIN_WHATSAPP_ALERTS_ENABLED');
   const providerDeliveryMode = value('MARKETPLACE_WHATSAPP_DELIVERY_MODE') ?? 'manual';
   const providerAutoSendEnabled = isTrue('MARKETPLACE_WHATSAPP_AUTO_SEND');
   const providerAutoSendArmed =
@@ -132,27 +127,17 @@ export function getWhatsAppAutomationReadiness(): WhatsAppAutomationReadiness {
     templateLanguage: customerLanguage,
   };
 
-  const adminRequired = [
-    ...baseRequired,
-    'MARKETPLACE_ADMIN_WHATSAPP_NUMBER',
-    'META_WHATSAPP_ADMIN_ALERT_TEMPLATE_NAME',
-    ...(adminLanguage
-      ? []
-      : ['META_WHATSAPP_ADMIN_ALERT_TEMPLATE_LANGUAGE or META_WHATSAPP_TEMPLATE_LANGUAGE']),
-  ];
+  // Administrative operations are browser-only: no admin WhatsApp messages,
+  // regardless of any legacy Vercel environment variables.
   const admin = {
     ...section({
-      enabled: adminEnabled,
-      required: adminRequired,
-      notes: [
-        adminEnabled
-          ? 'Admin WhatsApp alerts are armed for dispatch summaries.'
-          : 'Admin WhatsApp alerts are currently off.',
-      ],
+      enabled: false,
+      required: [],
+      notes: ['Admin notifications are browser-only; WhatsApp alerts are permanently disabled.'],
     }),
-    recipientConfigured: Boolean(value('MARKETPLACE_ADMIN_WHATSAPP_NUMBER')),
-    templateName: value('META_WHATSAPP_ADMIN_ALERT_TEMPLATE_NAME'),
-    templateLanguage: adminLanguage,
+    recipientConfigured: false,
+    templateName: null,
+    templateLanguage: null,
   };
 
   const providerRequired = [
@@ -191,8 +176,6 @@ export function getWhatsAppAutomationReadiness(): WhatsAppAutomationReadiness {
     base.configured &&
     customer.enabled &&
     customer.configured &&
-    admin.enabled &&
-    admin.configured &&
     webhook.configured;
   const readyForProviderAutoSend =
     base.configured &&
@@ -210,19 +193,16 @@ export function getWhatsAppAutomationReadiness(): WhatsAppAutomationReadiness {
   if (!customer.configured) {
     nextSteps.push('Create and approve the customer confirmation template, then add its env vars.');
   }
-  if (!admin.configured) {
-    nextSteps.push('Create and approve the admin alert template, then add the admin WhatsApp recipient number.');
-  }
-  if (!customerEnabled || !adminEnabled) {
-    nextSteps.push('Enable customer/admin WhatsApp flags first; keep provider auto-send off for the first live test.');
+  if (!customerEnabled) {
+    nextSteps.push('Enable customer confirmations after checking the approved template.');
   }
   if (!providerAutoSendArmed) {
-    nextSteps.push('Leave provider auto-send disabled until customer/admin alerts pass a controlled test.');
+    nextSteps.push('Provider auto-send is off. Test customer confirmations before enabling provider invitations.');
   }
   if (nextSteps.length === 0) {
     nextSteps.push(providerAutoSendArmed
       ? 'Provider auto-send is enabled. Monitor delivery receipts and complete a controlled customer/provider lifecycle test.'
-      : 'Run a controlled customer job submission and confirm customer/admin WhatsApp delivery before enabling provider auto-send.');
+      : 'Run a controlled customer job submission and verify provider and customer WhatsApp delivery.');
   }
 
   return {
