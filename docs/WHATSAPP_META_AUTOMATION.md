@@ -1,18 +1,13 @@
 # Meta WhatsApp automation
 
-Skills Connect Pro supports three WhatsApp Cloud API message paths:
+Skills Connect Pro supports two WhatsApp Cloud API message paths:
 
-1. Customer project confirmation / waiver after a job is submitted.
+1. Customer project confirmation after a job is submitted.
 2. Provider job invitation messages when routing creates an invitation wave.
-3. Admin summary alerts when provider dispatch is pending or completed.
 
-All outbound sends are disabled unless the related environment flags are enabled.
+**Administrator operations are browser-only.** No admin alert templates or admin-console links are sent through WhatsApp. This avoids unnecessary messaging costs.
 
-Keep the customer, admin and provider switches separate during rollout. This
-allows customer confirmations and admin alerts to be tested before provider
-messages are fully automated.
-
-Provider delivery remains off until both provider delivery flags are enabled.
+Customer and provider messages are controlled independently. Provider delivery remains off unless its delivery and auto-send flags are both enabled.
 
 ## Required Meta setup
 
@@ -93,24 +88,16 @@ The marketplace administration console is browser-only. No admin WhatsApp notifi
 
 ## Activation order
 
-1. Configure `META_WHATSAPP_*` credentials and webhook verification token.
-2. Verify the webhook in Meta.
-3. Create and approve the three templates above.
-4. Enable `MARKETPLACE_CUSTOMER_WHATSAPP_ENABLED=true`.
-5. Enable `MARKETPLACE_ADMIN_WHATSAPP_ALERTS_ENABLED=true`.
-6. Test with provider delivery still manual.
-7. Enable full provider automation with `MARKETPLACE_WHATSAPP_DELIVERY_MODE=automatic` and `MARKETPLACE_WHATSAPP_AUTO_SEND=true`.
+1. Configure the Meta credentials and webhook verification token.
+2. Verify the webhook in Meta and subscribe to delivery-status updates.
+3. Create and approve customer confirmation and provider invitation templates.
+4. Enable `MARKETPLACE_CUSTOMER_WHATSAPP_ENABLED=true` and verify customer receipt.
+5. Verify provider invitations using an opted-in test provider.
+6. Enable the provider delivery mode with `MARKETPLACE_WHATSAPP_DELIVERY_MODE=automatic` and `MARKETPLACE_WHATSAPP_AUTO_SEND=true`.
+7. Monitor results in the authenticated browser-based `/marketplace-admin` console. Do not send WhatsApp admin alerts.
 
 The delivery code records provider message attempts in `lead_invitation_delivery_attempts`. Meta webhook status updates then keep `lead_invitations` aligned with delivered or failed provider messages.
 
-## Controlled production test — 5 October 2026
+## Controlled production testing
 
-The first live end-to-end WhatsApp test is intentionally constrained:
-
-- customer confirmations enabled;
-- admin alerts enabled;
-- provider delivery remains `manual`;
-- provider auto-send remains `false`;
-- automatic provider routing is enabled so the test can queue a provider wave and exercise the admin alert, while provider WhatsApp delivery remains manual.
-
-This isolates customer/admin message delivery and webhook handling before provider automation is enabled.
+The original manual WhatsApp test was followed by a successful live customer/provider end-to-end test on 13 November 2026. The operational model is now customer confirmations and provider invitation messages only, with no WhatsApp alerts to marketplace administrators. Observe provider delivery receipts, customer response milestones and cancellations through the admin console in the browser.
