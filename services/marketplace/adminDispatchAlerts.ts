@@ -2,6 +2,7 @@ import {
   isPlausibleWhatsAppRecipient,
   normaliseWhatsAppRecipient,
 } from './whatsappPolicy.js';
+import { getSupabaseAdmin } from '../supabaseAdmin';
 import {
   bodyComponent,
   getMetaWhatsAppConfiguration,
@@ -55,6 +56,61 @@ function configuration(): AdminDispatchAlertConfiguration | null {
   };
 }
 
+/**
+ * WhatsApp dispatch summaries are internal operational messages. A configured
+ * destination alone is not authorisation: it must belong to an active
+ * marketplace administrator and it must not be the current project's customer.
+ * Fail closed on missing records or database errors; customer/provider messages
+ * are delivered through separate services and are unaffected.
+ */
+async function isAuthorisedAdminRecipient(recipient: string, projectId: string): Promise<boolean> {
+  const db = getSupabaseAdmin();
+  const { data: project, error: projectError } = await db
+    .from('projects')
+    .select('guest_phone')
+    .eq('id', projectId)
+    .maybeSingle();
+
+  if (projectError || !project) {
+    console.error('Admin WhatsApp alert suppressed: project recipient validation unavailable.');
+    return false;
+  }
+  if (normaliseWhatsAppRecipient(project.guest_phone) === recipient) {
+    console.warn('Admin WhatsApp alert suppressed: recipient is also this project customer.');
+    return false;
+  }
+
+  const { data: administrators, error: adminsError } = await db
+    .from('marketplace_admin_users')
+    .select('user_id')
+    .eq('is_active', true);
+
+  if (adminsError || !administrators?.length) {
+    console.warn('Admin WhatsApp alert suppressed: no authorised administrator was available.');
+    return false;
+  }
+
+  const adminUserIds = administrators
+    .map((admin) => admin.user_id)
+    .filter((id): id is string => typeof id === 'string' && id.length > 0);
+  if (!adminUserIds.length) return false;
+
+  const { data: profiles, error: profilesError } = await db
+    .from('profiles')
+    .select('phone')
+    .in('id', adminUserIds);
+
+  if (profilesError) {
+    console.error('Admin WhatsApp alert suppressed: administrator profile lookup unavailable.');
+    return false;
+  }
+
+  return (profiles ?? []).some((profile) => (
+    isPlausibleWhatsAppRecipient(profile.phone) &&
+    normaliseWhatsAppRecipient(profile.phone) === recipient
+  ));
+}
+
 export async function notifyAdminProviderDispatch(input: {
   projectId: string;
   projectTitle: string;
@@ -80,6 +136,12 @@ export async function notifyAdminProviderDispatch(input: {
     return {
       status: 'failed',
       reason: 'Admin WhatsApp alert recipient is not a plausible WhatsApp number.',
+    };
+  }
+  if (!(await isAuthorisedAdminRecipient(recipient, input.projectId))) {
+    return {
+      status: 'disabled',
+      reason: 'Admin WhatsApp alert skipped: recipient is not a registered administrator phone or matches the customer.',
     };
   }
 
