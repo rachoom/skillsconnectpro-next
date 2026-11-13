@@ -114,7 +114,7 @@ export default function WhatsAppReadinessControl() {
 
   const headerState = useMemo(() => {
     if (!readiness) return 'Check setup';
-    if (readiness.rollout.readyForCustomerAdminTest) return 'Customer/admin ready';
+    if (readiness.rollout.readyForCustomerAdminTest) return 'Customer WhatsApp ready';
     if (readiness.base.configured) return 'Meta base ready';
     return 'Setup needed';
   }, [readiness]);
@@ -204,8 +204,8 @@ export default function WhatsAppReadinessControl() {
                 section={readiness.customer}
               />
               <SectionCard
-                title="Admin alerts"
-                detail={readiness.admin.templateName || 'Template not configured'}
+                title="Admin (browser only)"
+                detail="No WhatsApp messages sent to administrators"
                 section={readiness.admin}
               />
               <SectionCard
