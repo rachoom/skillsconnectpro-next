@@ -87,8 +87,7 @@ export async function POST(
       projectId,
       targets,
       waveNumber,
-      notifyAdminDispatch: false,
-    });
+      });
 
     const origin = new URL(request.url).origin;
 
