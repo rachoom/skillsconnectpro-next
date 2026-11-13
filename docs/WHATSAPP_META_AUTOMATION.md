@@ -87,30 +87,9 @@ Suggested customer template body:
 Hi {{1}}, your Skills Connect Pro request for {{2}} has been received. Track provider responses here: {{3}}. Your contact details stay private until you choose to connect with a provider. Providers are independent and will agree the work and price with you directly.
 ```
 
-## Admin summary alert
+## Administrator notifications
 
-Enable this after the admin template is approved:
-
-```env
-MARKETPLACE_ADMIN_WHATSAPP_ALERTS_ENABLED=true
-MARKETPLACE_ADMIN_WHATSAPP_NUMBER=27...
-META_WHATSAPP_ADMIN_ALERT_TEMPLATE_NAME=admin_dispatch_alert
-META_WHATSAPP_ADMIN_ALERT_TEMPLATE_LANGUAGE=en
-```
-
-Template parameters:
-
-| Parameter | Value |
-| --- | --- |
-| `{{1}}` | Dispatch summary |
-| `{{2}}` | Project title |
-| `{{3}}` | Admin URL |
-
-Suggested admin template body:
-
-```text
-Skills Connect Pro update: {{1}} for {{2}}. Open the admin console: {{3}} for details.
-```
+The marketplace administration console is browser-only. No admin WhatsApp notifications or admin-console links are sent by the application. Inspect dispatches, errors, and response activity using the authenticated `/marketplace-admin` page.
 
 ## Activation order
 
