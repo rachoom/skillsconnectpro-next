@@ -226,7 +226,7 @@ function scoreCandidate(input: {
   let score = 0;
   const reasons: string[] = [];
 
-  if (artisan.status !== 'active' || artisan.approval_status === 'rejected'
+  if (artisan.status !== 'active' || artisan.approval_status !== 'approved'
     || !isPlausibleWhatsAppRecipient(normaliseWhatsAppRecipient(artisan.phone))
     || availability?.availability_status === 'unavailable'
     || (project.urgency === 'emergency' && availability?.accepts_emergency_jobs === false)
@@ -375,6 +375,7 @@ export async function getProviderCandidates(projectId: string, preferredProvider
       .from('artisans')
       .select('id, name, first_name, last_name, category, location, phone, image_url, verified, rating, is_claimed, status, approval_status')
       .eq('status', 'active')
+      .eq('approval_status', 'approved')
       .order('verified', { ascending: false })
       .order('rating', { ascending: false })
       .limit(250),
