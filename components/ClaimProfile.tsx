@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
   Briefcase,
+  Camera,
   CheckCircle,
-  Image as ImageIcon,
+  Images,
   Loader2,
   MapPin,
+  Plus,
   ShieldCheck,
   Star,
-  UploadCloud,
   UserRound,
   X,
 } from 'lucide-react';
@@ -53,6 +54,7 @@ export const ClaimProfile: React.FC = () => {
   const [portfolio, setPortfolio] = useState<File[]>([]);
   const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>([]);
   const [bio, setBio] = useState('');
+  const portfolioInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -83,16 +85,25 @@ export const ClaimProfile: React.FC = () => {
     void load();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (profilePreview) URL.revokeObjectURL(profilePreview);
+      portfolioPreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [profilePreview, portfolioPreviews]);
+
   const chooseProfile = (file?: File) => {
     if (!file) return;
-    setProfile(file);
     if (profilePreview) URL.revokeObjectURL(profilePreview);
+    setProfile(file);
     setProfilePreview(URL.createObjectURL(file));
   };
 
   const choosePortfolio = (files: FileList | null) => {
     if (!files) return;
     const incoming = Array.from(files).slice(0, Math.max(0, 5 - portfolio.length));
+    if (!incoming.length) return;
+
     setPortfolio(current => [...current, ...incoming].slice(0, 5));
     setPortfolioPreviews(current => [
       ...current,
@@ -101,6 +112,8 @@ export const ClaimProfile: React.FC = () => {
   };
 
   const removePortfolio = (index: number) => {
+    const preview = portfolioPreviews[index];
+    if (preview) URL.revokeObjectURL(preview);
     setPortfolio(current => current.filter((_, itemIndex) => itemIndex !== index));
     setPortfolioPreviews(current => current.filter((_, itemIndex) => itemIndex !== index));
   };
@@ -130,12 +143,18 @@ export const ClaimProfile: React.FC = () => {
     }
   };
 
+  const displayName = useMemo(() => (
+    [provider?.first_name, provider?.last_name].filter(Boolean).join(' ').trim()
+      || provider?.name
+      || 'Your business'
+  ), [provider]);
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white">
         <div className="text-center">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-300" />
-          <p className="mt-4 text-xs font-black uppercase tracking-[0.25em] text-amber-300">Loading invitation</p>
+          <p className="mt-4 text-xs font-black uppercase tracking-[0.25em] text-amber-300">Loading your profile</p>
         </div>
       </main>
     );
@@ -163,10 +182,10 @@ export const ClaimProfile: React.FC = () => {
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15">
             <ShieldCheck className="h-10 w-10 text-emerald-300" />
           </div>
-          <h1 className="mt-6 text-3xl font-black">Thank you — profile confirmed.</h1>
+          <h1 className="mt-6 text-3xl font-black">Your profile is confirmed.</h1>
           <p className="mt-4 leading-7 text-zinc-300">{success}</p>
           <p className="mt-3 text-sm leading-6 text-zinc-500">
-            Your listing is not public yet. SkillsConnect Pro will review the information and approve the profile before it appears to customers.
+            SkillsConnect Pro will do the final review before your profile appears to customers.
           </p>
           <a href="/" className="mt-7 inline-block rounded-xl bg-amber-300 px-6 py-3 text-xs font-black uppercase tracking-wider text-black">
             Visit SkillsConnect Pro
@@ -176,142 +195,194 @@ export const ClaimProfile: React.FC = () => {
     );
   }
 
-  const displayName = [provider?.first_name, provider?.last_name].filter(Boolean).join(' ').trim()
-    || provider?.name
-    || 'Your business';
-
-  const aboutPreview = bio.trim()
-    || 'Add a short description about your work, experience and the services you offer.';
+  const existingWork = (provider?.portfolio_urls || []).filter(Boolean).slice(0, 5);
+  const workSlots = Array.from({ length: 5 }, (_, index) => {
+    const uploaded = portfolioPreviews[index];
+    const existing = existingWork[index];
+    return uploaded
+      ? { type: 'uploaded' as const, url: uploaded, index }
+      : existing
+        ? { type: 'existing' as const, url: existing, index }
+        : { type: 'empty' as const, url: '', index };
+  });
 
   return (
-    <main className="min-h-screen bg-[#080808] px-4 py-10 text-white md:px-8">
+    <main className="min-h-screen bg-[#080808] px-4 py-8 text-white md:px-8 md:py-12">
       <div className="mx-auto max-w-5xl">
         <header className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-300">
-            <ShieldCheck className="h-4 w-4" /> Provider consent & profile claim
+            <ShieldCheck className="h-4 w-4" /> Free provider profile
           </div>
           <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-black tracking-tight md:text-6xl">
-            Confirm your free <span className="text-amber-300">SkillsConnect Pro</span> profile
+            Your <span className="text-amber-300">SkillsConnect Pro</span> profile is almost ready
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-400 md:text-base">
-            We have prepared a basic profile for you. Check the details, add your own photo or business logo if you have one, and tell customers briefly what you do.
+            This is what customers will see. Add your own photo or business logo, tell them what you do, and show examples of your work.
           </p>
         </header>
 
-        <section className="mt-10">
-          <div className="mb-4">
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">Example of your customer profile</div>
-            <p className="mt-2 text-sm text-zinc-500">This preview updates as you add your photo and description. Your public profile will use the same basic information after approval.</p>
+        <section className="mx-auto mt-9 max-w-2xl">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">Your customer profile</div>
+              <p className="mt-1 text-xs leading-5 text-zinc-500">Tap the highlighted areas to complete your profile.</p>
+            </div>
+            <div className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-2 text-[10px] font-bold text-emerald-300 sm:block">
+              LIVE PREVIEW
+            </div>
           </div>
 
-          <article className="mx-auto max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-[#111] shadow-2xl">
-            <div className="relative min-h-72 overflow-hidden bg-gradient-to-br from-[#161616] via-[#0d0d0d] to-[#171207]">
+          <article className="overflow-hidden rounded-[1.7rem] border border-white/15 bg-[#f3eedf] text-[#172019] shadow-[0_35px_100px_rgba(0,0,0,.55)]">
+            <label className="group relative block min-h-[300px] cursor-pointer overflow-hidden bg-[#173827] sm:min-h-[360px]">
               {profilePreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={profilePreview} alt={displayName} className="absolute inset-0 h-full w-full object-cover" />
               ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full border border-amber-300/25 bg-amber-300/10 text-amber-300">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(circle_at_50%_20%,rgba(245,197,24,.12),transparent_14rem),linear-gradient(145deg,#173827,#2b1a10)] px-8 text-center text-white">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full border border-amber-300/30 bg-black/25 text-amber-300 shadow-2xl">
                     <UserRound className="h-11 w-11" />
                   </div>
-                  <div className="mt-5 text-sm font-black uppercase tracking-[0.12em] text-white">Add your own profile picture</div>
-                  <div className="mt-1 text-xs leading-5 text-zinc-500">or business logo here</div>
-                  <div className="mt-4 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-[10px] font-bold text-zinc-500">
-                    No unrelated person will be shown
-                  </div>
+                  <div className="mt-5 text-base font-black">Add your profile picture</div>
+                  <div className="mt-1 text-sm text-white/60">or upload your business logo</div>
                 </div>
               )}
-              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black via-black/65 to-transparent" />
-              <span className="absolute left-5 top-5 rounded-full border border-white/10 bg-black/65 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-zinc-300">
-                Profile preview
-              </span>
-            </div>
-
-            <div className="p-6 md:p-8">
-              <h2 className="text-3xl font-black">{displayName}</h2>
-              <div className="mt-2 flex items-center gap-2 text-sm font-bold text-amber-300">
-                <Briefcase className="h-4 w-4" /> {provider?.category || 'Local service provider'}
+              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/55 to-transparent" />
+              <div className="absolute inset-x-4 bottom-4 flex items-center justify-center gap-2 rounded-2xl border border-amber-300/35 bg-black/65 px-4 py-3 text-center text-xs font-black text-amber-200 backdrop-blur-md transition group-hover:bg-black/80">
+                <Camera className="h-4 w-4" /> {profilePreview ? 'Change your profile picture or logo' : 'Tap here to add your own photo or logo'}
               </div>
-              <div className="mt-3 flex items-center gap-2 text-sm text-zinc-400">
-                <MapPin className="h-4 w-4" /> {provider?.location || 'Service area not supplied'}
-              </div>
+              <input type="file" accept="image/*" className="hidden" onChange={event => chooseProfile(event.target.files?.[0])} />
+            </label>
 
-              <div className="mt-5 flex items-center justify-between rounded-2xl border border-white/5 bg-black/30 px-4 py-3">
-                <div className="flex items-center gap-2 text-sm font-bold"><Star className="h-4 w-4 text-amber-300" /> New provider</div>
-                <span className="text-[11px] text-zinc-600">Building marketplace history</span>
+            <div className="p-5 sm:p-7">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[#5e704f]">{provider?.category || 'Local service provider'}</div>
+                  <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">{displayName}</h2>
+                </div>
+                <Briefcase className="mt-1 h-6 w-6 shrink-0 text-[#2f674a]" />
               </div>
 
-              <div className="mt-5 rounded-2xl border border-white/5 bg-black/25 p-5">
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">About this provider</div>
-                <p className={`mt-3 text-sm leading-6 ${bio.trim() ? 'text-zinc-300' : 'italic text-zinc-600'}`}>{aboutPreview}</p>
+              <div className="mt-4 flex items-start gap-2 text-sm text-[#667064]">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{provider?.location || 'Service area not supplied'}</span>
               </div>
 
-              <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/5 p-4 text-xs leading-5 text-zinc-400">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
-                <p>Your phone number is used for the SkillsConnect workflow but is not displayed openly on the public provider directory.</p>
+              <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl bg-[#dfe8d6] p-4">
+                <Star className="h-4 w-4 text-[#9e7500]" />
+                <strong className="font-black">New provider</strong>
+                <span className="text-xs text-[#5f695c]">Building marketplace history</span>
+              </div>
+
+              <section className="mt-5 rounded-2xl border border-[#cbc5b5] bg-[#fffdf6] p-4">
+                <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[#667064]">About this provider</div>
+                <textarea
+                  value={bio}
+                  maxLength={600}
+                  onChange={event => setBio(event.target.value)}
+                  placeholder="Tell customers what you do, your experience, the areas you serve and what they can expect from you..."
+                  className="mt-3 min-h-32 w-full resize-y rounded-xl border border-dashed border-[#b9b19f] bg-[#f8f4e9] px-4 py-3 text-sm leading-6 text-[#263429] outline-none placeholder:italic placeholder:text-[#7b8277] focus:border-[#d2a900] focus:ring-2 focus:ring-[#f5c518]/20"
+                />
+                <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-[#7b8277]">
+                  <span>Tip: mention your experience and main services.</span>
+                  <span>{bio.length}/600</span>
+                </div>
+              </section>
+
+              <section className="mt-5 rounded-2xl border border-[#cbc5b5] bg-[#fffdf6] p-4">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[#667064]">Proof of work</div>
+                    <div className="mt-1 text-sm font-black text-[#233126]">Show customers jobs you have completed</div>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-[#7b8277]">
+                    <Images className="h-3.5 w-3.5" /> Up to 5
+                  </div>
+                </div>
+
+                <input
+                  ref={portfolioInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={event => choosePortfolio(event.target.files)}
+                />
+
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {workSlots.map(slot => (
+                    slot.type === 'empty' ? (
+                      <button
+                        key={`empty-${slot.index}`}
+                        type="button"
+                        onClick={() => portfolioInputRef.current?.click()}
+                        className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#c7bfad] bg-[#f5f0e3] px-3 text-center transition hover:border-[#d2a900] hover:bg-[#fff8d9]"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#173827] text-[#ffe069]">
+                          <Plus className="h-5 w-5" />
+                        </div>
+                        <div className="mt-3 text-xs font-black text-[#233126]">Add work photo</div>
+                        <div className="mt-1 text-[10px] leading-4 text-[#7b8277]">Tap to upload a completed job</div>
+                      </button>
+                    ) : (
+                      <div key={`${slot.type}-${slot.index}`} className="relative aspect-square overflow-hidden rounded-xl border border-[#d7d0bf] bg-[#dfe8d6]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={slot.url} alt={`Proof of work ${slot.index + 1}`} className="h-full w-full object-cover" />
+                        {slot.type === 'uploaded' ? (
+                          <button
+                            type="button"
+                            onClick={() => removePortfolio(slot.index)}
+                            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/75 text-white"
+                            aria-label="Remove work photo"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <span className="absolute bottom-2 left-2 rounded-full bg-black/65 px-2 py-1 text-[9px] font-bold text-white">Already on profile</span>
+                        )}
+                      </div>
+                    )
+                  ))}
+                </div>
+
+                {portfolio.length < 5 ? (
+                  <button
+                    type="button"
+                    onClick={() => portfolioInputRef.current?.click()}
+                    className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#c9c1ad] bg-[#f8f4e9] px-4 text-xs font-black text-[#233126]"
+                  >
+                    <Plus className="h-4 w-4" /> Add proof-of-work photos
+                  </button>
+                ) : null}
+              </section>
+
+              <div className="mt-5 flex items-start gap-3 rounded-2xl bg-[#173827] p-4 text-[#f5f0e3]">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#75d39f]" />
+                <div>
+                  <div className="text-sm font-black">Your contact details stay protected</div>
+                  <p className="mt-1 text-xs leading-5 text-white/65">
+                    Your phone and WhatsApp number are used by SkillsConnect Pro but are not displayed openly on the public directory.
+                  </p>
+                </div>
               </div>
             </div>
           </article>
         </section>
 
-        <section className="mt-6 rounded-3xl border border-white/10 bg-[#111] p-6 md:p-8">
-          <h3 className="text-2xl font-black">Make this profile yours</h3>
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
-            These extras are optional, but a real photo/logo, a short description and proof-of-work pictures help customers understand your business.
-          </p>
-
-          <div className="mt-6 grid gap-5 md:grid-cols-2">
-            <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-amber-300/30 bg-amber-300/5 p-5 text-center hover:border-amber-300/60">
-              <UploadCloud className="h-7 w-7 text-amber-300" />
-              <span className="mt-3 text-sm font-black">Add your own profile picture here</span>
-              <span className="mt-1 text-xs text-zinc-400">or upload your business logo</span>
-              <span className="mt-2 text-[10px] text-zinc-600">JPG, PNG, WEBP or HEIC · max 6MB</span>
-              <input type="file" accept="image/*" className="hidden" onChange={event => chooseProfile(event.target.files?.[0])} />
-            </label>
-
-            <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-black/30 p-5 text-center hover:border-amber-300/40">
-              <ImageIcon className="h-7 w-7 text-amber-300" />
-              <span className="mt-3 text-sm font-black">Add photos of your work</span>
-              <span className="mt-1 text-xs text-zinc-400">Show customers jobs you have completed</span>
-              <span className="mt-2 text-[10px] text-zinc-600">Up to five proof-of-work images</span>
-              <input type="file" accept="image/*" multiple className="hidden" onChange={event => choosePortfolio(event.target.files)} />
-            </label>
-          </div>
-
-          {portfolioPreviews.length ? (
-            <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-5">
-              {portfolioPreviews.map((src, index) => (
-                <div key={src} className="relative aspect-square overflow-hidden rounded-xl border border-white/10">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="h-full w-full object-cover" />
-                  <button type="button" onClick={() => removePortfolio(index)} className="absolute right-1 top-1 rounded-lg bg-black/75 p-1.5" aria-label="Remove image">
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
+        <section className="mx-auto mt-7 max-w-2xl rounded-3xl border border-white/10 bg-[#111] p-5 sm:p-7">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-emerald-300" />
+            <div>
+              <h3 className="text-xl font-black">Confirm that this profile belongs to you</h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                Nothing is published immediately. After you confirm, SkillsConnect Pro performs a final review before the profile appears to customers.
+              </p>
             </div>
-          ) : null}
-
-          <div className="mt-7">
-            <label htmlFor="provider-bio" className="text-sm font-black">Tell customers briefly about your work</label>
-            <p className="mt-1 text-xs leading-5 text-zinc-500">
-              For example: “I provide reliable household cleaning in the East Rand. I am friendly, punctual and available for once-off or regular cleaning.”
-            </p>
-            <textarea
-              id="provider-bio"
-              value={bio}
-              maxLength={600}
-              onChange={event => setBio(event.target.value)}
-              placeholder="Write a short description of your services, experience and what customers can expect..."
-              className="mt-3 min-h-32 w-full resize-y rounded-2xl border border-white/10 bg-black/35 px-4 py-4 text-sm leading-6 text-white outline-none placeholder:text-zinc-700 focus:border-amber-300/45"
-            />
-            <div className="mt-2 text-right text-[10px] text-zinc-600">{bio.length}/600</div>
           </div>
 
           <button
             type="button"
             onClick={() => setAgreed(value => !value)}
-            className={`mt-7 w-full rounded-2xl border p-5 text-left transition ${agreed ? 'border-emerald-400/40 bg-emerald-500/10' : 'border-white/10 bg-black/30'}`}
+            className={`mt-6 w-full rounded-2xl border p-5 text-left transition ${agreed ? 'border-emerald-400/40 bg-emerald-500/10' : 'border-white/10 bg-black/30'}`}
           >
             <div className="flex items-start gap-3">
               <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${agreed ? 'border-emerald-400 bg-emerald-400 text-black' : 'border-zinc-500'}`}>
@@ -332,13 +403,13 @@ export const ClaimProfile: React.FC = () => {
             type="button"
             onClick={() => void submit()}
             disabled={!agreed || submitting}
-            className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 text-xs font-black uppercase tracking-wider text-black disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 text-sm font-black text-black shadow-[0_12px_30px_rgba(245,197,24,.18)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : 'Confirm profile & submit for approval'}
+            {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : 'Confirm my profile & submit for approval'}
           </button>
 
           <p className="mt-4 text-center text-[11px] leading-5 text-zinc-600">
-            Confirmation does not publish the profile immediately. SkillsConnect Pro performs a final review before the listing becomes visible to customers.
+            Photo and proof-of-work uploads are optional. You can confirm the basic profile without them.
           </p>
         </section>
       </div>
