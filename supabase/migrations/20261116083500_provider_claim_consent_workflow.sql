@@ -17,6 +17,9 @@ create unique index if not exists provider_claim_invites_open_artisan_idx
   on public.provider_claim_invites(artisan_id)
   where status in ('pending','sent');
 
+create index if not exists provider_claim_invites_application_id_idx
+  on public.provider_claim_invites(application_id);
+
 alter table public.provider_claim_invites enable row level security;
 revoke all on table public.provider_claim_invites from anon, authenticated;
 
