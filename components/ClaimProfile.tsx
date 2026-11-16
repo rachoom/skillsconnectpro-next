@@ -1,451 +1,277 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { supabase } from '../services/supabase';
+import React, { useEffect, useState } from 'react';
 import {
-  ShieldCheck,
+  AlertCircle,
   Briefcase,
+  CheckCircle,
+  Image as ImageIcon,
+  Loader2,
   MapPin,
   Phone,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
+  ShieldCheck,
   UploadCloud,
-  Image as ImageIcon,
-  ExternalLink,
   X,
-  MessageCircle,
-  Zap,
 } from 'lucide-react';
-import { VerifiedIcon } from './Icons';
-import { Artisan } from '../types'; 
+
+type ClaimProvider = {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  name: string | null;
+  category: string | null;
+  location: string | null;
+  phone: string | null;
+  bio: string | null;
+  image_url: string | null;
+  portfolio_urls: string[] | null;
+};
 
 export const ClaimProfile: React.FC = () => {
-  const MAX_UPLOAD_BYTES = 6 * 1024 * 1024;
-  const ALLOWED_IMAGE_TYPES = new Set([
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/heic',
-    'image/heif',
-  ]);
-
-  const router = useRouter();
+  const [token, setToken] = useState('');
+  const [provider, setProvider] = useState<ClaimProvider | null>(null);
   const [loading, setLoading] = useState(true);
-  const [artisan, setArtisan] = useState<Artisan | null>(null);
-  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [inviteToken, setInviteToken] = useState<string>('');
-  const [claimError, setClaimError] = useState('');
-  const [claimSuccessMessage, setClaimSuccessMessage] = useState('');
-  const [origin, setOrigin] = useState('');
-
-  // --- NEW: Image Upload States ---
-  const [profilePic, setProfilePic] = useState<File | null>(null);
-  const [profilePreview, setProfilePreview] = useState<string>('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [profile, setProfile] = useState<File | null>(null);
+  const [profilePreview, setProfilePreview] = useState('');
   const [portfolio, setPortfolio] = useState<File[]>([]);
   const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>([]);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const inviteId = urlParams.get('invite');
-    const claimId = urlParams.get('claim');
-    const targetId = inviteId || claimId;
+    const params = new URLSearchParams(window.location.search);
+    const value = params.get('claim') || params.get('invite') || '';
+    setToken(value);
 
-    if (!targetId) {
+    if (!value) {
+      setError('This invitation is missing a valid claim token.');
       setLoading(false);
-      setError('This VIP link is missing a valid profile ID.');
       return;
     }
 
-    setInviteToken(targetId);
-
-    const fetchProfile = async () => {
+    const load = async () => {
       try {
-        const { data, error } = await supabase
-          .from('artisans')
-          .select('*') // You can specify columns to be more efficient
-          .eq('id', targetId)
-          .single();
-
-        if (error) throw error;
-        if (!data) throw new Error("Profile not found.");
-        if (data.is_claimed) setSuccess(true);
-
-        setArtisan(data as Artisan);
-      } catch (err: unknown) {
-        console.error(err);
-        setError("We couldn't find this profile. It may have been removed.");
+        const response = await fetch(`/api/provider-claim/${encodeURIComponent(value)}`, { cache: 'no-store' });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || 'Unable to load this invitation.');
+        setProvider(payload.provider as ClaimProvider);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : 'Unable to load this invitation.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
+    void load();
   }, []);
 
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
-  const profilePageUrl = useMemo(() => {
-    if (!artisan?.id) return '/';
-    return `/?profile=${artisan.id}`;
-  }, [artisan?.id]);
-
-  const claimLinkUrl = useMemo(() => {
-    if (!inviteToken) return '/';
-    if (!origin) return `/?claim=${inviteToken}`;
-    return `${origin}/?claim=${inviteToken}`;
-  }, [inviteToken, origin]);
-
-  const whatsappShareUrl = useMemo(() => {
-    const personName = `${artisan?.first_name || ''} ${artisan?.last_name || ''}`.trim() || 'my business';
-    const message = `Hi! View ${personName}'s professional profile card on Skills ConnectPro: ${claimLinkUrl}`;
-    return `https://wa.me/?text=${encodeURIComponent(message)}`;
-  }, [artisan?.first_name, artisan?.last_name, claimLinkUrl]);
-
-  const redirectToProfile = (id: string | number) => {
-    const destination = `/?profile=${id}`;
-    window.setTimeout(() => {
-      router.replace(destination);
-    }, 350);
-
-    // Fallback hard navigation guarantees redirect even if client state is stale.
-    window.setTimeout(() => {
-      window.location.assign(destination);
-    }, 1200);
+  const chooseProfile = (file?: File) => {
+    if (!file) return;
+    setProfile(file);
+    if (profilePreview) URL.revokeObjectURL(profilePreview);
+    setProfilePreview(URL.createObjectURL(file));
   };
 
-  const validateImageFile = (file: File): string | null => {
-    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-      return `Unsupported file format for ${file.name}. Please upload JPG, PNG, WEBP, or HEIC images.`;
-    }
-
-    if (file.size > MAX_UPLOAD_BYTES) {
-      return `${file.name} is too large. Maximum size is 6MB per image.`;
-    }
-
-    return null;
+  const choosePortfolio = (files: FileList | null) => {
+    if (!files) return;
+    const incoming = Array.from(files).slice(0, Math.max(0, 5 - portfolio.length));
+    setPortfolio(current => [...current, ...incoming].slice(0, 5));
+    setPortfolioPreviews(current => [
+      ...current,
+      ...incoming.map(file => URL.createObjectURL(file)),
+    ].slice(0, 5));
   };
 
-  // --- IMAGE HANDLERS ---
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const validationError = validateImageFile(file);
-      if (validationError) {
-        setClaimError(validationError);
-        return;
-      }
-
-      setClaimError('');
-      setProfilePic(file);
-      setProfilePreview(URL.createObjectURL(file));
-    }
+  const removePortfolio = (index: number) => {
+    setPortfolio(current => current.filter((_, itemIndex) => itemIndex !== index));
+    setPortfolioPreviews(current => current.filter((_, itemIndex) => itemIndex !== index));
   };
 
-  const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      const firstInvalid = newFiles.map(validateImageFile).find(Boolean);
-      if (firstInvalid) {
-        setClaimError(firstInvalid);
-        return;
-      }
-
-      if (portfolio.length + newFiles.length > 5) {
-        setClaimError('You can only upload a maximum of 5 portfolio images.');
-        return;
-      }
-      setClaimError('');
-      setPortfolio([...portfolio, ...newFiles]);
-      
-      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-      setPortfolioPreviews([...portfolioPreviews, ...newPreviews]);
-    }
-  };
-
-  const removePortfolioImage = (index: number) => {
-    const newPortfolio = [...portfolio];
-    newPortfolio.splice(index, 1);
-    setPortfolio(newPortfolio);
-
-    const newPreviews = [...portfolioPreviews];
-    newPreviews.splice(index, 1);
-    setPortfolioPreviews(newPreviews);
-  };
-
-  // --- UPLOAD & CLAIM LOGIC ---
-  const handleClaim = async () => {
-    if (!artisan || !agreed) return;
-    setClaimError('');
-    setIsClaiming(true);
-
+  const submit = async () => {
+    if (!agreed || !token) return;
+    setSubmitting(true);
+    setError('');
     try {
-      let finalProfileUrl = artisan.image_url;
-      const finalPortfolioUrls: string[] = [];
+      const form = new FormData();
+      form.set('agreed', 'true');
+      if (profile) form.set('profile', profile);
+      portfolio.forEach(file => form.append('portfolio', file));
 
-      // 1. Upload Profile Picture if selected
-      if (profilePic) {
-        const fileExt = profilePic.name.split('.').pop();
-        const fileName = `profile-${artisan.id}-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('artisan_media').upload(fileName, profilePic);
-        
-        if (!uploadError) {
-          finalProfileUrl = supabase.storage.from('artisan_media').getPublicUrl(fileName).data.publicUrl;
-        }
-      }
-
-      // 2. Upload Portfolio Images if selected
-      if (portfolio.length > 0) {
-        for (let i = 0; i < portfolio.length; i++) {
-          const file = portfolio[i];
-          const fileExt = file.name.split('.').pop();
-          const fileName = `portfolio-${artisan.id}-${Date.now()}-${i}.${fileExt}`;
-          const { error: uploadError } = await supabase.storage.from('artisan_media').upload(fileName, file);
-          
-          if (!uploadError) {
-            finalPortfolioUrls.push(supabase.storage.from('artisan_media').getPublicUrl(fileName).data.publicUrl);
-          }
-        }
-      }
-
-      // 3. Update the Database
-      const { error } = await supabase
-        .from('artisans')
-        .update({ 
-          is_claimed: true,
-          image_url: finalProfileUrl,
-          portfolio_urls: finalPortfolioUrls
-        })
-        .eq('id', artisan.id);
-
-      if (error) throw error;
-      setClaimSuccessMessage('Profile accepted. Redirecting you to your live page...');
-      setSuccess(true);
-      redirectToProfile(artisan.id);
-    } catch (err) {
-      console.error(err);
-      setClaimError('Something went wrong saving your profile. Please try again.');
+      const response = await fetch(`/api/provider-claim/${encodeURIComponent(token)}`, {
+        method: 'POST',
+        body: form,
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Unable to submit your confirmation.');
+      setSuccess(payload.message || 'Your profile has been confirmed and sent for final approval.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to submit your confirmation.');
     } finally {
-      setIsClaiming(false);
+      setSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
-        <Loader2 className="w-12 h-12 text-brand-yellow animate-spin mb-4" />
-        <p className="text-brand-yellow font-black tracking-widest animate-pulse">LOADING VIP INVITATION...</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-300" />
+          <p className="mt-4 text-xs font-black uppercase tracking-[0.25em] text-amber-300">Loading invitation</p>
+        </div>
+      </main>
     );
   }
 
-  if (error) {
+  if (error && !provider) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-black text-white mb-2">Oops!</h2>
-        <p className="text-gray-400">{error}</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white">
+        <div className="max-w-md text-center">
+          <AlertCircle className="mx-auto h-14 w-14 text-red-400" />
+          <h1 className="mt-5 text-3xl font-black">Invitation unavailable</h1>
+          <p className="mt-3 text-sm leading-6 text-zinc-400">{error}</p>
+          <a href="/" className="mt-6 inline-block rounded-xl bg-amber-300 px-5 py-3 text-xs font-black uppercase tracking-wider text-black">
+            Visit SkillsConnect Pro
+          </a>
+        </div>
+      </main>
     );
   }
 
   if (success) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
-        <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(16,185,129,0.3)]">
-          <ShieldCheck className="w-12 h-12 text-emerald-400" />
+      <main className="flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white">
+        <div className="max-w-xl rounded-3xl border border-emerald-400/20 bg-[#111] p-8 text-center shadow-2xl">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15">
+            <ShieldCheck className="h-10 w-10 text-emerald-300" />
+          </div>
+          <h1 className="mt-6 text-3xl font-black">Thank you — profile confirmed.</h1>
+          <p className="mt-4 leading-7 text-zinc-300">{success}</p>
+          <p className="mt-3 text-sm leading-6 text-zinc-500">
+            Your listing is not public yet. SkillsConnect Pro will review the information and approve the profile before it appears to customers.
+          </p>
+          <a href="/" className="mt-7 inline-block rounded-xl bg-amber-300 px-6 py-3 text-xs font-black uppercase tracking-wider text-black">
+            Visit SkillsConnect Pro
+          </a>
         </div>
-        <h1 className="text-4xl font-black text-white tracking-tight mb-4">Profile <span className="text-emerald-400">Secured</span>.</h1>
-        <p className="text-gray-400 max-w-md mx-auto mb-8 leading-relaxed">
-          Welcome to the SkillsConnect network! Your profile is now officially verified and live for customers in the East Rand.
-        </p>
-        <p className="text-sm text-gray-500">{claimSuccessMessage || 'Redirecting you to your live profile...'}</p>
-      </div>
+      </main>
     );
   }
 
+  const displayName = [provider?.first_name, provider?.last_name].filter(Boolean).join(' ').trim()
+    || provider?.name
+    || 'Your business';
+
   return (
-    <div className="min-h-screen bg-[#150f0a] text-white pt-20 pb-16 px-4 md:px-8 relative overflow-hidden">
-      <div className="fixed inset-0 z-0 bg-[#0c0906]">
-        <Image src="/artisans/hero-welder.jpg" alt="" fill priority sizes="100vw" className="object-cover mix-blend-luminosity opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#150f0a]/95 via-[#150f0a]/70 to-[#150f0a]"></div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col gap-10">
-        {claimSuccessMessage && (
-          <div className="mx-auto w-full max-w-2xl rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100 text-center">
-            {claimSuccessMessage}
+    <main className="min-h-screen bg-[#080808] px-4 py-10 text-white md:px-8">
+      <div className="mx-auto max-w-5xl">
+        <header className="text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-300">
+            <ShieldCheck className="h-4 w-4" /> Provider consent & profile claim
           </div>
-        )}
-
-        <div className="flex flex-col items-center text-center gap-6">
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 text-brand-yellow px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(250,204,21,0.15)] flex items-center gap-2">
-            <Zap className="w-4 h-4" /> Limited VIP Access
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white max-w-4xl leading-[1.05]">
-            Get Discovered. Get Verified. Grow Your Business with <span className="text-brand-yellow">Skills ConnectPro.</span>
+          <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-black tracking-tight md:text-6xl">
+            Confirm your free <span className="text-amber-300">SkillsConnect Pro</span> profile
           </h1>
-
-          <p className="text-base md:text-lg font-medium max-w-3xl leading-relaxed text-gray-300">
-            We pre-built your professional profile so clients can find and trust your business faster. Confirm your ownership, upload your proof of work, and go live.
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-400 md:text-base">
+            SkillsConnect Pro helps customers discover trusted local service providers. A basic profile has been prepared from information supplied or captured for your business. Please confirm that it belongs to you before anything is published.
           </p>
-        </div>
+        </header>
 
-        <div className="relative group w-full max-w-5xl mx-auto">
-          <div className="absolute -inset-2 bg-gradient-to-r from-brand-yellow/40 via-yellow-500/20 to-brand-yellow/40 rounded-[2rem] blur-2xl opacity-40 transition-opacity duration-700 pointer-events-none"></div>
-
-          <div className="relative bg-white/5 backdrop-blur-2xl border border-white/20 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left rounded-[2rem] shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] overflow-hidden">
-            <div className="flex-1 space-y-4 z-10">
-              <div className="flex items-center gap-3 justify-center md:justify-start">
-                <p className="text-sm font-black uppercase tracking-[0.3em] text-brand-yellow">Verified Professional Profile</p>
-                {artisan?.verified && (
-                  <span className="bg-green-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
-                    <VerifiedIcon /> Verified Pro
-                  </span>
-                )}
+        <section className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-[#111] shadow-2xl">
+          <div className="grid md:grid-cols-[1fr_280px]">
+            <div className="p-7 md:p-10">
+              <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">Profile awaiting your confirmation</div>
+              <h2 className="mt-3 text-3xl font-black">{displayName}</h2>
+              <div className="mt-5 grid gap-3 text-sm text-zinc-300">
+                <div className="flex items-center gap-3"><Briefcase className="h-4 w-4 text-amber-300" /> {provider?.category || 'Local service provider'}</div>
+                <div className="flex items-center gap-3"><MapPin className="h-4 w-4 text-amber-300" /> {provider?.location || 'Local service area'}</div>
+                {provider?.phone ? <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-amber-300" /> {provider.phone}</div> : null}
               </div>
-
-              <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-[0.95]">
-                {artisan?.first_name} {artisan?.last_name}
-              </h2>
-
-              <div className="space-y-2">
-                <p className="text-xl font-bold tracking-widest uppercase text-brand-yellow">
-                  {artisan?.category} {artisan?.location ? `• ${artisan.location}` : ''}
-                </p>
-                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 text-gray-300 text-sm">
-                  <span className="inline-flex items-center gap-2 justify-center md:justify-start"><Briefcase size={15} className="text-brand-yellow" /> {artisan?.category || 'Specialist'}</span>
-                  <span className="inline-flex items-center gap-2 justify-center md:justify-start"><MapPin size={15} className="text-brand-yellow" /> {artisan?.location || 'East Rand Network'}</span>
-                  {artisan?.phone && <span className="inline-flex items-center gap-2 justify-center md:justify-start"><Phone size={15} className="text-brand-yellow" /> {artisan.phone}</span>}
-                </div>
-              </div>
+              {provider?.bio ? <p className="mt-6 rounded-2xl bg-black/35 p-4 text-sm leading-6 text-zinc-400">{provider.bio}</p> : null}
             </div>
 
-            <div className="relative w-52 h-52 md:w-60 md:h-60 rounded-full overflow-hidden border-[6px] border-white/20 shadow-[0_0_40px_rgba(250,204,21,0.2)] ring-1 ring-brand-yellow/20">
-              {profilePreview ? (
-                <img src={profilePreview} alt="Profile Preview" className="w-full h-full object-cover" />
-              ) : artisan?.image_url ? (
-                <Image src={artisan.image_url} alt="Profile" fill sizes="(max-width: 768px) 208px, 240px" className="object-cover" />
+            <div className="relative min-h-64 bg-black">
+              {profilePreview || provider?.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profilePreview || provider?.image_url || ''} alt={displayName} className="h-full w-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-black/50 flex items-center justify-center">
-                  <ImageIcon className="w-14 h-14 text-zinc-500" />
+                <div className="flex h-full min-h-64 items-center justify-center text-zinc-700">
+                  <ImageIcon className="h-16 w-16" />
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-6 w-full max-w-2xl mx-auto">
-          <a
-            href={whatsappShareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-emerald-700 border border-emerald-400/50 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs md:text-sm shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all duration-300 hover:scale-[1.02]"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span>WhatsApp Profile Card</span>
-          </a>
+        <section className="mt-6 rounded-3xl border border-white/10 bg-[#111] p-6 md:p-8">
+          <h3 className="text-xl font-black">Optional: improve your profile</h3>
+          <p className="mt-2 text-sm leading-6 text-zinc-500">You may add a business/profile image and up to five proof-of-work photos. You can also submit the claim without images.</p>
 
-          <a
-            href={profilePageUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-3 bg-white/5 backdrop-blur-xl border border-white/20 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs md:text-sm shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300 hover:bg-brand-yellow hover:text-black hover:border-brand-yellow hover:scale-[1.02]"
-          >
-            <span>Visit Full Profile</span>
-            <ExternalLink className="w-5 h-5" />
-          </a>
-        </div>
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-black/30 p-5 text-center hover:border-amber-300/40">
+              <UploadCloud className="h-6 w-6 text-amber-300" />
+              <span className="mt-2 text-xs font-bold">Profile photo or business logo</span>
+              <span className="mt-1 text-[10px] text-zinc-500">JPG, PNG, WEBP or HEIC · max 6MB</span>
+              <input type="file" accept="image/*" className="hidden" onChange={event => chooseProfile(event.target.files?.[0])} />
+            </label>
 
-        <div className="w-full max-w-5xl mx-auto bg-black/35 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-          <h3 className="text-xl md:text-2xl font-black text-white mb-2">Complete Your VIP Claim</h3>
-          <p className="text-sm text-gray-400 mb-6">Optional uploads improve conversion, but terms acceptance is required to activate your verified listing.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-brand-yellow mb-3">Profile Photo</p>
-              <label className="w-full min-h-32 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-yellow/60 transition-colors p-3">
-                <UploadCloud className="w-6 h-6 text-brand-yellow" />
-                <span className="text-xs text-gray-300 text-center">Upload a clear headshot or business logo</span>
-                <input type="file" accept="image/*" onChange={handleProfileChange} className="hidden" />
-              </label>
-            </div>
-
-            <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-brand-yellow">Proof of Work</p>
-                {portfolioPreviews.length < 5 && (
-                  <label className="text-[11px] text-gray-200 font-bold uppercase tracking-wider cursor-pointer inline-flex items-center gap-1 hover:text-brand-yellow transition-colors">
-                    <UploadCloud size={14} /> Add
-                    <input type="file" accept="image/*" multiple onChange={handlePortfolioChange} className="hidden" />
-                  </label>
-                )}
-              </div>
-
-              {portfolioPreviews.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {portfolioPreviews.map((src, index) => (
-                    <div key={index} className="aspect-square rounded-lg border border-white/10 overflow-hidden relative group">
-                      <img src={src} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
-                      <button onClick={() => removePortfolioImage(index)} className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Remove image">
-                        <X size={12} strokeWidth={3} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="w-full min-h-32 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center text-gray-500">
-                  <ImageIcon className="w-6 h-6 mb-1" />
-                  <p className="text-xs">No images uploaded yet.</p>
-                </div>
-              )}
-            </div>
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-black/30 p-5 text-center hover:border-amber-300/40">
+              <UploadCloud className="h-6 w-6 text-amber-300" />
+              <span className="mt-2 text-xs font-bold">Proof-of-work images</span>
+              <span className="mt-1 text-[10px] text-zinc-500">Up to five images</span>
+              <input type="file" accept="image/*" multiple className="hidden" onChange={event => choosePortfolio(event.target.files)} />
+            </label>
           </div>
 
-          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl cursor-pointer hover:bg-emerald-500/20 transition-colors" onClick={() => setAgreed(!agreed)}>
-            <div className="flex items-start gap-3">
-              <div className={`mt-0.5 shrink-0 w-6 h-6 rounded flex items-center justify-center border-2 transition-colors ${agreed ? 'bg-emerald-500 border-emerald-500' : 'border-gray-500'}`}>
-                {agreed && <CheckCircle size={16} className="text-black" strokeWidth={3} />}
-              </div>
-              <p className="text-xs md:text-sm text-gray-300 leading-relaxed">
-                <strong>Yes, this is my business.</strong> I claim this profile, agree to the SkillsConnect Terms of Service, and consent to my business information being displayed publicly.
-              </p>
+          {portfolioPreviews.length ? (
+            <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-5">
+              {portfolioPreviews.map((src, index) => (
+                <div key={src} className="relative aspect-square overflow-hidden rounded-xl border border-white/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <button type="button" onClick={() => removePortfolio(index)} className="absolute right-1 top-1 rounded-lg bg-black/75 p-1.5" aria-label="Remove image">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
             </div>
-          </div>
-
-          {claimError && (
-            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {claimError}
-            </div>
-          )}
+          ) : null}
 
           <button
-            onClick={handleClaim}
-            disabled={!agreed || isClaiming}
-            className={`w-full h-14 rounded-xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-xs md:text-sm transition-all duration-300 ${
-              agreed && !isClaiming
-                ? 'bg-brand-yellow text-black hover:scale-[1.01] shadow-[0_0_30px_rgba(250,204,21,0.3)]'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-            }`}
+            type="button"
+            onClick={() => setAgreed(value => !value)}
+            className={`mt-7 w-full rounded-2xl border p-5 text-left transition ${agreed ? 'border-emerald-400/40 bg-emerald-500/10' : 'border-white/10 bg-black/30'}`}
           >
-            {isClaiming ? (
-              <>
-                <Loader2 className="animate-spin" size={20} /> SAVING PROFILE AND REDIRECTING...
-              </>
-            ) : (
-              'Accept and Go Live'
-            )}
+            <div className="flex items-start gap-3">
+              <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${agreed ? 'border-emerald-400 bg-emerald-400 text-black' : 'border-zinc-500'}`}>
+                {agreed ? <CheckCircle className="h-4 w-4" /> : null}
+              </div>
+              <div>
+                <div className="font-bold">Yes, this profile represents me or my business.</div>
+                <p className="mt-2 text-xs leading-6 text-zinc-400">
+                  I confirm that the information shown is mine or that I am authorised to represent this business. I consent to SkillsConnect Pro storing and displaying my business/contact information after administrator approval, and I agree to the SkillsConnect Pro Terms of Service and Privacy Policy.
+                </p>
+              </div>
+            </div>
           </button>
-        </div>
+
+          {error ? <div className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-sm text-red-200">{error}</div> : null}
+
+          <button
+            type="button"
+            onClick={() => void submit()}
+            disabled={!agreed || submitting}
+            className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 text-xs font-black uppercase tracking-wider text-black disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : 'Confirm profile & submit for approval'}
+          </button>
+
+          <p className="mt-4 text-center text-[11px] leading-5 text-zinc-600">
+            Confirmation does not publish the profile immediately. SkillsConnect Pro performs a final review before the listing becomes visible to customers.
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
