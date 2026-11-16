@@ -56,6 +56,12 @@ export interface ProviderOpportunity {
     suburb: string | null;
     city: string | null;
   } | null;
+  currentResponse: {
+    responseType: string;
+    providerMessage: string | null;
+    customerClarification: string | null;
+    customerClarificationAt: string | null;
+  } | null;
 }
 
 export interface SubmitProviderResponseInput {
@@ -201,6 +207,16 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
   if (projectError) throw new Error(`Unable to load project brief: ${projectError.message}`);
   if (!projectData) return null;
 
+  const { data: currentResponseData, error: currentResponseError } = await supabase
+    .from('provider_responses')
+    .select('response_type, provider_message, customer_clarification, customer_clarification_at')
+    .eq('lead_invitation_id', invitation.id)
+    .maybeSingle();
+
+  if (currentResponseError) {
+    throw new Error(`Unable to load provider response: ${currentResponseError.message}`);
+  }
+
   if (!selectedAndReleased && ['queued', 'sent', 'delivered'].includes(invitation.status)) {
     const { error: viewedError } = await supabase
       .from('lead_invitations')
@@ -236,6 +252,14 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
     responseDeadline: invitation.response_deadline,
     leadAccess,
     providerSnapshot: invitation.provider_snapshot ?? {},
+    currentResponse: currentResponseData
+      ? {
+          responseType: currentResponseData.response_type,
+          providerMessage: currentResponseData.provider_message,
+          customerClarification: currentResponseData.customer_clarification,
+          customerClarificationAt: currentResponseData.customer_clarification_at,
+        }
+      : null,
     customerContact: selectedAndReleased && isContactAccessActive(projectData.status, matchData?.contact_released_at) && customerPhone
       ? {
           name: projectData.guest_name?.trim() || 'Customer',

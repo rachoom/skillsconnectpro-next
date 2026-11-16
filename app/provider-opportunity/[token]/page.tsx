@@ -50,6 +50,12 @@ type Opportunity = {
     suburb: string | null;
     city: string | null;
   } | null;
+  currentResponse: {
+    responseType: ResponseType;
+    providerMessage: string | null;
+    customerClarification: string | null;
+    customerClarificationAt: string | null;
+  } | null;
   project: {
     id: string;
     title: string;
@@ -209,7 +215,11 @@ export default function ProviderOpportunityPage() {
         const payload = await readJson(await fetch(`/api/provider-opportunities/${encodeURIComponent(token)}`, { cache: 'no-store' }));
         if (active) {
           setOpportunity(payload.opportunity);
-          setForm((current) => ({ ...current, responseType: defaultResponseForUrgency(payload.opportunity.project.urgency) }));
+          setForm((current) => ({
+            ...current,
+            responseType: payload.opportunity.currentResponse?.responseType || defaultResponseForUrgency(payload.opportunity.project.urgency),
+            providerMessage: payload.opportunity.currentResponse?.providerMessage || '',
+          }));
         }
       } catch (requestError) {
         if (active) setError(requestError instanceof Error ? requestError.message : 'Unable to load opportunity.');
@@ -344,6 +354,15 @@ export default function ProviderOpportunityPage() {
             {!leadLocked && <article data-provider-job-card className="rounded-[1.75rem] border-2 border-[#7CAD6E] bg-[#FFF9E8] p-5 shadow-lg shadow-[#355332]/15 md:p-6">
               <div className="flex items-center gap-3"><Wrench className="text-[#B07800]" size={19} /><div><h2 className="text-lg font-black">Job overview</h2><span data-vernac>Imininingwane yomsebenzi</span></div></div>
               <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#3E493A]">{project.customerDescription}</p>
+              {opportunity.currentResponse?.customerClarification && (
+                <div className="mt-4 rounded-2xl border-2 border-[#55A979] bg-[#E6F8DF] p-4">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-[#21885A]">
+                    <MessageCircle size={15} /> Customer clarification received
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap text-sm font-bold leading-6 text-[#244A32]">“{opportunity.currentResponse.customerClarification}”</p>
+                  <p className="mt-2 text-[11px] leading-5 text-[#52644E]">You can update your response below. Customer phone, WhatsApp and email remain hidden until they select and connect with you.</p>
+                </div>
+              )}
               {project.media?.some((item) => item.url) && (
                 <figure className="mt-4 overflow-hidden rounded-2xl border-2 border-[#B8CFAE] bg-[#F3F8ED] p-3">
                   <figcaption className="mb-2 text-[10px] font-black uppercase tracking-wider text-[#52644E]">Customer reference image</figcaption>

@@ -65,7 +65,7 @@ export async function getCustomerProjectResponseFeed(
     supabase
       .from('provider_responses')
       .select(
-        'id, lead_invitation_id, provider_id, response_type, arrival_window_start, arrival_window_end, site_visit_fee, estimate_min, estimate_max, estimate_currency, provider_message, valid_until, created_at',
+        'id, lead_invitation_id, provider_id, response_type, arrival_window_start, arrival_window_end, site_visit_fee, estimate_min, estimate_max, estimate_currency, provider_message, customer_clarification, customer_clarification_at, valid_until, created_at',
       )
       .eq('project_id', projectId)
       .order('created_at', { ascending: true }),
@@ -108,6 +108,8 @@ export async function getCustomerProjectResponseFeed(
       estimateMax: response.estimate_max,
       estimateCurrency: response.estimate_currency,
       providerMessage: response.provider_message,
+      customerClarification: response.customer_clarification,
+      customerClarificationAt: response.customer_clarification_at,
       validUntil: response.valid_until,
       createdAt: response.created_at,
     };
