@@ -105,6 +105,7 @@ export function PremiumLanding() {
           <div className={styles.desktopNav}>
             <a href="#services">Services</a>
             <a href="#how-it-works">How it works</a>
+            <Link href="/my-projects">My Projects</Link>
             <Link href="/assistant">AI Project Assistant</Link>
             <Link href="/browse-providers">Find a provider</Link>
             <Link href="/provider-plans">Provider plans</Link>
@@ -128,6 +129,7 @@ export function PremiumLanding() {
           <div id="landing-navigation" className={styles.mobileMenu}>
             <a href="#services" onClick={closeMenu}>Explore services</a>
             <a href="#how-it-works" onClick={closeMenu}>How it works</a>
+            <Link href="/my-projects" onClick={closeMenu}>My Projects</Link>
             <Link href="/browse-providers" onClick={closeMenu}>Find a provider</Link>
             <Link href="/assistant" onClick={closeMenu}>AI Project Assistant</Link>
             <Link href="/estimator" onClick={closeMenu}>Project estimator</Link>
