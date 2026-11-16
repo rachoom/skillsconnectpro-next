@@ -29,6 +29,19 @@ type ClaimProvider = {
   portfolio_urls: string[] | null;
 };
 
+type ExampleProvider = {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  category: string | null;
+  location: string | null;
+  image_url: string | null;
+  verified: boolean | null;
+  bio: string | null;
+  portfolio_urls: string[] | null;
+  proof_of_work: string[] | null;
+};
+
 const GENERIC_CAPTURE_BIOS = [
   'submitted through the provider photo application.',
   'submitted through provider photo application.',
@@ -41,9 +54,34 @@ function editableBio(value: string | null | undefined) {
   return trimmed;
 }
 
+function tradeFamily(value: string | null | undefined) {
+  const text = (value || '').toLowerCase();
+  if (text.includes('clean')) return 'cleaning';
+  if (text.includes('plumb')) return 'plumbing';
+  if (text.includes('mechanic') || text.includes('automotive')) return 'mechanic';
+  if (text.includes('paint')) return 'painting';
+  if (text.includes('carpent')) return 'carpentry';
+  if (text.includes('electric')) return 'electrical';
+  if (text.includes('hair') || text.includes('beauty')) return 'beauty';
+  if (text.includes('build') || text.includes('contractor')) return 'building';
+  return text.trim();
+}
+
+function exampleName(provider: ExampleProvider) {
+  return [provider.first_name, provider.last_name].filter(Boolean).join(' ').trim() || 'SkillsConnect Pro provider';
+}
+
+function exampleGallery(provider: ExampleProvider) {
+  return Array.from(new Set([
+    ...(Array.isArray(provider.portfolio_urls) ? provider.portfolio_urls : []),
+    ...(Array.isArray(provider.proof_of_work) ? provider.proof_of_work : []),
+  ].filter(Boolean))).slice(0, 5);
+}
+
 export const ClaimProfile: React.FC = () => {
   const [token, setToken] = useState('');
   const [provider, setProvider] = useState<ClaimProvider | null>(null);
+  const [exampleProvider, setExampleProvider] = useState<ExampleProvider | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -75,6 +113,22 @@ export const ClaimProfile: React.FC = () => {
         const loadedProvider = payload.provider as ClaimProvider;
         setProvider(loadedProvider);
         setBio(editableBio(loadedProvider.bio));
+
+        try {
+          const directoryResponse = await fetch('/api/providers', { cache: 'no-store' });
+          const directoryPayload = await directoryResponse.json().catch(() => ({}));
+          const candidates = (Array.isArray(directoryPayload.providers) ? directoryPayload.providers : []) as ExampleProvider[];
+          const usable = candidates.filter(candidate =>
+            candidate.verified
+            && Boolean(candidate.image_url)
+            && exampleGallery(candidate).length >= 3
+          );
+          const family = tradeFamily(loadedProvider.category);
+          const relevant = usable.find(candidate => tradeFamily(candidate.category) === family);
+          setExampleProvider(relevant || usable[0] || null);
+        } catch {
+          // The example is helpful but must never block a provider from claiming their own profile.
+        }
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : 'Unable to load this invitation.');
       } finally {
@@ -220,6 +274,83 @@ export const ClaimProfile: React.FC = () => {
             This is what customers will see. Add your own photo or business logo, tell them what you do, and show examples of your work.
           </p>
         </header>
+
+        {exampleProvider ? (() => {
+          const gallery = exampleGallery(exampleProvider);
+          return (
+            <section className="mx-auto mt-9 max-w-3xl">
+              <div className="overflow-hidden rounded-[1.8rem] border border-amber-300/20 bg-gradient-to-b from-[#15120a] to-[#0c0c0c] shadow-[0_30px_90px_rgba(0,0,0,.45)]">
+                <div className="border-b border-white/10 px-5 py-5 sm:px-7">
+                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">See what a completed profile looks like</div>
+                  <h2 className="mt-2 text-2xl font-black sm:text-3xl">Your profile can look like this</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                    This is a real SkillsConnect Pro provider profile from the live directory. Add your own photo, description and work images below to build yours.
+                  </p>
+                </div>
+
+                <article className="m-4 overflow-hidden rounded-[1.45rem] border border-white/10 bg-[#f3eedf] text-[#172019] sm:m-6">
+                  <div className="relative min-h-[235px] overflow-hidden bg-[#173827] sm:min-h-[300px]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={exampleProvider.image_url || ''} alt={exampleName(exampleProvider)} className="absolute inset-0 h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-[#f5c518] px-3 py-2 text-xs font-black text-[#171006]">
+                      <CheckCircle className="h-4 w-4" /> Verified
+                    </div>
+                    <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full border border-white/20 bg-black/65 px-3 py-2 text-[10px] font-black text-white backdrop-blur-md">
+                      <Images className="h-4 w-4" /> {gallery.length} work photos
+                    </div>
+                  </div>
+
+                  <div className="p-5 sm:p-6">
+                    <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[#5e704f]">{exampleProvider.category || 'Local service provider'}</div>
+                    <h3 className="mt-2 text-2xl font-black leading-tight">{exampleName(exampleProvider)}</h3>
+                    <div className="mt-3 flex items-start gap-2 text-sm text-[#667064]">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{exampleProvider.location || 'Local service area'}</span>
+                    </div>
+
+                    <div className="mt-4 rounded-2xl bg-[#dfe8d6] p-4">
+                      <div className="flex items-center gap-2 text-sm font-black">
+                        <Star className="h-4 w-4 text-[#9e7500]" /> New provider
+                      </div>
+                      <div className="mt-1 text-xs text-[#5f695c]">Building marketplace history</div>
+                    </div>
+
+                    <div className="mt-4 rounded-2xl border border-[#cbc5b5] bg-[#fffdf6] p-4">
+                      <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#667064]">About this provider</div>
+                      <p className="mt-2 text-sm leading-6 text-[#4d584d]">
+                        {editableBio(exampleProvider.bio) || 'Reliable local service provider showcasing skills, service area and completed work to customers on SkillsConnect Pro.'}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 rounded-2xl border border-[#cbc5b5] bg-[#fffdf6] p-4">
+                      <div className="flex items-end justify-between gap-3">
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#667064]">Proof of work</div>
+                          <div className="mt-1 text-sm font-black text-[#233126]">Work shared by this provider</div>
+                        </div>
+                        <small className="text-[10px] font-bold text-[#7b8277]">{gallery.length} photos</small>
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        {gallery.slice(0, 3).map((url, index) => (
+                          <div key={url} className="relative aspect-square overflow-hidden rounded-xl border border-[#d7d0bf] bg-[#dfe8d6]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt={`${exampleName(exampleProvider)} work example ${index + 1}`} className="h-full w-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <div className="px-5 pb-6 text-center sm:px-7">
+                  <div className="text-sm font-black text-amber-200">Now build your own profile below ↓</div>
+                  <p className="mt-1 text-xs text-zinc-500">Your information and photos will replace the example.</p>
+                </div>
+              </div>
+            </section>
+          );
+        })() : null}
 
         <section className="mx-auto mt-9 max-w-2xl">
           <div className="mb-4 flex items-center justify-between gap-4">
