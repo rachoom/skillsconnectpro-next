@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/services/supabaseAdmin';
+import { supabase } from '@/services/supabase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const supabase = getSupabaseAdmin();
-
   const { data, error } = await supabase
     .from('artisans')
-    .select('id, name, first_name, last_name, category, location, image_url, verified, status, bio, marketplace_rating, marketplace_review_count, portfolio, portfolio_images, portfolio_urls, proof_of_work')
+    .select('id, name, first_name, last_name, category, location, image_url, verified, status, bio, marketplace_rating, marketplace_review_count, portfolio_urls, proof_of_work')
     .eq('status', 'active')
-    .eq('approval_status', 'approved')
     .order('verified', { ascending: false })
     .order('marketplace_review_count', { ascending: false })
     .limit(120);
