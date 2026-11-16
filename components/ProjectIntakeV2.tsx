@@ -27,7 +27,6 @@ import {
   isLikelyStreetAddress,
   phoneValidationMessage,
 } from '../services/marketplace/intakePolicy.js';
-import { rememberCustomerProject } from '../services/customerProjectStore';
 import { FloorPlanPreview, type FloorPlan } from './FloorPlanPreview';
 
 type ProjectUrgency = 'emergency' | 'urgent' | 'planned' | 'large_project';
@@ -515,19 +514,8 @@ export const ProjectIntakeV2: React.FC = () => {
         throw new Error(payload.error || 'We could not create the project.');
       }
 
-      const projectTitle = payload.project.title || assessment.title;
-      const customerProjectUrl = `/project/${payload.project.id}?token=${encodeURIComponent(payload.accessToken)}`;
-      rememberCustomerProject({
-        id: payload.project.id,
-        token: payload.accessToken,
-        title: projectTitle,
-        category: payload.project.category || assessment.category,
-        status: payload.project.status || 'matching',
-        locationText: payload.project.suburb || payload.project.city || payload.project.locationText || resolvedLocation,
-        createdAt: payload.project.createdAt || null,
-      });
-      setCreatedTitle(projectTitle);
-      setCustomerUrl(customerProjectUrl);
+      setCreatedTitle(payload.project.title || assessment.title);
+      setCustomerUrl(`/project/${payload.project.id}?token=${encodeURIComponent(payload.accessToken)}`);
       setStep('done');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (reason) {
