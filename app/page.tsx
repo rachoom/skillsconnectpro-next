@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { PremiumLanding } from '../components/PremiumLanding';
+import { ClaimProfile } from '../components/ClaimProfile';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -19,6 +20,10 @@ export const metadata: Metadata = {
   },
 };
 
+function isLegacyNumericClaim(value: string | null): boolean {
+  return Boolean(value && /^\d+$/.test(value));
+}
+
 export default async function Page({ searchParams }: Props) {
   const params = await searchParams;
   const profileId = typeof params.profile === 'string' ? params.profile : null;
@@ -29,9 +34,17 @@ export default async function Page({ searchParams }: Props) {
   // instead of exposing direct provider contact details.
   if (profileId) redirect(`/browse-providers?provider=${encodeURIComponent(profileId)}`);
 
-  // Numeric legacy claim IDs do not prove profile ownership. Route all old
-  // claim links through the reviewed provider application flow.
-  if (claimId || inviteId) redirect('/join');
+  // Legacy numeric claim/invite IDs did not prove profile ownership, so those
+  // still go through the reviewed provider application flow.
+  if (isLegacyNumericClaim(claimId) || isLegacyNumericClaim(inviteId)) {
+    redirect('/join');
+  }
+
+  // Secure claim tokens are random, hashed server-side and must open the
+  // provider consent page rather than being mistaken for 1-Click Join.
+  if (claimId || inviteId) {
+    return <ClaimProfile />;
+  }
 
   return <PremiumLanding />;
 }
