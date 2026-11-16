@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/services/supabase';
+import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const { data, error } = await supabase.from('artisans')
+  const supabase = getSupabaseAdmin();
+
+  const { data, error } = await supabase
+    .from('artisans')
     .select('id, name, first_name, last_name, category, location, image_url, verified, status, bio, marketplace_rating, marketplace_review_count, portfolio, portfolio_images, portfolio_urls, proof_of_work')
     .eq('status', 'active')
     .eq('approval_status', 'approved')
@@ -14,6 +17,7 @@ export async function GET() {
     .limit(120);
 
   if (error) {
+    console.error('Public provider directory query failed:', error);
     return NextResponse.json(
       { error: 'Provider profiles are temporarily unavailable.' },
       { status: 503 },
@@ -21,7 +25,7 @@ export async function GET() {
   }
 
   return NextResponse.json(
-    { providers: data },
+    { providers: data || [] },
     { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } },
   );
 }
