@@ -7,6 +7,7 @@ import type {
   ProjectStatusEvent,
 } from '../../types/marketplace';
 import { getProjectResponseTarget } from './routing';
+import { readAccountProjectAccessToken } from './accountProjectAccess';
 import { createTokenPair, hashOpaqueToken } from './tokens';
 
 type ProjectRow = {
@@ -209,8 +210,22 @@ export async function getProjectByAccessToken(
   accessToken: string,
 ): Promise<Project | null> {
   const supabase = getSupabaseAdmin();
-  const accessTokenHash = hashOpaqueToken(accessToken);
+  const accountAccess = readAccountProjectAccessToken(accessToken);
 
+  if (accountAccess) {
+    if (accountAccess.projectId !== projectId) return null;
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .eq('customer_id', accountAccess.userId)
+      .maybeSingle();
+
+    if (error) throw new Error(`Unable to load project: ${error.message}`);
+    return data ? mapProjectRow(data as ProjectRow) : null;
+  }
+
+  const accessTokenHash = hashOpaqueToken(accessToken);
   const { data, error } = await supabase
     .from('projects')
     .select('*')

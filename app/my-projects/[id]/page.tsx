@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { ProjectWorkspace } from './project-workspace';
@@ -21,7 +21,7 @@ export default async function ProjectWorkspacePage({ params }: Props) {
 
   const projectResult = await supabase
     .from('projects')
-    .select('id,title,customer_description,ai_summary,likely_issue,category,urgency,status,location_text,estimated_min,estimated_max,estimate_currency,safety_notes,materials,assessment_payload,created_at,updated_at')
+    .select('id,customer_id,title,customer_description,ai_summary,likely_issue,category,urgency,status,location_text,estimated_min,estimated_max,estimate_currency,safety_notes,materials,assessment_payload,created_at,updated_at')
     .eq('id', id)
     .maybeSingle();
 
@@ -59,7 +59,17 @@ export default async function ProjectWorkspacePage({ params }: Props) {
         <div className={styles.navActions}><Link href="/my-projects" className={styles.navLink}>My Projects</Link><WorkspaceThemeToggle /><form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form></div>
       </div></nav>
       <div className={styles.shell}>
-        <div className={styles.backRow}><Link href="/my-projects" className={styles.back}><ArrowLeft size={18} /> All projects</Link><span className={styles.status}>{project.status.replaceAll('_', ' ')}</span></div>
+        <div className={styles.backRow}>
+          <Link href="/my-projects" className={styles.back}><ArrowLeft size={18} /> All projects</Link>
+          <div className={styles.navActions}>
+            {project.customer_id === user.id && (
+              <Link href={`/my-projects/${id}/dashboard`} className={styles.primaryLink}>
+                <LayoutDashboard size={17} /> Open customer dashboard
+              </Link>
+            )}
+            <span className={styles.status}>{project.status.replaceAll('_', ' ')}</span>
+          </div>
+        </div>
         <header className={styles.projectHeader}>
           <div><span className={styles.eyebrow}>{project.category} · {project.location_text}</span><h1>{project.title}</h1><p>{project.ai_summary || project.customer_description}</p></div>
           <div className={styles.estimate}><span>Preliminary project range</span><strong>{formatRange(project.estimated_min, project.estimated_max, project.estimate_currency)}</strong></div>
