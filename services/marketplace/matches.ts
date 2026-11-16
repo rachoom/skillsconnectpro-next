@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '../supabaseAdmin';
+import { readAccountProjectAccessToken } from './accountProjectAccess';
 import { getProjectByAccessToken } from './projects';
 import { hashOpaqueToken } from './tokens';
 
@@ -128,11 +129,21 @@ export async function releaseContactsForProject(input: {
     throw new Error('Confirm contact sharing before continuing.');
   }
 
+  const project = await getProjectByAccessToken(input.projectId, input.projectAccessToken);
+  if (!project) throw new Error('Project not found.');
+
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase.rpc('release_marketplace_contacts', {
-    p_project_id: input.projectId,
-    p_customer_access_token_hash: hashOpaqueToken(input.projectAccessToken),
-  });
+  const accountAccess = readAccountProjectAccessToken(input.projectAccessToken);
+  const result = accountAccess
+    ? await supabase.rpc('release_marketplace_contacts_for_account', {
+        p_project_id: input.projectId,
+        p_customer_id: accountAccess.userId,
+      })
+    : await supabase.rpc('release_marketplace_contacts', {
+        p_project_id: input.projectId,
+        p_customer_access_token_hash: hashOpaqueToken(input.projectAccessToken),
+      });
+  const { data, error } = result;
 
   if (error) throw new Error(`Unable to release contact details: ${error.message}`);
   if (!data || typeof data !== 'object') {
