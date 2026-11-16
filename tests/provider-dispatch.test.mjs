@@ -130,8 +130,9 @@ test('historic project dispatch performs no send',async()=>{
 });
 
 test('candidate discovery excludes rejected, inactive, unavailable and wrong-work providers',async()=>{
-  const base={id:1,name:'Named provider',category:'Plumber',location:'Benoni',phone:'valid',status:'active',approval_status:'pending'};
+  const base={id:1,name:'Named provider',category:'Plumber',location:'Benoni',phone:'valid',status:'active',approval_status:'approved'};
   const providers=[base,{...base,id:2,approval_status:'rejected'},{...base,id:3,status:'inactive'},
+    {...base,id:7,approval_status:'pending'},
     {...base,id:4},{...base,id:5},{...base,id:6,phone:'invalid'}];
   const data={projects:{id:'project',category:'Plumbing',title:'Sink repair',location_text:'Benoni',urgency:'planned',status:'matching'},
     project_matches:null,artisans:providers,lead_invitations:[],provider_availability:[
