@@ -13,6 +13,7 @@ import {
   Search,
   ShieldCheck,
   Star,
+  Images,
   UserRound,
   Wrench,
   X,
@@ -32,12 +33,32 @@ type Provider = {
   bio: string | null;
   marketplace_rating: number | null;
   marketplace_review_count: number | null;
+  portfolio: string[] | null;
+  portfolio_images: string[] | null;
+  portfolio_urls: string[] | null;
+  proof_of_work: string[] | null;
 };
 
 const displayName = (provider: Provider) =>
   provider.name?.trim()
   || `${provider.first_name || ''} ${provider.last_name || ''}`.trim()
   || 'Local service provider';
+
+const providerGallery = (provider: Provider) => {
+  const sources = [
+    provider.portfolio_urls,
+    provider.portfolio_images,
+    provider.proof_of_work,
+    provider.portfolio,
+  ];
+
+  return Array.from(new Set(
+    sources
+      .flatMap((items) => Array.isArray(items) ? items : [])
+      .map((url) => typeof url === 'string' ? url.trim() : '')
+      .filter((url) => Boolean(url) && url !== provider.image_url),
+  )).slice(0, 12);
+};
 
 const providerHref = (provider: Provider) => {
   const params = new URLSearchParams({
@@ -100,6 +121,8 @@ export const ControlledProviderDirectory = () => {
       return matchesCategory && (!query || text.includes(query));
     });
   }, [category, providers, search]);
+
+  const selectedGallery = selected ? providerGallery(selected) : [];
 
   return (
     <main className={styles.page}>
@@ -164,6 +187,7 @@ export const ControlledProviderDirectory = () => {
                 const name = displayName(provider);
                 const rating = Number(provider.marketplace_rating || 0);
                 const reviewCount = Number(provider.marketplace_review_count || 0);
+                const galleryImages = providerGallery(provider);
                 return (
                   <article key={provider.id} className={styles.card}>
                     <button type="button" className={styles.imageButton} onClick={() => setSelected(provider)} aria-label={`View ${name} profile`}>
@@ -174,6 +198,7 @@ export const ControlledProviderDirectory = () => {
                       )}
                       <div className={styles.imageShade} />
                       {provider.verified && <span className={styles.verifiedBadge}><CheckCircle2 size={15} /> Verified</span>}
+                      {galleryImages.length > 0 && <span className={styles.workBadge}><Images size={14} /> {galleryImages.length} work photo{galleryImages.length === 1 ? '' : 's'}</span>}
                     </button>
 
                     <div className={styles.cardBody}>
@@ -225,6 +250,29 @@ export const ControlledProviderDirectory = () => {
                 <span>About this provider</span>
                 <p>{selected.bio?.trim() || 'This provider has not added a detailed marketplace introduction yet. You can still invite them to review a real project brief and decide whether they are available.'}</p>
               </div>
+              {selectedGallery.length > 0 && (
+                <section className={styles.workSection}>
+                  <div className={styles.workHeading}>
+                    <div>
+                      <span>Proof of work</span>
+                      <strong>Work shared by this provider</strong>
+                    </div>
+                    <small>{selectedGallery.length} photo{selectedGallery.length === 1 ? '' : 's'}</small>
+                  </div>
+                  <div className={styles.workGrid}>
+                    {selectedGallery.map((url, index) => (
+                      <div key={`${selected.id}-work-${index}`} className={styles.workImage}>
+                        <Image
+                          src={url}
+                          alt={`${displayName(selected)} proof of work ${index + 1}`}
+                          fill
+                          sizes="(max-width: 640px) 50vw, 300px"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
               <div className={styles.privacyNotice}><ShieldCheck size={19} /><p>Private contact details are intentionally hidden. Invite this provider through a project request to preserve the interaction and job record.</p></div>
               <Link href={providerHref(selected)} className={styles.modalCta}>Invite this provider to my job <ArrowRight size={18} /></Link>
             </div>
