@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, MapPin, PackageOpen, PackageSearch, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, LayoutDashboard, MapPin, PackageOpen, PackageSearch, Plus, Sparkles } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import styles from './workspace.module.css';
 import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
@@ -117,7 +117,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
 
         <section className={styles.grid} aria-label="Saved projects">
           {(projects ?? []).map((project) => (
-            <Link href={`/my-projects/${project.id}`} className={styles.projectCard} key={project.id}>
+            <article className={styles.projectCard} key={project.id}>
               <div className={styles.cardTop}>
                 <span className={styles.category}>{project.category}</span>
                 <span className={styles.status}>{project.status.replaceAll('_', ' ')}</span>
@@ -128,8 +128,16 @@ export default async function MyProjectsPage({ searchParams }: Props) {
                 <span><MapPin size={15} /> {project.location_text}</span>
                 <span><CalendarDays size={15} /> {new Date(project.updated_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</span>
               </div>
-              <div className={styles.open}><span>{money(project.estimated_min, project.estimated_max)}</span><ArrowRight size={19} /></div>
-            </Link>
+              <div className={styles.open}><span>{money(project.estimated_min, project.estimated_max)}</span></div>
+              <div className={styles.projectActions}>
+                <Link href={`/my-projects/${project.id}`} className={styles.secondaryProjectAction}>
+                  Manage project <ArrowRight size={17} />
+                </Link>
+                <Link href={`/my-projects/${project.id}/dashboard`} className={styles.dashboardAction}>
+                  <LayoutDashboard size={17} /> View dashboard
+                </Link>
+              </div>
+            </article>
           ))}
           {!projects?.length && (
             <div className={styles.empty}>
