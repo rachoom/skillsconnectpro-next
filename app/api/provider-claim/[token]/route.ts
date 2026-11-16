@@ -82,12 +82,20 @@ export async function POST(
 
     const { data: artisan, error: artisanError } = await supabase
       .from('artisans')
-      .select('id, image_url, portfolio_urls')
+      .select('id, portfolio_urls')
       .eq('id', invite.artisan_id)
       .single();
     if (artisanError || !artisan) throw artisanError || new Error('Provider profile not found.');
 
-    let imageUrl = artisan.image_url as string | null;
+    const submittedBio = String(form.get('bio') || '').trim();
+    if (submittedBio.length > 600) {
+      return NextResponse.json({ error: 'Your profile description must be 600 characters or fewer.' }, { status: 400 });
+    }
+
+    // Unclaimed/scanned records may contain a generic or unrelated image. Never
+    // carry that into a newly confirmed public profile unless the provider
+    // explicitly uploads their own photo or logo during this claim flow.
+    let imageUrl: string | null = null;
     const existingPortfolio = Array.isArray(artisan.portfolio_urls) ? artisan.portfolio_urls.filter(Boolean) : [];
     const uploadedPortfolio: string[] = [];
 
@@ -133,6 +141,7 @@ export async function POST(
         approval_status: 'claimed_pending_approval',
         verified: false,
         image_url: imageUrl,
+        bio: submittedBio || null,
         portfolio_urls: [...existingPortfolio, ...uploadedPortfolio].slice(0, 10),
         updated_at: now,
       })
