@@ -33,6 +33,8 @@ type ProviderResponse = {
   estimateMax: number | null;
   estimateCurrency: string;
   providerMessage: string | null;
+  customerClarification: string | null;
+  customerClarificationAt: string | null;
   validUntil: string | null;
   createdAt: string;
 };
@@ -167,6 +169,8 @@ export default function CustomerProjectPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activityExpanded, setActivityExpanded] = useState(false);
+  const [clarificationDrafts, setClarificationDrafts] = useState<Record<string, string>>({});
+  const [sendingClarificationId, setSendingClarificationId] = useState<string | null>(null);
 
   useEffect(() => {
     const initialisation = window.setTimeout(() => {
@@ -222,6 +226,32 @@ export default function CustomerProjectPage() {
     feed?.releasedContact?.provider,
   );
   const projectClosed = Boolean(feed && ['cancelled', 'completed', 'unfulfilled'].includes(feed.project.status));
+
+  const sendClarification = async (responseId: string) => {
+    const message = (clarificationDrafts[responseId] || '').trim();
+    if (!message) return;
+    setSendingClarificationId(responseId);
+    setError(null);
+
+    try {
+      await readJson(
+        await fetch(`/api/projects/${projectId}/responses`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-project-access-token': accessToken,
+          },
+          body: JSON.stringify({ providerResponseId: responseId, message }),
+        }),
+      );
+      setClarificationDrafts((current) => ({ ...current, [responseId]: '' }));
+      await loadFeed(true);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to send clarification.');
+    } finally {
+      setSendingClarificationId(null);
+    }
+  };
 
   const selectProvider = async (responseId: string) => {
     setSelectingResponseId(responseId);
@@ -619,6 +649,39 @@ export default function CustomerProjectPage() {
                         <p>“{response.providerMessage}”</p>
                       </div>
                     )}
+
+                    {response.customerClarification ? (
+                      <div className={styles.providerMessage} style={{ borderLeftColor: '#55d38b', background: 'rgba(85,211,139,.07)' }}>
+                        <span>Your clarification</span>
+                        <p>“{response.customerClarification}”</p>
+                        <small style={{ display: 'block', marginTop: '.55rem', opacity: .65 }}>Sent privately through Skills Connect Pro. Contact details remain hidden.</small>
+                      </div>
+                    ) : response.providerMessage && !hasSelection && !projectClosed ? (
+                      <div style={{ marginTop: '.85rem', border: '1px solid rgba(85,211,139,.24)', borderRadius: '1rem', padding: '.9rem', background: 'rgba(85,211,139,.045)' }}>
+                        <div style={{ display: 'flex', gap: '.55rem', alignItems: 'center', marginBottom: '.55rem' }}>
+                          <MessageCircle size={16} color="#55d38b" />
+                          <strong style={{ fontSize: '.78rem' }}>Reply with clarification</strong>
+                        </div>
+                        <p style={{ margin: '0 0 .65rem', fontSize: '.7rem', lineHeight: 1.5, color: '#aaa9a4' }}>
+                          Answer this provider without sharing your phone number, email or WhatsApp details. You can send one clarification before selecting a provider.
+                        </p>
+                        <textarea
+                          value={clarificationDrafts[response.id] || ''}
+                          maxLength={600}
+                          onChange={(event) => setClarificationDrafts((current) => ({ ...current, [response.id]: event.target.value }))}
+                          placeholder="For example: There is no fault. I only need a valid 3-phase COC after inspection."
+                          style={{ width: '100%', minHeight: '5.5rem', resize: 'vertical', border: '1px solid rgba(255,255,255,.14)', borderRadius: '.8rem', padding: '.75rem', background: '#090909', color: '#fff', font: 'inherit' }}
+                        />
+                        <button
+                          type="button"
+                          disabled={sendingClarificationId !== null || !(clarificationDrafts[response.id] || '').trim()}
+                          onClick={() => void sendClarification(response.id)}
+                          style={{ marginTop: '.6rem', width: '100%', minHeight: '2.9rem', border: 0, borderRadius: '.8rem', background: '#55d38b', color: '#07150d', fontWeight: 900, opacity: sendingClarificationId && sendingClarificationId !== response.id ? .5 : 1 }}
+                        >
+                          {sendingClarificationId === response.id ? 'Sending…' : 'Send clarification'}
+                        </button>
+                      </div>
+                    ) : null}
 
                     <button
                       disabled={projectClosed || contactsReleased || selected || selectingResponseId !== null}
