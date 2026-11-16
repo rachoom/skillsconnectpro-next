@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_RETURN_PATH_COOKIE, resolveAuthReturnPath, withResult } from '@/services/authRedirect';
+import { claimGuestProjectForUser } from '@/services/projectClaim';
 import { createServerSupabaseClient } from '@/services/supabase/server';
 
 export async function GET(request: NextRequest) {
@@ -28,11 +29,15 @@ export async function GET(request: NextRequest) {
 
   let destination = next;
   if (projectId && token) {
-    const { data: claimed, error: claimError } = await supabase.rpc('claim_guest_project', {
-      target_project_id: projectId,
-      raw_access_token: token,
-    });
-    destination = withResult(next, 'claim', !claimError && claimed ? 'saved' : 'failed');
+    const { data: userData } = await supabase.auth.getUser();
+    const claimed = userData.user
+      ? await claimGuestProjectForUser({
+          projectId,
+          accessToken: token,
+          userId: userData.user.id,
+        })
+      : false;
+    destination = withResult(next, 'claim', claimed ? 'saved' : 'failed');
   }
 
   const response = NextResponse.redirect(new URL(destination, requestUrl.origin));
