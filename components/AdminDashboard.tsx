@@ -1,28 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import { ShieldCheck, UserX, Send, ChevronDown } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, ChevronDown, Search, Send, ShieldCheck, UserCheck, UserX } from 'lucide-react';
 
-// --- INTERFACES ---
 interface Application {
   id: number;
   created_at: string;
-  first_name: string; 
-  last_name: string;  
+  first_name: string;
+  last_name: string;
   trade: string;
   location: string;
   phone: string;
   bio: string;
-  institution?: string; 
-  status: 'pending' | 'approved' | 'rejected';
+  institution?: string;
+  status: string;
 }
 
-// ⚡ NEW: Interface for our live, unclaimed artisans
-interface LiveArtisan {
+interface Provider {
   id: number;
-  first_name: string;
-  last_name: string;
-  category: string;
-  phone: string;
-  is_claimed: boolean;
+  first_name: string | null;
+  last_name: string | null;
+  name?: string | null;
+  category: string | null;
+  phone: string | null;
+  location: string | null;
+  is_claimed: boolean | null;
+  approval_status: string | null;
+  status: string | null;
+  verified: boolean | null;
+  created_at: string | null;
+}
+
+interface ClaimInvite {
+  id: string;
+  artisan_id: number;
+  application_id: number | null;
+  status: string;
+  sent_at: string | null;
+  claimed_at: string | null;
+  expires_at: string | null;
+  created_at: string;
 }
 
 interface Suggestion {
@@ -39,31 +54,44 @@ interface Review {
   rating: number;
   comment: string;
   artisan_id: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
 }
 
 interface AdminDashboardProps {
   onBack: () => void;
 }
 
+function providerName(provider: Provider) {
+  const explicit = (provider.name || '').trim();
+  const combined = `${provider.first_name || ''} ${provider.last_name || ''}`.trim();
+  return explicit || combined || `Provider #${provider.id}`;
+}
+
+function whatsappNumber(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('27')) return digits;
+  if (digits.startsWith('0')) return `27${digits.slice(1)}`;
+  return digits;
+}
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
-  // --- STATE ---
   const [applications, setApplications] = useState<Application[]>([]);
-  const [unclaimedArtisans, setUnclaimedArtisans] = useState<LiveArtisan[]>([]); // ⚡ NEW: State for claims
+  const [awaitingClaims, setAwaitingClaims] = useState<Provider[]>([]);
+  const [finalApprovals, setFinalApprovals] = useState<Provider[]>([]);
+  const [providerDirectory, setProviderDirectory] = useState<Provider[]>([]);
+  const [claimInvites, setClaimInvites] = useState<ClaimInvite[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<number | null>(null);
-  const [vipClaimsOpen, setVipClaimsOpen] = useState(false);
+  const [processing, setProcessing] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [legacyOpen, setLegacyOpen] = useState(false);
+  const [error, setError] = useState('');
 
-  // Edit Mode State (for Applications)
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Application>>({});
-
-  // --- 1. FETCH ALL DATA ---
   const fetchData = async () => {
+    setLoading(true);
+    setError('');
     try {
-      setLoading(true);
       const response = await fetch('/api/provider-admin/dashboard', { cache: 'no-store' });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -71,11 +99,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         throw new Error(payload.error || 'Unable to load admin data.');
       }
       setApplications(payload.applications || []);
-      setUnclaimedArtisans(payload.unclaimedArtisans || []);
+      setAwaitingClaims(payload.awaitingClaims || []);
+      setFinalApprovals(payload.finalApprovals || []);
+      setProviderDirectory(payload.providerDirectory || []);
+      setClaimInvites(payload.claimInvites || []);
       setSuggestions(payload.suggestions || []);
       setReviews(payload.reviews || []);
-    } catch (err) {
-      console.error('Unexpected error fetching dashboard data:', err);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to load admin data.');
     } finally {
       setLoading(false);
     }
@@ -96,385 +127,365 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   };
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, []);
 
-  // --- 2. HELPERS ---
-  const openWhatsApp = (phone: string, firstName?: string) => {
-    if (!phone) return;
-    const digits = phone.replace(/\D/g, '');
-    let formatted = digits;
-    if (formatted.startsWith('0')) {
-      formatted = '27' + formatted.substring(1);
+  const inviteByArtisan = useMemo(() => {
+    const map = new Map<number, ClaimInvite>();
+    for (const invite of claimInvites) {
+      if (!map.has(invite.artisan_id)) map.set(invite.artisan_id, invite);
     }
-    const message = firstName 
-        ? `Hi ${firstName}, contacting you regarding your Skills Connect application.`
-        : `Hi, thank you for your suggestion on Skills Connect.`;
-        
-    const url = `https://wa.me/${formatted}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-  };
+    return map;
+  }, [claimInvites]);
 
-  // ⚡ NEW: THE VIP LINK GENERATOR
-  const sendVipInvite = (phone: string, firstName: string, artisanId: number) => {
+  const openConsentWhatsApp = (provider: Provider, token: string) => {
+    const phone = whatsappNumber(provider.phone || '');
     if (!phone) {
-        alert("This artisan doesn't have a phone number on file!");
-        return;
+      alert('No usable phone number is available for this provider.');
+      return;
     }
-    
-    // Format the number for SA WhatsApp
-    const digits = phone.replace(/\D/g, '');
-    let formatted = digits;
-    if (formatted.startsWith('0')) formatted = '27' + formatted.substring(1);
+    const firstName = provider.first_name || providerName(provider);
+    const claimLink = `${window.location.origin}/?claim=${encodeURIComponent(token)}`;
+    const message = [
+      `Hi ${firstName}, SkillsConnect Pro has prepared a basic professional profile for your business.`,
+      '',
+      'SkillsConnect Pro helps local customers find trusted service providers in their area.',
+      '',
+      'Before we publish anything, please review the profile and confirm that you consent to your business/contact information being listed on SkillsConnect Pro. You can also add a profile photo or proof-of-work images.',
+      '',
+      `Review and confirm your profile here: ${claimLink}`,
+      '',
+      'Nothing will be published until you confirm and SkillsConnect Pro completes a final review.',
+      `Website: ${window.location.origin}`,
+    ].join('\n');
 
-    // Automatically grab your website's URL
-    const baseUrl = window.location.origin;
-    const claimLink = `${baseUrl}/?invite=${artisanId}`;
-
-    const message = `Hi ${firstName}! We've pre-built a VIP profile for your business on SkillsConnectPro to help you get more clients in the East Rand. Click here to claim your free profile and upload your photos: ${claimLink}`;
-        
-    const url = `https://wa.me/${formatted}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
-  // --- 3. APPLICATION LOGIC ---
-  const startEditing = (app: Application) => {
-    setEditingId(app.id);
-    setEditForm(app);
-  };
-
-  const cancelEditing = () => {
-    setEditingId(null);
-    setEditForm({});
-  };
-
-  const saveEdit = async () => {
-    if (!editingId || !editForm) return;
+  const sendApplicationConsent = async (app: Application) => {
+    setProcessing(`app-${app.id}`);
     try {
-      await dashboardAction('update_application', {
-        id: editingId,
-        changes: {
-          first_name: editForm.first_name,
-          last_name: editForm.last_name,
-          trade: editForm.trade,
-          location: editForm.location,
-          phone: editForm.phone,
-          bio: editForm.bio,
-          institution: editForm.institution,
-        },
-      });
-
-      setApplications(prev => prev.map(app =>
-        app.id === editingId ? { ...app, ...editForm } as Application : app
-      ));
-      setEditingId(null);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to save changes.');
-    }
-  };
-
-  const handleApproveApp = async (app: Application) => {
-    const fullName = `${app.first_name} ${app.last_name}`;
-    if (!confirm(`Approve ${fullName}? This will add them to the live site.`)) return;
-
-    setProcessingId(app.id);
-    try {
-      await dashboardAction('approve_application', { id: app.id });
+      const payload = await dashboardAction('prepare_application_claim', { id: app.id });
+      const provider: Provider = {
+        id: payload.artisanId,
+        first_name: app.first_name,
+        last_name: app.last_name,
+        category: app.trade,
+        phone: app.phone,
+        location: app.location,
+        is_claimed: false,
+        approval_status: 'awaiting_claim',
+        status: 'draft',
+        verified: false,
+        created_at: app.created_at,
+      };
+      openConsentWhatsApp(provider, payload.token);
       await fetchData();
-    } catch (err) {
-      console.error(err);
-      const message = err instanceof Error ? err.message : 'Approval failed.';
-      alert(message.includes('duplicate') ? 'Phone number already exists!' : message);
+    } catch (caught) {
+      alert(caught instanceof Error ? caught.message : 'Unable to create consent invitation.');
     } finally {
-      setProcessingId(null);
+      setProcessing(null);
     }
   };
 
-  const handleRejectApp = async (id: number) => {
+  const sendProviderConsent = async (provider: Provider) => {
+    setProcessing(`provider-${provider.id}`);
+    try {
+      const payload = await dashboardAction('create_claim_invite', { artisanId: provider.id });
+      openConsentWhatsApp(provider, payload.token);
+      await fetchData();
+    } catch (caught) {
+      alert(caught instanceof Error ? caught.message : 'Unable to create consent invitation.');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const finalApprove = async (provider: Provider) => {
+    if (!confirm(`Publish ${providerName(provider)} on the live SkillsConnect Pro directory?`)) return;
+    setProcessing(`approve-${provider.id}`);
+    try {
+      await dashboardAction('final_approve_claim', { artisanId: provider.id });
+      await fetchData();
+    } catch (caught) {
+      alert(caught instanceof Error ? caught.message : 'Unable to approve provider.');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const rejectClaim = async (provider: Provider) => {
+    if (!confirm(`Reject ${providerName(provider)} at final review?`)) return;
+    setProcessing(`reject-${provider.id}`);
+    try {
+      await dashboardAction('reject_claim', { artisanId: provider.id });
+      await fetchData();
+    } catch (caught) {
+      alert(caught instanceof Error ? caught.message : 'Unable to reject provider.');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const rejectApplication = async (id: number) => {
     if (!confirm('Reject this application?')) return;
-    setProcessingId(id);
     try {
       await dashboardAction('reject_application', { id });
-      setApplications(prev => prev.filter(item => item.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert(err instanceof Error ? err.message : 'Unable to reject application.');
-    } finally {
-      setProcessingId(null);
+      await fetchData();
+    } catch (caught) {
+      alert(caught instanceof Error ? caught.message : 'Unable to reject application.');
     }
   };
 
-  // --- 4. REVIEW LOGIC ---
+  const filteredProviders = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return [];
+    return providerDirectory.filter(provider => {
+      const haystack = [
+        providerName(provider),
+        provider.category,
+        provider.phone,
+        provider.location,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(query);
+    }).slice(0, 20);
+  }, [providerDirectory, search]);
+
+  const legacyUnclaimedCount = useMemo(
+    () => providerDirectory.filter(provider =>
+      !provider.is_claimed
+      && provider.approval_status !== 'awaiting_claim'
+      && provider.approval_status !== 'claimed_pending_approval'
+    ).length,
+    [providerDirectory],
+  );
+
   const approveReview = async (id: number) => {
-    try {
-      await dashboardAction('approve_review', { id });
-      setReviews(prev => prev.filter(r => r.id !== id));
-    } catch (err) {
-      console.error('Error approving review:', err);
-      alert(err instanceof Error ? err.message : 'Unable to approve review.');
-    }
+    await dashboardAction('approve_review', { id });
+    await fetchData();
   };
 
   const deleteReview = async (id: number) => {
-    if(!confirm('Delete this review permanently?')) return;
-    try {
-      await dashboardAction('delete_review', { id });
-      setReviews(prev => prev.filter(r => r.id !== id));
-    } catch (err) {
-      console.error('Error deleting review:', err);
-      alert(err instanceof Error ? err.message : 'Unable to delete review.');
-    }
+    if (!confirm('Delete this review permanently?')) return;
+    await dashboardAction('delete_review', { id });
+    await fetchData();
   };
 
-  // --- 5. SUGGESTION LOGIC ---
   const deleteSuggestion = async (id: number) => {
-    if(!confirm('Delete this message?')) return;
-    try {
-      await dashboardAction('delete_suggestion', { id });
-      setSuggestions(prev => prev.filter(s => s.id !== id));
-    } catch (err) {
-      console.error('Error deleting suggestion:', err);
-      alert(err instanceof Error ? err.message : 'Unable to delete suggestion.');
-    }
+    if (!confirm('Delete this message?')) return;
+    await dashboardAction('delete_suggestion', { id });
+    await fetchData();
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-12 animate-fade-in">
-      {/* HEADER */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
-        <div>
-          <button onClick={onBack} className="text-gray-400 hover:text-brand-yellow text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2 transition-colors">← Back to Home</button>
-          <h1 className="text-4xl font-black tracking-tight text-white">Admin <span className="text-brand-yellow">Dashboard</span></h1>
-          <p className="text-gray-400 mt-2">Overview of network activity and pending items.</p>
-        </div>
-        <button onClick={fetchData} className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Refresh Data</button>
-      </div>
+    <div className="min-h-screen bg-zinc-950 p-6 text-white md:p-12">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <button onClick={onBack} className="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-amber-300">← Back to Home</button>
+            <h1 className="text-4xl font-black">Admin <span className="text-amber-300">Dashboard</span></h1>
+            <p className="mt-2 text-zinc-400">Provider consent, final approvals and network moderation.</p>
+          </div>
+          <button onClick={() => void fetchData()} className="rounded-xl bg-zinc-800 px-6 py-3 text-xs font-black uppercase tracking-wider hover:bg-zinc-700">Refresh data</button>
+        </header>
 
-      <div className="max-w-7xl mx-auto space-y-16">
-        
-        {/* --- SECTION 1: PENDING APPLICATIONS --- */}
-        <section>
-            <div className="flex items-center gap-4 mb-8">
-                <h2 className="text-2xl font-bold text-white">Pending Applications</h2>
-                <span className="bg-brand-yellow text-black text-xs font-black px-2 py-1 rounded-full">{applications.length}</span>
-            </div>
+        {error ? <div className="mb-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">{error}</div> : null}
 
-            {loading ? <div className="text-center py-20 text-gray-500 animate-pulse">Loading Gateway...</div> : 
-             applications.length === 0 ? (
-                <div className="text-center py-12 bg-zinc-900/50 rounded-3xl border border-white/5 border-dashed">
-                    <p className="text-gray-500 text-sm">No pending applications to review.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 gap-6">
-                    {applications.map((app) => (
-                        <div key={app.id} className={`bg-zinc-900 border ${editingId === app.id ? 'border-brand-yellow' : 'border-white/10'} rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start transition-all shadow-xl`}>
-                            <div className="flex-1 space-y-4 w-full">
-                                {editingId === app.id ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                                        <div>
-                                            <label className="text-[10px] uppercase text-gray-500 font-bold">First Name</label>
-                                            <input value={editForm.first_name || ''} onChange={e => setEditForm({...editForm, first_name: e.target.value})} className="w-full bg-black border border-white/20 p-3 rounded-lg text-white font-bold focus:border-brand-yellow outline-none" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase text-gray-500 font-bold">Last Name</label>
-                                            <input value={editForm.last_name || ''} onChange={e => setEditForm({...editForm, last_name: e.target.value})} className="w-full bg-black border border-white/20 p-3 rounded-lg text-white font-bold focus:border-brand-yellow outline-none" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase text-gray-500 font-bold">Trade</label>
-                                            <input value={editForm.trade || ''} onChange={e => setEditForm({...editForm, trade: e.target.value})} className="w-full bg-black border border-white/20 p-3 rounded-lg text-white outline-none" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase text-gray-500 font-bold">Location</label>
-                                            <input value={editForm.location || ''} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full bg-black border border-white/20 p-3 rounded-lg text-white outline-none" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase text-gray-500 font-bold">Phone</label>
-                                            <input value={editForm.phone || ''} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-black border border-white/20 p-3 rounded-lg text-white outline-none" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase text-gray-500 font-bold">Institution (Optional)</label>
-                                            <input value={editForm.institution || ''} onChange={e => setEditForm({...editForm, institution: e.target.value})} className="w-full bg-black border border-white/20 p-3 rounded-lg text-white outline-none" />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="text-[10px] uppercase text-gray-500 font-bold">Bio</label>
-                                            <textarea value={editForm.bio || ''} onChange={e => setEditForm({...editForm, bio: e.target.value})} className="w-full bg-black border border-white/20 p-3 rounded-lg text-white outline-none h-24" />
-                                        </div>
-                                        <div className="md:col-span-2 flex gap-3 mt-2">
-                                            <button onClick={saveEdit} className="bg-brand-yellow text-black px-6 py-2 rounded-lg font-bold text-sm hover:bg-white transition-colors">Save Changes</button>
-                                            <button onClick={cancelEditing} className="text-gray-400 px-6 py-2 rounded-lg font-bold text-sm hover:text-white transition-colors">Cancel</button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="flex flex-wrap items-center gap-3">
-                                            <span className="bg-brand-yellow text-black text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest">{app.trade}</span>
-                                            <span className="text-gray-500 text-xs font-mono uppercase">{new Date(app.created_at).toLocaleDateString()}</span>
-                                            
-                                            {app.institution && (
-                                              <span className="bg-zinc-800 text-gray-300 text-[10px] font-bold px-2 py-1 rounded border border-white/10">{app.institution}</span>
-                                            )}
-
-                                            {/* ⚡ NEW: Visual Auto-Scanned Badge */}
-                                            {app.bio?.includes('Auto-extracted') && (
-                                                <span className="flex items-center gap-1.5 text-zinc-400 bg-zinc-800/80 px-2 py-1 rounded border border-zinc-700 text-[10px] font-bold uppercase tracking-widest">
-                                                    <UserX size={12} strokeWidth={2.5} className="text-zinc-500" />
-                                                    Auto-Scanned
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold text-white">{app.first_name} {app.last_name}</h3>
-                                            <div className="flex items-center gap-4 text-gray-400 text-sm mt-1">
-                                                <span className="flex items-center gap-1">📍 {app.location}</span>
-                                                <span className="flex items-center gap-1">📞 {app.phone}</span>
-                                            </div>
-                                        </div>
-                                        <div className="bg-black/40 p-4 rounded-xl border border-white/5 relative group">
-                                            <p className="text-gray-300 text-sm leading-relaxed italic">"{app.bio}"</p>
-                                        </div>
-                                        <button onClick={() => startEditing(app)} className="text-brand-yellow text-xs font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1">Edit Application</button>
-                                    </>
-                                )}
-                            </div>
-                            {editingId !== app.id && (
-                                <div className="flex flex-col gap-3 w-full md:w-auto shrink-0 min-w-[160px]">
-                                    <button onClick={() => openWhatsApp(app.phone, app.first_name)} className="w-full px-6 py-3 bg-[#128C7E] hover:bg-[#075E54] text-white font-bold rounded-xl uppercase tracking-wider text-[10px] flex items-center justify-center gap-2 transition-all">Message</button>
-                                    <button onClick={() => handleApproveApp(app)} disabled={processingId === app.id} className="w-full px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl uppercase tracking-wider text-[10px] shadow-lg shadow-green-900/20 transition-all disabled:opacity-50">{processingId === app.id ? 'Processing...' : 'Approve'}</button>
-                                    <button onClick={() => handleRejectApp(app.id)} disabled={processingId === app.id} className="w-full px-6 py-3 bg-zinc-800 hover:bg-red-900/50 hover:text-red-200 text-gray-400 font-bold rounded-xl uppercase tracking-wider text-[10px] border border-white/5 transition-all disabled:opacity-50">Reject</button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+        <section className="mb-10 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-zinc-900 p-5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">New applications</div>
+            <div className="mt-2 text-3xl font-black">{applications.length}</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-zinc-900 p-5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Awaiting provider consent</div>
+            <div className="mt-2 text-3xl font-black text-teal-300">{awaitingClaims.length}</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-zinc-900 p-5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Ready for final approval</div>
+            <div className="mt-2 text-3xl font-black text-amber-300">{finalApprovals.length}</div>
+          </div>
         </section>
 
-        {/* VIP CLAIM INVITES — collapsed by default so moderation stays easy to reach */}
-        <section className="pt-8 border-t border-white/10">
-            <button
-                type="button"
-                onClick={() => setVipClaimsOpen(open => !open)}
-                aria-expanded={vipClaimsOpen}
-                aria-controls="vip-claim-list"
-                className="group w-full rounded-2xl border border-white/10 bg-zinc-900/60 px-5 py-5 text-left transition hover:border-[#128C7E]/40 hover:bg-zinc-900 md:px-6"
-            >
-                <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-3">
-                            <h2 className="text-2xl font-bold text-white">Awaiting VIP Claim</h2>
-                            <span className="bg-[#128C7E] text-white text-xs font-black px-2.5 py-1 rounded-full">{unclaimedArtisans.length}</span>
-                        </div>
-                        <p className="mt-2 text-sm leading-6 text-zinc-500">
-                            {unclaimedArtisans.length === 0
-                              ? 'No provider profiles are waiting for a claim invite.'
-                              : 'Provider profiles waiting for a VIP claim invite. Expand only when you need to work this queue.'}
-                        </p>
+        <section className="mb-14">
+          <div className="mb-5">
+            <h2 className="text-2xl font-black">1. New Applications</h2>
+            <p className="mt-1 text-sm text-zinc-500">Send consent first. These profiles are not live yet.</p>
+          </div>
+          {loading ? <div className="rounded-2xl bg-zinc-900 p-8 text-zinc-500">Loading…</div> : applications.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-900/40 p-8 text-sm text-zinc-500">No new applications waiting.</div>
+          ) : (
+            <div className="space-y-4">
+              {applications.map(app => (
+                <div key={app.id} className="rounded-2xl border border-white/10 bg-zinc-900 p-6">
+                  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="text-[10px] font-black uppercase tracking-wider text-amber-300">{app.trade}</div>
+                      <h3 className="mt-2 text-2xl font-black">{app.first_name} {app.last_name}</h3>
+                      <p className="mt-2 text-sm text-zinc-400">📍 {app.location || 'Location not supplied'} &nbsp; 📞 {app.phone}</p>
+                      {app.bio ? <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-500">{app.bio}</p> : null}
                     </div>
-                    <span className="flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-white">
-                        {vipClaimsOpen ? 'Hide profiles' : 'Show profiles'}
-                        <ChevronDown size={16} className={`transition-transform duration-200 ${vipClaimsOpen ? 'rotate-180' : ''}`} />
-                    </span>
+                    <div className="flex min-w-48 flex-col gap-2">
+                      <button
+                        onClick={() => void sendApplicationConsent(app)}
+                        disabled={processing !== null}
+                        className="flex items-center justify-center gap-2 rounded-xl bg-[#128C7E] px-5 py-3 text-xs font-black uppercase tracking-wider disabled:opacity-50"
+                      >
+                        <Send className="h-4 w-4" /> {processing === `app-${app.id}` ? 'Preparing…' : 'Send consent invite'}
+                      </button>
+                      <button onClick={() => void rejectApplication(app.id)} className="rounded-xl border border-white/10 px-5 py-3 text-xs font-black uppercase tracking-wider text-zinc-500 hover:text-red-300">Reject</button>
+                    </div>
+                  </div>
                 </div>
-            </button>
-
-            {vipClaimsOpen && (
-                <div id="vip-claim-list" className="mt-5 animate-fade-in">
-                    {unclaimedArtisans.length === 0 ? (
-                        <div className="text-center py-10 bg-zinc-900/50 rounded-3xl border border-white/5 border-dashed">
-                            <p className="text-gray-500 text-sm">No profiles are currently awaiting a VIP claim.</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {unclaimedArtisans.map((artisan) => (
-                                <div key={artisan.id} className="bg-zinc-900 border border-white/5 rounded-2xl p-5 hover:border-[#128C7E]/50 transition-all flex flex-col justify-between group">
-                                    <div className="mb-6">
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <UserX size={14} className="text-zinc-500" />
-                                          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Auto-Scanned Profile</span>
-                                        </div>
-                                        <h3 className="text-lg font-bold text-white leading-tight">{artisan.first_name} {artisan.last_name}</h3>
-                                        <p className="text-brand-yellow text-xs font-bold uppercase tracking-widest mt-1">{artisan.category}</p>
-                                        <p className="text-gray-400 text-sm mt-3 flex items-center gap-2">📞 {artisan.phone}</p>
-                                    </div>
-
-                                    <button
-                                        onClick={() => sendVipInvite(artisan.phone, artisan.first_name, artisan.id)}
-                                        className="w-full py-3 bg-[#128C7E]/10 hover:bg-[#128C7E] text-[#128C7E] hover:text-white border border-[#128C7E]/30 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-                                    >
-                                        <Send size={16} /> Send VIP Invite
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-        </section>
-
-        {/* --- SECTION 2: PENDING REVIEWS --- */}
-        <section className="pt-8 border-t border-white/10">
-            <div className="flex items-center gap-4 mb-8">
-                <h2 className="text-2xl font-bold text-white">Pending Reviews</h2>
-                <span className="bg-orange-500 text-black text-xs font-black px-2 py-1 rounded-full">{reviews.length}</span>
+              ))}
             </div>
-            {reviews.length === 0 ? (
-                <div className="text-center py-12 bg-zinc-900/50 rounded-3xl border border-white/5 border-dashed">
-                    <p className="text-gray-500 text-sm">No new reviews to moderate.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {reviews.map(r => (
-                        <div key={r.id} className="bg-zinc-900 border border-white/5 p-6 rounded-2xl">
-                            <div className="flex justify-between mb-2">
-                                <span className="font-bold text-white">{r.reviewer_name}</span>
-                                <span className="text-brand-yellow">{'★'.repeat(r.rating)}</span>
-                            </div>
-                            <p className="text-gray-400 text-sm mb-4 italic">"{r.comment}"</p>
-                            <div className="flex gap-2">
-                                <button onClick={() => approveReview(r.id)} className="flex-1 py-2 bg-green-600 rounded-lg font-bold text-xs uppercase tracking-wider text-white hover:bg-green-500">Approve</button>
-                                <button onClick={() => deleteReview(r.id)} className="flex-1 py-2 bg-red-900/50 text-red-200 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-red-900">Delete</button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+          )}
         </section>
 
-        {/* --- SECTION 3: SERVICE SUGGESTIONS INBOX --- */}
-        <section className="pt-8 border-t border-white/10">
-            <div className="flex items-center gap-4 mb-8">
-                <h2 className="text-2xl font-bold text-white">Service Suggestions Inbox</h2>
-                <span className="bg-zinc-800 text-white text-xs font-black px-2 py-1 rounded-full">{suggestions.length}</span>
+        <section className="mb-14">
+          <div className="mb-5">
+            <h2 className="text-2xl font-black">2. Awaiting Provider Consent</h2>
+            <p className="mt-1 text-sm text-zinc-500">Only providers actively placed into the consent workflow appear here.</p>
+          </div>
+          {awaitingClaims.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-900/40 p-8 text-sm text-zinc-500">No active consent invitations.</div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {awaitingClaims.map(provider => {
+                const invite = inviteByArtisan.get(provider.id);
+                return (
+                  <div key={provider.id} className="rounded-2xl border border-teal-400/15 bg-zinc-900 p-5">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-300"><UserX className="h-4 w-4" /> Awaiting consent</div>
+                    <h3 className="mt-3 text-xl font-black">{providerName(provider)}</h3>
+                    <p className="mt-1 text-xs text-amber-300">{provider.category || 'Local professional'}</p>
+                    <p className="mt-3 text-sm text-zinc-500">📞 {provider.phone || 'No phone'} · 📍 {provider.location || 'No location'}</p>
+                    <p className="mt-3 text-[11px] text-zinc-600">
+                      {invite?.sent_at ? `Invite last sent ${new Date(invite.sent_at).toLocaleString()}` : 'Invite has not been sent yet.'}
+                    </p>
+                    <button
+                      onClick={() => void sendProviderConsent(provider)}
+                      disabled={processing !== null}
+                      className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-teal-400/30 bg-teal-500/10 px-4 py-3 text-xs font-black uppercase tracking-wider text-teal-300 hover:bg-teal-500/20 disabled:opacity-50"
+                    >
+                      <Send className="h-4 w-4" /> {processing === `provider-${provider.id}` ? 'Preparing…' : invite ? 'Resend / refresh consent link' : 'Send consent link'}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-
-            {suggestions.length === 0 ? (
-                <div className="text-center py-12 bg-zinc-900/50 rounded-3xl border border-white/5 border-dashed">
-                    <p className="text-gray-500 text-sm">No messages in inbox.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {suggestions.map((msg) => (
-                        <div key={msg.id} className="bg-zinc-900 border border-white/5 rounded-2xl p-6 hover:border-brand-yellow/30 transition-all">
-                            <div className="flex justify-between items-start mb-4">
-                                <span className="text-brand-yellow text-[10px] font-black uppercase tracking-widest">{new Date(msg.created_at).toLocaleDateString()}</span>
-                                <button onClick={() => deleteSuggestion(msg.id)} className="text-gray-600 hover:text-red-500 transition-colors font-bold" title="Delete Message">✕</button>
-                            </div>
-                            <p className="text-white font-medium mb-6 leading-relaxed">"{msg.suggestion_text}"</p>
-                            {msg.contact_number ? (
-                                <button onClick={() => openWhatsApp(msg.contact_number!)} className="w-full py-3 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:border-brand-yellow text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
-                                    <span>📞 {msg.contact_number}</span>
-                                </button>
-                            ) : (
-                                <div className="w-full py-3 border border-white/5 rounded-xl text-gray-600 text-xs font-bold uppercase tracking-widest text-center cursor-not-allowed">
-                                    No Contact Info
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+          )}
         </section>
 
+        <section className="mb-14">
+          <div className="mb-5">
+            <h2 className="text-2xl font-black">3. Final Admin Approval</h2>
+            <p className="mt-1 text-sm text-zinc-500">These providers have confirmed ownership/consent. Your approval is what makes them live and verified.</p>
+          </div>
+          {finalApprovals.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-900/40 p-8 text-sm text-zinc-500">No confirmed profiles are waiting for final approval.</div>
+          ) : (
+            <div className="space-y-4">
+              {finalApprovals.map(provider => (
+                <div key={provider.id} className="rounded-2xl border border-amber-300/20 bg-zinc-900 p-6">
+                  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-emerald-300"><CheckCircle2 className="h-4 w-4" /> Provider consent received</div>
+                      <h3 className="mt-3 text-2xl font-black">{providerName(provider)}</h3>
+                      <p className="mt-2 text-sm text-zinc-400">{provider.category || 'Local professional'} · {provider.location || 'Local area'} · {provider.phone || 'No phone'}</p>
+                    </div>
+                    <div className="flex min-w-48 flex-col gap-2">
+                      <button onClick={() => void finalApprove(provider)} disabled={processing !== null} className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-xs font-black uppercase tracking-wider disabled:opacity-50">
+                        <UserCheck className="h-4 w-4" /> Approve & publish
+                      </button>
+                      <button onClick={() => void rejectClaim(provider)} disabled={processing !== null} className="rounded-xl border border-white/10 px-5 py-3 text-xs font-black uppercase tracking-wider text-zinc-500 hover:text-red-300">Reject</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mb-14 rounded-3xl border border-white/10 bg-zinc-900/60 p-6">
+          <div className="flex items-start gap-3">
+            <Search className="mt-1 h-5 w-5 text-amber-300" />
+            <div className="flex-1">
+              <h2 className="text-2xl font-black">Find a Specific Provider</h2>
+              <p className="mt-1 text-sm text-zinc-500">Search by provider/business name, trade, phone number or location, then send that person a consent/claim invitation.</p>
+              <input
+                value={search}
+                onChange={event => setSearch(event.target.value)}
+                placeholder="Search provider, trade, phone or area…"
+                className="mt-5 min-h-12 w-full rounded-xl border border-white/10 bg-black/60 px-4 text-sm outline-none focus:border-amber-300/50"
+              />
+            </div>
+          </div>
+
+          {search.trim() ? (
+            <div className="mt-5 space-y-2">
+              {filteredProviders.length === 0 ? <p className="py-4 text-sm text-zinc-600">No matching providers found.</p> : filteredProviders.map(provider => {
+                const fullyApproved = provider.is_claimed && provider.approval_status === 'approved';
+                return (
+                  <div key={provider.id} className="flex flex-col gap-3 rounded-xl border border-white/5 bg-black/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="font-bold">{providerName(provider)}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{provider.category || 'Local professional'} · {provider.phone || 'No phone'} · {provider.location || 'No location'}</div>
+                      <div className="mt-2 text-[9px] font-black uppercase tracking-wider text-zinc-600">{provider.approval_status || 'No approval status'} · {provider.is_claimed ? 'Claimed' : 'Unclaimed'}</div>
+                    </div>
+                    <button
+                      onClick={() => void sendProviderConsent(provider)}
+                      disabled={fullyApproved || processing !== null || !provider.phone}
+                      className="rounded-lg border border-teal-400/25 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-teal-300 disabled:cursor-not-allowed disabled:opacity-35"
+                    >
+                      {fullyApproved ? 'Already approved' : 'Send claim invite'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <button type="button" onClick={() => setLegacyOpen(open => !open)} className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-zinc-600 hover:text-zinc-400">
+            Legacy unclaimed pool: {legacyUnclaimedCount} profiles <ChevronDown className={`h-4 w-4 transition ${legacyOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {legacyOpen ? (
+            <p className="mt-3 text-xs leading-6 text-zinc-600">
+              These older records are preserved for lookup but are no longer dumped into the working consent queue. Search above whenever you want to contact a specific one.
+            </p>
+          ) : null}
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-3xl border border-white/10 bg-zinc-900/50 p-6">
+            <h2 className="text-xl font-black">Pending Reviews <span className="ml-2 text-sm text-amber-300">{reviews.length}</span></h2>
+            <div className="mt-5 space-y-3">
+              {reviews.length === 0 ? <p className="text-sm text-zinc-600">No reviews awaiting moderation.</p> : reviews.map(review => (
+                <div key={review.id} className="rounded-xl bg-black/30 p-4">
+                  <div className="font-bold">{review.reviewer_name} <span className="text-amber-300">{'★'.repeat(review.rating)}</span></div>
+                  <p className="mt-2 text-sm text-zinc-400">{review.comment}</p>
+                  <div className="mt-3 flex gap-2">
+                    <button onClick={() => void approveReview(review.id)} className="rounded-lg bg-green-600 px-3 py-2 text-[10px] font-black uppercase">Approve</button>
+                    <button onClick={() => void deleteReview(review.id)} className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase text-zinc-500">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-zinc-900/50 p-6">
+            <h2 className="text-xl font-black">Service Suggestions <span className="ml-2 text-sm text-amber-300">{suggestions.length}</span></h2>
+            <div className="mt-5 space-y-3">
+              {suggestions.length === 0 ? <p className="text-sm text-zinc-600">No suggestions in the inbox.</p> : suggestions.map(item => (
+                <div key={item.id} className="rounded-xl bg-black/30 p-4">
+                  <p className="text-sm text-zinc-300">{item.suggestion_text}</p>
+                  <div className="mt-3 flex items-center justify-between text-xs text-zinc-600">
+                    <span>{item.contact_number || 'No contact number'}</span>
+                    <button onClick={() => void deleteSuggestion(item.id)} className="font-black uppercase hover:text-red-300">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
