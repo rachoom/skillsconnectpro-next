@@ -19,7 +19,6 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
-import { rememberCustomerProject } from '@/services/customerProjectStore';
 import styles from './project-overview.module.css';
 
 type ProviderResponse = {
@@ -198,17 +197,6 @@ export default function CustomerProjectPage() {
         }),
       );
       setFeed(payload);
-      if (!quiet && payload.project) {
-        rememberCustomerProject({
-          id: projectId,
-          token: accessToken,
-          title: payload.project.title,
-          category: payload.project.category,
-          status: payload.project.status,
-          locationText: payload.project.suburb || payload.project.city || payload.project.locationText,
-          createdAt: payload.project.createdAt,
-        });
-      }
       setLastUpdated(new Date());
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to load project responses.');

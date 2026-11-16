@@ -1,220 +1,165 @@
-'use client';
-
+import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  BriefcaseBusiness,
-  CheckCircle2,
-  Clock3,
-  FolderOpen,
-  Loader2,
-  MapPin,
-  RefreshCw,
-  Trash2,
-  Users,
-} from 'lucide-react';
-import {
-  customerProjectHref,
-  listCustomerProjects,
-  removeCustomerProject,
-  type StoredCustomerProject,
-} from '@/services/customerProjectStore';
+import { redirect } from 'next/navigation';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, MapPin, PackageOpen, PackageSearch, Plus, Sparkles } from 'lucide-react';
+import { getAuthenticatedAccount } from '@/services/supabase/server';
+import styles from './workspace.module.css';
+import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
+import { WorkspaceThemeToggle } from './workspace-theme-toggle';
 
-type LiveProject = StoredCustomerProject & {
-  responseCount: number | null;
-  providersReviewing: number | null;
-  loadState: 'idle' | 'loading' | 'ready' | 'unavailable';
+export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'My Projects | Skills Connect Pro',
+  description: 'Reopen and manage your Skills Connect Pro project briefs, materials, estimates and documents.',
 };
 
-function statusLabel(value: string | null): string {
-  if (!value) return 'Project saved';
-  const labels: Record<string, string> = {
-    assessment_complete: 'Ready for matching',
-    matching: 'Finding providers',
-    responses_received: 'Responses received',
-    provider_selected: 'Provider selected',
-    contact_released: 'Connected',
-    in_progress: 'Work in progress',
-    completed: 'Completed',
-    cancelled: 'Cancelled',
-    unfulfilled: 'Closed',
-  };
-  return labels[value] || value.replaceAll('_', ' ');
+type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+function money(min: number | null, max: number | null) {
+  if (min === null && max === null) return 'Estimate pending';
+  const format = (value: number) => new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(value);
+  if (min !== null && max !== null) return `${format(min)} – ${format(max)}`;
+  return format((min ?? max) as number);
 }
 
-function formatDate(value: string | null): string {
-  if (!value) return 'Recently saved';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return 'Recently saved';
-  return parsed.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
-}
+export default async function MyProjectsPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const showHardwareQuotes = hardwareQuotesEnabled();
+  const { supabase, user } = await getAuthenticatedAccount();
+  if (!user) redirect('/sign-in?next=/my-projects');
 
-export default function MyProjectsPage() {
-  const [projects, setProjects] = useState<LiveProject[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const [{ data: projects, error }, { data: roles }, { data: subscriptions }] = await Promise.all([
+    supabase.from('projects').select('id,title,customer_description,category,status,location_text,estimated_min,estimated_max,estimate_currency,created_at,updated_at').order('updated_at', { ascending: false }),
+    supabase.from('account_roles').select('role,status,is_primary,linked_artisan_id').eq('user_id', user.id),
+    supabase.from('account_subscriptions').select('plan_code,ends_at,starts_at').eq('user_id', user.id).eq('status', 'active').order('starts_at', { ascending: false }).limit(1),
+  ]);
 
-  const loadProjects = async () => {
-    const stored = listCustomerProjects();
-    setProjects(stored.map((project) => ({ ...project, responseCount: null, providersReviewing: null, loadState: 'loading' })));
-    if (stored.length === 0) return;
-
-    setRefreshing(true);
-    const refreshed = await Promise.all(stored.map(async (project): Promise<LiveProject> => {
-      try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(project.id)}/responses`, {
-          headers: { 'x-project-access-token': project.token },
-          cache: 'no-store',
-        });
-        if (!response.ok) throw new Error('unavailable');
-        const feed = await response.json();
-        return {
-          ...project,
-          title: feed.project?.title || project.title,
-          category: feed.project?.category || project.category,
-          status: feed.project?.status || project.status,
-          locationText: feed.project?.suburb || feed.project?.city || feed.project?.locationText || project.locationText,
-          createdAt: feed.project?.createdAt || project.createdAt,
-          responseCount: Number(feed.matching?.validResponsesReceived ?? 0),
-          providersReviewing: Number(feed.matching?.providersReviewing ?? 0),
-          loadState: 'ready',
-        };
-      } catch {
-        return { ...project, responseCount: null, providersReviewing: null, loadState: 'unavailable' };
-      }
-    }));
-    setProjects(refreshed);
-    setRefreshing(false);
-  };
-
-  useEffect(() => {
-    void loadProjects();
-  }, []);
-
-  const activeCount = useMemo(
-    () => projects.filter((project) => !['completed', 'cancelled', 'unfulfilled'].includes(project.status || '')).length,
-    [projects],
+  const activeProjects = (projects ?? []).filter((project) => !['completed', 'cancelled'].includes(project.status)).length;
+  const linkedArtisanRole = (roles ?? []).find(
+    (role) => role.role === 'artisan' && role.status === 'active' && role.linked_artisan_id,
   );
-
-  const removeProject = (id: string) => {
-    removeCustomerProject(id);
-    setProjects((current) => current.filter((project) => project.id !== id));
-  };
+  const roleLabels = (roles ?? [])
+    .filter((role) => role.status === 'active' && (role.role !== 'artisan' || role.linked_artisan_id))
+    .map((role) => role.role.replaceAll('_', ' '));
+  const activePlan = (subscriptions ?? []).find((subscription) => !subscription.ends_at || new Date(subscription.ends_at).getTime() > Date.now()) ?? null;
+  const activePlanLabel = activePlan?.plan_code === 'project_pass_90' ? 'Home Project Pass' : activePlan?.plan_code === 'basic_30' ? 'Basic' : 'Free';
+  const claimState = Array.isArray(params.claim) ? params.claim[0] : params.claim;
 
   return (
-    <main className="min-h-screen bg-[#080807] px-4 py-5 text-white sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-5xl">
-        <header className="rounded-[1.6rem] border border-[#f5c518]/25 bg-[radial-gradient(circle_at_90%_0%,rgba(245,197,24,.12),transparent_20rem),linear-gradient(145deg,#171713,#0b0b09)] p-5 shadow-2xl sm:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-black text-[#f5c518]">
-              <ArrowLeft size={17} /> Skills Connect Pro
+    <main className={styles.page} data-workspace-shell>
+      <AccountNav hasArtisanAccess={Boolean(linkedArtisanRole)} />
+      <div className={styles.shell}>
+        {claimState === 'saved' && <div className={styles.notice}>Project saved. You can now reopen it from any device.</div>}
+        {claimState === 'failed' && <div className={styles.error}>We could not attach that guest project. Its original secure project link still works.</div>}
+        {error && <div className={styles.error}>Your workspace could not be loaded: {error.message}</div>}
+
+        <section className={styles.hero}>
+          <div>
+            <span className={styles.eyebrow}>Private project workspace</span>
+            <h1>My Projects</h1>
+            <p>Keep project briefs, preliminary estimates, materials, milestones and documents together—separate from any public service-provider profile.</p>
+          </div>
+          <Link href="/assistant" className={styles.primaryLink}><Sparkles size={17} /> Start with the AI Assistant</Link>
+        </section>
+
+        <section className={styles.stats} aria-label="Account summary">
+          <div className={styles.stat}><span>Total projects</span><strong>{projects?.length ?? 0}</strong></div>
+          <div className={styles.stat}><span>Active projects</span><strong>{activeProjects}</strong></div>
+          <div className={styles.stat}><span>Current plan</span><strong style={{ fontSize: '1.05rem' }}>{activePlanLabel}</strong>{activePlan?.ends_at && <small style={{ display: 'block', marginTop: 7, color: '#aaa' }}>Until {new Date(activePlan.ends_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</small>}</div>
+          <div className={styles.stat}><span>Account access</span><strong style={{ fontSize: '1.05rem', textTransform: 'capitalize' }}>{roleLabels.join(' · ') || 'Customer'}</strong></div>
+        </section>
+
+        <section className={styles.grid} aria-label="Workspace shortcuts" style={{ marginBottom: 28 }}>
+          {linkedArtisanRole ? (
+            <Link href="/artisan-business" className={styles.projectCard}>
+              <div className={styles.cardTop}>
+                <span className={styles.category}>Provider business</span>
+              </div>
+              <BriefcaseBusiness size={28} />
+              <h2>Artisan Business Workspace</h2>
+              <p className={styles.description}>Track Skills Connect Pro opportunities, responses, selected jobs and provider-plan access from your business dashboard.</p>
+              <div className={styles.open}><span>Open artisan workspace</span><ArrowRight size={19} /></div>
             </Link>
-            <button
-              type="button"
-              onClick={() => void loadProjects()}
-              disabled={refreshing}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[.04] px-4 text-xs font-black text-white disabled:opacity-50"
-            >
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh
-            </button>
-          </div>
-          <div className="mt-8 flex items-start gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-[#f5c518]/30 bg-[#f5c518]/10 text-[#f5c518]">
-              <FolderOpen size={24} />
-            </span>
-            <div>
-              <span className="text-[11px] font-black uppercase tracking-[.18em] text-[#f5c518]">Customer workspace</span>
-              <h1 className="mt-2 text-3xl font-black tracking-[-.04em] sm:text-4xl">My Projects</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-                Return to projects you created or opened on this device. Secure project access stays on this device and contact details remain protected until you choose a provider.
-              </p>
+          ) : (
+            <Link href="/join" className={styles.projectCard}>
+              <div className={styles.cardTop}>
+                <span className={styles.category}>Provider network</span>
+              </div>
+              <BriefcaseBusiness size={28} />
+              <h2>Join as a provider</h2>
+              <p className={styles.description}>Customer and provider access can share one login, but provider tools are activated only after your service-provider application is reviewed and linked.</p>
+              <div className={styles.open}><span>Apply to join</span><ArrowRight size={19} /></div>
+            </Link>
+          )}
+
+          <Link href="/materials" className={styles.projectCard}>
+            <div className={styles.cardTop}>
+              <span className={styles.category}>Project materials</span>
             </div>
-          </div>
-          {projects.length > 0 && (
-            <div className="mt-6 flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-wider">
-              <span className="rounded-full border border-white/10 bg-white/[.04] px-3 py-2">{projects.length} saved</span>
-              <span className="rounded-full border border-[#55d38b]/20 bg-[#55d38b]/[.06] px-3 py-2 text-[#7be2a8]">{activeCount} active</span>
+            <PackageOpen size={28} />
+            <h2>Materials & Procurement</h2>
+            <p className={styles.description}>See material lists across your projects. Materials are created and edited inside each project, then collected here for quick access.</p>
+            <div className={styles.open}><span>Open materials workspace</span><ArrowRight size={19} /></div>
+          </Link>
+
+          {showHardwareQuotes && (          <Link href="/hardware-quotations" className={styles.projectCard}>
+            <div className={styles.cardTop}>
+              <span className={styles.category}>Procurement</span>
+            </div>
+            <PackageSearch size={28} />
+            <h2>Hardware Quotations</h2>
+            <p className={styles.description}>See material-price requests and compare quotations sent back by participating hardware suppliers.</p>
+            <div className={styles.open}><span>Open hardware quotations</span><ArrowRight size={19} /></div>
+          </Link>)}
+        </section>
+
+        <section className={styles.grid} aria-label="Saved projects">
+          {(projects ?? []).map((project) => (
+            <Link href={`/my-projects/${project.id}`} className={styles.projectCard} key={project.id}>
+              <div className={styles.cardTop}>
+                <span className={styles.category}>{project.category}</span>
+                <span className={styles.status}>{project.status.replaceAll('_', ' ')}</span>
+              </div>
+              <h2>{project.title}</h2>
+              <p className={styles.description}>{project.customer_description}</p>
+              <div className={styles.meta}>
+                <span><MapPin size={15} /> {project.location_text}</span>
+                <span><CalendarDays size={15} /> {new Date(project.updated_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</span>
+              </div>
+              <div className={styles.open}><span>{money(project.estimated_min, project.estimated_max)}</span><ArrowRight size={19} /></div>
+            </Link>
+          ))}
+          {!projects?.length && (
+            <div className={styles.empty}>
+              <div className={styles.emptyIcon}><FolderKanban size={30} /></div>
+              <h2>Your first workspace is ready when you are.</h2>
+              <p>Use the AI Project Assistant to clarify a job, build a preliminary estimate and save it as a project.</p>
+              <Link href="/assistant" className={styles.primaryLink} style={{ display: 'inline-flex' }}><Plus size={17} /> Plan a project</Link>
             </div>
           )}
-        </header>
-
-        {projects.length === 0 ? (
-          <section className="mt-5 rounded-[1.5rem] border border-white/10 bg-[#11110f] p-8 text-center sm:p-12">
-            <span className="mx-auto grid size-16 place-items-center rounded-full border border-[#f5c518]/25 bg-[#f5c518]/[.07] text-[#f5c518]">
-              <BriefcaseBusiness size={28} />
-            </span>
-            <h2 className="mt-5 text-2xl font-black">No projects saved on this device yet</h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/55">
-              New projects will appear here automatically. Existing projects will also be added the next time you open their secure dashboard link, including the link sent to you on WhatsApp.
-            </p>
-            <Link href="/get-help" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#f5c518] px-5 text-sm font-black text-black">
-              Start a new request <ArrowRight size={17} />
-            </Link>
-          </section>
-        ) : (
-          <section className="mt-5 grid gap-4 sm:grid-cols-2">
-            {projects.map((project) => (
-              <article key={project.id} className="rounded-[1.4rem] border border-white/10 bg-[linear-gradient(150deg,#171714,#0d0d0b)] p-5 shadow-xl">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-[.16em] text-[#f5c518]">{statusLabel(project.status)}</span>
-                    <h2 className="mt-2 line-clamp-2 text-xl font-black tracking-[-.025em]">{project.title}</h2>
-                  </div>
-                  {project.loadState === 'loading' ? (
-                    <Loader2 size={18} className="mt-1 shrink-0 animate-spin text-white/45" />
-                  ) : project.loadState === 'ready' ? (
-                    <CheckCircle2 size={18} className="mt-1 shrink-0 text-[#55d38b]" />
-                  ) : null}
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold text-white/60">
-                  {project.category && <span className="rounded-full border border-white/10 px-3 py-1.5">{project.category}</span>}
-                  {project.locationText && <span className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5"><MapPin size={12} /> {project.locationText}</span>}
-                </div>
-
-                {project.loadState === 'ready' && (
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <div className="rounded-xl border border-white/8 bg-white/[.025] p-3">
-                      <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-white/45"><Users size={13} /> Responses</span>
-                      <strong className="mt-1 block text-xl">{project.responseCount ?? 0}</strong>
-                    </div>
-                    <div className="rounded-xl border border-white/8 bg-white/[.025] p-3">
-                      <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-white/45"><Clock3 size={13} /> Reviewing</span>
-                      <strong className="mt-1 block text-xl">{project.providersReviewing ?? 0}</strong>
-                    </div>
-                  </div>
-                )}
-
-                {project.loadState === 'unavailable' && (
-                  <p className="mt-4 rounded-xl border border-[#f5c518]/15 bg-[#f5c518]/[.05] p-3 text-xs leading-5 text-white/55">
-                    This saved project could not be refreshed. You can still try the secure dashboard link below.
-                  </p>
-                )}
-
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/8 pt-4">
-                  <span className="text-[11px] text-white/35">Created {formatDate(project.createdAt)}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeProject(project.id)}
-                    className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/35 hover:text-white/70"
-                    aria-label={`Remove ${project.title} from this device`}
-                  >
-                    <Trash2 size={13} /> Remove
-                  </button>
-                </div>
-
-                <Link
-                  href={customerProjectHref(project)}
-                  className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#f5c518] px-4 text-sm font-black text-black"
-                >
-                  Open project dashboard <ArrowRight size={17} />
-                </Link>
-              </article>
-            ))}
-          </section>
-        )}
+        </section>
       </div>
     </main>
+  );
+}
+
+function AccountNav({ hasArtisanAccess = false }: { hasArtisanAccess?: boolean }) {
+  return (
+    <nav className={styles.nav} aria-label="Account navigation"><div className={styles.navInner}>
+      <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
+      <div className={styles.navActions}>
+        <Link href="/" className={styles.navLink}>Home</Link>
+        {hasArtisanAccess
+          ? <Link href="/artisan-business" className={styles.navLink}>Artisan Business</Link>
+          : <Link href="/join" className={styles.navLink}>Join as provider</Link>}
+        <Link href="/materials" className={styles.navLink}>Materials</Link>
+        {hardwareQuotesEnabled() && (        <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>)}
+        <Link href="/plans" className={styles.navLink}>Plans</Link>
+        <WorkspaceThemeToggle />
+        <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
+      </div>
+    </div></nav>
   );
 }
