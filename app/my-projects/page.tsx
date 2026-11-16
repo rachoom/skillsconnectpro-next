@@ -18,7 +18,6 @@ import {
 import {
   customerProjectHref,
   listCustomerProjects,
-  rememberCustomerProject,
   removeCustomerProject,
   type StoredCustomerProject,
 } from '@/services/customerProjectStore';
@@ -70,17 +69,13 @@ export default function MyProjectsPage() {
         });
         if (!response.ok) throw new Error('unavailable');
         const feed = await response.json();
-        const updated = rememberCustomerProject({
-          id: project.id,
-          token: project.token,
+        return {
+          ...project,
           title: feed.project?.title || project.title,
           category: feed.project?.category || project.category,
           status: feed.project?.status || project.status,
           locationText: feed.project?.suburb || feed.project?.city || feed.project?.locationText || project.locationText,
           createdAt: feed.project?.createdAt || project.createdAt,
-        }) || project;
-        return {
-          ...updated,
           responseCount: Number(feed.matching?.validResponsesReceived ?? 0),
           providersReviewing: Number(feed.matching?.providersReviewing ?? 0),
           loadState: 'ready',
