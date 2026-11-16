@@ -172,7 +172,7 @@ async function createInvitationsLocked(input: {
     .select('id, phone, status, approval_status').in('id', providerIds);
   if (providerResult.error) throw new Error('Unable to verify provider eligibility.');
   const eligible = new Map((providerResult.data ?? []).filter(provider =>
-    provider.status === 'active' && provider.approval_status !== 'rejected').map(provider => [provider.id, provider]));
+    provider.status === 'active' && provider.approval_status === 'approved').map(provider => [provider.id, provider]));
   let remaining = Math.max(0, 6 - existingInvitations.length);
   let remainingWave = Math.max(0, 3 - existingInvitations.filter(row => row.wave_number === (input.waveNumber ?? 1)).length);
   const safeTargets = input.targets.filter(target => {
