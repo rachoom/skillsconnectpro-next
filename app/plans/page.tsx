@@ -10,6 +10,7 @@ import {
   FolderKanban,
   Gauge,
   HardHat,
+  House,
   ShieldCheck,
   Sparkles,
   UsersRound,
@@ -57,12 +58,12 @@ const customerPlanBackgrounds: Record<string, string> = {
 };
 
 const providerPlanVisuals: Record<string, { image: string; icon: PlanVisual['icon']; wash: string; glow: string }> = {
-  starter: { image: '/plan-backgrounds/plan-starter.webp', icon: HardHat, wash: 'bg-[radial-gradient(circle_at_12%_12%,rgba(45,212,191,.24),transparent_17rem),linear-gradient(180deg,rgba(0,10,7,.12),rgba(0,8,5,.82))]', glow: 'shadow-[0_22px_70px_rgba(45,212,191,.13)]' },
-  growth: { image: '/plan-backgrounds/plan-growth.webp', icon: Sparkles, wash: 'bg-[radial-gradient(circle_at_12%_12%,rgba(167,139,250,.25),transparent_17rem),linear-gradient(180deg,rgba(13,5,28,.08),rgba(10,4,23,.84))]', glow: 'shadow-[0_22px_70px_rgba(167,139,250,.15)]' },
-  pro: { image: '/plan-backgrounds/plan-pro.webp', icon: BadgeCheck, wash: 'bg-[radial-gradient(circle_at_12%_12%,rgba(251,146,60,.25),transparent_17rem),linear-gradient(180deg,rgba(26,9,2,.08),rgba(19,7,2,.84))]', glow: 'shadow-[0_22px_70px_rgba(251,146,60,.14)]' },
-  'lead-pack-4': { image: '/plan-backgrounds/plan-lead4.webp', icon: Gauge, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(56,189,248,.27),transparent_15rem),linear-gradient(180deg,rgba(3,15,27,.08),rgba(3,13,23,.82))]', glow: 'shadow-[0_18px_55px_rgba(56,189,248,.13)]' },
-  'lead-pack-10': { image: '/plan-backgrounds/plan-lead10.webp', icon: ClipboardCheck, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(244,114,182,.24),transparent_15rem),linear-gradient(180deg,rgba(25,5,14,.06),rgba(20,5,12,.84))]', glow: 'shadow-[0_18px_55px_rgba(244,114,182,.13)]' },
-  'lead-pack-25': { image: '/plan-backgrounds/plan-lead25.webp', icon: UsersRound, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(34,211,238,.24),transparent_15rem),linear-gradient(180deg,rgba(3,18,22,.07),rgba(3,15,19,.84))]', glow: 'shadow-[0_18px_55px_rgba(34,211,238,.13)]' },
+  starter: { image: '/plan-backgrounds/plan-starter.webp', icon: HardHat, wash: 'bg-[radial-gradient(circle_at_12%_10%,rgba(255,215,95,.17),transparent_16rem),linear-gradient(180deg,rgba(4,8,5,.22),rgba(3,7,4,.91))]', glow: 'shadow-[0_24px_70px_rgba(0,0,0,.34)]' },
+  growth: { image: '/plan-backgrounds/plan-growth.webp', icon: Sparkles, wash: 'bg-[radial-gradient(circle_at_18%_8%,rgba(255,215,95,.31),transparent_17rem),linear-gradient(180deg,rgba(10,8,2,.16),rgba(5,5,3,.92))]', glow: 'shadow-[0_26px_78px_rgba(255,215,95,.12)]' },
+  pro: { image: '/plan-backgrounds/plan-pro.webp', icon: BadgeCheck, wash: 'bg-[radial-gradient(circle_at_18%_8%,rgba(227,195,109,.23),transparent_17rem),linear-gradient(180deg,rgba(9,7,3,.16),rgba(4,4,3,.93))]', glow: 'shadow-[0_24px_72px_rgba(227,195,109,.10)]' },
+  'lead-pack-4': { image: '/plan-backgrounds/plan-lead4.webp', icon: Gauge, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,.10),transparent_14rem),linear-gradient(180deg,rgba(4,6,4,.18),rgba(4,6,4,.91))]', glow: 'shadow-[0_18px_55px_rgba(0,0,0,.27)]' },
+  'lead-pack-10': { image: '/plan-backgrounds/plan-lead10.webp', icon: ClipboardCheck, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(217,189,98,.20),transparent_14rem),linear-gradient(180deg,rgba(8,7,3,.16),rgba(5,5,3,.92))]', glow: 'shadow-[0_18px_55px_rgba(217,189,98,.09)]' },
+  'lead-pack-25': { image: '/plan-backgrounds/plan-lead25.webp', icon: UsersRound, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(255,215,95,.25),transparent_14rem),linear-gradient(180deg,rgba(9,7,2,.16),rgba(5,5,3,.92))]', glow: 'shadow-[0_18px_58px_rgba(255,215,95,.10)]' },
 };
 
 const comparisonRows = [
@@ -106,23 +107,34 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
         <h1 className="mt-3 text-5xl font-black tracking-[-0.05em] text-white md:text-6xl">Plans</h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-white/65">Choose whether you are planning a project or growing your service business.</p>
 
-        <div role="tablist" aria-label="Plan audience" className="mt-7 grid max-w-2xl grid-cols-2 gap-2 rounded-[1.4rem] border border-white/12 bg-black/30 p-1.5 backdrop-blur-xl">
-          <Link
-            role="tab"
-            aria-selected={audience === 'homeowners'}
-            href="/plans?audience=homeowners"
-            className={`rounded-[1.05rem] px-4 py-4 text-center text-sm font-black transition ${audience === 'homeowners' ? 'bg-[#ffd75f] text-[#211800] shadow-[0_12px_30px_rgba(255,215,95,.16)]' : 'text-white/62 hover:bg-white/[.06] hover:text-white'}`}
-          >
-            Homeowner Plans
-          </Link>
-          <Link
-            role="tab"
-            aria-selected={audience === 'providers'}
-            href={providerTabHref}
-            className={`rounded-[1.05rem] px-4 py-4 text-center text-sm font-black transition ${audience === 'providers' ? 'bg-[#ffd75f] text-[#211800] shadow-[0_12px_30px_rgba(255,215,95,.16)]' : 'text-white/62 hover:bg-white/[.06] hover:text-white'}`}
-          >
-            Provider Plans
-          </Link>
+        <div className="mt-7 max-w-2xl">
+          <p className="mb-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-white/45">Choose your side</p>
+          <div role="tablist" aria-label="Plan audience" className="grid grid-cols-2 gap-2 rounded-[1.65rem] border border-[#ffd75f]/20 bg-[linear-gradient(145deg,rgba(255,255,255,.055),rgba(0,0,0,.28))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_18px_55px_rgba(0,0,0,.22)] backdrop-blur-2xl">
+            <Link
+              role="tab"
+              aria-selected={audience === 'homeowners'}
+              href="/plans?audience=homeowners"
+              className={`group flex min-h-[78px] items-center gap-3 rounded-[1.25rem] border px-3.5 py-3 text-left transition duration-200 ${audience === 'homeowners' ? 'border-[#ffd75f] bg-[linear-gradient(135deg,#ffe17a,#f3c93e)] text-[#1b1608] shadow-[0_12px_34px_rgba(255,215,95,.20)]' : 'border-white/14 bg-white/[.055] text-white hover:border-[#ffd75f]/45 hover:bg-white/[.08]'}`}
+            >
+              <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl border ${audience === 'homeowners' ? 'border-black/10 bg-black/[.08]' : 'border-[#ffd75f]/28 bg-[#ffd75f]/[.08] text-[#ffe17a]'}`}><House size={19} /></span>
+              <span className="min-w-0">
+                <strong className="block text-sm font-black">Homeowner</strong>
+                <span className={`mt-0.5 block text-[11px] font-semibold leading-4 ${audience === 'homeowners' ? 'text-black/60' : 'text-white/50'}`}>Plan & manage a project</span>
+              </span>
+            </Link>
+            <Link
+              role="tab"
+              aria-selected={audience === 'providers'}
+              href={providerTabHref}
+              className={`group flex min-h-[78px] items-center gap-3 rounded-[1.25rem] border px-3.5 py-3 text-left transition duration-200 ${audience === 'providers' ? 'border-[#ffd75f] bg-[linear-gradient(135deg,#ffe17a,#f3c93e)] text-[#1b1608] shadow-[0_12px_34px_rgba(255,215,95,.20)]' : 'border-white/14 bg-white/[.055] text-white hover:border-[#ffd75f]/45 hover:bg-white/[.08]'}`}
+            >
+              <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl border ${audience === 'providers' ? 'border-black/10 bg-black/[.08]' : 'border-[#ffd75f]/28 bg-[#ffd75f]/[.08] text-[#ffe17a]'}`}><HardHat size={19} /></span>
+              <span className="min-w-0">
+                <strong className="block text-sm font-black">Provider</strong>
+                <span className={`mt-0.5 block text-[11px] font-semibold leading-4 ${audience === 'providers' ? 'text-black/60' : 'text-white/50'}`}>Get access to more work</span>
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -167,8 +179,8 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
       <div className="mx-auto max-w-7xl">
         <div className="max-w-3xl">
           <div className="flex items-center gap-2 text-[#ffe17a]"><UsersRound size={19} /><span className="text-xs font-black uppercase tracking-[0.16em]">Provider plans</span></div>
-          <h2 className="mt-3 text-3xl font-black tracking-[-.035em] text-[#fff8e8] md:text-5xl">Choose your provider plan.</h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/68 md:text-base">Monthly subscriptions and flexible lead packs for different levels of provider access.</p>
+          <h2 className="mt-3 text-3xl font-black tracking-[-.035em] text-[#fff8e8] md:text-5xl">Turn Skills Connect Pro into a steady source of work.</h2>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/68 md:text-base">Start small, unlock more opportunities as you grow, and choose the level that matches your business momentum.</p>
         </div>
 
         <div className="mt-9 grid gap-4 md:grid-cols-3">{subscriptions.map((plan) => {
