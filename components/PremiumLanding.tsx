@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -9,15 +9,18 @@ import {
   Car,
   Check,
   ChevronDown,
+  ClipboardList,
   Grid2X2,
   House,
   MapPin,
   Menu,
   MessageCircle,
+  MessagesSquare,
   Mic,
   Paintbrush,
   ShieldCheck,
   Sparkles,
+  UserRoundCheck,
   Wrench,
   X,
   Zap,
@@ -82,6 +85,11 @@ export function PremiumLanding() {
   }, []);
 
   const activePhrase = mzansiPhrases[languageIndex];
+  const { props: heroImage } = getImageProps({
+    src: '/mzansi-services-hero-v2.webp',
+    alt: 'Local mechanics, electricians, plumbers and other skilled service providers',
+    width: 1983, height: 793, sizes: '100vw', priority: true,
+  });
 
   return (
     <main className={styles.page} data-design="premium-2026">
@@ -140,11 +148,10 @@ export function PremiumLanding() {
       </nav>
 
       <section className={styles.spotlight} aria-labelledby="home-heading">
-        <Image
-          src="/mzansi-services-hero-v2.webp"
-          alt="Mechanics, electricians, plumbers, builders and cleaners representing local skills"
-          fill priority sizes="100vw" className={styles.heroImage}
-        />
+        <picture className={styles.heroArt}>
+          <source media="(max-width: 640px)" srcSet="/artisans/hero-team-mobile.webp" />
+          <img {...heroImage} className={styles.heroImage} />
+        </picture>
         <div className={styles.scrim} aria-hidden="true" />
         <div className={styles.spotlightInner}>
           <div className={styles.pitch}>
@@ -163,35 +170,37 @@ export function PremiumLanding() {
             <Link href="/assistant" className={styles.mobileAssistantCta}>
               <span className={styles.mobileAssistantIcon}><Sparkles size={20} aria-hidden="true" /></span>
               <span><strong>Try the AI Project Assistant</strong><small>Plan · clarify · estimate</small></span>
-              <ArrowRight size={20} aria-hidden="true" />
             </Link>
             <div id="start-request" className={styles.requestHub}>
               <span className={styles.requestLabel}>WHAT DO YOU NEED DONE?</span>
               <Link href="/get-help" className={styles.commandBar}>
                 <span className={styles.commandIcon}><Wrench size={22} aria-hidden="true" /></span>
                 <span><strong>Describe your job</strong><small>Type, speak or add a photo in the next step</small></span>
-                <ArrowRight size={22} aria-hidden="true" />
               </Link>
-              <div className={styles.inputHint} aria-hidden="true"><Camera size={14} /><span>Photo</span><Mic size={14} /><span>Voice</span><span className={styles.hintDivider} />Start in your own words</div>
+              <div className={styles.inputHint} aria-hidden="true">
+                <span className={styles.hintMethod}><span className={styles.hintIcon}><Camera size={15} /></span>Photo</span>
+                <span className={styles.hintMethod}><span className={styles.hintIcon}><Mic size={15} /></span>Voice</span>
+                <span className={styles.hintNote}>Start in your own words</span>
+              </div>
             </div>
             <Link href="/browse-providers" className={styles.secondary}>Prefer to explore? Browse providers <ArrowRight size={16} aria-hidden="true" /></Link>
             <div className={styles.heroProof} aria-label="Marketplace benefits">
-              <span><ShieldCheck size={16} aria-hidden="true" /> Private until you choose</span>
-              <span><Check size={16} aria-hidden="true" /> You control the connection</span>
+              <span><span className={styles.proofIcon}><ShieldCheck size={15} aria-hidden="true" /></span> Private until you choose</span>
+              <span><span className={styles.proofIcon}><Check size={15} aria-hidden="true" /></span> You control the connection</span>
             </div>
           </div>
           <aside className={styles.connectionCard} aria-label="How your request works">
             <span className={styles.cardEyebrow}><span className={styles.liveDot} aria-hidden="true" /> LOCAL SKILLS. ONE CONNECTION.</span>
             <strong>A clear path to<br />getting it done.</strong>
             <div className={styles.connectionSteps}>
-              <span><b>01</b> Describe the job</span>
-              <span><b>02</b> Compare responses</span>
-              <span><b>03</b> Choose your provider</span>
+              <span><span className={styles.stepIcon}><ClipboardList size={17} aria-hidden="true" /></span> Describe the job</span>
+              <span><span className={styles.stepIcon}><MessagesSquare size={17} aria-hidden="true" /></span> Compare responses</span>
+              <span><span className={styles.stepIcon}><UserRoundCheck size={17} aria-hidden="true" /></span> Choose your provider</span>
             </div>
           </aside>
         </div>
         <div className={styles.journey} aria-label="Available service categories">
-          <span>MECHANICS</span><span>HOME & PROPERTY</span><span>CLEANING</span><span>EVERYDAY MAINTENANCE</span>
+          <span><Car size={18} aria-hidden="true" />MECHANICS</span><span><House size={18} aria-hidden="true" />HOME & PROPERTY</span><span><Sparkles size={18} aria-hidden="true" />CLEANING</span><span><Wrench size={18} aria-hidden="true" />EVERYDAY MAINTENANCE</span>
           <a href="#services">Explore services <ArrowRight size={14} aria-hidden="true" /></a>
         </div>
       </section>
