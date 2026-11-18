@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ArrowLeft, CreditCard, LockKeyhole, ShieldCheck } from 'lucide-react';
-import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { CustomerCheckoutForm } from './CustomerCheckoutForm';
 
@@ -18,10 +17,6 @@ export default async function CustomerCheckoutPage({
     redirect('/plans?audience=homeowners');
   }
 
-  const { user } = await getAuthenticatedAccount();
-  if (!user) {
-    redirect(`/sign-in?next=${encodeURIComponent(`/customer-checkout?plan=${code}`)}`);
-  }
 
   const { data: plan, error } = await getSupabaseAdmin()
     .from('plans')
@@ -54,7 +49,7 @@ export default async function CustomerCheckoutPage({
           <p className="mt-6 text-xs font-black uppercase tracking-[0.15em] text-[#ffe17a]">Secure homeowner checkout</p>
           <h1 className="mt-3 text-3xl font-black text-white">{plan.name} · {price}</h1>
           <p className="mt-4 text-sm leading-7 text-white/68">
-            This is a once-off {plan.duration_days}-day project pass. Your access activates after PayFast confirms the payment.
+            This is a once-off {plan.duration_days}-day project pass. Continue straight to PayFast — no Skills Connect Pro account is required before payment.
           </p>
 
           <div className="mt-7 grid grid-cols-[1fr_auto] items-end gap-5 rounded-2xl border border-[#ffd75f]/22 bg-[#ffd75f]/[.07] p-5">
@@ -75,7 +70,7 @@ export default async function CustomerCheckoutPage({
               <div>
                 <h2 className="font-black text-white">What happens next</h2>
                 <p className="mt-2 text-sm leading-6 text-white/62">
-                  PayFast handles the payment securely. Skills Connect Pro activates the matching project-plan limits only after the payment notification is verified.
+                  PayFast handles the payment securely. If you are not signed in, you can secure the purchased plan to an account after payment — without blocking checkout first.
                 </p>
               </div>
             </div>
