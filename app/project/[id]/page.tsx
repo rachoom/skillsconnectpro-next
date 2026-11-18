@@ -20,6 +20,9 @@ import {
   X,
 } from 'lucide-react';
 import styles from './project-overview.module.css';
+import Link from 'next/link';
+import { CustomerProjectJourney } from '@/components/CustomerProjectJourney';
+import { customerProjectEventLabel, customerProjectPresentation } from '@/services/marketplace/customerProjectPresentation';
 
 type ProviderResponse = {
   id: string;
@@ -341,6 +344,7 @@ export default function CustomerProjectPage() {
   const hasSelection = Boolean(feed.match?.providerResponseId);
   const releasedProvider = project.status === 'cancelled' ? null : feed.releasedContact?.provider ?? null;
   const selectedName = selectedResponse ? providerName(selectedResponse.provider) : 'the selected provider';
+  const presentation = customerProjectPresentation({ status: project.status, responses: responseCount, invited: feed.matching.invitationsSent, reviewing: feed.matching.providersReviewing, selected: hasSelection, connected: contactsReleased });
   const whatsappHref = releasedProvider?.whatsapp
     ? `https://wa.me/${whatsappNumber(releasedProvider.whatsapp)}?text=${encodeURIComponent(
         `Hi ${releasedProvider.name}, I selected you through Skills Connect Pro for my project: ${project.title}.`,
@@ -348,14 +352,17 @@ export default function CustomerProjectPage() {
     : null;
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-project-closed={presentation.closed}>
       <div className={styles.shell}>
         <div className={styles.overviewBar}>
           <div>
             <span>Customer workspace</span>
             <strong>Project Overview</strong>
           </div>
-          <div className={styles.liveState}><i /> Live updates</div>
+          <div className={styles.overviewActions}>
+            <Link href="/" className={styles.overviewHome}>Home</Link>
+            <div className={styles.liveState} data-record={presentation.closed || Boolean(error)}>{!presentation.closed && !error && <i />} {presentation.closed ? 'Project record' : error ? 'Update interrupted' : 'Updates every 15s'}</div>
+          </div>
         </div>
 
         <header className={styles.projectHero}>
@@ -363,7 +370,7 @@ export default function CustomerProjectPage() {
             <div className={styles.heroCopy}>
               <div className={styles.heroEyebrow}>
                 <span><ShieldCheck size={17} /></span>
-                Ongoing project
+                {presentation.label}
               </div>
               <h1>{project.title}</h1>
               <p>{project.customerDescription}</p>
@@ -399,30 +406,19 @@ export default function CustomerProjectPage() {
             </div>
 
             <aside
-              className={`${styles.matchingPanel} ${hasResponses ? styles.matchingReady : styles.matchingSearching}`}
+              className={`${styles.matchingPanel} ${presentation.matching ? styles.matchingSearching : !presentation.closed && !hasSelection && hasResponses ? styles.matchingReady : ''}`}
               aria-live="polite"
             >
+              <div className={styles.customerScene} aria-hidden="true" />
               <div className={styles.matchingOrb}>
-                <i className={styles.matchingSpinner} aria-hidden="true" />
-                <span>{hasResponses ? <CheckCircle2 size={25} /> : <Users size={25} />}</span>
+                {presentation.matching && <i className={styles.matchingSpinner} aria-hidden="true" />}
+                <span>{presentation.closed ? <ShieldCheck size={25} /> : hasResponses || contactsReleased ? <CheckCircle2 size={25} /> : <Users size={25} />}</span>
               </div>
-              <p className={styles.matchingKicker}>{hasResponses ? 'Response ready' : 'Matching in progress'}</p>
-              <strong>
-                {hasResponses
-                  ? `${responseCount} provider response${responseCount === 1 ? '' : 's'} ready`
-                  : feed.matching.invitationsSent > 0
-                    ? `${feed.matching.invitationsSent} provider${feed.matching.invitationsSent === 1 ? '' : 's'} contacted`
-                    : 'Finding suitable providers'}
-              </strong>
-              <p className={styles.matchingCopy}>
-                {hasResponses
-                  ? 'A provider has replied. Compare the response below and choose when you are ready.'
-                  : feed.matching.providersReviewing > 0
-                    ? `${feed.matching.providersReviewing} provider${feed.matching.providersReviewing === 1 ? ' is' : 's are'} reviewing your request now.`
-                    : 'We are contacting suitable local providers. This page updates automatically.'}
-              </p>
+              <p className={styles.matchingKicker}>{presentation.label}</p>
+              <strong>{presentation.headline}</strong>
+              <p className={styles.matchingCopy}>{presentation.copy}</p>
 
-              {!hasResponses && (
+              {presentation.matching && !error && (
                 <>
                   <div className={styles.matchingProgress} aria-hidden="true"><span /></div>
                   <div className={styles.matchingActivity}>
@@ -432,18 +428,22 @@ export default function CustomerProjectPage() {
                 </>
               )}
 
-              {hasResponses && !hasSelection ? (
+              {presentation.action === 'responses' ? (
                 <button type="button" onClick={openProviderResponses} className={`${styles.refreshButton} ${styles.reviewResponsesButton}`}>
                   <CheckCircle2 size={16} /> Review {responseCount} response{responseCount === 1 ? '' : 's'}
                 </button>
-              ) : (
+              ) : presentation.action === 'controls' ? (
+                <button type="button" onClick={openJobControls} className={styles.refreshButton}><Wrench size={16} /> Manage your project</button>
+              ) : !presentation.closed ? (
                 <button type="button" onClick={() => void loadFeed()} className={styles.refreshButton}>
                   <RefreshCw size={15} /> Refresh now
                 </button>
-              )}
+              ) : null}
             </aside>
           </div>
         </header>
+
+        <CustomerProjectJourney stage={presentation.stage} closed={presentation.closed} next={presentation.next} tone={presentation.tone} />
 
         {error && (
           <div className={styles.inlineError}>
@@ -459,27 +459,27 @@ export default function CustomerProjectPage() {
 
         <section className={styles.metricsGrid} aria-label="Project matching status">
           <article className={styles.metricCard}>
-            <div className={styles.metricTop}><span className={styles.metricIcon}><Users size={19} /></span><small>01</small></div>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><Users size={19} /></span></div>
             <strong key={`invited-${feed.matching.invitationsSent}`} className={styles.metricValue}>{feed.matching.invitationsSent}</strong>
             <h2>Providers invited</h2>
             <p>Invitations sent to suitable local providers.</p>
           </article>
-          <article className={`${styles.metricCard} ${feed.matching.providersReviewing > 0 && !hasResponses ? styles.metricReviewing : ''}`}>
-            <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={19} /></span><small>02</small></div>
+          <article className={`${styles.metricCard} ${feed.matching.providersReviewing > 0 && presentation.matching ? styles.metricReviewing : ''}`}>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={19} /></span></div>
             <strong key={`reviewing-${feed.matching.providersReviewing}`} className={styles.metricValue}>{feed.matching.providersReviewing}</strong>
             <h2>Currently reviewing</h2>
-            <p>Providers actively considering your project.</p>
+            <p>{presentation.closed ? 'Provider reviews recorded for this request.' : 'Providers actively considering your project.'}</p>
           </article>
-          <article className={`${styles.metricCard} ${styles.metricSuccess} ${hasResponses && !hasSelection ? styles.metricResponseReady : ''}`}>
-            <div className={styles.metricTop}><span className={styles.metricIcon}><CheckCircle2 size={19} /></span><small>03</small></div>
+          <article className={`${styles.metricCard} ${styles.metricSuccess} ${hasResponses && !hasSelection && !presentation.closed ? styles.metricResponseReady : ''}`}>
+            <div className={styles.metricTop}><span className={styles.metricIcon}><CheckCircle2 size={19} /></span></div>
             <strong key={`responses-${feed.matching.validResponsesReceived}`} className={styles.metricValue}>{feed.matching.validResponsesReceived}</strong>
             <h2>Responses received</h2>
-            <p>Provider options ready for you to compare.</p>
+            <p>{presentation.closed || hasSelection ? 'Responses recorded for this project.' : 'Provider options ready for you to compare.'}</p>
           </article>
         </section>
 
         {selectedResponse && !contactsReleased && !projectClosed && (
-          <section className={`${styles.actionCard} ${styles.actionSelected} ${styles.actionNeedsAttention}`}>
+          <section data-customer-action="connect" className={`${styles.actionCard} ${styles.actionSelected} ${styles.actionNeedsAttention}`}>
             <div className={styles.actionIcon}><UserRoundCheck size={27} /></div>
             <div className={styles.actionCopy}>
               <span>Provider selected · Next step</span>
@@ -496,7 +496,7 @@ export default function CustomerProjectPage() {
 
         {contactsReleased && releasedProvider && (
           <>
-            <section className={`${styles.actionCard} ${styles.actionConnected}`}>
+            <section data-customer-action="connected" className={`${styles.actionCard} ${styles.actionConnected}`}>
               <div className={styles.actionIcon}><CheckCircle2 size={28} /></div>
               <div className={styles.actionCopy}>
                 <span>You are connected</span>
@@ -526,7 +526,7 @@ export default function CustomerProjectPage() {
                 <p>Mark when work starts, confirm completion, cancel the project or report a problem.</p>
               </div>
               <button type="button" onClick={openJobControls} className={styles.primaryAction}>
-                <Wrench size={17} /> Open job controls
+                <Wrench size={17} /> Manage your project
               </button>
             </section>
           </>
@@ -535,9 +535,9 @@ export default function CustomerProjectPage() {
         <section id="provider-responses" className={styles.responsesSection}>
           <div className={styles.sectionHeading}>
             <div>
-              <span>Rolling responses</span>
-              <h2>Available provider options</h2>
-              <p>Compare real responses as suitable providers reply to your project.</p>
+              <span>{presentation.closed ? 'Project record' : 'Provider responses'}</span>
+              <h2>{presentation.closed ? 'Recorded provider responses' : 'Compare your provider options'}</h2>
+              <p>{presentation.closed ? 'Earlier replies remain available for reference. New selections are closed.' : 'Review availability, fees and provider messages before making your choice.'}</p>
             </div>
             <div className={styles.responseTarget}>
               <Clock3 size={15} />
@@ -546,7 +546,7 @@ export default function CustomerProjectPage() {
             </div>
           </div>
 
-          {feed.responses.length > 0 && !hasSelection && (
+          {feed.responses.length > 0 && !hasSelection && !projectClosed && (
             <div className={styles.responseAlert} role="status">
               <span className={styles.responseAlertIcon}><CheckCircle2 size={18} /></span>
               <div>
@@ -562,19 +562,17 @@ export default function CustomerProjectPage() {
                 <span><Wrench size={28} /></span>
                 <i />
               </div>
-              <span>Live matching</span>
-              <h3>Providers are being contacted</h3>
-              <p>
-                Responses will appear here as providers confirm availability. You do not need to keep refreshing — this page updates every 15 seconds.
-              </p>
-              <div className={styles.searchingStatus} aria-hidden="true">
+              <span>{presentation.label}</span>
+              <h3>{presentation.closed ? 'No provider responses recorded' : presentation.headline}</h3>
+              <p>{presentation.closed ? 'This project is closed. Its activity history remains available below.' : presentation.copy}</p>
+              {presentation.matching && <div className={styles.searchingStatus} aria-hidden="true">
                 <span /><span /><span /><em>Searching · contacting · listening for replies</em>
-              </div>
-              <div className={styles.emptySteps}>
+              </div>}
+              {presentation.matching && <div className={styles.emptySteps}>
                 <span><b>1</b> Request shared</span>
                 <span><b>2</b> Providers reviewing</span>
                 <span><b>3</b> Responses arrive here</span>
-              </div>
+              </div>}
             </div>
           ) : (
             <div className={styles.providerGrid}>
@@ -589,7 +587,7 @@ export default function CustomerProjectPage() {
                 const hasEstimate = response.estimateMin !== null || response.estimateMax !== null;
 
                 return (
-                  <article key={response.id} className={`${styles.providerCard} ${selected ? styles.providerSelected : ''} ${!hasSelection && index === 0 ? styles.providerAttention : ''}`}>
+                  <article key={response.id} className={`${styles.providerCard} ${selected ? styles.providerSelected : ''} ${!projectClosed && !hasSelection && index === 0 ? styles.providerAttention : ''}`}>
                     <div className={styles.providerHeader}>
                       <div>
                         <div className={styles.providerNameRow}>
@@ -686,7 +684,7 @@ export default function CustomerProjectPage() {
                     <button
                       disabled={projectClosed || contactsReleased || selected || selectingResponseId !== null}
                       onClick={() => void selectProvider(response.id)}
-                      className={`${styles.selectProviderButton} ${!hasSelection && index === 0 ? styles.selectProviderAttention : ''}`}
+                      className={`${styles.selectProviderButton} ${!projectClosed && !hasSelection && index === 0 ? styles.selectProviderAttention : ''}`}
                     >
                       {selectingResponseId === response.id ? <Loader2 className="animate-spin" size={16} /> : selected ? <CheckCircle2 size={16} /> : <UserRoundCheck size={16} />}
                       {projectClosed ? 'Project closed' : selected ? (contactsReleased ? 'Connected' : 'Selected') : contactsReleased ? 'Selection closed' : 'Select provider'}
@@ -721,7 +719,7 @@ export default function CustomerProjectPage() {
                     <span>{index + 1}</span>
                   </div>
                   <div>
-                    <p>{event.eventType.replaceAll('_', ' ')}</p>
+                    <p>{customerProjectEventLabel(event.eventType)}</p>
                     {event.message && <small>{event.message}</small>}
                     <time>{formatDate(event.createdAt)}</time>
                   </div>

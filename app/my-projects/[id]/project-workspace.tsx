@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Check, CheckCircle2, FileDown, FileText, Loader2, PackagePlus, Plus, ReceiptText, Trash2, Upload, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, ClipboardList, FileDown, FileText, Flag, Loader2, PackageOpen, PackagePlus, Plus, ReceiptText, Trash2, Upload, XCircle } from 'lucide-react';
+import { customerProjectStatusLabel } from '@/services/marketplace/customerProjectPresentation';
 import { HardwareQuoteRequestButton } from './hardware-quote-request';
 import styles from '../workspace.module.css';
 import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
@@ -35,6 +36,7 @@ type Props = {
 };
 
 type Tab = 'overview' | 'materials' | 'milestones' | 'expenses' | 'documents';
+const tabIcons = { overview: ClipboardList, materials: PackageOpen, milestones: Flag, expenses: ReceiptText, documents: FileText };
 
 function rand(value: number | null | undefined) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(value ?? 0);
@@ -298,13 +300,13 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
   return (
     <>
       <div className={styles.tabs} role="tablist" aria-label="Project workspace sections">
-        {(['overview', 'materials', 'milestones', 'expenses', 'documents'] as Tab[]).map((item) => <button key={item} role="tab" data-active={tab === item} onClick={() => setTab(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}
+        {(['overview', 'materials', 'milestones', 'expenses', 'documents'] as Tab[]).map((item) => { const Icon = tabIcons[item]; return <button key={item} role="tab" aria-selected={tab === item} data-active={tab === item} onClick={() => setTab(item)}><Icon size={17} aria-hidden="true" />{item[0].toUpperCase() + item.slice(1)}</button>; })}
       </div>
       {message && <div className={styles.notice} role="status"><span>{message}</span>{upgradeHref && <Link href={upgradeHref} className={styles.noticeLink}>Compare project plans →</Link>}</div>}
 
       {tab === 'overview' && <div className={styles.panelGrid}>
         <section className={styles.panel}><span className={styles.eyebrow}>Project brief</span><h2>What is being done</h2><p className={styles.subtle}>{project.customer_description}</p>{project.likely_issue && <><h2 style={{ marginTop: 24 }}>Likely scope or issue</h2><p className={styles.subtle}>{project.likely_issue}</p></>}{project.safety_notes?.length > 0 && <div className={styles.error} style={{ marginTop: 22, marginBottom: 0 }}><strong>Safety first</strong>{project.safety_notes.map((note) => <div key={note}>• {note}</div>)}</div>}</section>
-        <aside className={styles.sidePanel}><span className={styles.eyebrow}>Working budget</span><h2>Update the range</h2><p className={styles.subtle}>Keep the preliminary amount current as quotations arrive.</p><div className={styles.form}><input className={styles.input} type="number" min="0" placeholder="Minimum (R)" value={estimateMin} onChange={(event) => setEstimateMin(event.target.value)} /><input className={styles.input} type="number" min="0" placeholder="Maximum (R)" value={estimateMax} onChange={(event) => setEstimateMax(event.target.value)} /><button className={styles.action} onClick={updateEstimate} disabled={working === 'estimate'}>{working === 'estimate' ? <Loader2 /> : 'Save project range'}</button></div><div className={styles.lifecycleBox}><span className={styles.eyebrow}>Project status</span><div className={styles.lifecycleHeader}><strong>{projectStatus.replaceAll('_', ' ')}</strong><span className={styles.status}>{projectStatus}</span></div>{projectStatus === 'completed' || projectStatus === 'cancelled' ? <p className={styles.subtle}>This project is closed and no longer counts toward your active-project limit.</p> : <><p className={styles.subtle}>Close the project when the work is finished or no longer going ahead. Your project history will stay saved.</p><div className={styles.lifecycleActions}><button className={styles.secondaryAction} onClick={() => updateProjectStatus('completed')} disabled={working === 'project-status'}>{working === 'project-status' ? <Loader2 size={17} /> : <CheckCircle2 size={17} />} Mark complete</button><button className={styles.cancelAction} onClick={() => updateProjectStatus('cancelled')} disabled={working === 'project-status'}><XCircle size={17} /> Cancel project</button></div></>}</div></aside>
+        <aside className={styles.sidePanel}><span className={styles.eyebrow}>Working budget</span><h2>Update the range</h2><p className={styles.subtle}>Keep the preliminary amount current as quotations arrive.</p><div className={styles.form}><input className={styles.input} type="number" min="0" placeholder="Minimum (R)" value={estimateMin} onChange={(event) => setEstimateMin(event.target.value)} /><input className={styles.input} type="number" min="0" placeholder="Maximum (R)" value={estimateMax} onChange={(event) => setEstimateMax(event.target.value)} /><button className={styles.action} onClick={updateEstimate} disabled={working === 'estimate'}>{working === 'estimate' ? <Loader2 /> : 'Save project range'}</button></div><div className={styles.lifecycleBox}><span className={styles.eyebrow}>Project status</span><div className={styles.lifecycleHeader}><strong>{customerProjectStatusLabel(projectStatus)}</strong><span className={styles.status}>{customerProjectStatusLabel(projectStatus)}</span></div>{projectStatus === 'completed' || projectStatus === 'cancelled' ? <p className={styles.subtle}>This project is closed and no longer counts toward your active-project limit.</p> : <><p className={styles.subtle}>Close the project when the work is finished or no longer going ahead. Your project history will stay saved.</p><div className={styles.lifecycleActions}><button className={styles.secondaryAction} onClick={() => updateProjectStatus('completed')} disabled={working === 'project-status'}>{working === 'project-status' ? <Loader2 size={17} /> : <CheckCircle2 size={17} />} Mark complete</button><button className={styles.cancelAction} onClick={() => updateProjectStatus('cancelled')} disabled={working === 'project-status'}><XCircle size={17} /> Cancel project</button></div></>}</div></aside>
       </div>}
 
       {tab === 'materials' && <div className={styles.panelGrid}>

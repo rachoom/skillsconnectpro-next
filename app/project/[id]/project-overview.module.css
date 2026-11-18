@@ -1527,3 +1527,20 @@
     animation: none !important;
   }
 }
+
+/* Customer journey: readable records and a consistent gold finish. */
+.overviewActions { display:flex; align-items:center; gap:8px; min-width:0; }
+.overviewHome { display:inline-flex; min-height:44px; align-items:center; padding:0 12px; border:1px solid var(--scp-line-strong); border-radius:12px; color:var(--scp-text); font-size:13px; text-decoration:none; }
+.customerScene { height:130px; margin:-4px -4px 18px; border-radius:16px; border:1px solid rgba(255,219,127,.22); background:url('/plan-backgrounds/plans-hero-mobile.webp') center 63% / cover no-repeat; }
+.page .projectHero { background:linear-gradient(145deg,rgba(30,33,24,.97),rgba(10,18,12,.98)); border-color:rgba(243,213,137,.3); }
+.page :is(.metricCard,.providerCard,.activityCard) { border-radius:22px; border-color:var(--scp-line-strong); box-shadow:inset 0 1px 0 rgba(255,240,193,.07),0 12px 30px rgba(0,0,0,.12); }
+.page :is(.metricIcon,.actionIcon,.heroEyebrow > span,.responseAlertIcon) { border:1px solid #9f8443; color:#ffdf88 !important; background:linear-gradient(145deg,#483d22,#171c12) !important; box-shadow:inset 0 1px 0 rgba(255,240,193,.22),0 4px 10px rgba(0,0,0,.18); border-radius:14px; }
+.page :is(.primaryAction,.selectProviderButton,.reviewResponsesButton) { min-height:48px; border-radius:13px; background:linear-gradient(135deg,#ffe995,#ffd33c 52%,#edb918); color:#191508; box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 6px 18px rgba(166,127,25,.12); }
+.page :is(button,a):focus-visible { outline:3px solid var(--scp-yellow); outline-offset:4px; }
+.page :is(.matchingCopy,.emptyState > p,.providerMessage p,.actionCopy > p) { font-size:15px; line-height:1.7; }
+.page .heroFoot { font-size:12px; }
+.page .providerInfoPanel > span { font-size:12px; }
+.page .liveState { font-size:11px; letter-spacing:0; }
+.page[data-project-closed='true'] *, .page[data-project-closed='true'] *::before, .page[data-project-closed='true'] *::after { animation:none !important; }
+:global(html[data-scp-theme='light']) .page .projectHero { background:linear-gradient(145deg,#fffdf5,#edf2e8); }
+@media(max-width:600px) { .page .overviewBar { position:relative; top:0; gap:8px; padding:12px; flex-wrap:wrap; }.overviewActions { flex-wrap:wrap; }.page .overviewBar strong { font-size:18px; }.page .metricsGrid { gap:10px; }.page .metricCard { padding:16px; }.page .metricCard p { font-size:12px; }.page .matchingCopy { font-size:15px; }.page .sectionHeading h2 { font-size:25px; }.page .customerScene { height:145px; }.page .providerDetailGrid { grid-template-columns:1fr; }.page .heroCopy > p { font-size:16px; line-height:1.65; } }

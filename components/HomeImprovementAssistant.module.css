@@ -370,3 +370,11 @@
 :global(html[data-scp-theme='light']) .actionArrow { color:#626262; }
 @media (max-width:959px) { .shell { gap:24px; padding-top:30px; }.intro { max-width:100%; }.intro h1 { font-size:36px; max-width:19ch; }.introPoints { display:none; }.intro > p { margin-top:14px; font-size:14px; }.assistantCard { padding:22px; }.intro .eyebrow { display:none; } }
 @media (max-width:420px) { .shell { width:calc(100% - 28px); padding-top:24px; }.header { padding:12px 14px; min-height:70px; }.intro h1 { font-size:32px; }.assistantCard { padding:16px; }.assistantHeading h2 { font-size:21px; }.actionButton { padding:12px; min-height:140px; }.composer { padding:12px; }.inputMethods { gap:5px; }.inputMethods button { width:40px; height:44px; }.sendButton { padding:0 10px; gap:5px; }.composerTools { gap:6px; } }
+
+/* Customer action icons stay crisp at phone sizes. */
+.page .actionIcon,.page .assistantMark { width:44px; height:44px; flex-shrink:0; border:1px solid #a98a43; border-radius:14px; color:#ffdf88; background:linear-gradient(145deg,#483d22,#171c12); box-shadow:inset 0 1px 0 rgba(255,240,193,.2),0 4px 10px rgba(0,0,0,.15); }
+.page .actionButton { border-color:var(--assistant-line,rgba(233,204,129,.26)); border-radius:18px; box-shadow:inset 0 1px 0 rgba(255,240,193,.06); }
+.page .actionButton strong { font-size:16px; line-height:1.4; }
+.page .actionButton small { font-size:13px; line-height:1.6; }
+.page :is(button,a,input,textarea):focus-visible { outline:3px solid #edcb67; outline-offset:4px; }
+@media(max-width:480px) { .page .assistantCard { padding:16px; border-radius:22px; }.page .intro > p { font-size:16px; }.page .actionButton { min-height:146px; }.page textarea { font-size:16px; } }

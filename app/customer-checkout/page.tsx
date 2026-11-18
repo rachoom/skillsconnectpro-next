@@ -4,6 +4,7 @@ import { ArrowLeft, CreditCard, LockKeyhole, Mail, ShieldCheck } from 'lucide-re
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { CustomerCheckoutForm } from './CustomerCheckoutForm';
+import { CustomerTransactionShell } from '@/components/CustomerTransactionShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,7 @@ export default async function CustomerCheckoutPage({
   }).format(plan.price_cents / 100);
 
   return (
-    <main className="min-h-screen bg-[#061008] px-4 py-8 text-[#f8f3e5] md:px-8 md:py-12">
+    <CustomerTransactionShell label="Secure homeowner checkout">
       <div className="mx-auto max-w-2xl">
         <Link href="/plans?audience=homeowners" className="inline-flex items-center gap-2 text-sm font-bold text-[#ffe17a]">
           <ArrowLeft size={17} /> Back to homeowner plans
@@ -106,6 +107,6 @@ export default async function CustomerCheckoutPage({
           <CustomerCheckoutForm planCode={plan.code} price={price} />
         </section>
       </div>
-    </main>
+    </CustomerTransactionShell>
   );
 }

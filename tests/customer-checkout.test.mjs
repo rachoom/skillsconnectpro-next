@@ -51,6 +51,7 @@ async function resultPage(row, account, params = {}, options = {}) {
   };
   const page = load('../app/customer-payment-result/page.tsx', {
     'next/link': 'a', 'lucide-react': icons,
+    '@/components/CustomerTransactionShell': { CustomerTransactionShell: 'customer-shell' },
     '@/services/supabase/server': { getAuthenticatedAccount: async () => ({ user: account }) },
     '@/services/supabaseAdmin': { getSupabaseAdmin: () => db },
   }).default;
@@ -111,6 +112,7 @@ test('optional sign-in preserves either selected plan while guest payment remain
       '@/services/supabase/server': { getAuthenticatedAccount: async () => ({ user: null }) },
       '@/services/supabaseAdmin': { getSupabaseAdmin: () => ({ from: () => query }) },
       './CustomerCheckoutForm': { CustomerCheckoutForm: 'checkout-form' },
+      '@/components/CustomerTransactionShell': { CustomerTransactionShell: 'customer-shell' },
     }).default;
     const tree = await page({ searchParams: Promise.resolve({ plan: code }) });
     const link = nodes(tree).find(n => n.props?.href?.startsWith('/sign-in?'));

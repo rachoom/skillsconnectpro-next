@@ -54,7 +54,8 @@ function findTarget(): ScrollTarget | null {
     };
   }
 
-  const confirmConnect = matchingElement('Confirm & connect');
+  const connectCard = document.querySelector<HTMLElement>('[data-customer-action="connect"]');
+  const confirmConnect = connectCard?.querySelector<HTMLElement>('button') ?? matchingElement('Confirm & connect');
   if (confirmConnect) {
     const container = cardFor(confirmConnect);
     return {
@@ -64,7 +65,7 @@ function findTarget(): ScrollTarget | null {
     };
   }
 
-  const connected = matchingElement('You are connected');
+  const connected = document.querySelector<HTMLElement>('[data-customer-action="connected"]') ?? matchingElement('You are connected');
   if (connected) {
     const container = cardFor(connected);
     const contactAction = container.querySelector<HTMLElement>('a, button');

@@ -265,3 +265,29 @@
   color:#6b5700;
   background:#fff9dd;
 }
+
+/* Shared customer workspace finish, including materials and procurement. */
+.page { background:radial-gradient(ellipse at 80% 0%,rgba(131,107,41,.13),transparent 38rem),#0b100c; }
+.hero { position:relative; isolation:isolate; overflow:hidden; padding:28px; border:1px solid rgba(230,202,127,.3); border-radius:26px; background:linear-gradient(90deg,rgba(10,18,12,.98),rgba(10,18,12,.85)),url('/plan-backgrounds/plans-hero-homeowner-artisan.webp') right center/cover; }
+.hero h1 { font-size:clamp(38px,5vw,64px); line-height:1.05; }
+.hero p { color:#c9cdbf; font-size:16px; }
+.hero > div { min-width:0; }
+.stat,.projectCard,.panel,.sidePanel { border-color:rgba(222,195,123,.25); border-radius:22px; box-shadow:inset 0 1px 0 rgba(255,240,193,.06); }
+.stat { border-top-width:1px; background:linear-gradient(145deg,#24271b,#101910); }
+.stat span { font-size:12px; letter-spacing:.04em; color:#c4c7b5; }
+.statIcon,.projectCard > svg,.sidePanel > svg,.emptyIcon { display:inline-grid; place-items:center; width:44px; height:44px; padding:10px; margin-bottom:12px; border:1px solid #9f8443; border-radius:14px; color:#ffdf88; background:linear-gradient(145deg,#483d22,#171c12); box-shadow:inset 0 1px 0 rgba(255,240,193,.2); }
+.statIcon { padding:0; }.statIcon svg { width:21px; }
+.primaryLink,.dashboardAction,.action,.planAction { min-height:48px; border:1px solid #ffe78e; background:linear-gradient(135deg,#ffe995,#ffd33c 52%,#edb918); border-radius:13px; box-shadow:inset 0 1px 0 rgba(255,255,255,.5); color:#191508; text-decoration:none; justify-content:center; }
+.description,.subtle,.empty p { color:#bec4b6; font-size:14px; line-height:1.7; }
+.status,.category,.eyebrow { font-size:12px; letter-spacing:.04em; }
+.tabs button { display:inline-flex; align-items:center; gap:8px; min-height:48px; font-size:14px; }
+.tabs button svg { color:#e4c879; flex-shrink:0; }.tabs button[data-active='true'] svg { color:#201b0e; }
+.input,.select { min-height:48px; font-size:16px; }
+.iconButton { width:44px; height:44px; }
+.navActions { flex-wrap:wrap; }
+.navLink,.signOut { font-size:13px; min-height:44px; }
+.page :is(a,button,input,select):focus-visible { outline:3px solid #edcb67; outline-offset:4px; }
+.page[data-theme='light'] .hero { background:linear-gradient(90deg,rgba(255,255,252,.98),rgba(245,248,239,.9)),url('/plan-backgrounds/plans-hero-homeowner-artisan.webp') right center/cover; }
+.page[data-theme='light'] .hero p { color:#4c5b46; }
+@media(max-width:900px) { .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }.navInner { flex-wrap:wrap; padding-block:12px; gap:10px; }.navActions { gap:7px; }.hero { padding:24px; } }
+@media(max-width:600px) { .primaryLink { display:inline-flex; width:100%; padding:12px 15px; white-space:normal; }.backRow { align-items:stretch; flex-direction:column; }.backRow > .navActions { align-items:stretch; }.signOut span { display:inline; }.navLink,.signOut { padding:8px 11px; }.shell { padding-top:24px; }.stats { gap:10px; }.stat { padding:16px; min-width:0; }.stat strong { font-size:26px; overflow-wrap:anywhere; }.stat span { font-size:12px; }.hero { padding:22px; }.hero h1 { font-size:38px; }.hero .primaryLink { width:100%; }.projectCard { padding:20px; }.tabs { gap:7px; padding-block:18px; } }

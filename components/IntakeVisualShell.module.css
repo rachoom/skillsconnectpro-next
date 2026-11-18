@@ -23,3 +23,17 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Finish the customer request tools without changing assessment or dispatch. */
+:global(body[data-scp-surface='intake']) .content :global([data-intake-nav-icon]),
+:global(body[data-scp-surface='intake']) .content :global([data-intake-composer-tools] button > svg) {
+  border:1px solid #a98a43 !important;
+  border-radius:12px !important;
+  color:#ffdf88 !important;
+  background:linear-gradient(145deg,#483d22,#171c12) !important;
+  box-shadow:inset 0 1px 0 rgba(255,240,193,.2),0 3px 8px rgba(0,0,0,.15) !important;
+}
+:global(body[data-scp-surface='intake']) .content :global([data-intake-composer-tools] button > svg) { box-sizing:content-box; padding:8px; width:18px; height:18px; flex-shrink:0; }
+:global(body[data-scp-surface='intake']) .content :global([data-intake-composer-tools] button) { min-height:48px !important; font-size:13px !important; gap:7px !important; }
+:global(body[data-scp-surface='intake']) .content :global([data-intake-continue]) { min-height:54px !important; border:1px solid #ffe58b !important; border-radius:15px !important; background:linear-gradient(135deg,#ffe995,#ffd33c 52%,#edb918) !important; color:#191508 !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 6px 18px rgba(166,127,25,.12) !important; }
+@media(max-width:480px) { :global(body[data-scp-surface='intake']) .content :global([data-intake-composer-tools] > div) { flex-wrap:wrap !important; gap:8px !important; } }

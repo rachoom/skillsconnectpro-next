@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, LayoutDashboard, MapPin, PackageOpen, PackageSearch, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, FolderKanban, LayoutDashboard, LogOut, MapPin, PackageOpen, PackageSearch, Plus, ShieldCheck, Sparkles } from 'lucide-react';
+import { customerProjectStatusLabel } from '@/services/marketplace/customerProjectPresentation';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import styles from './workspace.module.css';
 import { hardwareQuotesEnabled } from '@/services/hardwareFeature';
@@ -65,10 +66,10 @@ export default async function MyProjectsPage({ searchParams }: Props) {
         </section>
 
         <section className={styles.stats} aria-label="Account summary">
-          <div className={styles.stat}><span>Total projects</span><strong>{projects?.length ?? 0}</strong></div>
-          <div className={styles.stat}><span>Active projects</span><strong>{activeProjects}</strong></div>
-          <div className={styles.stat}><span>Current plan</span><strong style={{ fontSize: '1.05rem' }}>{activePlanLabel}</strong>{activePlan?.ends_at && <small style={{ display: 'block', marginTop: 7, color: '#aaa' }}>Until {new Date(activePlan.ends_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</small>}</div>
-          <div className={styles.stat}><span>Account access</span><strong style={{ fontSize: '1.05rem', textTransform: 'capitalize' }}>{roleLabels.join(' · ') || 'Customer'}</strong></div>
+          <div className={styles.stat}><i className={styles.statIcon}><FolderKanban aria-hidden="true" /></i><span>Total projects</span><strong>{projects?.length ?? 0}</strong></div>
+          <div className={styles.stat}><i className={styles.statIcon}><LayoutDashboard aria-hidden="true" /></i><span>Active projects</span><strong>{activeProjects}</strong></div>
+          <div className={styles.stat}><i className={styles.statIcon}><Sparkles aria-hidden="true" /></i><span>Current plan</span><strong style={{ fontSize: '1.05rem' }}>{activePlanLabel}</strong>{activePlan?.ends_at && <small style={{ display: 'block', marginTop: 7, color: '#aaa' }}>Until {new Date(activePlan.ends_at).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</small>}</div>
+          <div className={styles.stat}><i className={styles.statIcon}><ShieldCheck aria-hidden="true" /></i><span>Account access</span><strong style={{ fontSize: '1.05rem', textTransform: 'capitalize' }}>{roleLabels.join(' · ') || 'Customer'}</strong></div>
         </section>
 
         <section className={styles.grid} aria-label="Workspace shortcuts" style={{ marginBottom: 28 }}>
@@ -120,7 +121,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
             <article className={styles.projectCard} key={project.id}>
               <div className={styles.cardTop}>
                 <span className={styles.category}>{project.category}</span>
-                <span className={styles.status}>{project.status.replaceAll('_', ' ')}</span>
+                <span className={styles.status}>{customerProjectStatusLabel(project.status)}</span>
               </div>
               <h2>{project.title}</h2>
               <p className={styles.description}>{project.customer_description}</p>
@@ -134,7 +135,7 @@ export default async function MyProjectsPage({ searchParams }: Props) {
                   Manage project <ArrowRight size={17} />
                 </Link>
                 <Link href={`/my-projects/${project.id}/dashboard`} className={styles.dashboardAction}>
-                  <LayoutDashboard size={17} /> View dashboard
+                  <LayoutDashboard size={17} /> Provider updates
                 </Link>
               </div>
             </article>
@@ -166,7 +167,7 @@ function AccountNav({ hasArtisanAccess = false }: { hasArtisanAccess?: boolean }
         {hardwareQuotesEnabled() && (        <Link href="/hardware-quotations" className={styles.navLink}>Hardware Quotes</Link>)}
         <Link href="/plans" className={styles.navLink}>Plans</Link>
         <WorkspaceThemeToggle />
-        <form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form>
+        <form action="/auth/sign-out" method="post"><button className={styles.signOut}><LogOut size={16} aria-hidden="true" /><span>Sign out</span></button></form>
       </div>
     </div></nav>
   );

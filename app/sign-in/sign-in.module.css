@@ -33,3 +33,13 @@
 .spin { animation:spin .8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 @media (max-width:800px) { .shell { grid-template-columns:1fr; gap:42px; padding-top:42px; }.promise h1 { font-size:clamp(2.7rem,14vw,4.5rem); }.nav img { width:170px; }.card { padding:26px 22px; } }
+
+/* Private customer access: same visual language as the workspace. */
+.page { background:radial-gradient(ellipse at 15% 0%,rgba(100,112,65,.2),transparent 36rem),#0b120d; }
+.card { border:1px solid rgba(236,207,133,.32); background:linear-gradient(145deg,#23291d,#101a12); box-shadow:inset 0 1px 0 rgba(255,240,193,.1),0 24px 60px rgba(0,0,0,.25); }
+.lock { border:1px solid #a98a43; color:#ffdf88; background:linear-gradient(145deg,#483d22,#171c12); box-shadow:inset 0 1px 0 rgba(255,240,193,.22),0 4px 10px rgba(0,0,0,.2); }
+.primary { min-height:54px; border:1px solid #ffe58b; color:#191508; background:linear-gradient(135deg,#ffe995,#ffd33c 52%,#edb918); box-shadow:inset 0 1px 0 rgba(255,255,255,.55); }
+.cardCopy { color:#c1c7b7; font-size:16px; }.privacy { color:#b2bba9; font-size:13px; }
+.emailField input { font-size:16px; }
+.page :is(button,a,input):focus-visible { outline:3px solid #edcb67; outline-offset:4px; }
+@media(max-width:480px) { .nav { gap:12px; }.nav img { width:150px; height:auto; }.shell { padding-top:28px; gap:28px; }.promise h1 { font-size:38px; line-height:1.08; }.promise p { font-size:16px; }.card { padding:24px 20px; border-radius:22px; } }

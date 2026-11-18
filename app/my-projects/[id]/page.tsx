@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowLeft, LayoutDashboard } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, LogOut } from 'lucide-react';
+import { customerProjectStatusLabel } from '@/services/marketplace/customerProjectPresentation';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { ProjectWorkspace } from './project-workspace';
@@ -56,7 +57,7 @@ export default async function ProjectWorkspacePage({ params }: Props) {
     <main className={styles.page} data-workspace-shell>
       <nav className={styles.nav}><div className={styles.navInner}>
         <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
-        <div className={styles.navActions}><Link href="/my-projects" className={styles.navLink}>My Projects</Link><WorkspaceThemeToggle /><form action="/auth/sign-out" method="post"><button className={styles.signOut}><span>Sign out</span></button></form></div>
+        <div className={styles.navActions}><Link href="/my-projects" className={styles.navLink}>My Projects</Link><WorkspaceThemeToggle /><form action="/auth/sign-out" method="post"><button className={styles.signOut}><LogOut size={16} aria-hidden="true" /><span>Sign out</span></button></form></div>
       </div></nav>
       <div className={styles.shell}>
         <div className={styles.backRow}>
@@ -64,10 +65,10 @@ export default async function ProjectWorkspacePage({ params }: Props) {
           <div className={styles.navActions}>
             {project.customer_id === user.id && (
               <Link href={`/my-projects/${id}/dashboard`} className={styles.primaryLink}>
-                <LayoutDashboard size={17} /> Open customer dashboard
+                <LayoutDashboard size={17} /> Provider updates
               </Link>
             )}
-            <span className={styles.status}>{project.status.replaceAll('_', ' ')}</span>
+            <span className={styles.status}>{customerProjectStatusLabel(project.status)}</span>
           </div>
         </div>
         <header className={styles.projectHeader}>

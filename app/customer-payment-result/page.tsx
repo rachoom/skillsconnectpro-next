@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CheckCircle2, Clock3, LockKeyhole, XCircle } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
+import { CustomerTransactionShell } from '@/components/CustomerTransactionShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,17 +92,17 @@ export default async function CustomerPaymentResultPage({
   const cancelled = cancellationRequested && !complete;
   const owned = Boolean(payment && user && payment.user_id === user.id);
   const guestPaid = Boolean(payment && complete && !payment.user_id && claimValid);
-  const title = cancelled
+  const title = !payment ? 'Payment link unavailable' : cancelled
     ? 'Payment cancelled'
     : complete
       ? owned && !activationFailed ? 'Your plan is active' : 'Payment received'
       : 'Payment confirmation pending';
-  const Icon = cancelled ? XCircle : complete ? CheckCircle2 : Clock3;
+  const Icon = !payment || cancelled ? XCircle : complete ? CheckCircle2 : Clock3;
 
   const nextPath = `/customer-payment-result?payment=${encodeURIComponent(paymentReference)}${claimToken ? `&claim=${encodeURIComponent(claimToken)}` : ''}`;
 
   return (
-    <main className="min-h-screen bg-[#061008] px-4 py-12 text-[#f8f3e5]">
+    <CustomerTransactionShell label="Your payment status">
       <section className="mx-auto max-w-xl rounded-[2rem] border border-white/12 bg-white/[.045] p-7 text-center shadow-2xl shadow-black/30 backdrop-blur-xl md:p-10">
         <Icon className={cancelled ? 'mx-auto text-[#ff8c7f]' : complete ? 'mx-auto text-[#65f3a7]' : 'mx-auto text-[#ffe17a]'} size={48} />
         <h1 className="mt-5 text-3xl font-black text-white">{title}</h1>
@@ -151,6 +152,6 @@ export default async function CustomerPaymentResultPage({
           )}
         </div>
       </section>
-    </main>
+    </CustomerTransactionShell>
   );
 }
