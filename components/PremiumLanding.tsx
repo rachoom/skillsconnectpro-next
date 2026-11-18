@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
+  BriefcaseBusiness,
   Camera,
   Car,
   Check,
@@ -119,7 +120,7 @@ export function PremiumLanding() {
             <Link href="/plans?audience=providers">Provider plans</Link>
           </div>
           <div className={styles.navActions}>
-            <Link href="/join" className={styles.join}>Join as provider <ArrowRight size={15} /></Link>
+            <Link href="/join" className={styles.join}><span className={styles.joinIcon}><BriefcaseBusiness size={16} aria-hidden="true" /></span><span>Join as provider</span></Link>
             <button
               ref={menuButton}
               type="button"

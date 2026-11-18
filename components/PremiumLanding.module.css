@@ -34,7 +34,8 @@
 .desktopNav, .navActions { display: flex; align-items: center; gap: 26px; }
 .desktopNav a { display: inline-flex; align-items: center; min-height: 44px; color: #b3b3b3; font-size: 12px; font-weight: 500; }
 .navActions { gap: 8px; }
-.join { min-height: 44px; padding: 11px 17px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #4a4a4a; border-radius: 10px; color: #fafafa; font-size: 12px; font-weight: 600; background: #141414; }
+.join { min-height: 46px; padding: 8px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #a48335; border-radius: 12px; color: #ffe9ac; font-size: 12px; font-weight: 700; white-space: nowrap; background: linear-gradient(145deg,#30291a,#14130f); box-shadow: inset 0 1px 0 rgba(255,234,171,.16),0 4px 14px rgba(0,0,0,.2); transition: border-color 180ms ease,background 180ms ease,box-shadow 180ms ease; }
+.joinIcon { width: 26px; height: 26px; flex-shrink: 0; display: grid; place-items: center; border: 1px solid rgba(255,216,112,.3); border-radius: 8px; color: #ffdb76; background: linear-gradient(145deg,#504020,#211b0f); box-shadow: inset 0 1px 0 rgba(255,242,201,.2); }
 .menuButton { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; border: 1px solid #4a4a4a; border-radius: 10px; background: #141414; color: #fafafa; }
 .mobileMenu { padding: 8px 20px 20px; display: grid; border-top: 1px solid #303030; background: #080808; max-height: 75svh; overflow-y: auto; }
 .mobileMenu a { display: flex; align-items: center; min-height: 48px; padding: 12px; border-radius: 8px; color: #fafafa; font-size: 14px; }
@@ -170,6 +171,7 @@
 @media (hover: hover) {
   .desktopNav a:hover, .secondary:hover { color: #fff; }
   .join:hover, .outlineButton:hover { border-color: var(--gold); }
+  .join:hover { background: linear-gradient(145deg,#40341d,#1d190f); box-shadow: inset 0 1px 0 rgba(255,234,171,.24),0 5px 18px rgba(245,197,24,.09); }
   .commandBar:hover { background: #ffda45; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(245,197,24,.24); }
   .primary:hover { background: #ffda45; }
   .serviceTile:hover { transform: translateY(-3px); border-color: var(--gold); }
@@ -205,8 +207,8 @@
 @media (max-width: 640px) {
   .navInner { min-height: 68px; padding: 10px 20px; gap: 12px; }
   .brand img { width: 143px; }
-  .join { min-height: 44px; padding: 10px; font-size: 10px; }
-  .join svg { display: none; }
+  .join { min-height: 46px; padding: 8px 10px; font-size: 10.5px; gap: 7px; }
+  .joinIcon { width: 24px; height: 24px; border-radius: 7px; }
   .spotlight { --mobile-art-height: clamp(220px, 64vw, 380px); padding: 0 20px; }
   .spotlightInner { min-height: 0; display: block; }
   .heroArt { bottom: auto; height: var(--mobile-art-height); }
@@ -280,7 +282,8 @@
 }
 @media (max-width: 370px) {
   .navInner { padding-inline: 14px; gap: 6px; }
-  .brand img { width: 125px; }
+  .brand img { width: 110px; }
+  .join { padding-inline: 8px; gap: 6px; font-size: 10px; }
   .navActions { gap: 6px; }
   .spotlight { padding-inline: 16px; }
   .pitch h1 { font-size: 36px; }

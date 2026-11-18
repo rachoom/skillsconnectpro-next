@@ -1,7 +1,7 @@
 // src/components/QuickOnboard.tsx
 import React, { useState, useRef } from 'react';
 import { extractBusinessCard } from '../services/aiOnboardingService';
-import { Loader2, UploadCloud, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Camera, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => void }> = ({ isDarkMode, onComplete }) => {
   const [status, setStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
@@ -125,8 +125,8 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
   };
 
   return (
-    <div className={`min-h-[70vh] flex flex-col items-center justify-center p-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-      <div id="provider-camera-assistant" className={`max-w-md w-full p-8 rounded-[3rem] shadow-2xl border text-center ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
+    <div data-onboard-frame className={`min-h-[70vh] flex flex-col items-center justify-center p-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+      <div id="provider-camera-assistant" data-onboard-card className={`max-w-md w-full p-8 rounded-[3rem] shadow-2xl border text-center ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
         
         {status === 'idle' && (
           <div className="animate-fade-in-up">
@@ -136,10 +136,12 @@ export const QuickOnboard: React.FC<{ isDarkMode: boolean; onComplete: () => voi
             <input type="file" accept="image/*" capture="environment" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
             
             <button 
+              type="button"
+              data-onboard-action
               onClick={() => fileInputRef.current?.click()}
               className="w-full bg-brand-yellow text-black font-black py-6 rounded-2xl uppercase tracking-widest text-sm hover:scale-105 transition-transform flex flex-col items-center gap-2 shadow-lg shadow-brand-yellow/20"
             >
-              <UploadCloud size={32} />
+              <span data-onboard-action-icon><Camera size={30} aria-hidden="true" /></span>
               <span>Take a Photo</span>
             </button>
           </div>

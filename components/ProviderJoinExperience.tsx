@@ -4,8 +4,9 @@ import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { BadgeCheck, BriefcaseBusiness, House, MessagesSquare, ShieldCheck } from 'lucide-react';
 import { QuickOnboard } from './QuickOnboard';
+import styles from './ProviderJoinExperience.module.css';
 
 export const ProviderJoinExperience = () => {
   const router = useRouter();
@@ -17,9 +18,12 @@ export const ProviderJoinExperience = () => {
     if (window.location.hash && window.location.hash !== '#provider-camera-assistant') return;
 
     const timer = window.setTimeout(() => {
-      document.getElementById('provider-camera-assistant')?.scrollIntoView({
+      const assistant = document.getElementById('provider-camera-assistant');
+      // Keep the provider photo and camera action together in the first view.
+      const application = assistant?.closest('[data-provider-application]') ?? assistant;
+      application?.scrollIntoView({
         behavior: 'auto',
-        block: 'center',
+        block: 'start',
       });
     }, 120);
 
@@ -27,46 +31,49 @@ export const ProviderJoinExperience = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(47,103,74,0.28),transparent_30rem),radial-gradient(circle_at_90%_30%,rgba(245,197,24,0.12),transparent_24rem),#120b07] px-4 py-6 text-white sm:px-6 sm:py-10">
-      <div className="mx-auto max-w-5xl">
-        <header className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 backdrop-blur-xl">
-          <Link href="/" className="flex min-h-11 items-center gap-2 text-xs font-black uppercase tracking-wider text-white/75">
-            <ArrowLeft size={17} /> Home
+    <main className={styles.page}>
+      <div className={styles.inner}>
+        <header className={styles.header}>
+          <Link href="/" className={styles.home}>
+            <span className={styles.iconBadge}><House size={17} aria-hidden="true" /></span> Home
           </Link>
           <Image src="/logo-new.svg" alt="Skills Connect Pro" width={165} height={46} />
         </header>
 
-        <section className="grid gap-6 py-8 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:py-14">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-300">
-              <Sparkles size={15} /> Join the provider network
+        <section className={styles.layout}>
+          <div className={styles.copy}>
+            <div className={styles.eyebrow}>
+              <BriefcaseBusiness size={16} aria-hidden="true" /> Join the provider network
             </div>
-            <h1 className="mt-5 text-4xl font-black leading-[1.02] tracking-[-0.04em] sm:text-5xl lg:text-6xl">
+            <h1>
               Receive relevant local opportunities. Build a verified work record.
             </h1>
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
+            <p className={styles.description}>
               Add your basic service details now. Skills Connect Pro reviews provider applications before profiles and marketplace opportunities become active.
             </p>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div className={styles.benefits}>
               {[
-                'Customer contact details remain protected until selection',
-                'Respond only to opportunities that fit your service',
-                'Completed jobs can build verified marketplace reputation',
-              ].map((item) => (
-                <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-white/75 backdrop-blur-xl">
-                  <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-300" size={19} /> {item}
+                { icon: ShieldCheck, text: 'Customer contact details remain protected until selection' },
+                { icon: MessagesSquare, text: 'Respond only to opportunities that fit your service' },
+                { icon: BadgeCheck, text: 'Completed jobs can build verified marketplace reputation' },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className={styles.benefit}>
+                  <span className={styles.iconBadge}><Icon size={20} aria-hidden="true" /></span><span>{text}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4 text-xs leading-6 text-emerald-50/75">
-              <ShieldCheck className="mt-0.5 shrink-0 text-emerald-300" size={19} />
-              Provider applications are reviewed. Joining does not guarantee immediate activation or a specific number of opportunities.
+            <div className={styles.reviewNote}>
+              <span className={styles.iconBadge}><ShieldCheck size={19} aria-hidden="true" /></span>
+              <span>Provider applications are reviewed. Joining does not guarantee immediate activation or a specific number of opportunities.</span>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[2rem] border border-white/12 bg-[#0d2117]/85 shadow-2xl shadow-black/45 backdrop-blur-2xl">
+          <div className={styles.application} data-provider-application>
+            <div className={styles.visual}>
+              <Image src="/artisans/provider-join-workshop.webp" alt="Two local skilled professionals reviewing a phone outside their workshop" fill priority unoptimized sizes="(min-width: 1024px) 480px, 100vw" />
+            </div>
             <QuickOnboard isDarkMode onComplete={() => router.push('/')} />
           </div>
         </section>

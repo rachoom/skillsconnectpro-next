@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
  */
 export const SiteDesignAuditPolish = () => {
   const pathname = usePathname();
-  if (['/', '/assistant', '/get-help'].includes(pathname)) return null;
+  if (['/', '/assistant', '/get-help', '/join'].includes(pathname)) return null;
 
   return (
   <style>{`
