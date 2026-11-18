@@ -108,17 +108,17 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
         <p className="mt-4 max-w-2xl text-base leading-7 text-white/65">Choose whether you are planning a project or growing your service business.</p>
 
         <div className="mt-7 max-w-2xl">
-          <p className="mb-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-white/45">Choose your side</p>
+          <p className="mb-2.5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#ffe17a]"><span className="inline-block size-1.5 rounded-full bg-[#ffd75f] shadow-[0_0_12px_rgba(255,215,95,.9)]" />Choose how you use Skills Connect Pro</p>
           <div role="tablist" aria-label="Plan audience" className="grid grid-cols-2 gap-2 rounded-[1.65rem] border border-[#ffd75f]/20 bg-[linear-gradient(145deg,rgba(255,255,255,.055),rgba(0,0,0,.28))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_18px_55px_rgba(0,0,0,.22)] backdrop-blur-2xl">
             <Link
               role="tab"
               aria-selected={audience === 'homeowners'}
               href="/plans?audience=homeowners"
-              className={`group flex min-h-[78px] items-center gap-3 rounded-[1.25rem] border px-3.5 py-3 text-left transition duration-200 ${audience === 'homeowners' ? 'border-[#ffd75f] bg-[linear-gradient(135deg,#ffe17a,#f3c93e)] text-[#1b1608] shadow-[0_12px_34px_rgba(255,215,95,.20)]' : 'border-white/14 bg-white/[.055] text-white hover:border-[#ffd75f]/45 hover:bg-white/[.08]'}`}
+              className={`group flex min-h-[78px] items-center gap-3 rounded-[1.25rem] border px-3.5 py-3 text-left transition duration-200 ${audience === 'homeowners' ? 'border-[#ffd75f] bg-[linear-gradient(135deg,#ffe88f,#f4c431)] text-[#1b1608] shadow-[0_14px_38px_rgba(255,215,95,.24)]' : 'border-[#ffd75f]/35 bg-[#101811]/95 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)] hover:border-[#ffd75f]/70 hover:bg-[#18251a]'}`}
             >
               <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl border ${audience === 'homeowners' ? 'border-black/10 bg-black/[.08]' : 'border-[#ffd75f]/28 bg-[#ffd75f]/[.08] text-[#ffe17a]'}`}><House size={19} /></span>
               <span className="min-w-0">
-                <strong className="block text-sm font-black">Homeowner</strong>
+                <span className="flex items-center gap-2"><strong className="block text-sm font-black">Homeowner</strong>{audience === 'homeowners' && <span className="rounded-full bg-black/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[.12em] text-black/60">Selected</span>}</span>
                 <span className={`mt-0.5 block text-[11px] font-semibold leading-4 ${audience === 'homeowners' ? 'text-black/60' : 'text-white/50'}`}>Plan & manage a project</span>
               </span>
             </Link>
@@ -126,15 +126,16 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
               role="tab"
               aria-selected={audience === 'providers'}
               href={providerTabHref}
-              className={`group flex min-h-[78px] items-center gap-3 rounded-[1.25rem] border px-3.5 py-3 text-left transition duration-200 ${audience === 'providers' ? 'border-[#ffd75f] bg-[linear-gradient(135deg,#ffe17a,#f3c93e)] text-[#1b1608] shadow-[0_12px_34px_rgba(255,215,95,.20)]' : 'border-white/14 bg-white/[.055] text-white hover:border-[#ffd75f]/45 hover:bg-white/[.08]'}`}
+              className={`group flex min-h-[78px] items-center gap-3 rounded-[1.25rem] border px-3.5 py-3 text-left transition duration-200 ${audience === 'providers' ? 'border-[#ffd75f] bg-[linear-gradient(135deg,#ffe88f,#f4c431)] text-[#1b1608] shadow-[0_14px_38px_rgba(255,215,95,.24)]' : 'border-[#ffd75f]/35 bg-[#101811]/95 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)] hover:border-[#ffd75f]/70 hover:bg-[#18251a]'}`}
             >
               <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl border ${audience === 'providers' ? 'border-black/10 bg-black/[.08]' : 'border-[#ffd75f]/28 bg-[#ffd75f]/[.08] text-[#ffe17a]'}`}><HardHat size={19} /></span>
               <span className="min-w-0">
-                <strong className="block text-sm font-black">Provider</strong>
+                <span className="flex items-center gap-2"><strong className="block text-sm font-black">Provider</strong>{audience === 'providers' && <span className="rounded-full bg-black/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[.12em] text-black/60">Selected</span>}</span>
                 <span className={`mt-0.5 block text-[11px] font-semibold leading-4 ${audience === 'providers' ? 'text-black/60' : 'text-white/50'}`}>Get access to more work</span>
               </span>
             </Link>
           </div>
+          <p className="mt-2.5 text-xs font-semibold text-white/45">Switch between homeowner and provider options anytime.</p>
         </div>
       </div>
     </section>
