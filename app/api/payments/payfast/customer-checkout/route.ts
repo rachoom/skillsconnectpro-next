@@ -65,7 +65,6 @@ export async function POST(request: Request) {
       custom_str1: user.id,
       custom_str2: plan.code,
       custom_str3: 'customer_project_pass',
-      email_confirmation: 1,
     };
 
     const paymentFields = normalisePayfastFields(fields);
