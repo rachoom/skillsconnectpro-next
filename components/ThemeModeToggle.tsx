@@ -27,6 +27,7 @@ function applyTheme(theme: ThemeMode) {
 export const ThemeModeToggle = () => {
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const isPlans = pathname === '/plans' || pathname === '/provider-plans' || pathname.startsWith('/provider-plans/');
   const [theme, setTheme] = useState<ThemeMode>('dark');
 
   useEffect(() => {
@@ -56,27 +57,29 @@ export const ThemeModeToggle = () => {
         applyTheme(nextTheme);
         setTheme(nextTheme);
       }}
-      className={`fixed z-[120] flex min-h-12 min-w-12 items-center justify-center gap-2 border px-3 text-white shadow-2xl shadow-black/35 backdrop-blur-xl transition active:scale-95 ${
-        isHome
-          ? 'rounded-full border-[#f5c518]/45 bg-[#120b07]/80 sm:px-4'
-          : 'rounded-2xl border-white/20 bg-black/70 sm:px-4'
+      className={`fixed z-[120] flex min-h-11 min-w-11 items-center justify-center gap-2 border text-white shadow-2xl shadow-black/35 backdrop-blur-xl transition active:scale-95 ${
+        isPlans
+          ? 'rounded-full border-[#ffd75f]/35 bg-[#0b120c]/92 p-2.5 hover:border-[#ffd75f]/70'
+          : isHome
+            ? 'rounded-full border-[#f5c518]/45 bg-[#120b07]/80 px-3 sm:px-4'
+            : 'rounded-2xl border-white/20 bg-black/70 px-3 sm:px-4'
       }`}
-      style={isHome ? {
-        left: 'max(0.8rem, env(safe-area-inset-left))',
-        bottom: 'max(0.8rem, env(safe-area-inset-bottom))',
+      style={isPlans ? {
+        right: 'max(0.85rem, env(safe-area-inset-right))',
+        bottom: 'max(0.85rem, env(safe-area-inset-bottom))',
       } : {
         left: 'max(0.8rem, env(safe-area-inset-left))',
         bottom: 'max(0.8rem, env(safe-area-inset-bottom))',
       }}
-      data-scp-theme-location={isHome ? 'hero' : 'floating'}
+      data-scp-theme-location={isPlans ? 'plans-corner' : isHome ? 'hero' : 'floating'}
       aria-label={label}
       title={label}
       suppressHydrationWarning
     >
       {nextTheme === 'light' ? <Sun size={19} /> : <Moon size={19} />}
-      <span className="hidden text-[11px] font-black uppercase tracking-wider sm:inline">
+      {!isPlans && <span className="hidden text-[11px] font-black uppercase tracking-wider lg:inline">
         {nextTheme === 'light' ? 'Light mode' : 'Dark mode'}
-      </span>
+      </span>}
     </button>
   );
 };
