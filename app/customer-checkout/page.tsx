@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft, CreditCard, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CreditCard, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 import { CustomerCheckoutForm } from './CustomerCheckoutForm';
 
@@ -17,6 +18,8 @@ export default async function CustomerCheckoutPage({
     redirect('/plans?audience=homeowners');
   }
 
+  const { user } = await getAuthenticatedAccount();
+  const checkoutPath = `/customer-checkout?plan=${encodeURIComponent(code)}`;
 
   const { data: plan, error } = await getSupabaseAdmin()
     .from('plans')
@@ -70,7 +73,7 @@ export default async function CustomerCheckoutPage({
               <div>
                 <h2 className="font-black text-white">What happens next</h2>
                 <p className="mt-2 text-sm leading-6 text-white/62">
-                  PayFast handles the payment securely. If you are not signed in, you can secure the purchased plan to an account after payment — without blocking checkout first.
+                  PayFast handles the payment securely. If you are not signed in, you can secure the purchased plan to an account after payment — without blocking checkout first. Keep your confirmation link and secure guest purchases within 24 hours.
                 </p>
               </div>
             </div>
@@ -80,6 +83,25 @@ export default async function CustomerCheckoutPage({
             <ShieldCheck className="shrink-0 text-[#65f3a7]" size={19} />
             <p className="text-sm leading-6">Your card details are entered on PayFast and are not stored by Skills Connect Pro.</p>
           </div>
+
+          {user ? (
+            <div className="mt-6 rounded-2xl border border-[#55d995]/25 bg-[#0b2a19] p-5">
+              <p className="font-bold text-white">You are signed in</p>
+              <p className="mt-2 text-sm leading-6 text-white/70">Your plan will be linked to your account once PayFast confirms payment.</p>
+            </div>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-[#ffd75f]/25 bg-[#ffd75f]/[.07] p-5">
+              <h2 className="font-black text-white">Choose how to continue</h2>
+              <p className="mt-2 text-sm leading-6 text-white/70">Pay as a guest using the button below, or sign in first to link your purchase to your account automatically.</p>
+              <Link
+                href={`/sign-in?next=${encodeURIComponent(checkoutPath)}`}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#ffd75f]/60 px-4 py-3.5 text-sm font-black text-[#ffe17a] transition hover:bg-[#ffd75f]/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ffd75f]"
+              >
+                <Mail size={18} aria-hidden="true" /> Sign in with email or Google
+              </Link>
+              <p className="mt-3 text-xs leading-5 text-white/60">Sign-in is optional. You will return here with the same plan and price.</p>
+            </div>
+          )}
 
           <CustomerCheckoutForm planCode={plan.code} price={price} />
         </section>

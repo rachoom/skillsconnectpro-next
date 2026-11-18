@@ -92,11 +92,11 @@ export async function POST(request: Request) {
     return NextResponse.json({
       paymentUrl: config.processUrl,
       fields: { ...paymentFields, signature: payfastSignature(paymentFields, config.passphrase) },
-    });
+    }, { headers: { 'Cache-Control': 'private, no-store, max-age=0' } });
   } catch (error) {
     const invalid = publicRequestError(error);
     if (invalid) return invalid;
     console.error('Unable to create customer PayFast checkout:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unable to start secure checkout.' }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to start secure checkout. Please try again shortly.' }, { status: 500 });
   }
 }

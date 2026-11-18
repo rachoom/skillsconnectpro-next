@@ -18,7 +18,7 @@ export default async function CustomerPaymentResultPage({
   const params = await searchParams;
   const paymentReference = typeof params.payment === 'string' ? params.payment : '';
   const claimToken = typeof params.claim === 'string' ? params.claim : '';
-  const cancelled = params.cancelled === '1';
+  const cancellationRequested = params.cancelled === '1';
   const { user } = await getAuthenticatedAccount();
   const supabase = getSupabaseAdmin();
 
@@ -45,6 +45,9 @@ export default async function CustomerPaymentResultPage({
   if (payment && !payment.user_id && !claimValid) payment = null;
   if (payment?.user_id && (!user || payment.user_id !== user.id)) payment = null;
 
+  let activationFailed = false;
+  let claimFailed = false;
+
   // A guest can pay first and attach the purchase only after authenticating.
   if (payment && user && !payment.user_id && claimValid) {
     const { data: claimedPayment, error: claimError } = await supabase
@@ -52,31 +55,46 @@ export default async function CustomerPaymentResultPage({
       .update({
         user_id: user.id,
         claimed_at: new Date().toISOString(),
+        claim_token_hash: null,
+        claim_expires_at: null,
       })
       .eq('m_payment_id', payment.m_payment_id)
       .is('user_id', null)
       .eq('claim_token_hash', suppliedClaimHash)
+      .gt('claim_expires_at', new Date().toISOString())
       .select('m_payment_id,user_id,plan_code,processor_status,amount_cents,payfast_payment_id,claim_token_hash,claim_expires_at,claimed_at,updated_at')
       .maybeSingle();
 
     if (!claimError && claimedPayment) {
       payment = claimedPayment;
-      if (payment.processor_status === 'COMPLETE' && payment.payfast_payment_id) {
-        await supabase.rpc('grant_customer_payment_entitlement', {
-          payment_ref: payment.m_payment_id,
-          processor_ref: payment.payfast_payment_id,
-        });
-      }
+    } else {
+      claimFailed = true;
+    }
+  }
+
+  // Reconcile on every verified owner's return, including notification/claim
+  // races and a previous transient activation failure. The RPC is idempotent.
+  if (payment && user && payment.user_id === user.id && payment.processor_status === 'COMPLETE') {
+    if (!payment.payfast_payment_id) {
+      activationFailed = true;
+    } else {
+      const { error: entitlementError } = await supabase.rpc('grant_customer_payment_entitlement', {
+        payment_ref: payment.m_payment_id,
+        processor_ref: payment.payfast_payment_id,
+      });
+      activationFailed = Boolean(entitlementError);
+      if (entitlementError) console.error('Unable to activate confirmed homeowner purchase:', entitlementError.message);
     }
   }
 
   const complete = payment?.processor_status === 'COMPLETE';
+  const cancelled = cancellationRequested && !complete;
   const owned = Boolean(payment && user && payment.user_id === user.id);
   const guestPaid = Boolean(payment && complete && !payment.user_id && claimValid);
   const title = cancelled
     ? 'Payment cancelled'
     : complete
-      ? owned ? 'Your plan is active' : 'Payment received'
+      ? owned && !activationFailed ? 'Your plan is active' : 'Payment received'
       : 'Payment confirmation pending';
   const Icon = cancelled ? XCircle : complete ? CheckCircle2 : Clock3;
 
@@ -92,10 +110,14 @@ export default async function CustomerPaymentResultPage({
             ? 'We could not verify this payment link. Return to the plans page and reopen your checkout.'
             : cancelled
               ? 'No homeowner-plan access has been activated.'
+              : activationFailed
+                ? 'PayFast confirmed your payment, but plan activation is still pending. Refresh this page to retry; you do not need to pay again.'
+              : claimFailed
+                ? 'We could not link this purchase to your account yet. Refresh this page to retry; you do not need to pay again.'
               : owned && complete
                 ? 'PayFast confirmed the payment and Skills Connect Pro has activated your homeowner plan.'
                 : guestPaid
-                  ? 'PayFast confirmed your payment. Your purchase is safe. Secure it to a Skills Connect Pro account whenever you are ready so you can reopen it on another device.'
+                  ? 'PayFast confirmed your payment. Your purchase is safe. Secure it to a Skills Connect Pro account within 24 hours using this confirmation link so you can reopen it on another device.'
                   : 'PayFast may return you to the site before its secure payment notification arrives. Refresh this page shortly to see the confirmed status.'}
         </p>
 
@@ -112,6 +134,12 @@ export default async function CustomerPaymentResultPage({
               Secure my access
             </Link>
           </div>
+        )}
+
+        {payment && !cancelled && (!complete || activationFailed || claimFailed) && (
+          <Link href={nextPath} prefetch={false} className="mt-6 inline-flex rounded-xl border border-[#ffd75f]/50 px-5 py-3 text-sm font-black text-[#ffe17a]">
+            Check payment status
+          </Link>
         )}
 
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
