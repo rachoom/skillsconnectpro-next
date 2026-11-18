@@ -165,7 +165,7 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
             <div className="mt-2 flex items-end justify-between gap-3"><h3 className="text-3xl font-black tracking-[-.035em] text-white">{plan.name}</h3><p className={`shrink-0 text-2xl font-black ${theme.price}`}>{plan.price}<span className="ml-1 text-xs font-bold text-white/65">{plan.period}</span></p></div>
             <p className="mt-4 min-h-12 text-sm leading-6 text-white/70">{plan.description}</p>
             <ul className="mt-5 space-y-2.5 text-sm leading-5 text-white/90">{plan.features.map((feature) => <li key={feature} className="flex gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{feature}</li>)}</ul>
-            <Link href={plan.code === 'free' ? '/assistant' : `/customer-checkout?plan=${plan.code}`} className={`mt-6 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black transition ${theme.button}`}>{plan.button}<ArrowRight size={17} /></Link>
+            <Link href={plan.code === 'free' ? '/assistant' : `/customer-checkout?plan=${plan.code}`} className={`mt-6 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black transition ${theme.button}`}>{plan.code === 'free' ? plan.button : `${plan.button} · ${plan.price}`}<ArrowRight size={17} /></Link>
           </div>
         </article>;
       })}</div>
