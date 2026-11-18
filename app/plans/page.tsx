@@ -52,6 +52,21 @@ const customerPlans: Array<{
   },
 ];
 
+const customerPlanBackgrounds: Record<string, string> = {
+  free: '/plan-backgrounds/plan-starter.webp',
+  basic_30: '/plan-backgrounds/plan-lead4.webp',
+  project_pass_90: '/plan-backgrounds/plan-lead10.webp',
+};
+
+const providerPlanVisuals: Record<string, { image: string; icon: PlanVisual['icon']; wash: string; glow: string }> = {
+  starter: { image: '/plan-backgrounds/plan-starter.webp', icon: HardHat, wash: 'bg-[radial-gradient(circle_at_12%_12%,rgba(45,212,191,.24),transparent_17rem),linear-gradient(180deg,rgba(0,10,7,.12),rgba(0,8,5,.82))]', glow: 'shadow-[0_22px_70px_rgba(45,212,191,.13)]' },
+  growth: { image: '/plan-backgrounds/plan-growth.webp', icon: Sparkles, wash: 'bg-[radial-gradient(circle_at_12%_12%,rgba(167,139,250,.25),transparent_17rem),linear-gradient(180deg,rgba(13,5,28,.08),rgba(10,4,23,.84))]', glow: 'shadow-[0_22px_70px_rgba(167,139,250,.15)]' },
+  pro: { image: '/plan-backgrounds/plan-pro.webp', icon: BadgeCheck, wash: 'bg-[radial-gradient(circle_at_12%_12%,rgba(251,146,60,.25),transparent_17rem),linear-gradient(180deg,rgba(26,9,2,.08),rgba(19,7,2,.84))]', glow: 'shadow-[0_22px_70px_rgba(251,146,60,.14)]' },
+  'lead-pack-4': { image: '/plan-backgrounds/plan-lead4.webp', icon: Gauge, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(56,189,248,.27),transparent_15rem),linear-gradient(180deg,rgba(3,15,27,.08),rgba(3,13,23,.82))]', glow: 'shadow-[0_18px_55px_rgba(56,189,248,.13)]' },
+  'lead-pack-10': { image: '/plan-backgrounds/plan-lead10.webp', icon: ClipboardCheck, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(244,114,182,.24),transparent_15rem),linear-gradient(180deg,rgba(25,5,14,.06),rgba(20,5,12,.84))]', glow: 'shadow-[0_18px_55px_rgba(244,114,182,.13)]' },
+  'lead-pack-25': { image: '/plan-backgrounds/plan-lead25.webp', icon: UsersRound, wash: 'bg-[radial-gradient(circle_at_18%_10%,rgba(34,211,238,.24),transparent_15rem),linear-gradient(180deg,rgba(3,18,22,.07),rgba(3,15,19,.84))]', glow: 'shadow-[0_18px_55px_rgba(34,211,238,.13)]' },
+};
+
 const comparisonRows = [
   ['Account registration', 'Included', 'Included', 'Included'],
   ['AI Project Assistant', 'Included', 'Included', 'Included'],
@@ -168,11 +183,31 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
     <section id="homeowners" className="relative scroll-mt-5 px-4 py-14 md:px-8 md:py-20"><div className="pointer-events-none absolute left-1/2 top-16 h-80 w-[min(90vw,68rem)] -translate-x-1/2 rounded-full bg-[#f9ca32]/[.08] blur-3xl" /><div className="relative mx-auto max-w-7xl">
       <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end"><div className="max-w-3xl"><div className="flex items-center gap-2 text-[#ffe17a]"><FolderKanban size={19} /><span className="text-xs font-black uppercase tracking-[0.16em]">Plans for every project</span></div><h2 className="mt-3 text-3xl font-black tracking-[-.035em] text-[#fff8e8] md:text-5xl">Choose the support that fits the job.</h2><p className="mt-4 max-w-2xl text-sm leading-7 text-white/68 md:text-base">Start free if you simply need clarity. Step up when you want stronger planning, better records and a proper project workspace.</p></div><div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[.045] px-4 py-3 text-sm text-white/70 backdrop-blur-xl"><ShieldCheck className="shrink-0 text-[#ffe17a]" size={20} /><span>Once-off homeowner passes. No surprise recurring subscription.</span></div></div>
 
-      <div className="mt-9 grid gap-4 lg:grid-cols-3">{customerPlans.map((plan) => { const Icon = plan.visual.icon; const theme = customerTheme(plan.code); return <article key={plan.name} className={`group relative overflow-hidden rounded-[2rem] border p-2 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 ${theme.card}`}>
-        {plan.featured && <span className="absolute left-6 top-4 z-10 rounded-full bg-[#191207] px-3 py-1.5 text-[10px] font-black uppercase tracking-[.15em] text-[#ffe17a]">Best value</span>}
-        <div className="relative h-44 overflow-hidden rounded-[1.55rem]"><Image src={plan.visual.image} alt="" fill className="object-cover transition duration-500 group-hover:scale-105" sizes="(min-width: 1024px) 32vw, 100vw" /><div className={`absolute inset-0 ${plan.featured ? 'bg-[linear-gradient(180deg,transparent,rgba(46,27,0,.78))]' : 'bg-[linear-gradient(180deg,rgba(3,10,5,.04),rgba(3,10,5,.88))]'}`} /><div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3"><div><p className={`text-[10px] font-black uppercase tracking-[.16em] ${plan.featured ? 'text-[#ffe78c]' : 'text-[#ffe17a]'}`}>{plan.visual.eyebrow}</p><p className="mt-1 text-sm font-bold leading-5 text-white">{plan.visual.outcome}</p></div><span className={`flex size-10 shrink-0 items-center justify-center rounded-2xl border ${plan.featured ? 'border-[#ffe17a]/60 bg-[#0f0c06]/70 text-[#ffe17a]' : 'border-white/25 bg-black/35 text-[#ffe17a]'} backdrop-blur`}><Icon size={19} /></span></div></div>
-        <div className="px-4 pb-4 pt-5"><p className={`text-[11px] font-black uppercase tracking-[.16em] ${plan.featured ? 'text-[#674b00]' : theme.price}`}>{plan.name === 'Home Project Pass' ? 'Complete workspace' : 'Project workspace'}</p><div className="mt-2 flex items-end justify-between gap-3"><h3 className="text-3xl font-black tracking-[-.035em]">{plan.name}</h3><p className="shrink-0 text-2xl font-black">{plan.price}<span className="ml-1 text-xs font-bold">{plan.period}</span></p></div><p className={`mt-4 min-h-12 text-sm leading-6 ${plan.featured ? 'text-[#553d08]' : 'text-white/68'}`}>{plan.description}</p><ul className="mt-5 space-y-2.5 text-sm leading-5">{plan.features.map((feature) => <li key={feature} className="flex gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{feature}</li>)}</ul><Link href={plan.code === 'free' ? '/assistant' : `/customer-checkout?plan=${plan.code}`} className={`mt-6 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black transition ${theme.button}`}>{plan.button}<ArrowRight size={17} /></Link></div>
-      </article>; })}</div>
+      <div className="mt-9 grid gap-4 lg:grid-cols-3">{customerPlans.map((plan) => {
+        const Icon = plan.visual.icon;
+        const theme = customerTheme(plan.code);
+        const background = customerPlanBackgrounds[plan.code] ?? customerPlanBackgrounds.basic_30;
+        return <article key={plan.name} className={`group relative isolate overflow-hidden rounded-[2rem] border p-2 shadow-2xl transition duration-300 hover:-translate-y-1 ${theme.card}`}>
+          <Image src={background} alt="" fill className="-z-30 object-cover opacity-90 transition duration-700 group-hover:scale-105" sizes="(min-width:1024px) 33vw, 100vw" />
+          <div className="-z-20 absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,6,.20),rgba(3,8,6,.80)_48%,rgba(2,6,4,.95))]" />
+          <div className="-z-10 absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(255,213,95,.30),transparent_14rem)]" />
+          {plan.featured && <span className="absolute left-6 top-4 z-20 rounded-full border border-[#ffe17a]/45 bg-[#120e05]/75 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.15em] text-[#ffe17a] backdrop-blur-xl">Best value</span>}
+          <div className="relative flex min-h-[190px] flex-col justify-end overflow-hidden rounded-[1.55rem] border border-white/15 bg-black/15 p-5 backdrop-blur-[2px]">
+            <div className="absolute -right-10 -top-12 size-40 rounded-full bg-[#ffd75f]/20 blur-3xl" />
+            <div className="relative flex items-end justify-between gap-4">
+              <div><p className="text-[10px] font-black uppercase tracking-[.18em] text-[#ffe17a]">{plan.visual.eyebrow}</p><p className="mt-2 max-w-[15rem] text-lg font-black leading-tight text-white">{plan.visual.outcome}</p></div>
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-[#ffe17a]/45 bg-[#080703]/55 text-[#ffd75f] shadow-[0_0_28px_rgba(255,215,95,.17)] backdrop-blur-xl"><Icon size={22} /></span>
+            </div>
+          </div>
+          <div className="relative mt-2 rounded-[1.55rem] border border-white/12 bg-black/42 px-4 pb-4 pt-5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.08)] backdrop-blur-2xl">
+            <p className={`text-[11px] font-black uppercase tracking-[.16em] ${theme.price}`}>{plan.name === 'Home Project Pass' ? 'Complete workspace' : 'Project workspace'}</p>
+            <div className="mt-2 flex items-end justify-between gap-3"><h3 className="text-3xl font-black tracking-[-.035em] text-white">{plan.name}</h3><p className={`shrink-0 text-2xl font-black ${theme.price}`}>{plan.price}<span className="ml-1 text-xs font-bold text-white/65">{plan.period}</span></p></div>
+            <p className="mt-4 min-h-12 text-sm leading-6 text-white/70">{plan.description}</p>
+            <ul className="mt-5 space-y-2.5 text-sm leading-5 text-white/90">{plan.features.map((feature) => <li key={feature} className="flex gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{feature}</li>)}</ul>
+            <Link href={plan.code === 'free' ? '/assistant' : `/customer-checkout?plan=${plan.code}`} className={`mt-6 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black transition ${theme.button}`}>{plan.button}<ArrowRight size={17} /></Link>
+          </div>
+        </article>;
+      })}</div>
 
       <div className="mt-10 overflow-x-auto rounded-[2rem] border border-white/15 bg-[#101811]/70 shadow-xl shadow-black/20 backdrop-blur-2xl"><table className="min-w-[720px] w-full text-left text-sm"><caption className="caption-top px-6 pb-4 pt-6 text-left text-xl font-black text-[#fff8e8]">Compare project-plan access</caption><thead className="border-y border-white/10 text-xs uppercase tracking-[0.12em] text-white/55"><tr><th className="px-6 py-4">Feature</th><th className="px-4 py-4 text-[#66efa8]">Free</th><th className="px-4 py-4 text-[#7bc0ff]">Basic</th><th className="px-4 py-4 text-[#ffe17a]">Home Project Pass</th></tr></thead><tbody>{comparisonRows.map(([feature, free, basic, pass]) => <tr key={feature} className="border-b border-white/10 last:border-0"><th scope="row" className="px-6 py-3.5 font-bold text-white">{feature}</th><td className="px-4 py-3.5 text-white/62">{free}</td><td className="px-4 py-3.5 text-white/62">{basic}</td><td className="px-4 py-3.5 font-bold text-[#ffe698]">{pass}</td></tr>)}</tbody></table></div>
       <p className="mt-5 text-xs leading-5 text-white/45">Project plans provide private planning and workspace access. A provider may still need to inspect the site before confirming work, price or construction detail.</p>
@@ -201,11 +236,40 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
           </div>
         </div>
 
-        <div className="mt-9 grid gap-4 md:grid-cols-3">{subscriptions.map((plan) => { const theme = providerTheme(plan.slug); return <article key={plan.slug} className={`relative overflow-hidden rounded-[2rem] border p-6 shadow-xl shadow-black/20 backdrop-blur-2xl transition hover:-translate-y-1 ${theme.card}`}>
-          {plan.name === 'Growth' && <span className="absolute left-6 top-0 rounded-b-xl bg-[#191207] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#ffe17a]">Most popular</span>}<p className={`text-[11px] font-black uppercase tracking-[0.14em] ${theme.price}`}>{plan.audience}</p><h3 className="mt-5 text-3xl font-black tracking-[-.035em]">{plan.name}</h3><p className="mt-3 text-4xl font-black">{plan.price}<span className="text-sm font-bold"> / month</span></p><div className="mt-5 h-px bg-white/15" /><ul className="mt-5 space-y-3 text-sm leading-5">{plan.included.map((feature) => <li key={feature} className="flex gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{feature}</li>)}</ul><Link href={`/provider-plans/${plan.slug}${providerQuery}`} className={`mt-7 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black ${theme.button}`}>Explore {plan.name}<ArrowRight size={17} /></Link>
-        </article>; })}</div>
+        <div className="mt-9 grid gap-4 md:grid-cols-3">{subscriptions.map((plan) => {
+          const theme = providerTheme(plan.slug);
+          const visual = providerPlanVisuals[plan.slug] ?? providerPlanVisuals.starter;
+          const Icon = visual.icon;
+          return <article key={plan.slug} className={`group relative isolate overflow-hidden rounded-[2rem] border p-2 transition hover:-translate-y-1 ${theme.card} ${visual.glow}`}>
+            <Image src={visual.image} alt="" fill className="-z-30 object-cover opacity-95 transition duration-700 group-hover:scale-105" sizes="(min-width:768px) 33vw, 100vw" />
+            <div className={`-z-20 absolute inset-0 ${visual.wash}`} /><div className="-z-10 absolute inset-0 bg-[radial-gradient(circle_at_75%_0%,rgba(255,215,95,.28),transparent_12rem)]" />
+            {plan.name === 'Growth' && <span className="absolute left-6 top-0 z-20 rounded-b-xl border-x border-b border-[#ffe17a]/35 bg-[#120e05]/80 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#ffe17a] backdrop-blur-xl">Most popular</span>}
+            <div className="relative rounded-[1.55rem] border border-white/14 bg-black/38 p-5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.09)] backdrop-blur-2xl">
+              <div className="flex items-start justify-between gap-4"><div><p className={`text-[11px] font-black uppercase tracking-[0.14em] ${theme.price}`}>{plan.audience}</p><h3 className="mt-5 text-3xl font-black tracking-[-.035em] text-white">{plan.name}</h3></div><span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-[#ffe17a]/45 bg-[#090703]/60 text-[#ffd75f] shadow-[0_0_30px_rgba(255,215,95,.18)] backdrop-blur-xl"><Icon size={22} /></span></div>
+              <p className={`mt-3 text-4xl font-black ${theme.price}`}>{plan.price}<span className="text-sm font-bold text-white/65"> / month</span></p>
+              <div className="mt-5 h-px bg-white/15" />
+              <ul className="mt-5 space-y-3 text-sm leading-5 text-white/90">{plan.included.map((feature) => <li key={feature} className="flex gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{feature}</li>)}</ul>
+              <Link href={`/provider-plans/${plan.slug}${providerQuery}`} className={`mt-7 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black ${theme.button}`}>Explore {plan.name}<ArrowRight size={17} /></Link>
+            </div>
+          </article>;
+        })}</div>
 
-        <div className="mt-6 rounded-[2rem] border border-white/15 bg-white/[.06] p-6 shadow-xl shadow-black/15 backdrop-blur-2xl md:flex md:items-center md:justify-between md:gap-10 md:p-8"><div><div className="flex items-center gap-2 text-[#ffe17a]"><BadgeCheck size={18} /><span className="text-xs font-black uppercase tracking-[0.14em]">Flexible lead packs</span></div><h3 className="mt-3 text-2xl font-black text-[#fff8e8]">Prefer to top up only when you need to?</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">Use lead credits when your capacity and appetite for new work changes.</p></div><div className="mt-5 grid grid-cols-3 gap-2 md:mt-0">{packs.map((pack) => <Link key={pack.slug} href={`/provider-plans/${pack.slug}${providerQuery}`} className="rounded-2xl border border-white/15 bg-black/25 px-3 py-3.5 text-center text-xs font-bold transition hover:-translate-y-0.5 hover:border-[#ffd75f] hover:bg-[#ffd75f]/10"><span className="block text-[#ffe17a]">{pack.price}</span><span className="mt-1 block text-white/75">{pack.name}</span></Link>)}</div></div>
+        <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/15 bg-white/[.04] p-5 shadow-xl shadow-black/20 backdrop-blur-2xl md:p-7">
+          <div><div className="flex items-center gap-2 text-[#ffe17a]"><BadgeCheck size={18} /><span className="text-xs font-black uppercase tracking-[0.14em]">Flexible lead packs</span></div><h3 className="mt-3 text-2xl font-black text-[#fff8e8]">Prefer to top up only when you need to?</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">Use lead credits when your capacity and appetite for new work changes.</p></div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">{packs.map((pack) => {
+            const theme = providerTheme(pack.slug);
+            const visual = providerPlanVisuals[pack.slug] ?? providerPlanVisuals['lead-pack-4'];
+            const Icon = visual.icon;
+            return <Link key={pack.slug} href={`/provider-plans/${pack.slug}${providerQuery}`} className={`group/pack relative isolate min-h-[190px] overflow-hidden rounded-[1.5rem] border p-2 transition hover:-translate-y-1 ${theme.card} ${visual.glow}`}>
+              <Image src={visual.image} alt="" fill className="-z-30 object-cover opacity-95 transition duration-700 group-hover/pack:scale-105" sizes="(min-width:768px) 33vw, 100vw" />
+              <div className={`-z-20 absolute inset-0 ${visual.wash}`} /><div className="-z-10 absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,215,95,.25),transparent_10rem)]" />
+              <div className="flex h-full min-h-[174px] flex-col justify-between rounded-[1.2rem] border border-white/14 bg-black/36 p-4 text-white backdrop-blur-xl">
+                <div className="flex items-start justify-between gap-3"><div><span className={`text-[10px] font-black uppercase tracking-[.15em] ${theme.price}`}>{pack.audience}</span><h4 className="mt-2 text-xl font-black leading-tight">{pack.name}</h4></div><span className="flex size-10 items-center justify-center rounded-xl border border-[#ffe17a]/45 bg-black/50 text-[#ffd75f]"><Icon size={18} /></span></div>
+                <div className="mt-6 flex items-end justify-between gap-3"><span className={`text-2xl font-black ${theme.price}`}>{pack.price}</span><span className="inline-flex items-center gap-1 text-xs font-black text-white/80">View pack <ArrowRight size={15} /></span></div>
+              </div>
+            </Link>;
+          })}</div>
+        </div>
       </div>
     </section>
 
