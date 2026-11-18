@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { enforcePublicRequestLimit, publicRequestError, readBoundedJson } from '@/services/publicRequestGuard';
@@ -10,6 +10,10 @@ export const dynamic = 'force-dynamic';
 
 function siteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.skillsconnectpro.co.za').replace(/\/+$/, '');
+}
+
+function tokenHash(value: string): string {
+  return createHash('sha256').update(value).digest('hex');
 }
 
 export async function POST(request: Request) {
@@ -24,8 +28,6 @@ export async function POST(request: Request) {
     if (!sameOrigin) return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
 
     const { user } = await getAuthenticatedAccount();
-    if (!user) return NextResponse.json({ error: 'Sign in before choosing a homeowner plan.' }, { status: 401 });
-
     const body = await readBoundedJson(request, 4_000) as Record<string, unknown>;
     const planCode = String(body.plan || '');
     if (!['basic_30', 'project_pass_90'].includes(planCode)) {
@@ -48,21 +50,24 @@ export async function POST(request: Request) {
     const config = getPayfastConfig();
     const paymentReference = randomUUID();
     const baseUrl = siteUrl();
-    const fullName = (user.name || '').trim().split(/\s+/).filter(Boolean);
+    const claimToken = user ? '' : randomBytes(32).toString('base64url');
+    const claimQuery = claimToken ? `&claim=${encodeURIComponent(claimToken)}` : '';
+    const fullName = (user?.name || '').trim().split(/\s+/).filter(Boolean);
+
     const fields: Record<string, string | number | boolean | undefined> = {
       merchant_id: config.merchantId,
       merchant_key: config.merchantKey,
-      return_url: `${baseUrl}/customer-payment-result?payment=${encodeURIComponent(paymentReference)}`,
-      cancel_url: `${baseUrl}/customer-payment-result?payment=${encodeURIComponent(paymentReference)}&cancelled=1`,
+      return_url: `${baseUrl}/customer-payment-result?payment=${encodeURIComponent(paymentReference)}${claimQuery}`,
+      cancel_url: `${baseUrl}/customer-payment-result?payment=${encodeURIComponent(paymentReference)}&cancelled=1${claimQuery}`,
       notify_url: `${baseUrl}/api/payments/payfast/itn`,
-      name_first: fullName[0] || 'Skills Connect',
-      name_last: fullName.slice(1).join(' ') || 'Customer',
-      email_address: user.email || undefined,
+      name_first: user ? (fullName[0] || 'Skills Connect') : undefined,
+      name_last: user ? (fullName.slice(1).join(' ') || 'Customer') : undefined,
+      email_address: user?.email || undefined,
       m_payment_id: paymentReference,
       amount: (plan.price_cents / 100).toFixed(2),
       item_name: `Skills Connect Pro ${plan.name}`,
       item_description: `${plan.name} once-off homeowner project pass`,
-      custom_str1: user.id,
+      custom_str1: user?.id || undefined,
       custom_str2: plan.code,
       custom_str3: 'customer_project_pass',
     };
@@ -70,11 +75,17 @@ export async function POST(request: Request) {
     const paymentFields = normalisePayfastFields(fields);
     const { error: insertError } = await supabase.from('customer_payment_transactions').insert({
       m_payment_id: paymentReference,
-      user_id: user.id,
+      user_id: user?.id ?? null,
       plan_code: plan.code,
       amount_cents: plan.price_cents,
       processor_status: 'INITIATED',
-      metadata: { payfast_mode: config.mode, duration_days: plan.duration_days },
+      claim_token_hash: claimToken ? tokenHash(claimToken) : null,
+      claim_expires_at: claimToken ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null,
+      metadata: {
+        payfast_mode: config.mode,
+        duration_days: plan.duration_days,
+        guest_checkout: !user,
+      },
     });
     if (insertError) throw new Error(`Unable to start checkout: ${insertError.message}`);
 
