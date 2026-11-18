@@ -72,7 +72,7 @@ export async function POST(request: Request) {
 
     const { data: customerPayment, error: customerPaymentError } = await supabase
       .from('customer_payment_transactions')
-      .select('m_payment_id,amount_cents')
+      .select('m_payment_id,amount_cents,user_id')
       .eq('m_payment_id', paymentReference)
       .maybeSingle();
     if (customerPaymentError) throw new Error(`Unable to find customer payment: ${customerPaymentError.message}`);
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     }).eq('m_payment_id', paymentReference);
     if (customerUpdateError) throw new Error(`Unable to record customer payment result: ${customerUpdateError.message}`);
 
-    if (paymentStatus === 'COMPLETE') {
+    if (paymentStatus === 'COMPLETE' && customerPayment.user_id) {
       const { error: entitlementError } = await supabase.rpc('grant_customer_payment_entitlement', {
         payment_ref: paymentReference,
         processor_ref: processorReference,
