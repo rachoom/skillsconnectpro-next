@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
   response.cookies.set({
     name: AUTH_RETURN_PATH_COOKIE,
     value: '',
+    domain: process.env.NODE_ENV === 'production' ? 'skillsconnectpro.co.za' : undefined,
     path: '/',
     maxAge: 0,
   });
