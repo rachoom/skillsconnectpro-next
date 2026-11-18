@@ -81,27 +81,53 @@ const comparisonRows = [
   ['Expanded pass duration', '—', '30 days', '90 days'],
 ];
 
-export default async function PlansPage({ searchParams }: { searchParams: Promise<{ provider?: string }> }) {
-  const { provider } = await searchParams;
-  const providerQuery = provider && /^\d+$/.test(provider) ? `?provider=${encodeURIComponent(provider)}` : '';
+export default async function PlansPage({ searchParams }: { searchParams: Promise<{ provider?: string; audience?: string }> }) {
+  const params = await searchParams;
+  const provider = params.provider;
+  const providerId = provider && /^\d+$/.test(provider) ? provider : '';
+  const audience = params.audience === 'providers' ? 'providers' : 'homeowners';
+  const providerTabHref = providerId
+    ? `/plans?audience=providers&provider=${encodeURIComponent(providerId)}`
+    : '/plans?audience=providers';
+  const providerCheckoutHref = (slug: string) =>
+    `/provider-checkout?plan=${encodeURIComponent(slug)}${providerId ? `&provider=${encodeURIComponent(providerId)}` : ''}`;
   const subscriptions = providerPlans.filter((plan) => plan.kind === 'subscription');
   const packs = providerPlans.filter((plan) => plan.kind === 'lead_pack');
 
   return <main className="min-h-screen overflow-hidden bg-[#061008] text-[#f8f3e5]">
     <nav className="relative z-30 border-b border-white/10 bg-[#061008]/88 px-4 py-3.5 backdrop-blur-xl md:px-8"><div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
       <Link href="/" aria-label="Skills Connect Pro home"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={188} height={50} priority /></Link>
-      <div className="hidden items-center gap-6 text-sm font-bold text-white/65 md:flex"><a href="#homeowners" className="transition hover:text-[#ffe17a]">Homeowner plans</a><a href="#providers" className="transition hover:text-[#ffe17a]">Provider plans</a></div>
-      <Link href="/my-projects" className="rounded-xl border border-[#ffd75f]/45 bg-[#ffd75f]/[.06] px-3.5 py-2.5 text-xs font-black text-[#ffe17a] transition hover:bg-[#ffd75f] hover:text-[#241b00]">My Projects</Link>
+      <span className="text-xs font-black uppercase tracking-[0.2em] text-white/55">Plans</span>
     </div></nav>
 
-    <section className="border-b border-white/10 px-4 py-10 md:px-8 md:py-14">
+    <section className="border-b border-white/10 px-4 py-8 md:px-8 md:py-12">
       <div className="mx-auto max-w-7xl">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffd21f]">Skills Connect Pro</p>
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffd21f]">Skills Connect Pro pricing</p>
         <h1 className="mt-3 text-5xl font-black tracking-[-0.05em] text-white md:text-6xl">Plans</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-white/65">Choose the plan that fits how you use Skills Connect Pro.</p>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-white/65">Choose whether you are planning a project or growing your service business.</p>
+
+        <div role="tablist" aria-label="Plan audience" className="mt-7 grid max-w-2xl grid-cols-2 gap-2 rounded-[1.4rem] border border-white/12 bg-black/30 p-1.5 backdrop-blur-xl">
+          <Link
+            role="tab"
+            aria-selected={audience === 'homeowners'}
+            href="/plans?audience=homeowners"
+            className={`rounded-[1.05rem] px-4 py-4 text-center text-sm font-black transition ${audience === 'homeowners' ? 'bg-[#ffd75f] text-[#211800] shadow-[0_12px_30px_rgba(255,215,95,.16)]' : 'text-white/62 hover:bg-white/[.06] hover:text-white'}`}
+          >
+            Homeowner Plans
+          </Link>
+          <Link
+            role="tab"
+            aria-selected={audience === 'providers'}
+            href={providerTabHref}
+            className={`rounded-[1.05rem] px-4 py-4 text-center text-sm font-black transition ${audience === 'providers' ? 'bg-[#ffd75f] text-[#211800] shadow-[0_12px_30px_rgba(255,215,95,.16)]' : 'text-white/62 hover:bg-white/[.06] hover:text-white'}`}
+          >
+            Provider Plans
+          </Link>
+        </div>
       </div>
     </section>
 
+    {audience === 'homeowners' && (
     <section id="homeowners" className="relative scroll-mt-5 px-4 py-14 md:px-8 md:py-20"><div className="pointer-events-none absolute left-1/2 top-16 h-80 w-[min(90vw,68rem)] -translate-x-1/2 rounded-full bg-[#f9ca32]/[.08] blur-3xl" /><div className="relative mx-auto max-w-7xl">
       <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end"><div className="max-w-3xl"><div className="flex items-center gap-2 text-[#ffe17a]"><FolderKanban size={19} /><span className="text-xs font-black uppercase tracking-[0.16em]">Homeowner plans</span></div><h2 className="mt-3 text-3xl font-black tracking-[-.035em] text-[#fff8e8] md:text-5xl">Choose your project plan.</h2><p className="mt-4 max-w-2xl text-sm leading-7 text-white/68 md:text-base">Free, 30-day and 90-day options for different levels of project support.</p></div><div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[.045] px-4 py-3 text-sm text-white/70 backdrop-blur-xl"><ShieldCheck className="shrink-0 text-[#ffe17a]" size={20} /><span>Once-off homeowner passes. No surprise recurring subscription.</span></div></div>
 
@@ -134,7 +160,9 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
       <div className="mt-10 overflow-x-auto rounded-[2rem] border border-white/15 bg-[#101811]/70 shadow-xl shadow-black/20 backdrop-blur-2xl"><table className="min-w-[720px] w-full text-left text-sm"><caption className="caption-top px-6 pb-4 pt-6 text-left text-xl font-black text-[#fff8e8]">Compare project-plan access</caption><thead className="border-y border-white/10 text-xs uppercase tracking-[0.12em] text-white/55"><tr><th className="px-6 py-4">Feature</th><th className="px-4 py-4 text-[#66efa8]">Free</th><th className="px-4 py-4 text-[#7bc0ff]">Basic</th><th className="px-4 py-4 text-[#ffe17a]">Home Project Pass</th></tr></thead><tbody>{comparisonRows.map(([feature, free, basic, pass]) => <tr key={feature} className="border-b border-white/10 last:border-0"><th scope="row" className="px-6 py-3.5 font-bold text-white">{feature}</th><td className="px-4 py-3.5 text-white/62">{free}</td><td className="px-4 py-3.5 text-white/62">{basic}</td><td className="px-4 py-3.5 font-bold text-[#ffe698]">{pass}</td></tr>)}</tbody></table></div>
       <p className="mt-5 text-xs leading-5 text-white/45">Project plans provide private planning and workspace access. A provider may still need to inspect the site before confirming work, price or construction detail.</p>
     </div></section>
+    )}
 
+    {audience === 'providers' && (
     <section id="providers" className="relative scroll-mt-5 border-t border-white/10 px-4 py-14 md:px-8 md:py-20">
       <div className="mx-auto max-w-7xl">
         <div className="max-w-3xl">
@@ -156,7 +184,7 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
               <p className={`mt-3 text-4xl font-black ${theme.price}`}>{plan.price}<span className="text-sm font-bold text-white/65"> / month</span></p>
               <div className="mt-5 h-px bg-white/15" />
               <ul className="mt-5 space-y-3 text-sm leading-5 text-white/90">{plan.included.map((feature) => <li key={feature} className="flex gap-2.5"><Check className={`mt-0.5 shrink-0 ${theme.check}`} size={16} />{feature}</li>)}</ul>
-              <Link href={`/provider-plans/${plan.slug}${providerQuery}`} className={`mt-7 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black ${theme.button}`}>Explore {plan.name}<ArrowRight size={17} /></Link>
+              <Link href={providerCheckoutHref(plan.slug)} className={`mt-7 flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black ${theme.button}`}>Choose {plan.name}<ArrowRight size={17} /></Link>
             </div>
           </article>;
         })}</div>
@@ -167,18 +195,19 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
             const theme = providerTheme(pack.slug);
             const visual = providerPlanVisuals[pack.slug] ?? providerPlanVisuals['lead-pack-4'];
             const Icon = visual.icon;
-            return <Link key={pack.slug} href={`/provider-plans/${pack.slug}${providerQuery}`} className={`group/pack relative isolate min-h-[190px] overflow-hidden rounded-[1.5rem] border p-2 transition hover:-translate-y-1 ${theme.card} ${visual.glow}`}>
+            return <Link key={pack.slug} href={providerCheckoutHref(pack.slug)} className={`group/pack relative isolate min-h-[190px] overflow-hidden rounded-[1.5rem] border p-2 transition hover:-translate-y-1 ${theme.card} ${visual.glow}`}>
               <Image src={visual.image} alt="" fill className="-z-30 object-cover opacity-95 transition duration-700 group-hover/pack:scale-105" sizes="(min-width:768px) 33vw, 100vw" />
               <div className={`-z-20 absolute inset-0 ${visual.wash}`} /><div className="-z-10 absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,215,95,.25),transparent_10rem)]" />
               <div className="flex h-full min-h-[174px] flex-col justify-between rounded-[1.2rem] border border-white/14 bg-black/36 p-4 text-white backdrop-blur-xl">
                 <div className="flex items-start justify-between gap-3"><div><span className={`text-[10px] font-black uppercase tracking-[.15em] ${theme.price}`}>{pack.audience}</span><h4 className="mt-2 text-xl font-black leading-tight">{pack.name}</h4></div><span className="flex size-10 items-center justify-center rounded-xl border border-[#ffe17a]/45 bg-black/50 text-[#ffd75f]"><Icon size={18} /></span></div>
-                <div className="mt-6 flex items-end justify-between gap-3"><span className={`text-2xl font-black ${theme.price}`}>{pack.price}</span><span className="inline-flex items-center gap-1 text-xs font-black text-white/80">View pack <ArrowRight size={15} /></span></div>
+                <div className="mt-6 flex items-end justify-between gap-3"><span className={`text-2xl font-black ${theme.price}`}>{pack.price}</span><span className="inline-flex items-center gap-1 text-xs font-black text-white/80">Choose pack <ArrowRight size={15} /></span></div>
               </div>
             </Link>;
           })}</div>
         </div>
       </div>
     </section>
+    )}
 
     <footer className="border-t border-white/10 px-4 py-8 text-center text-xs text-white/40 md:px-8">Homeowner project passes are once-off access periods. Provider subscriptions and lead packs are shown separately.</footer>
   </main>;
