@@ -220,7 +220,7 @@ export default async function ArtisanBusinessPage() {
   const activeSubscription = entitlements.find((row) => ['starter_monthly','growth_monthly','pro_monthly'].includes(row.plan_code)
     && row.status === 'active' && (!row.ends_at || new Date(row.ends_at).getTime() > Date.now()));
   const availability = availabilityResult.data;
-  const providerPlansHref = '/provider-plans?provider=' + providerId;
+  const providerPlansHref = '/plans?audience=providers&provider=' + providerId;
 
   return (
     <main className={styles.page} data-workspace-shell>
