@@ -57,7 +57,19 @@ export default async function CustomerCheckoutPage({
             This is a once-off {plan.duration_days}-day project pass. Your access activates after PayFast confirms the payment.
           </p>
 
-          <div className="mt-7 rounded-2xl border border-white/12 bg-black/25 p-5 backdrop-blur-xl">
+          <div className="mt-7 grid grid-cols-[1fr_auto] items-end gap-5 rounded-2xl border border-[#ffd75f]/22 bg-[#ffd75f]/[.07] p-5">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#ffe17a]">Order summary</p>
+              <p className="mt-2 text-sm font-bold text-white">{plan.name}</p>
+              <p className="mt-1 text-xs text-white/50">{plan.duration_days} days · once-off · no automatic renewal</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-[.14em] text-white/45">Total today</p>
+              <p className="mt-1 text-3xl font-black text-[#ffe17a]">{price}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-white/12 bg-black/25 p-5 backdrop-blur-xl">
             <div className="flex gap-3">
               <LockKeyhole className="mt-0.5 shrink-0 text-[#ffe17a]" size={19} />
               <div>
@@ -74,7 +86,7 @@ export default async function CustomerCheckoutPage({
             <p className="text-sm leading-6">Your card details are entered on PayFast and are not stored by Skills Connect Pro.</p>
           </div>
 
-          <CustomerCheckoutForm planCode={plan.code} />
+          <CustomerCheckoutForm planCode={plan.code} price={price} />
         </section>
       </div>
     </main>
