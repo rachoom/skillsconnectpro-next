@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
 import styles from './plans-hero.module.css';
 import {
@@ -95,6 +95,15 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
     `/provider-checkout?plan=${encodeURIComponent(slug)}${providerId ? `&provider=${encodeURIComponent(providerId)}` : ''}`;
   const subscriptions = providerPlans.filter((plan) => plan.kind === 'subscription');
   const packs = providerPlans.filter((plan) => plan.kind === 'lead_pack');
+  const { props: mobileHero } = getImageProps({
+    src: '/plan-backgrounds/plans-hero-mobile.webp',
+    alt: '', width: 768, height: 1152, sizes: '100vw',
+  });
+  const { props: desktopHero } = getImageProps({
+    src: '/plan-backgrounds/plans-hero-homeowner-artisan.webp',
+    alt: '', width: 1672, height: 941, sizes: '100vw',
+    priority: true,
+  });
 
   return <main className="min-h-screen overflow-hidden bg-[#061008] text-[#f8f3e5]">
     <nav className="relative z-30 border-b border-white/10 bg-[#061008]/88 px-4 py-3.5 backdrop-blur-xl md:px-8"><div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
@@ -103,16 +112,10 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
     </div></nav>
 
     <section className={styles.hero}>
-      <div className={styles.art} aria-hidden="true">
-        <Image
-          src="/plan-backgrounds/plans-hero-homeowner-artisan.webp"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className={styles.image}
-        />
-      </div>
+      <picture className={styles.art} aria-hidden="true">
+        <source media="(max-width: 767px)" srcSet={mobileHero.srcSet} sizes={mobileHero.sizes} />
+        <img {...desktopHero} className={styles.image} />
+      </picture>
       <div className={styles.shade} aria-hidden="true" />
       <div className={styles.content}>
         <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffd21f]">Skills Connect Pro pricing</p>

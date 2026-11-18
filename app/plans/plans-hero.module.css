@@ -14,6 +14,9 @@
   pointer-events: none;
 }
 .image {
+  width: 100%;
+  height: 100%;
+  display: block;
   object-fit: cover;
   object-position: center top;
 }
@@ -35,12 +38,15 @@
 }
 @media (max-width: 767px) {
   .hero {
+    --art-height: clamp(300px, 90vw, 440px);
     min-height: 0;
-    padding: 270px 20px 32px;
+    padding: calc(var(--art-height) - 16px) 20px 32px;
   }
-  .art { bottom: auto; height: 370px; }
-  .image { object-position: 80% 22%; }
+  .art { bottom: auto; height: var(--art-height); }
+  .image { object-position: center 62%; }
   .shade {
-    background: linear-gradient(180deg,rgba(6,16,8,.04) 0px,rgba(6,16,8,.05) 160px,rgba(6,16,8,.7) 270px,#061008 365px);
+    bottom: auto;
+    height: var(--art-height);
+    background: linear-gradient(180deg,rgba(6,16,8,.04) 0%,transparent 55%,rgba(6,16,8,.6) 82%,#061008 100%);
   }
 }
