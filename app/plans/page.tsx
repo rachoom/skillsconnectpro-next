@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import styles from './plans-hero.module.css';
 import {
   ArrowRight,
   BadgeCheck,
@@ -101,13 +102,24 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
       <span className="text-xs font-black uppercase tracking-[0.2em] text-white/55">Plans</span>
     </div></nav>
 
-    <section className="border-b border-white/10 px-4 py-8 md:px-8 md:py-12">
-      <div className="mx-auto max-w-7xl">
+    <section className={styles.hero}>
+      <div className={styles.art} aria-hidden="true">
+        <Image
+          src="/plan-backgrounds/plans-hero-homeowner-artisan.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className={styles.image}
+        />
+      </div>
+      <div className={styles.shade} aria-hidden="true" />
+      <div className={styles.content}>
         <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffd21f]">Skills Connect Pro pricing</p>
         <h1 className="mt-3 text-5xl font-black tracking-[-0.05em] text-white md:text-6xl">Plans</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-white/65">Choose whether you are planning a project or growing your service business.</p>
+        <p className="mt-4 max-w-md text-base leading-7 text-white/85">Choose whether you are planning a project or growing your service business.</p>
 
-        <div className="mt-7 max-w-xl">
+        <div className="mt-7 max-w-lg">
           <p className="mb-2.5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#ffe17a]"><span className="inline-block size-1.5 rounded-full bg-[#ffd75f] shadow-[0_0_12px_rgba(255,215,95,.9)]" />Choose your plan type</p>
           <div role="tablist" aria-label="Plan audience" className="relative grid grid-cols-2 rounded-full border border-[#ffd75f]/28 bg-[#09140c]/90 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,.07),0_16px_45px_rgba(0,0,0,.28)] backdrop-blur-2xl">
             <span
@@ -133,7 +145,7 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
               <span>Provider</span>
             </Link>
           </div>
-          <div className="mt-2.5 flex items-center justify-between gap-4 px-2 text-[11px] font-semibold text-white/45">
+          <div className="mt-2.5 flex items-center justify-between gap-4 px-2 text-[11px] font-semibold text-white/80">
             <span>{audience === 'homeowners' ? 'Plan and manage your project' : 'Switch to homeowner plans'}</span>
             <span>{audience === 'providers' ? 'Grow your service business' : 'Switch to provider plans'}</span>
           </div>
