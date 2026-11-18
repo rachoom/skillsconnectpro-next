@@ -19,7 +19,7 @@ test('waiting and response messages reflect the recorded counts', () => {
   const preparing = present({ status: 'assessed' });
   assert.match(preparing.next, /No provider has been contacted/);
   assert.equal(present({ status: 'matching', invited: 3 }).headline, '3 providers contacted');
-  assert.match(present({ status: 'matching', invited: 3, reviewing: 1 }).copy, /1 provider is reviewing/);
+  assert.match(present({ status: 'matching', invited: 3, reviewing: 1 }).copy, /1 provider has viewed/);
   assert.equal(present({ status: 'matching', responses: 1 }).headline, '1 provider response ready');
   assert.equal(present({ status: 'matching', responses: 2 }).action, 'responses');
   assert.equal(customerProjectStatusLabel('unfulfilled'), 'Matching ended');

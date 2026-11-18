@@ -28,6 +28,7 @@ type Expense = { id: string; description: string; category: string; amount: numb
 type Milestone = { id: string; title: string; description: string | null; status: string; due_at: string | null; sort_order: number };
 
 type Props = {
+  preview?: boolean;
   project: Project;
   initialMaterials: Material[];
   initialDocuments: DocumentRow[];
@@ -42,7 +43,7 @@ function rand(value: number | null | undefined) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(value ?? 0);
 }
 
-export function ProjectWorkspace({ project, initialMaterials, initialDocuments, initialExpenses, initialMilestones }: Props) {
+export function ProjectWorkspace({ project, initialMaterials, initialDocuments, initialExpenses, initialMilestones, preview = false }: Props) {
   const showHardwareQuotes = hardwareQuotesEnabled();
   const [tab, setTab] = useState<Tab>('overview');
   const [materials, setMaterials] = useState(initialMaterials);
@@ -96,6 +97,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
   };
 
   const workspaceRequest = async (body: Record<string, unknown>) => {
+    if (preview) throw new Error('This is a sample workspace. Changes are not saved.');
     const response = await fetch(`/api/account/projects/${project.id}/workspace`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -107,6 +109,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
   };
 
   const updateProjectStatus = async (nextStatus: 'completed' | 'cancelled') => {
+    if (preview) { report('This is a sample workspace. Changes are not saved.'); return; }
     const verb = nextStatus === 'completed' ? 'mark this project complete' : 'cancel this project';
     const confirmed = window.confirm(
       `Are you sure you want to ${verb}? It will no longer count toward your active-project limit.`,
@@ -247,6 +250,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
   };
 
   const uploadDocument = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (preview) { report('This is a sample workspace. Files are not uploaded.'); return; }
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
@@ -269,6 +273,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
   };
 
   const openDocument = async (path: string) => {
+    if (preview) { report('Sample documents are shown for illustration only.'); return; }
     try {
       const response = await fetch(`/api/account/projects/${project.id}/documents?path=${encodeURIComponent(path)}`);
       const payload = await response.json().catch(() => ({})) as { error?: string; url?: string };
@@ -280,6 +285,7 @@ export function ProjectWorkspace({ project, initialMaterials, initialDocuments, 
   };
 
   const removeDocument = async (document: DocumentRow) => {
+    if (preview) { report('This is a sample workspace. Changes are not saved.'); return; }
     setWorking(document.id);
     try {
       const response = await fetch(`/api/account/projects/${project.id}/documents`, {

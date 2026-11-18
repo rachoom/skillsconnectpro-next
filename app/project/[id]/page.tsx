@@ -467,8 +467,8 @@ export default function CustomerProjectPage() {
           <article className={`${styles.metricCard} ${feed.matching.providersReviewing > 0 && presentation.matching ? styles.metricReviewing : ''}`}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><Clock3 size={19} /></span></div>
             <strong key={`reviewing-${feed.matching.providersReviewing}`} className={styles.metricValue}>{feed.matching.providersReviewing}</strong>
-            <h2>Currently reviewing</h2>
-            <p>{presentation.closed ? 'Provider reviews recorded for this request.' : 'Providers actively considering your project.'}</p>
+            <h2>{presentation.closed ? 'Recorded invitation views' : 'Viewed · awaiting reply'}</h2>
+            <p>{presentation.closed ? 'Latest invitation status in this project record.' : 'Providers who opened the invitation and have not yet replied.'}</p>
           </article>
           <article className={`${styles.metricCard} ${styles.metricSuccess} ${hasResponses && !hasSelection && !presentation.closed ? styles.metricResponseReady : ''}`}>
             <div className={styles.metricTop}><span className={styles.metricIcon}><CheckCircle2 size={19} /></span></div>
