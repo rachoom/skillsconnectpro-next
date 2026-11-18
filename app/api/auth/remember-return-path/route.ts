@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
+    domain: process.env.NODE_ENV === 'production' ? 'skillsconnectpro.co.za' : undefined,
     path: '/',
     maxAge: 15 * 60,
   });
