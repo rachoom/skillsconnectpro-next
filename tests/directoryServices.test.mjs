@@ -21,3 +21,14 @@ test('each listed trade is discoverable once and compound names survive', () => 
     ['Glass and Aluminium', 'Linen & Curtains', 'Art & Design']);
   assert.deepEqual(directoryServices(null), []);
 });
+
+test('service menu and search aliases include trades beyond the old result cutoff', async () => {
+  const { directoryFilters } = await import('../services/marketplace/directoryServices.js');
+  const labels = [...Array.from({ length: 120 }, (_, i) => 'Trade ' + i), 'Cleaner, household / Painter', 'Painting'];
+  const result = directoryFilters(labels, 'Cleaning', 'painters');
+  assert.ok(result.services.includes('Cleaning'));
+  assert.deepEqual(result.serviceCategories, ['Cleaner, household / Painter']);
+  assert.deepEqual(result.searchCategories, ['Cleaner, household / Painter', 'Painting']);
+  assert.deepEqual(directoryFilters(labels, '', 'paint').searchCategories, result.searchCategories);
+  assert.equal(directoryFilters(labels, '', '').serviceCategories, null);
+});

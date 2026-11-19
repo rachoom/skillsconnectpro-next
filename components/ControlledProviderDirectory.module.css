@@ -375,3 +375,8 @@
   .about p {font-size:.86rem;}
   .identityPanel .modalReputation {padding:.75rem;}
 }
+
+.resultsStart { scroll-margin-top: 5rem; }
+.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .85rem; margin-top: 1.5rem; font-size: .88rem; }
+.pagination button { min-height: 44px; padding: .55rem 1rem; border-radius: .75rem; background: #ffda62; color: #211907; font-weight: 750; }
+.pagination button:disabled { opacity: .5; }

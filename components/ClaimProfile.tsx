@@ -120,7 +120,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
         }
 
         try {
-          const directoryResponse = await fetch('/api/providers', { cache: 'no-store' });
+          const directoryResponse = await fetch('/api/providers?id=51', { cache: 'no-store' });
           const directoryPayload = await directoryResponse.json().catch(() => ({}));
           const candidates = (Array.isArray(directoryPayload.providers) ? directoryPayload.providers : []) as ExampleProvider[];
           const tripleT = candidates.find(candidate =>

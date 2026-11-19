@@ -55,3 +55,23 @@ export function directoryServices(value) {
   }
   return [...services];
 }
+
+// Postgres stores the original trade label. Resolve it once per distinct label
+// so the database can filter all public profiles before counting or paging.
+export function directoryFilters(labels, service, search) {
+  const services = new Set();
+  const serviceCategories = service ? [] : null;
+  const searchCategories = [];
+  const query = search.trim().toLowerCase();
+  const searchGroups = directoryServices(query);
+  for (const label of labels) {
+    const groups = directoryServices(label);
+    for (const group of groups) services.add(group);
+    if (serviceCategories && groups.includes(service)) serviceCategories.push(label);
+    if (query && (groups.join(' ').toLowerCase().includes(query)
+        || (searchGroups.length > 0 && searchGroups.every(group => groups.includes(group))))) {
+      searchCategories.push(label);
+    }
+  }
+  return { services: [...services].sort((a, b) => a.localeCompare(b)), serviceCategories, searchCategories };
+}

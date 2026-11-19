@@ -213,16 +213,13 @@ export const MarketplaceVisualConsistency = () => {
       html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='privacyCard'],
       html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='searchPanel'],
       html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='card'],
-      html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='empty'],
-      html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='modal'] {
+      html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='empty'] {
         border-color: rgba(52, 82, 61, .15) !important;
         background: rgba(255, 253, 247, .9) !important;
         color: #172019 !important;
       }
 
-      html[data-scp-theme='light'] body[data-scp-surface='directory'] p,
-      html[data-scp-theme='light'] body[data-scp-surface='directory'] small,
-      html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='location'] {
+      html[data-scp-theme='light'] body[data-scp-surface='directory'] :is(p, small):not([role='dialog'] *) {
         color: #5e695f !important;
       }
 

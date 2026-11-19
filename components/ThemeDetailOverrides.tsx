@@ -11,11 +11,8 @@ export const ThemeDetailOverrides = () => (
       background: #173827 !important;
     }
 
-    html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='modalBody'],
     html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='cardBody'],
-    html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='cardActions'],
-    html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='modalTitleRow'],
-    html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='modalReputation'] {
+    html[data-scp-theme='light'] body[data-scp-surface='directory'] [class*='cardActions'] {
       background: transparent !important;
     }
 

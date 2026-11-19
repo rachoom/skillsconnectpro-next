@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,7 +18,6 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
-import { directoryServices } from '../services/marketplace/directoryServices.js';
 import { ProviderBanner } from './ProviderBanner';
 import styles from './ControlledProviderDirectory.module.css';
 
@@ -80,27 +79,62 @@ export const ControlledProviderDirectory = () => {
   const [category, setCategory] = useState('All services');
   const [selected, setSelected] = useState<Provider | null>(null);
 
+  const [categories, setCategories] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(18);
+  const resultsStart = useRef<HTMLDivElement>(null);
+  const searchText = search.trim();
+  const filtered = Boolean(searchText || category !== 'All services');
+
   useEffect(() => {
     const controller = new AbortController();
-
-    const loadProviders = async () => {
+    const load = async () => {
       try {
-        const response = await fetch('/api/providers', { signal: controller.signal });
-        if (!response.ok) throw new Error('Provider directory unavailable.');
-        const { providers: data } = await response.json();
-        if (!Array.isArray(data)) throw new Error('Invalid directory response.');
+        const params = new URLSearchParams({ page: String(page) });
+        if (searchText) params.set('q', searchText);
+        if (category !== 'All services') params.set('service', category);
+        const response = await fetch(`/api/providers?${params}`, { signal: controller.signal });
+        if (!response.ok) throw new Error('Directory unavailable.');
+        const data = await response.json();
+        if (!Array.isArray(data.providers) || !Array.isArray(data.services)
+            || !Number.isInteger(data.total) || !(data.pageSize > 0)) throw new Error('Invalid directory response.');
         if (controller.signal.aborted) return;
-        setProviders(data);
-        const requestedId = Number(new URLSearchParams(window.location.search).get('provider'));
-        const requested = data.find((item: Provider) => item.id === requestedId);
-        if (requested) setSelected(requested);
+        const lastPage = Math.max(1, Math.ceil(data.total / data.pageSize));
+        if (page > lastPage) {
+          setPage(lastPage);
+          return;
+        }
+        setProviders(data.providers);
+        setCategories(data.services);
+        setTotal(data.total);
+        setPageSize(data.pageSize);
         setStatus('ready');
       } catch {
         if (!controller.signal.aborted) setStatus('error');
       }
     };
+    setStatus('loading');
+    const timer = window.setTimeout(load, searchText ? 180 : 0);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [page, category, searchText, attempt]);
 
-    void loadProviders();
+  // Shared links can point to providers on any page of the directory.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('provider');
+    if (!id || !/^\d+$/.test(id)) return;
+    const controller = new AbortController();
+    async function openProfile() {
+      try {
+        const response = await fetch(`/api/providers?id=${id}`, { signal: controller.signal });
+        if (!response.ok) throw new Error('Profile unavailable.');
+        const { providers: matches } = await response.json();
+        if (!controller.signal.aborted && matches?.[0]) setSelected(matches[0]);
+      } catch {
+        if (!controller.signal.aborted) setStatus('error');
+      }
+    }
+    void openProfile();
     return () => controller.abort();
   }, [attempt]);
 
@@ -109,21 +143,11 @@ export const ControlledProviderDirectory = () => {
     setAttempt((previous) => previous + 1);
   }
 
-  const categories = useMemo(() => {
-    const values = providers.flatMap(provider => directoryServices(provider.category));
-    return ['All services', ...Array.from(new Set(values)).sort((a, b) => a.localeCompare(b))];
-  }, [providers]);
-
-  const visible = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    const searchedServices = directoryServices(query);
-    return providers.filter((provider) => {
-      const groups = directoryServices(provider.category);
-      if (category !== 'All services' && !groups.includes(category)) return false;
-      const text = [displayName(provider), provider.category, provider.location, ...groups].join(' ').toLowerCase();
-      return text.includes(query) || (searchedServices.length > 0 && searchedServices.every(group => groups.includes(group)));
-    });
-  }, [category, providers, search]);
+  function changePage(next: number) {
+    setPage(next);
+    resultsStart.current?.scrollIntoView({ block: 'start' });
+    resultsStart.current?.focus({ preventScroll: true });
+  }
 
   const selectedGallery = selected ? providerGallery(selected) : [];
 
@@ -143,14 +167,15 @@ export const ControlledProviderDirectory = () => {
       <section className={styles.searchPanel}>
         <label>
           <span>Search providers</span>
-          <div className={styles.searchField}><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Name, trade or area" /></div>
+          <div className={styles.searchField}><Search size={18} /><input value={search} maxLength={300} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Name, trade or area" /></div>
         </label>
         <label>
           <span>Service</span>
-          <div className={styles.searchField}><Filter size={18} /><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((item) => <option key={item}>{item}</option>)}</select></div>
+          <div className={styles.searchField}><Filter size={18} /><select value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }}><option>All services</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></div>
         </label>
       </section>
 
+      <div ref={resultsStart} tabIndex={-1} className={styles.resultsStart} aria-label="Directory results" />
       {status === 'loading' ? (
         <div role="status" className={styles.loading}><Loader2 className="animate-spin" size={34} /><span>Loading provider profiles…</span></div>
       ) : status === 'error' ? (
@@ -167,25 +192,25 @@ export const ControlledProviderDirectory = () => {
           <div className={styles.resultsHeading}>
             <div>
               <span>Local provider profiles</span>
-              <h2>{visible.length} available to explore</h2>
+              <h2 aria-live="polite">{total} available to explore</h2>
             </div>
           </div>
 
-          {visible.length === 0 ? (
+          {providers.length === 0 ? (
             <div className={styles.empty}>
               <UserRound size={34} />
-              <h3>{providers.length ? 'No matching profiles' : 'No profiles available yet'}</h3>
-              <p>{providers.length ? 'Try another trade, name or area.' : 'Tell us what you need and we’ll help you find a provider.'}</p>
+              <h3>{filtered ? 'No matching profiles' : 'No profiles available yet'}</h3>
+              <p>{filtered ? 'Try another trade, name or area.' : 'Tell us what you need and we’ll help you find a provider.'}</p>
               <div className={styles.recoveryActions}>
-                {providers.length > 0 && (
-                  <button type="button" onClick={() => { setSearch(''); setCategory('All services'); }}>Clear filters</button>
+                {filtered && (
+                  <button type="button" onClick={() => { setSearch(''); setCategory('All services'); setPage(1); }}>Clear filters</button>
                 )}
                 <Link href="/get-help">Describe your job</Link>
               </div>
             </div>
           ) : (
             <div className={styles.grid}>
-              {visible.map((provider) => {
+              {providers.map((provider) => {
                 const name = displayName(provider);
                 const rating = Number(provider.marketplace_rating || 0);
                 const reviewCount = Number(provider.marketplace_review_count || 0);
@@ -222,6 +247,13 @@ export const ControlledProviderDirectory = () => {
                 );
               })}
             </div>
+          )}
+          {total > pageSize && (
+            <nav className={styles.pagination} aria-label="Provider directory pages">
+              <button type="button" disabled={page <= 1} onClick={() => changePage(page - 1)}>Previous</button>
+              <span>Page {page} of {Math.ceil(total / pageSize)}</span>
+              <button type="button" disabled={page >= Math.ceil(total / pageSize)} onClick={() => changePage(page + 1)}>Next</button>
+            </nav>
           )}
         </section>
       )}
