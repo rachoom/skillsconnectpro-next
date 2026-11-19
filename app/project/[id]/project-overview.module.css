@@ -1568,3 +1568,7 @@
   .page .matchingPanel { min-height: 520px; padding: 240px 20px 26px; }
   .page .matchingPanel .customerScene { background-position: center top; }
 }
+
+.recoveryActions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }
+.copyStatus { display: block; margin-top: .35rem; }
+.copyStatus:empty { margin: 0; }

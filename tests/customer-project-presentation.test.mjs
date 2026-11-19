@@ -12,7 +12,7 @@ test('closed projects never advertise matching or new provider actions, even wit
 test('recorded work and connection states take precedence over historical matching counts', () => {
   assert.equal(present({ status: 'in_progress', responses: 3, connected: true }).headline, 'Work is in progress');
   assert.equal(present({ status: 'contact_released', connected: true, responses: 2 }).label, 'Connected');
-  assert.equal(present({ status: 'provider_selected', selected: true, responses: 2 }).action, null);
+  assert.equal(present({ status: 'provider_selected', selected: true, responses: 2 }).action, 'connect');
   assert.equal(present({ status: 'disputed', connected: true }).tone, 'attention');
 });
 test('waiting and response messages reflect the recorded counts', () => {

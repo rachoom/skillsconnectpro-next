@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import Link from 'next/link';
+import { PaymentStatusCheck } from './PaymentStatusCheck';
 import { CheckCircle2, Clock3, LockKeyhole, XCircle } from 'lucide-react';
 import { getAuthenticatedAccount } from '@/services/supabase/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
@@ -89,37 +90,41 @@ export default async function CustomerPaymentResultPage({
   }
 
   const complete = payment?.processor_status === 'COMPLETE';
-  const cancelled = cancellationRequested && !complete;
+  const cancelled = (cancellationRequested || payment?.processor_status === 'CANCELLED') && !complete;
+  const failed = payment?.processor_status === 'FAILED';
   const owned = Boolean(payment && user && payment.user_id === user.id);
   const guestPaid = Boolean(payment && complete && !payment.user_id && claimValid);
   const title = !payment ? 'Payment link unavailable' : cancelled
     ? 'Payment cancelled'
+    : failed ? 'Payment unsuccessful'
     : complete
       ? owned && !activationFailed ? 'Your plan is active' : 'Payment received'
       : 'Payment confirmation pending';
-  const Icon = !payment || cancelled ? XCircle : complete ? CheckCircle2 : Clock3;
+  const Icon = !payment || cancelled || failed ? XCircle : complete ? CheckCircle2 : Clock3;
 
   const nextPath = `/customer-payment-result?payment=${encodeURIComponent(paymentReference)}${claimToken ? `&claim=${encodeURIComponent(claimToken)}` : ''}`;
 
   return (
     <CustomerTransactionShell label="Your payment status">
       <section className="mx-auto max-w-xl rounded-[2rem] border border-white/12 bg-white/[.045] p-7 text-center shadow-2xl shadow-black/30 backdrop-blur-xl md:p-10">
-        <Icon className={cancelled ? 'mx-auto text-[#ff8c7f]' : complete ? 'mx-auto text-[#65f3a7]' : 'mx-auto text-[#ffe17a]'} size={48} />
+        <Icon className={cancelled || failed ? 'mx-auto text-[#ff8c7f]' : complete ? 'mx-auto text-[#65f3a7]' : 'mx-auto text-[#ffe17a]'} size={48} />
         <h1 className="mt-5 text-3xl font-black text-white">{title}</h1>
         <p className="mt-4 text-sm leading-7 text-white/65">
           {!payment
             ? 'We could not verify this payment link. Return to the plans page and reopen your checkout.'
             : cancelled
               ? 'No homeowner-plan access has been activated.'
+              : failed
+                ? 'PayFast reported that the payment was unsuccessful. You can return to plans to review your options.'
               : activationFailed
-                ? 'PayFast confirmed your payment, but plan activation is still pending. Refresh this page to retry; you do not need to pay again.'
+                ? 'PayFast confirmed your payment, but plan activation is still pending. You do not need to pay again.'
               : claimFailed
-                ? 'We could not link this purchase to your account yet. Refresh this page to retry; you do not need to pay again.'
+                ? 'We could not link this purchase to your account yet. You do not need to pay again.'
               : owned && complete
                 ? 'PayFast confirmed the payment and Skills Connect Pro has activated your homeowner plan.'
                 : guestPaid
                   ? 'PayFast confirmed your payment. Your purchase is safe. Secure it to a Skills Connect Pro account within 24 hours using this confirmation link so you can reopen it on another device.'
-                  : 'PayFast may return you to the site before its secure payment notification arrives. Refresh this page shortly to see the confirmed status.'}
+                  : 'We’re waiting for confirmation from PayFast. Please don’t pay again while we check.'}
         </p>
 
         {guestPaid && !user && (
@@ -137,10 +142,8 @@ export default async function CustomerPaymentResultPage({
           </div>
         )}
 
-        {payment && !cancelled && (!complete || activationFailed || claimFailed) && (
-          <Link href={nextPath} prefetch={false} className="mt-6 inline-flex rounded-xl border border-[#ffd75f]/50 px-5 py-3 text-sm font-black text-[#ffe17a]">
-            Check payment status
-          </Link>
+        {payment && !cancelled && !failed && (!complete || activationFailed || claimFailed) && (
+          <PaymentStatusCheck key={paymentReference}>Check payment status</PaymentStatusCheck>
         )}
 
         <div className="mt-7 grid gap-3 sm:grid-cols-2">

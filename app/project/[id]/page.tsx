@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock3,
+  Copy,
   Loader2,
   LockKeyhole,
   MapPin,
@@ -170,6 +171,8 @@ export default function CustomerProjectPage() {
   const [releasingContact, setReleasingContact] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [canRetry, setCanRetry] = useState(false);
+  const [copyMessage, setCopyMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activityExpanded, setActivityExpanded] = useState(false);
   const [clarificationDrafts, setClarificationDrafts] = useState<Record<string, string>>({});
@@ -180,7 +183,7 @@ export default function CustomerProjectPage() {
       const token = new URLSearchParams(window.location.search).get('token') ?? '';
       setAccessToken(token);
       if (!token) {
-        setError('This project link is missing its secure access token.');
+        setError('Open the full private link you received to view this project.');
         setLoading(false);
       }
     }, 0);
@@ -190,19 +193,25 @@ export default function CustomerProjectPage() {
   const loadFeed = useCallback(async (quiet = false) => {
     if (!projectId || !accessToken) return;
     if (!quiet) setLoading(true);
-    setError(null);
 
     try {
-      const payload = await readJson(
-        await fetch(`/api/projects/${projectId}/responses`, {
-          headers: { 'x-project-access-token': accessToken },
-          cache: 'no-store',
-        }),
-      );
+      const response = await fetch(`/api/projects/${projectId}/responses`, {
+        headers: { 'x-project-access-token': accessToken },
+        cache: 'no-store',
+      });
+      if ([401, 403, 404].includes(response.status)) {
+        setFeed(null);
+        setCanRetry(false);
+        setError('Open the full private link you received to view this project.');
+        return;
+      }
+      const payload = await readJson(response);
+      setError(null);
       setFeed(payload);
       setLastUpdated(new Date());
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Unable to load project responses.');
+    } catch {
+      setCanRetry(true);
+      setError('We couldn’t load the latest project updates. Check your connection and try again.');
     } finally {
       if (!quiet) setLoading(false);
     }
@@ -303,6 +312,17 @@ export default function CustomerProjectPage() {
     }
   };
 
+  const copyProjectLink = async () => {
+    const link = new URL(window.location.pathname, window.location.origin);
+    link.searchParams.set('token', accessToken);
+    try {
+      await navigator.clipboard.writeText(link.href);
+      setCopyMessage('Private link copied. Keep it for your own use.');
+    } catch {
+      setCopyMessage('Copy the link from your address bar and keep it for your own use.');
+    }
+  };
+
   const openJobControls = () => {
     const controls = document.getElementById('job-status-controls');
     if (controls) controls.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -332,6 +352,10 @@ export default function CustomerProjectPage() {
           <AlertTriangle size={34} />
           <h1>Project unavailable</h1>
           <p>{error}</p>
+          <div className={styles.recoveryActions}>
+            {canRetry && <button className={styles.refreshButton} onClick={() => void loadFeed()}>Try again</button>}
+            <Link href="/my-projects" className={styles.refreshButton}>Open My Projects</Link>
+          </div>
         </section>
       </main>
     );
@@ -403,6 +427,10 @@ export default function CustomerProjectPage() {
                 <span>Created {formatDate(project.createdAt)}</span>
                 {lastUpdated && <span>Updated {lastUpdated.toLocaleTimeString('en-ZA')}</span>}
               </div>
+              <button type="button" className={styles.refreshButton} onClick={() => void copyProjectLink()}>
+                <Copy size={15} /> Copy my private project link
+              </button>
+              <small className={styles.copyStatus} role="status">{copyMessage}</small>
             </div>
 
             <aside
@@ -428,7 +456,11 @@ export default function CustomerProjectPage() {
                 </>
               )}
 
-              {presentation.action === 'responses' ? (
+              {presentation.action === 'connect' && selectedResponse ? (
+                <button type="button" onClick={() => setShowReleaseConfirm(true)} className={`${styles.refreshButton} ${styles.reviewResponsesButton}`}>
+                  <LockKeyhole size={16} /> Confirm &amp; connect
+                </button>
+              ) : presentation.action === 'responses' ? (
                 <button type="button" onClick={openProviderResponses} className={`${styles.refreshButton} ${styles.reviewResponsesButton}`}>
                   <CheckCircle2 size={16} /> Review {responseCount} response{responseCount === 1 ? '' : 's'}
                 </button>
@@ -732,7 +764,7 @@ export default function CustomerProjectPage() {
         </section>
       </div>
 
-      {showReleaseConfirm && selectedResponse && (
+      {showReleaseConfirm && selectedResponse && !projectClosed && !contactsReleased && (
         <div className={styles.modalBackdrop}>
           <section className={styles.modalCard}>
             <div className={styles.modalHeader}>

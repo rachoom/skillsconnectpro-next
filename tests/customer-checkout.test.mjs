@@ -51,6 +51,7 @@ async function resultPage(row, account, params = {}, options = {}) {
   };
   const page = load('../app/customer-payment-result/page.tsx', {
     'next/link': 'a', 'lucide-react': icons,
+    './PaymentStatusCheck': { PaymentStatusCheck: 'payment-status-check' },
     '@/components/CustomerTransactionShell': { CustomerTransactionShell: 'customer-shell' },
     '@/services/supabase/server': { getAuthenticatedAccount: async () => ({ user: account }) },
     '@/services/supabaseAdmin': { getSupabaseAdmin: () => db },
@@ -145,4 +146,13 @@ test('checkout server chooses amount and identity; guests receive only a hashed 
   assert.equal((await route.POST(request({ plan: 'invalid' }))).status, 400);
   const crossOrigin = new Request('https://www.skillsconnectpro.co.za/api/payments/payfast/customer-checkout', { method: 'POST', headers: { origin: 'https://attacker.example', host: 'www.skillsconnectpro.co.za' }, body: '{}' });
   assert.equal((await route.POST(crossOrigin)).status, 403);
+});
+
+test('status checks are offered only for authorised purchases still needing confirmation', async () => {
+  for (const [status, expected] of [['INITIATED', true], ['COMPLETE', false], ['FAILED', false], ['CANCELLED', false]]) {
+    const result = await resultPage(payment({ processor_status: status }), user);
+    assert.equal(nodes(result.tree).some(node => node.type === 'payment-status-check'), expected);
+  }
+  const other = await resultPage(payment({ processor_status: 'INITIATED' }), { id: 'another-user' });
+  assert.equal(nodes(other.tree).some(node => node.type === 'payment-status-check'), false);
 });
