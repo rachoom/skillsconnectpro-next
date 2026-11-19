@@ -593,3 +593,57 @@
     font-size: 13px;
   }
 }
+
+/* Tinted glass actions, with distinct champagne and amber finishes. */
+.mobileAssistantCta,
+.commandBar,
+.assistantBand .outlineButton {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,222,134,.65);
+  background: linear-gradient(125deg,rgba(255,231,166,.25),rgba(189,143,37,.19) 55%,rgba(87,65,19,.32));
+  color: #fff3ca;
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+  backdrop-filter: blur(16px) saturate(145%);
+  box-shadow: inset 0 1px 0 rgba(255,249,218,.5),inset 0 -1px 0 rgba(255,207,85,.13),0 8px 24px rgba(0,0,0,.22);
+  transition: background 180ms ease,border-color 180ms ease,box-shadow 180ms ease,transform 180ms ease;
+}
+.commandBar {
+  border-color: rgba(255,192,62,.8);
+  background: linear-gradient(125deg,rgba(255,205,78,.31),rgba(183,112,16,.27) 55%,rgba(96,57,8,.36));
+}
+.mobileAssistantCta::before,
+.commandBar::before,
+.assistantBand .outlineButton::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(175deg,rgba(255,255,255,.14),transparent 46%);
+}
+.mobileAssistantCta small,.commandBar small { color: #eddfbd; }
+.mobileAssistantIcon,.commandIcon {
+  border-color: rgba(255,224,139,.55);
+  background: linear-gradient(145deg,rgba(255,223,141,.22),rgba(31,27,14,.52));
+  color: #ffe9a6;
+  box-shadow: inset 0 1px 0 rgba(255,244,204,.32),0 4px 10px rgba(0,0,0,.22);
+}
+.commandIcon { color: #ffdb79; border-color: rgba(255,194,67,.65); }
+.mobileAssistantCta:focus-visible,.commandBar:focus-visible,.assistantBand .outlineButton:focus-visible {
+  outline: 3px solid #fff1b7; outline-offset: 4px;
+}
+@media(hover:hover) {
+  .mobileAssistantCta:hover,.commandBar:hover,.assistantBand .outlineButton:hover {
+    background: linear-gradient(125deg,rgba(255,225,132,.4),rgba(191,134,27,.32),rgba(102,69,13,.4));
+    border-color: #ffe39a; transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 rgba(255,252,228,.65),0 10px 28px rgba(133,94,14,.22);
+  }
+}
+.mobileAssistantCta:active,.commandBar:active { transform: translateY(1px); }
+:global(html[data-scp-theme='light']) .assistantBand .outlineButton {
+  color: #493108; border-color: #a77c25;
+  background: linear-gradient(125deg,rgba(255,225,144,.7),rgba(209,164,60,.28));
+}
+@supports not (backdrop-filter:blur(1px)) {
+  .mobileAssistantCta,.commandBar { background-color: rgba(42,32,12,.9); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .mobileAssistantCta,.commandBar,.assistantBand .outlineButton { transition: none; transform: none; }
+}
