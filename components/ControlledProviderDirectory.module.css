@@ -228,9 +228,17 @@
 .workImage { position:relative; aspect-ratio:1/1; overflow:hidden; border-radius:.8rem; background:#dfe8d6; border:1px solid #d7d0bf; }
 .workImage img { object-fit:cover; transition:transform .25s ease; }
 .workImage:hover img { transform:scale(1.025); }
-.privacyNotice { display:flex; gap:.7rem; margin-top:1rem; border-radius:1rem; background:#173827; color:#f5f0e3; padding:1rem; }
-.privacyNotice svg { color:#75d39f; flex:0 0 auto; }
-.privacyNotice p { font-size:.76rem; line-height:1.55; }
+.privacyNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  margin-top: 1rem;
+  padding: .5rem .8rem;
+  border-inline-start: 2px solid #b89255;
+  color: #eee1c9;
+}
+.privacyNotice svg { color: #e9c17d; flex: 0 0 auto; }
+.privacyNotice p { color: inherit; font-size: .8rem; line-height: 1.55; }
 .modalCta { margin-top:1rem; }
 
 @media (min-width: 640px) {
@@ -256,39 +264,12 @@
 @media(max-width:480px) { .page .cardBody > p { font-size:14px; }.page input,.page select { font-size:16px; }.page .cardActions :is(a,button) { min-height:48px; }.page .headerInner { flex-wrap:wrap; gap:10px; padding-block:10px; } }
 
 
-/* Premium provider identity. Only the identity area becomes dark; descriptions
-   and proof-of-work stay on the readable cream canvas. */
 .identityPanel {
   position: relative;
-  isolation: isolate;
   margin: -1.2rem -1.2rem 0;
   padding: 1.25rem 1.2rem 1.3rem;
-  overflow: visible;
   border-bottom: 1px solid rgba(236,191,91,.38);
-  background:
-    radial-gradient(ellipse at 0 0, rgba(181,126,46,.28), transparent 55%),
-    linear-gradient(125deg, #101b16 0%, #17281d 50%, #0b1511 100%);
   color: #fff8e8;
-}
-.identityPanel::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
-  opacity: .42;
-  background: repeating-linear-gradient(175deg,transparent 0 16px,rgba(255,228,174,.018) 17px,transparent 21px);
-}
-.identityPanel[data-trade="wood"] {
-  background:
-    linear-gradient(105deg,rgba(10,9,8,.86),rgba(23,14,9,.72)),
-    repeating-linear-gradient(2deg,#4a2c18 0 13px,#392112 14px 16px,#5b3921 17px 32px,#28170f 33px 38px);
-}
-.identityPanel[data-trade="wood"]::before {
-  opacity: .6;
-  background:
-    repeating-radial-gradient(ellipse at 16% 80%,transparent 0 13px,rgba(225,161,82,.10) 14px,transparent 16px,transparent 24px),
-    repeating-linear-gradient(178deg,transparent 0 9px,rgba(236,182,112,.07) 10px,transparent 12px);
 }
 .identityPanel > img {
   position: relative;
@@ -319,8 +300,6 @@
 }
 
 
-/* Finishing pass: extend the premium dark theme below the identity header.
-   Keep proof-of-work photos unfiltered and preserve clear reading contrast. */
 .modal {
   border-color:rgba(238,196,104,.52);
   background:#1b110c;
@@ -328,13 +307,15 @@
 .modalBody {
   color:#f7edda;
   background:
-    radial-gradient(ellipse at 100% 0%,rgba(154,92,42,.14),transparent 27rem),
-    linear-gradient(165deg,#2a1c13 0%,#21160f 55%,#1a110c 100%);
+    repeating-radial-gradient(ellipse at 16% 17%, transparent 0 13px, rgba(225,161,82,.065) 14px, transparent 16px 24px),
+    repeating-linear-gradient(178deg, transparent 0 9px, rgba(236,182,112,.05) 10px, transparent 12px),
+    linear-gradient(105deg, rgba(10,9,8,.84), rgba(23,14,9,.70)),
+    repeating-linear-gradient(2deg, #4a2c18 0 13px, #392112 14px 16px, #5b3921 17px 32px, #28170f 33px 38px);
 }
 .about,
 .workSection {
   border:1px solid rgba(219,169,91,.4);
-  background:linear-gradient(145deg,#352419,#261910 66%,#21150f);
+  background:linear-gradient(145deg,rgba(58,40,27,.46),rgba(30,20,14,.36));
   box-shadow:inset 0 1px 0 rgba(252,225,170,.06),0 10px 30px rgba(0,0,0,.12);
 }
 .about > span,
@@ -356,12 +337,6 @@
   background:#100c09;
   box-shadow:0 3px 12px rgba(0,0,0,.25);
 }
-.privacyNotice {
-  border:1px solid rgba(137,202,166,.38);
-  background:linear-gradient(120deg,#123829,#103021);
-  color:#e9f3e9;
-}
-.privacyNotice p {color:#e9f3e9;}
 .identityPanel .modalReputation {
   border:2px solid #edc05a;
   border-radius:1rem;

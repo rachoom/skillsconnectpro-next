@@ -264,7 +264,7 @@ export const ControlledProviderDirectory = () => {
             <button type="button" className={styles.closeButton} onClick={() => setSelected(null)} aria-label="Close profile"><X size={22} /></button>
             <ProviderBanner url={selected.banner_url} />
             <div className={styles.modalBody}>
-              <div className={styles.identityPanel} data-trade={/carpent|wood|cabinet|joiner|furniture|shop.?fitt/i.test(selected.category || '') ? 'wood' : 'standard'}>
+              <div className={styles.identityPanel}>
               {selected.image_url && <img src={selected.image_url} alt={displayName(selected)} width={72} height={72} className="relative -mt-10 mb-3 h-[72px] w-[72px] rounded-2xl border-2 border-white object-cover" />}
               <div className={styles.modalTitleRow}>
                 <div>
