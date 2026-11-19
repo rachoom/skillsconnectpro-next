@@ -162,8 +162,8 @@
 
 :global(html[data-scp-theme='light']) .page { --paper: #ffffff; --panel: #ffffff; --panel-strong: #ffffff; --ink: #080808; --muted: #535353; --line: #dedede; --accent-ink: #755800; }
 :global(html[data-scp-theme='light']) .nav {
-  background: transparent;
-  border-bottom-color: rgba(164,131,53,.18);
+  background: #080808;
+  border-bottom-color: rgba(245,197,24,.34);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
