@@ -1544,3 +1544,27 @@
 .page[data-project-closed='true'] *, .page[data-project-closed='true'] *::before, .page[data-project-closed='true'] *::after { animation:none !important; }
 :global(html[data-scp-theme='light']) .page .projectHero { background:linear-gradient(145deg,#fffdf5,#edf2e8); }
 @media(max-width:600px) { .page .overviewBar { position:relative; top:0; gap:8px; padding:12px; flex-wrap:wrap; }.overviewActions { flex-wrap:wrap; }.page .overviewBar strong { font-size:18px; }.page .metricsGrid { gap:10px; }.page .metricCard { padding:16px; }.page .metricCard p { font-size:12px; }.page .matchingCopy { font-size:15px; }.page .sectionHeading h2 { font-size:25px; }.page .customerScene { height:145px; }.page .providerDetailGrid { grid-template-columns:1fr; }.page .heroCopy > p { font-size:16px; line-height:1.65; } }
+
+/* Full-bleed customer scene: keep faces in the clear upper area. */
+.page .matchingPanel {
+  isolation: isolate;
+  justify-content: flex-end;
+  min-height: 490px;
+  padding: 220px 20px 24px;
+  background: #10150e;
+}
+.page .matchingPanel > :not(.customerScene) { position: relative; z-index: 1; }
+.page .matchingPanel .customerScene {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; margin: 0; border: 0; border-radius: inherit;
+  background: linear-gradient(180deg,rgba(7,12,7,0) 24%,rgba(7,12,7,.3) 43%,rgba(7,12,7,.91) 72%,#090f09 100%),url('/plan-backgrounds/customer-project-scene.webp') center top / cover no-repeat;
+}
+.page .matchingPanel :is(.matchingKicker,.matchingCopy),
+.page .matchingPanel > strong { color: #fff7e3 !important; text-shadow: 0 2px 12px rgba(0,0,0,.7); }
+.page .matchingPanel .matchingKicker { color: #ffda70 !important; }
+.page .matchingPanel .matchingOrb { width: 4.8rem; height: 4.8rem; margin-bottom: .7rem; }
+.page .matchingPanel .matchingOrb > span { background: #111a10; }
+@media(max-width:759px) {
+  .page .matchingPanel { min-height: 520px; padding: 240px 20px 26px; }
+  .page .matchingPanel .customerScene { background-position: center top; }
+}
