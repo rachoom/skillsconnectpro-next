@@ -11,6 +11,7 @@ import {
   Loader2,
   MapPin,
   Search,
+  Share2,
   ShieldCheck,
   Star,
   Images,
@@ -71,6 +72,8 @@ const providerHref = (provider: Provider) => {
   return `/get-help?${params.toString()}`;
 };
 
+const providerShareHref = (provider: Provider) => `/provider/${provider.id}`;
+
 export const ControlledProviderDirectory = () => {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -78,6 +81,7 @@ export const ControlledProviderDirectory = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All services');
   const [selected, setSelected] = useState<Provider | null>(null);
+  const [shareStatus, setShareStatus] = useState('');
 
   const [categories, setCategories] = useState<string[]>([]);
   const [page, setPage] = useState(1);
@@ -147,6 +151,37 @@ export const ControlledProviderDirectory = () => {
     setPage(next);
     resultsStart.current?.scrollIntoView({ block: 'start' });
     resultsStart.current?.focus({ preventScroll: true });
+  }
+
+  function exploreMoreProviders() {
+    setSelected(null);
+    setSearch('');
+    setCategory('All services');
+    setPage(1);
+    window.setTimeout(() => {
+      resultsStart.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      resultsStart.current?.focus({ preventScroll: true });
+    }, 50);
+  }
+
+  async function shareProvider(provider: Provider) {
+    const url = `${window.location.origin}${providerShareHref(provider)}`;
+    const title = `${displayName(provider)} | Skills Connect Pro`;
+    const text = `View ${displayName(provider)}'s ${provider.category || 'service'} profile on Skills Connect Pro.`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        setShareStatus('Profile shared');
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setShareStatus('Profile link copied');
+      } else {
+        setShareStatus(url);
+      }
+    } catch (error) {
+      if ((error as DOMException)?.name !== 'AbortError') setShareStatus('Use the profile link below to share');
+    }
+    window.setTimeout(() => setShareStatus(''), 3000);
   }
 
   const selectedGallery = selected ? providerGallery(selected) : [];
@@ -308,7 +343,21 @@ export const ControlledProviderDirectory = () => {
                 </section>
               )}
               <div className={styles.privacyNotice}><ShieldCheck size={19} /><p>Contact details are shared after the provider responds and you confirm the connection.</p></div>
-              <Link href={providerHref(selected)} className={styles.modalCta}>Invite this provider to my job <ArrowRight size={18} /></Link>
+              <div className={styles.profileActions}>
+                <Link href={providerHref(selected)} className={styles.modalCta}>Invite this provider to my job <ArrowRight size={18} /></Link>
+                <button type="button" className={styles.shareCta} onClick={() => void shareProvider(selected)}>
+                  <Share2 size={18} /> Share this profile
+                </button>
+              </div>
+              {shareStatus && <p className={styles.shareStatus} role="status">{shareStatus}</p>}
+              <section className={styles.discoveryPrompt}>
+                <div>
+                  <span>Need a different service?</span>
+                  <strong>Explore more local professionals on Skills Connect Pro.</strong>
+                  <p>Browse other trusted local providers or describe your job and let Skills Connect Pro help you find the right match.</p>
+                </div>
+                <button type="button" onClick={exploreMoreProviders}>Explore more providers <Search size={17} /></button>
+              </section>
             </div>
           </section>
         </div>
