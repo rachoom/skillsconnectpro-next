@@ -17,7 +17,6 @@ import {
   Plus,
   ShieldCheck,
   Star,
-  UserRound,
   X,
 } from 'lucide-react';
 import styles from './ClaimProfile.module.css';
@@ -250,6 +249,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
     );
   }
 
+  const avatar = profilePreview || provider?.image_url;
   const existingWork = (provider?.portfolio_urls || []).filter(Boolean).slice(0, 5);
   const workSlots = Array.from({ length: 5 }, (_, index) => {
     const uploaded = portfolioPreviews[index];
@@ -278,14 +278,12 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
           <div className={styles.sectionTop}><div><span className={styles.eyebrow}>Your business, in the spotlight</span><h2 id="profile-editor-title">Make a first impression that lasts.</h2><p>Your details are ready below. Add your finishing touches.</p></div><span className={styles.editBadge}><span /> Editable preview</span></div>
           <article className={styles.profileCard}>
             <div className={styles.cover}>
-              <span className={styles.coverLabel}><Briefcase size={16} /> Skills Connect Pro · Provider</span>
-              <div className={styles.coverLines} aria-hidden="true" />
+              <span className={styles.coverLabel}><Briefcase size={16} /> Sample business banner</span>
               <div className={styles.coverMessage}>Local skill.<br /><strong>Professional presence.</strong></div>
-              <span className={styles.coverMark} aria-hidden="true"><Sparkles size={40} /></span>
             </div>
             <div className={styles.identity}>
               <label className={styles.avatarUpload}>
-                {profilePreview || provider?.image_url ? <img src={profilePreview || provider?.image_url || ''} alt={displayName} /> : <UserRound size={38} />}
+                <img src={avatar || '/provider-profile/sample-logo.webp'} alt={avatar ? displayName : 'Example business logo'} width={94} height={94} />
                 <span><Camera size={16} /></span>
                 <input aria-label="Upload your profile photo or business logo" type="file" accept="image/*" onChange={event => chooseProfile(event.target.files?.[0])} />
               </label>
@@ -293,7 +291,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
               <span className={styles.draftBadge}>Profile draft</span>
             </div>
             <div className={styles.editorBody}>
-              <div className={styles.photoHint}><Camera size={17} /><span>Your face or business logo makes this profile yours. Tap the picture above to add it.</span></div>
+              <div className={styles.photoHint}><Camera size={17} /><span>{avatar ? 'Tap your profile picture to change your photo or logo.' : 'Sample logo shown. Tap the camera to add your own photo or business logo.'}</span></div>
               <section className={styles.fieldPanel}>
                 <div className={styles.fieldHeading}><span className={styles.iconTile}><Briefcase size={19} /></span><div><label htmlFor="claim-bio">Tell customers why to choose you</label><p>Your services, experience and the areas you cover.</p></div></div>
                 <textarea id="claim-bio" value={bio} maxLength={600} onChange={event => setBio(event.target.value)} placeholder="I specialise in… I have experience with… I serve customers in…" />
