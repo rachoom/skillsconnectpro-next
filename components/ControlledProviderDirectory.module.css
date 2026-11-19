@@ -263,7 +263,7 @@
   isolation: isolate;
   margin: -1.2rem -1.2rem 0;
   padding: 1.25rem 1.2rem 1.3rem;
-  overflow: hidden;
+  overflow: visible;
   border-bottom: 1px solid rgba(236,191,91,.38);
   background:
     radial-gradient(ellipse at 0 0, rgba(181,126,46,.28), transparent 55%),
@@ -291,6 +291,8 @@
     repeating-linear-gradient(178deg,transparent 0 9px,rgba(236,182,112,.07) 10px,transparent 12px);
 }
 .identityPanel > img {
+  position: relative;
+  z-index: 2;
   display: block;
   border: 3px solid #f5d27e !important;
   background: #111714;
