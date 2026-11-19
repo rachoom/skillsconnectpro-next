@@ -46,6 +46,12 @@ const displayName = (provider: Provider) =>
   || `${provider.first_name || ''} ${provider.last_name || ''}`.trim()
   || 'Local service provider';
 
+function directoryCategory(value: string | null) {
+  const label = value?.trim() || '';
+  if (/^(?:cleaners?|cleaning)(?:\s+services?|\s*,\s*household)?$/i.test(label)) return 'Cleaning';
+  return label;
+}
+
 const providerGallery = (provider: Provider) => {
   const sources = [
     provider.portfolio_urls,
@@ -110,17 +116,19 @@ export const ControlledProviderDirectory = () => {
 
   const categories = useMemo(() => {
     const values = providers
-      .map((provider) => provider.category?.trim())
+      .map((provider) => directoryCategory(provider.category))
       .filter((value): value is string => Boolean(value));
     return ['All services', ...Array.from(new Set(values)).sort((a, b) => a.localeCompare(b))];
   }, [providers]);
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const searchCategory = directoryCategory(query).toLowerCase();
     return providers.filter((provider) => {
-      const matchesCategory = category === 'All services' || provider.category?.trim() === category;
+      const group = directoryCategory(provider.category);
+      const matchesCategory = category === 'All services' || group === category;
       const text = `${displayName(provider)} ${provider.category || ''} ${provider.location || ''}`.toLowerCase();
-      return matchesCategory && (!query || text.includes(query));
+      return matchesCategory && (!query || text.includes(query) || group.toLowerCase() === searchCategory);
     });
   }, [category, providers, search]);
 
