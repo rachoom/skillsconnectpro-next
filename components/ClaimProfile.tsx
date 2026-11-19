@@ -2,6 +2,11 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ArrowUpRight,
+  Check,
+  Eye,
+  Sparkles,
+  Upload,
   AlertCircle,
   Briefcase,
   Camera,
@@ -15,6 +20,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
+import styles from './ClaimProfile.module.css';
 
 type ClaimProvider = {
   id: number;
@@ -65,7 +71,7 @@ function exampleGallery(provider: ExampleProvider) {
   ].filter(Boolean))).slice(0, 5);
 }
 
-export const ClaimProfile: React.FC = () => {
+export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false }) => {
   const [token, setToken] = useState('');
   const [provider, setProvider] = useState<ClaimProvider | null>(null);
   const [exampleProvider, setExampleProvider] = useState<ExampleProvider | null>(null);
@@ -80,13 +86,14 @@ export const ClaimProfile: React.FC = () => {
   const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>([]);
   const [bio, setBio] = useState('');
   const portfolioInputRef = useRef<HTMLInputElement | null>(null);
+  const objectUrls = useRef(new Set<string>());
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const value = params.get('claim') || params.get('invite') || '';
     setToken(value);
 
-    if (!value) {
+    if (!value && !preview) {
       setError('This invitation is missing a valid claim token.');
       setLoading(false);
       return;
@@ -94,12 +101,17 @@ export const ClaimProfile: React.FC = () => {
 
     const load = async () => {
       try {
+        if (preview) {
+          setProvider({ id: 0, first_name: 'Your business', last_name: null, name: null, category: 'Skilled service provider', location: 'East Rand', phone: null, bio: '', image_url: null, portfolio_urls: [] });
+        } else {
         const response = await fetch(`/api/provider-claim/${encodeURIComponent(value)}`, { cache: 'no-store' });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || 'Unable to load this invitation.');
         const loadedProvider = payload.provider as ClaimProvider;
         setProvider(loadedProvider);
         setBio(editableBio(loadedProvider.bio));
+
+        }
 
         try {
           const directoryResponse = await fetch('/api/providers', { cache: 'no-store' });
@@ -123,20 +135,23 @@ export const ClaimProfile: React.FC = () => {
     };
 
     void load();
-  }, []);
+  }, [preview]);
 
   useEffect(() => {
-    return () => {
-      if (profilePreview) URL.revokeObjectURL(profilePreview);
-      portfolioPreviews.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [profilePreview, portfolioPreviews]);
+    const urls = objectUrls.current;
+    return () => { urls.forEach(url => URL.revokeObjectURL(url)); urls.clear(); };
+  }, []);
+  const makePreview = (file: File) => {
+    const url = URL.createObjectURL(file);
+    objectUrls.current.add(url);
+    return url;
+  };
 
   const chooseProfile = (file?: File) => {
     if (!file) return;
     if (profilePreview) URL.revokeObjectURL(profilePreview);
     setProfile(file);
-    setProfilePreview(URL.createObjectURL(file));
+    setProfilePreview(makePreview(file));
   };
 
   const choosePortfolio = (files: FileList | null) => {
@@ -147,7 +162,7 @@ export const ClaimProfile: React.FC = () => {
     setPortfolio(current => [...current, ...incoming].slice(0, 5));
     setPortfolioPreviews(current => [
       ...current,
-      ...incoming.map(file => URL.createObjectURL(file)),
+      ...incoming.map(file => makePreview(file)),
     ].slice(0, 5));
   };
 
@@ -159,7 +174,7 @@ export const ClaimProfile: React.FC = () => {
   };
 
   const submit = async () => {
-    if (!agreed || !token) return;
+    if (preview || !agreed || !token) return;
     setSubmitting(true);
     setError('');
     try {
@@ -247,163 +262,53 @@ export const ClaimProfile: React.FC = () => {
   });
 
   return (
-    <main className="min-h-screen bg-[#080808] px-4 py-8 text-white md:px-8 md:py-12">
-      <div className="mx-auto max-w-5xl">
-        <header className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-300">
-            <ShieldCheck className="h-4 w-4" /> Free provider profile
-          </div>
-          <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-black tracking-tight md:text-6xl">
-            Your <span className="text-amber-300">SkillsConnect Pro</span> profile is almost ready
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-400 md:text-base">
-            This is what customers will see. Add your own photo or business logo, tell them what you do, and show examples of your work.
-          </p>
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <nav className={styles.nav}><a href="/" aria-label="Skills Connect Pro home"><img src="/logo-new.svg" alt="Skills Connect Pro" width="180" height="48" /></a><span><ShieldCheck size={15} /> Private invitation</span></nav>
+        {preview && <p className={styles.previewNotice}>Design preview · sample profile. Nothing is saved or submitted.</p>}
+        <header className={styles.hero}>
+          <span className={styles.eyebrow}><Sparkles size={16} /> Your skill. Your name. Your next chapter.</span>
+          <h1>Good at what you do?<br /><em>Let your profile show it.</em></h1>
+          <p>We’ve started your Skills Connect Pro profile. Make it yours and give customers a clear picture of your business, your skills and the work you’re proud of.</p>
+          <div className={styles.benefits}><span><Check size={15} /> Free to claim</span><span><ShieldCheck size={15} /> Contact details protected</span><span><Eye size={15} /> Reviewed before publishing</span></div>
+          <ol className={styles.steps}><li><b>01</b><span>Make it yours<small>Add your photo or logo</small></span></li><li><b>02</b><span>Show your skill<small>A short intro & your work</small></span></li><li><b>03</b><span>Claim your profile<small>Send it for our review</small></span></li></ol>
         </header>
 
-        <section className="mx-auto mt-9 max-w-2xl">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">Your customer profile</div>
-              <p className="mt-1 text-xs leading-5 text-zinc-500">Tap the highlighted areas to complete your profile.</p>
+        <section className={styles.editor} aria-labelledby="profile-editor-title">
+          <div className={styles.sectionTop}><div><span className={styles.eyebrow}>Your business, in the spotlight</span><h2 id="profile-editor-title">Make a first impression that lasts.</h2><p>Your details are ready below. Add your finishing touches.</p></div><span className={styles.editBadge}><span /> Editable preview</span></div>
+          <article className={styles.profileCard}>
+            <div className={styles.cover}>
+              <span className={styles.coverLabel}><Briefcase size={16} /> Skills Connect Pro · Provider</span>
+              <div className={styles.coverLines} aria-hidden="true" />
+              <div className={styles.coverMessage}>Local skill.<br /><strong>Professional presence.</strong></div>
+              <span className={styles.coverMark} aria-hidden="true"><Sparkles size={40} /></span>
             </div>
-            <div className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-2 text-[10px] font-bold text-emerald-300 sm:block">
-              LIVE PREVIEW
+            <div className={styles.identity}>
+              <label className={styles.avatarUpload}>
+                {profilePreview || provider?.image_url ? <img src={profilePreview || provider?.image_url || ''} alt={displayName} /> : <UserRound size={38} />}
+                <span><Camera size={16} /></span>
+                <input aria-label="Upload your profile photo or business logo" type="file" accept="image/*" onChange={event => chooseProfile(event.target.files?.[0])} />
+              </label>
+              <div className={styles.nameBlock}><span className={styles.category}>{provider?.category || 'Local service provider'}</span><h3>{displayName}</h3><p><MapPin size={15} />{provider?.location || 'Service area not supplied'}</p></div>
+              <span className={styles.draftBadge}>Profile draft</span>
             </div>
-          </div>
-
-          <article className="overflow-hidden rounded-[1.7rem] border border-white/15 bg-[#f3eedf] text-[#172019] shadow-[0_35px_100px_rgba(0,0,0,.55)]">
-            <label className="group relative block min-h-[300px] cursor-pointer overflow-hidden bg-[#173827] sm:min-h-[360px]">
-              {profilePreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={profilePreview} alt={displayName} className="absolute inset-0 h-full w-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(circle_at_50%_20%,rgba(245,197,24,.12),transparent_14rem),linear-gradient(145deg,#173827,#2b1a10)] px-8 text-center text-white">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full border border-amber-300/30 bg-black/25 text-amber-300 shadow-2xl">
-                    <UserRound className="h-11 w-11" />
-                  </div>
-                  <div className="mt-5 text-base font-black">Add your profile picture</div>
-                  <div className="mt-1 text-sm text-white/60">or upload your business logo</div>
-                </div>
-              )}
-              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/55 to-transparent" />
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-center gap-2 rounded-2xl border border-amber-300/35 bg-black/65 px-4 py-3 text-center text-xs font-black text-amber-200 backdrop-blur-md transition group-hover:bg-black/80">
-                <Camera className="h-4 w-4" /> {profilePreview ? 'Change your profile picture or logo' : 'Tap here to add your own photo or logo'}
-              </div>
-              <input type="file" accept="image/*" className="hidden" onChange={event => chooseProfile(event.target.files?.[0])} />
-            </label>
-
-            <div className="p-5 sm:p-7">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[#5e704f]">{provider?.category || 'Local service provider'}</div>
-                  <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">{displayName}</h2>
-                </div>
-                <Briefcase className="mt-1 h-6 w-6 shrink-0 text-[#2f674a]" />
-              </div>
-
-              <div className="mt-4 flex items-start gap-2 text-sm text-[#667064]">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{provider?.location || 'Service area not supplied'}</span>
-              </div>
-
-              <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl bg-[#dfe8d6] p-4">
-                <Star className="h-4 w-4 text-[#9e7500]" />
-                <strong className="font-black">New provider</strong>
-                <span className="text-xs text-[#5f695c]">Building marketplace history</span>
-              </div>
-
-              <section className="mt-5 rounded-2xl border border-[#cbc5b5] bg-[#fffdf6] p-4">
-                <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[#667064]">About this provider</div>
-                <textarea
-                  value={bio}
-                  maxLength={600}
-                  onChange={event => setBio(event.target.value)}
-                  placeholder="Tell customers what you do, your experience, the areas you serve and what they can expect from you..."
-                  className="mt-3 min-h-32 w-full resize-y rounded-xl border border-dashed border-[#b9b19f] bg-[#f8f4e9] px-4 py-3 text-sm leading-6 text-[#263429] outline-none placeholder:italic placeholder:text-[#7b8277] focus:border-[#d2a900] focus:ring-2 focus:ring-[#f5c518]/20"
-                />
-                <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-[#7b8277]">
-                  <span>Tip: mention your experience and main services.</span>
-                  <span>{bio.length}/600</span>
-                </div>
+            <div className={styles.editorBody}>
+              <div className={styles.photoHint}><Camera size={17} /><span>Your face or business logo makes this profile yours. Tap the picture above to add it.</span></div>
+              <section className={styles.fieldPanel}>
+                <div className={styles.fieldHeading}><span className={styles.iconTile}><Briefcase size={19} /></span><div><label htmlFor="claim-bio">Tell customers why to choose you</label><p>Your services, experience and the areas you cover.</p></div></div>
+                <textarea id="claim-bio" value={bio} maxLength={600} onChange={event => setBio(event.target.value)} placeholder="I specialise in… I have experience with… I serve customers in…" />
+                <div className={styles.fieldFoot}><span>A few honest, specific sentences work best.</span><span>{bio.length}/600</span></div>
               </section>
-
-              <section className="mt-5 rounded-2xl border border-[#cbc5b5] bg-[#fffdf6] p-4">
-                <div className="flex items-end justify-between gap-3">
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[#667064]">Proof of work</div>
-                    <div className="mt-1 text-sm font-black text-[#233126]">Show customers jobs you have completed</div>
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-[#7b8277]">
-                    <Images className="h-3.5 w-3.5" /> Up to 5
-                  </div>
+              <section className={styles.fieldPanel}>
+                <div className={styles.fieldHeading}><span className={styles.iconTile}><Images size={19} /></span><div><h4>Let your work do the talking.</h4><p>Add up to 5 photos of jobs you’ve completed.</p></div></div>
+                <input ref={portfolioInputRef} type="file" accept="image/*" multiple className={styles.hiddenInput} aria-label="Choose photos of your completed work" onChange={event => choosePortfolio(event.target.files)} />
+                <div className={styles.gallery}>
+                  {workSlots.map(slot => slot.type === 'empty' ? <button key={`empty-${slot.index}`} type="button" className={styles.uploadSlot} onClick={() => portfolioInputRef.current?.click()} aria-label={`Add work photo ${slot.index + 1}`}><Plus size={22} /><span>Add photo</span></button> : <div key={`${slot.type}-${slot.index}`} className={styles.workPhoto}><img src={slot.url} alt={`Your completed work ${slot.index + 1}`} />{slot.type === 'uploaded' ? <button type="button" onClick={() => removePortfolio(slot.index)} aria-label={`Remove work photo ${slot.index + 1}`}><X size={16} /></button> : <span>On your profile</span>}</div>)}
                 </div>
-
-                <input
-                  ref={portfolioInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={event => choosePortfolio(event.target.files)}
-                />
-
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {workSlots.map(slot => (
-                    slot.type === 'empty' ? (
-                      <button
-                        key={`empty-${slot.index}`}
-                        type="button"
-                        onClick={() => portfolioInputRef.current?.click()}
-                        className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#c7bfad] bg-[#f5f0e3] px-3 text-center transition hover:border-[#d2a900] hover:bg-[#fff8d9]"
-                      >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#173827] text-[#ffe069]">
-                          <Plus className="h-5 w-5" />
-                        </div>
-                        <div className="mt-3 text-xs font-black text-[#233126]">Add work photo</div>
-                        <div className="mt-1 text-[10px] leading-4 text-[#7b8277]">Tap to upload a completed job</div>
-                      </button>
-                    ) : (
-                      <div key={`${slot.type}-${slot.index}`} className="relative aspect-square overflow-hidden rounded-xl border border-[#d7d0bf] bg-[#dfe8d6]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={slot.url} alt={`Proof of work ${slot.index + 1}`} className="h-full w-full object-cover" />
-                        {slot.type === 'uploaded' ? (
-                          <button
-                            type="button"
-                            onClick={() => removePortfolio(slot.index)}
-                            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/75 text-white"
-                            aria-label="Remove work photo"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <span className="absolute bottom-2 left-2 rounded-full bg-black/65 px-2 py-1 text-[9px] font-bold text-white">Already on profile</span>
-                        )}
-                      </div>
-                    )
-                  ))}
-                </div>
-
-                {portfolio.length < 5 ? (
-                  <button
-                    type="button"
-                    onClick={() => portfolioInputRef.current?.click()}
-                    className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#c9c1ad] bg-[#f8f4e9] px-4 text-xs font-black text-[#233126]"
-                  >
-                    <Plus className="h-4 w-4" /> Add proof-of-work photos
-                  </button>
-                ) : null}
+                {portfolio.length < 5 && <button type="button" className={styles.uploadButton} onClick={() => portfolioInputRef.current?.click()}><Upload size={17} /> Add your work photos</button>}
+                <p className={styles.optional}>Photos are optional. Your own, clear photos help customers understand what you can do.</p>
               </section>
-
-              <div className="mt-5 flex items-start gap-3 rounded-2xl bg-[#173827] p-4 text-[#f5f0e3]">
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#75d39f]" />
-                <div>
-                  <div className="text-sm font-black">Your contact details stay protected</div>
-                  <p className="mt-1 text-xs leading-5 text-white/65">
-                    Your phone and WhatsApp number are used by SkillsConnect Pro but are not displayed openly on the public directory.
-                  </p>
-                </div>
-              </div>
+              <aside className={styles.privacy}><ShieldCheck size={22} /><div><strong>Your number stays private.</strong><p>Your phone and WhatsApp number are not displayed openly in the public directory.</p></div></aside>
             </div>
           </article>
         </section>
@@ -411,11 +316,12 @@ export const ClaimProfile: React.FC = () => {
         {exampleProvider ? (() => {
           const gallery = exampleGallery(exampleProvider);
           return (
-            <section className="mx-auto mt-7 max-w-2xl">
-              <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#101010] shadow-[0_20px_55px_rgba(0,0,0,.35)]">
+            <details className={styles.example}>
+              <summary><span className={styles.iconTile}><Eye size={19} /></span><span>See an example<small>Explore a completed provider profile</small></span><Plus size={18} /></summary>
+              <div id="claim-profile-example" className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#101010] shadow-[0_20px_55px_rgba(0,0,0,.35)]">
                 <div className="border-b border-white/10 px-4 py-4 sm:px-5">
                   <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">EXAMPLE ONLY — NOT YOUR PROFILE</div>
-                  <h2 className="mt-2 text-lg font-black sm:text-xl">Example of a completed SkillsConnect profile</h2>
+                  <h2 className="mt-2 text-lg font-black sm:text-xl">See what a finished profile can look like</h2>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
                     This is Triple T Landscaping, an existing SkillsConnect Pro provider. It is shown only to demonstrate how a completed profile can look.
                   </p>
@@ -478,27 +384,29 @@ export const ClaimProfile: React.FC = () => {
 
                 <div className="px-4 pb-4 text-center sm:px-5">
                   <div className="text-sm font-black text-amber-200">This is only an example</div>
-                  <p className="mt-1 text-xs text-zinc-500">Your own editable profile is above.</p>
+                  <p className="mt-1 text-xs text-zinc-500">Close this example to continue with your own profile.</p>
                 </div>
               </div>
-            </section>
+            </details>
           );
         })() : null}
 
 
-        <section className="mx-auto mt-7 max-w-2xl rounded-3xl border border-white/10 bg-[#111] p-5 sm:p-7">
+        <section className={styles.claimPanel}>
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-emerald-300" />
             <div>
-              <h3 className="text-xl font-black">Confirm that this profile belongs to you</h3>
+              <h3 className="text-xl font-black">Ready to make it yours?</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-500">
-                Nothing is published immediately. After you confirm, SkillsConnect Pro performs a final review before the profile appears to customers.
+                Claim your profile today. We’ll review your details before your profile appears to customers. Nothing is published immediately.
               </p>
             </div>
           </div>
 
           <button
             type="button"
+            role="checkbox"
+            aria-checked={agreed}
             onClick={() => setAgreed(value => !value)}
             className={`mt-6 w-full rounded-2xl border p-5 text-left transition ${agreed ? 'border-emerald-400/40 bg-emerald-500/10' : 'border-white/10 bg-black/30'}`}
           >
@@ -520,16 +428,17 @@ export const ClaimProfile: React.FC = () => {
           <button
             type="button"
             onClick={() => void submit()}
-            disabled={!agreed || submitting}
-            className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 text-sm font-black text-black shadow-[0_12px_30px_rgba(245,197,24,.18)] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={preview || !agreed || submitting}
+            data-claim-submit className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 text-sm font-black text-black shadow-[0_12px_30px_rgba(245,197,24,.18)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : 'Confirm my profile & submit for approval'}
+            {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <>Claim my free profile <ArrowUpRight size={18} /></>}
           </button>
 
-          <p className="mt-4 text-center text-[11px] leading-5 text-zinc-600">
-            Photo and proof-of-work uploads are optional. You can confirm the basic profile without them.
+          <p className="mt-4 text-center text-[11px] leading-5 text-zinc-400">
+            Free to claim. Photos are optional. Your profile is reviewed before it goes live.
           </p>
         </section>
+        <footer className={styles.footer}><a href="/terms">Terms of Service</a><span>·</span><a href="/privacy-policy">Privacy Policy</a></footer>
       </div>
     </main>
   );
