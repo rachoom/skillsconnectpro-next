@@ -18,6 +18,7 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
+import { directoryServices } from '../services/marketplace/directoryServices.js';
 import { ProviderBanner } from './ProviderBanner';
 import styles from './ControlledProviderDirectory.module.css';
 
@@ -45,12 +46,6 @@ const displayName = (provider: Provider) =>
   provider.name?.trim()
   || `${provider.first_name || ''} ${provider.last_name || ''}`.trim()
   || 'Local service provider';
-
-function directoryCategory(value: string | null) {
-  const label = value?.trim() || '';
-  if (/^(?:cleaners?|cleaning)(?:\s+services?|\s*,\s*household)?$/i.test(label)) return 'Cleaning';
-  return label;
-}
 
 const providerGallery = (provider: Provider) => {
   const sources = [
@@ -115,20 +110,18 @@ export const ControlledProviderDirectory = () => {
   }
 
   const categories = useMemo(() => {
-    const values = providers
-      .map((provider) => directoryCategory(provider.category))
-      .filter((value): value is string => Boolean(value));
+    const values = providers.flatMap(provider => directoryServices(provider.category));
     return ['All services', ...Array.from(new Set(values)).sort((a, b) => a.localeCompare(b))];
   }, [providers]);
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const searchCategory = directoryCategory(query).toLowerCase();
+    const searchedServices = directoryServices(query);
     return providers.filter((provider) => {
-      const group = directoryCategory(provider.category);
-      const matchesCategory = category === 'All services' || group === category;
-      const text = `${displayName(provider)} ${provider.category || ''} ${provider.location || ''}`.toLowerCase();
-      return matchesCategory && (!query || text.includes(query) || group.toLowerCase() === searchCategory);
+      const groups = directoryServices(provider.category);
+      if (category !== 'All services' && !groups.includes(category)) return false;
+      const text = [displayName(provider), provider.category, provider.location, ...groups].join(' ').toLowerCase();
+      return text.includes(query) || (searchedServices.length > 0 && searchedServices.every(group => groups.includes(group)));
     });
   }, [category, providers, search]);
 
