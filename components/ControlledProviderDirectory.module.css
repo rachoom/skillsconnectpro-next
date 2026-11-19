@@ -259,6 +259,18 @@
 .page .searchPanel,.page .card,.page .modalCard { border-color:rgba(234,207,135,.28); border-radius:22px; box-shadow:inset 0 1px 0 rgba(255,240,193,.07); }
 .page .headerCta,.page .modalCta,.page .cardActions a { min-height:48px; border:1px solid #ffe58b; border-radius:13px; background:linear-gradient(135deg,#ffe995,#ffd33c 52%,#edb918); color:#191508; }
 .page .cardActions button { min-height:48px; border-radius:13px; }
+:global(html[data-scp-theme='light']) .cardActions button {
+  background: #f3e7cd;
+  border-color: #8b7041;
+  color: #352612;
+}
+:global(html[data-scp-theme='light']) .cardActions button:is(:hover, :active) {
+  background: #e6d6b4;
+}
+:global(html[data-scp-theme='light']) .cardActions button:focus-visible {
+  outline-color: #72551e;
+}
+
 .page .filterIcon,.page .empty > svg { padding:10px; box-sizing:content-box; border:1px solid #9e8443; border-radius:14px; color:#ffdf88; background:linear-gradient(145deg,#483d22,#171c12); }
 .page :is(a,button,input,select):focus-visible { outline:3px solid #edcb67; outline-offset:4px; }
 @media(max-width:480px) { .page .cardBody > p { font-size:14px; }.page input,.page select { font-size:16px; }.page .cardActions :is(a,button) { min-height:48px; }.page .headerInner { flex-wrap:wrap; gap:10px; padding-block:10px; } }
