@@ -27,7 +27,6 @@ import {
   Zap,
 } from 'lucide-react';
 import styles from './PremiumLanding.module.css';
-import { HeroSmileVideo } from './HeroSmileVideo';
 
 const services = [
   { label: 'Mechanics', icon: Car, detail: 'Vehicle service & repairs', image: '/artisans/Cards/Mechanic.png' },
@@ -154,7 +153,6 @@ export function PremiumLanding() {
           <source media="(max-width: 640px)" srcSet="/artisans/hero-team-mobile.webp" />
           <img {...heroImage} className={styles.heroImage} />
         </picture>
-        <HeroSmileVideo />
         <div className={styles.scrim} aria-hidden="true" />
         <div className={styles.spotlightInner}>
           <div className={styles.pitch}>
