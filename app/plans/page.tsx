@@ -96,12 +96,12 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
   const subscriptions = providerPlans.filter((plan) => plan.kind === 'subscription');
   const packs = providerPlans.filter((plan) => plan.kind === 'lead_pack');
   const { props: mobileHero } = getImageProps({
-    src: '/plan-backgrounds/plans-hero-mobile.webp',
-    alt: '', width: 768, height: 1152, sizes: '100vw',
+    src: '/plan-backgrounds/plans-township-growth.webp',
+    alt: '', width: 1122, height: 1402, sizes: '100vw',
   });
   const { props: desktopHero } = getImageProps({
-    src: '/plan-backgrounds/plans-hero-homeowner-artisan.webp',
-    alt: '', width: 1672, height: 941, sizes: '100vw',
+    src: '/plan-backgrounds/plans-township-growth.webp',
+    alt: '', width: 1122, height: 1402, sizes: '100vw',
     priority: true,
   });
 
