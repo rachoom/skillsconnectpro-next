@@ -15,38 +15,11 @@ function setControlledTextareaValue(element: HTMLTextAreaElement, value: string)
 const normalise = (value: string | null | undefined) =>
   String(value || '').replace(/\s+/g, ' ').trim();
 
-const normaliseServicePrefill = (value: string) => {
-  const key = value.toLowerCase();
-
-  if (
-    key === 'building & renovations' ||
-    key === 'building and renovations' ||
-    key === 'building & renovation' ||
-    key === 'building and renovation'
-  ) {
-    return 'Cleaning';
-  }
-
-  if (key === 'carpentry' || key === 'carpenter' || key === 'carpenters') {
-    return 'Mechanics';
-  }
-
-  return value;
-};
-
-/**
- * Bridges homepage/provider discovery routes into the guided intake without
- * duplicating the intake engine. It also routes assessment calls through the
- * current primary-service taxonomy so Mechanics is treated as a first-class
- * category while legacy Building/Carpentry card links resolve to their new
- * promoted lanes before the request text is shown to the customer.
- */
 export const ProjectIntakeEntryBridge = () => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const requestedService = normalise(searchParams.get('service'));
-    const service = normaliseServicePrefill(requestedService);
+    const service = normalise(searchParams.get('service'));
     const providerName = normalise(searchParams.get('providerName'));
     const providerId = Number(searchParams.get('providerId'));
     const mode = normalise(searchParams.get('mode')).toLowerCase();
@@ -64,7 +37,7 @@ export const ProjectIntakeEntryBridge = () => {
         const parts = [
           descriptionPrefill,
           providerName ? `I would like ${providerName} to be invited to respond to this job.` : '',
-          service ? `I need help with ${service.toLowerCase()}.` : '',
+          service ? `Service requested: ${service}.` : '',
         ].filter(Boolean);
         if (parts.length) setControlledTextareaValue(description, `${parts.join(' ')} `);
       }

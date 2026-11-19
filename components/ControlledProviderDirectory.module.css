@@ -42,14 +42,11 @@
 .headerCta { background: #f5c518; color: #171006; padding: .7rem .85rem; }
 
 .intro {
-  display: grid;
   width: min(100% - 1.5rem, 75rem);
   margin: 0 auto;
-  gap: 1.2rem;
-  padding: 3rem 0 2rem;
+  padding: clamp(1.5rem, 5vw, 3.5rem) 0 1rem;
 }
 
-.intro > div:first-child > span,
 .resultsHeading span {
   color: #ffe069;
   font-size: .67rem;
@@ -60,31 +57,11 @@
 
 .intro h1 {
   max-width: 56rem;
-  margin-top: .7rem;
   font-size: clamp(2.25rem, 10vw, 4.8rem);
   line-height: 1;
   letter-spacing: -.045em;
   font-weight: 900;
 }
-
-.intro > div:first-child > p {
-  max-width: 48rem;
-  margin-top: 1rem;
-  color: rgba(245,240,227,.67);
-  line-height: 1.72;
-}
-
-.privacyCard {
-  border: 1px solid rgba(117,211,159,.24);
-  border-radius: 1.35rem;
-  background: rgba(13,33,23,.72);
-  padding: 1.2rem;
-  backdrop-filter: blur(16px);
-}
-
-.privacyCard svg { color: #75d39f; }
-.privacyCard strong { display: block; margin-top: .75rem; font-size: 1rem; }
-.privacyCard p { margin-top: .45rem; color: rgba(245,240,227,.62); font-size: .82rem; line-height: 1.58; }
 
 .searchPanel {
   display: grid;
@@ -132,7 +109,6 @@
 }
 .searchField select option { background: #15100c; color: #f5f0e3; }
 
-.error,
 .loading,
 .empty {
   width: min(100% - 1.5rem, 75rem);
@@ -141,7 +117,6 @@
   padding: 1.2rem;
 }
 
-.error { border: 1px solid rgba(248,113,113,.3); background: rgba(127,29,29,.24); color: #fecaca; }
 .loading { display:flex; min-height: 180px; align-items:center; justify-content:center; gap:.75rem; color:rgba(245,240,227,.6); }
 
 .resultsSection {
@@ -221,9 +196,11 @@
 
 .empty { text-align:center; border:1px dashed rgba(255,255,255,.14); background:rgba(255,255,255,.035); }
 .empty svg { color:#75d39f; }
-.empty h3 { margin-top:.75rem; font-size:1.2rem; font-weight:900; }
+.empty h2, .empty h3 { margin-top:.75rem; font-size:1.2rem; font-weight:900; }
 .empty p { margin:.55rem auto 1rem; max-width:32rem; color:rgba(245,240,227,.55); font-size:.82rem; line-height:1.55; }
-.empty a { width:max-content; margin:0 auto; padding:.7rem 1rem; }
+.recoveryActions { display:flex; flex-wrap:wrap; justify-content:center; gap:.65rem; }
+.recoveryActions a, .recoveryActions button { min-height:48px; padding:.7rem 1rem; }
+.recoveryActions button { border:1px solid #bca05e; border-radius:1rem; background:#292318; color:#ffe69a; font-size:.875rem; font-weight:700; cursor:pointer; }
 
 .modalBackdrop { position:fixed; inset:0; z-index:100; display:flex; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.78); padding:.65rem; backdrop-filter:blur(12px); }
 .modal { position:relative; width:min(100%,42rem); max-height:94svh; overflow-y:auto; border:1px solid rgba(255,255,255,.16); border-radius:1.65rem 1.65rem 0 0; background:#f3eedf; color:#172019; box-shadow:0 30px 100px rgba(0,0,0,.65); }
@@ -257,10 +234,7 @@
 .modalCta { margin-top:1rem; }
 
 @media (min-width: 640px) {
-  .intro { grid-template-columns:1fr 18rem; align-items:end; padding-top:4.5rem; }
   .searchPanel { grid-template-columns:1.5fr 1fr; }
-  .resultsHeading { grid-template-columns:1fr 20rem; align-items:end; }
-  .resultsHeading > p { text-align:right; }
   .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .cardActions { grid-template-columns:1fr 1.3fr; }
   .modalBackdrop { align-items:center; }
@@ -274,7 +248,6 @@
 }
 
 /* Customer discovery uses the same restrained gold card finish. */
-.page .intro { border-bottom:1px solid rgba(238,210,140,.18); }
 .page .searchPanel,.page .card,.page .modalCard { border-color:rgba(234,207,135,.28); border-radius:22px; box-shadow:inset 0 1px 0 rgba(255,240,193,.07); }
 .page .headerCta,.page .modalCta,.page .cardActions a { min-height:48px; border:1px solid #ffe58b; border-radius:13px; background:linear-gradient(135deg,#ffe995,#ffd33c 52%,#edb918); color:#191508; }
 .page .cardActions button { min-height:48px; border-radius:13px; }

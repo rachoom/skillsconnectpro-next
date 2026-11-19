@@ -73,40 +73,40 @@ const providerHref = (provider: Provider) => {
 
 export const ControlledProviderDirectory = () => {
   const [providers, setProviders] = useState<Provider[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [attempt, setAttempt] = useState(0);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All services');
   const [selected, setSelected] = useState<Provider | null>(null);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
 
     const loadProviders = async () => {
-      setLoading(true);
       try {
-        const response = await fetch('/api/providers');
+        const response = await fetch('/api/providers', { signal: controller.signal });
         if (!response.ok) throw new Error('Provider directory unavailable.');
         const { providers: data } = await response.json();
-        if (active) {
-          setProviders(data || []); setError('');
-          const requestedId = Number(new URLSearchParams(window.location.search).get('provider'));
-          const requested = (data || []).find((item: Provider) => item.id === requestedId);
-          if (requested) setSelected(requested);
-        }
+        if (!Array.isArray(data)) throw new Error('Invalid directory response.');
+        if (controller.signal.aborted) return;
+        setProviders(data);
+        const requestedId = Number(new URLSearchParams(window.location.search).get('provider'));
+        const requested = data.find((item: Provider) => item.id === requestedId);
+        if (requested) setSelected(requested);
+        setStatus('ready');
       } catch {
-        if (active) {
-          setError('Provider profiles are temporarily unavailable. Please use the guided request instead.');
-          setProviders([]);
-        }
+        if (!controller.signal.aborted) setStatus('error');
       }
-      if (!active) return;
-      setLoading(false);
     };
 
     void loadProviders();
-    return () => { active = false; };
-  }, []);
+    return () => controller.abort();
+  }, [attempt]);
+
+  function retry() {
+    setStatus('loading');
+    setAttempt((previous) => previous + 1);
+  }
 
   const categories = useMemo(() => {
     const values = providers
@@ -118,7 +118,7 @@ export const ControlledProviderDirectory = () => {
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
     return providers.filter((provider) => {
-      const matchesCategory = category === 'All services' || provider.category === category;
+      const matchesCategory = category === 'All services' || provider.category?.trim() === category;
       const text = `${displayName(provider)} ${provider.category || ''} ${provider.location || ''}`.toLowerCase();
       return matchesCategory && (!query || text.includes(query));
     });
@@ -136,19 +136,7 @@ export const ControlledProviderDirectory = () => {
       </header>
 
       <section className={styles.intro}>
-        <div>
-          <span>Controlled provider discovery</span>
-          <h1>Browse profiles. Invite through Skills Connect Pro.</h1>
-          <p>
-            Explore local providers without exposing private contact details. When someone interests you,
-            start a project request with that provider already marked as your preferred invitation.
-          </p>
-        </div>
-        <div className={styles.privacyCard}>
-          <ShieldCheck size={25} />
-          <strong>Contact details stay protected</strong>
-          <p>Phone, WhatsApp and email are released only after a provider responds and you confirm the connection.</p>
-        </div>
+        <h1>Find a local provider</h1>
       </section>
 
       <section className={styles.searchPanel}>
@@ -162,10 +150,17 @@ export const ControlledProviderDirectory = () => {
         </label>
       </section>
 
-      {error && <div className={styles.error}>{error}</div>}
-
-      {loading ? (
-        <div className={styles.loading}><Loader2 className="animate-spin" size={34} /><span>Loading provider profiles…</span></div>
+      {status === 'loading' ? (
+        <div role="status" className={styles.loading}><Loader2 className="animate-spin" size={34} /><span>Loading provider profiles…</span></div>
+      ) : status === 'error' ? (
+        <section className={styles.empty}>
+          <h2 role="alert">We couldn’t load the provider directory.</h2>
+          <p>Try again, or describe your job so we can help you find a provider.</p>
+          <div className={styles.recoveryActions}>
+            <button type="button" onClick={retry}>Try again</button>
+            <Link href="/get-help">Describe your job</Link>
+          </div>
+        </section>
       ) : (
         <section className={styles.resultsSection}>
           <div className={styles.resultsHeading}>
@@ -173,15 +168,19 @@ export const ControlledProviderDirectory = () => {
               <span>Local provider profiles</span>
               <h2>{visible.length} available to explore</h2>
             </div>
-            <p>Profiles are for discovery. Every invitation still enters the tracked marketplace workflow.</p>
           </div>
 
           {visible.length === 0 ? (
             <div className={styles.empty}>
               <UserRound size={34} />
-              <h3>No matching profiles</h3>
-              <p>Try a broader search or let Skills Connect Pro identify suitable providers from your job description.</p>
-              <Link href="/get-help">Show us the job</Link>
+              <h3>{providers.length ? 'No matching profiles' : 'No profiles available yet'}</h3>
+              <p>{providers.length ? 'Try another trade, name or area.' : 'Tell us what you need and we’ll help you find a provider.'}</p>
+              <div className={styles.recoveryActions}>
+                {providers.length > 0 && (
+                  <button type="button" onClick={() => { setSearch(''); setCategory('All services'); }}>Clear filters</button>
+                )}
+                <Link href="/get-help">Describe your job</Link>
+              </div>
             </div>
           ) : (
             <div className={styles.grid}>
@@ -273,7 +272,7 @@ export const ControlledProviderDirectory = () => {
                   </div>
                 </section>
               )}
-              <div className={styles.privacyNotice}><ShieldCheck size={19} /><p>Private contact details are intentionally hidden. Invite this provider through a project request to preserve the interaction and job record.</p></div>
+              <div className={styles.privacyNotice}><ShieldCheck size={19} /><p>Contact details are shared after the provider responds and you confirm the connection.</p></div>
               <Link href={providerHref(selected)} className={styles.modalCta}>Invite this provider to my job <ArrowRight size={18} /></Link>
             </div>
           </section>
