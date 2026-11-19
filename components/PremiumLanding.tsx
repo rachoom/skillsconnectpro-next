@@ -184,7 +184,7 @@ export function PremiumLanding() {
                 <span className={styles.hintNote}>Start in your own words</span>
               </div>
             </div>
-            <Link href="/browse-providers" className={styles.secondary}>Prefer to explore? Browse providers <ArrowRight size={16} aria-hidden="true" /></Link>
+            <Link href="/browse-providers" className={styles.secondary}><span><span className={styles.browseIntro}>Prefer to explore? </span>Browse providers</span> <ArrowRight size={16} aria-hidden="true" /></Link>
             <div className={styles.heroProof} aria-label="Marketplace benefits">
               <span><span className={styles.proofIcon}><ShieldCheck size={15} aria-hidden="true" /></span> Private until you choose</span>
               <span><span className={styles.proofIcon}><Check size={15} aria-hidden="true" /></span> You control the connection</span>

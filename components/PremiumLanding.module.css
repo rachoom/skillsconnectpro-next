@@ -695,7 +695,7 @@
     width: 100%; max-width: 54rem; margin-inline: auto; padding: 70px 0 14px;
     display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px;
     align-items: center; text-align: left;
-    grid-template-areas: "region assistant" "headline assistant" "headline request" "copy request" "browse trust" "language language";
+    grid-template-areas: "region assistant" "headline assistant" "headline request" "copy request" "language browse";
   }
   .pitch .location { grid-area: region; min-height: 0; }
   .pitch h1 { grid-area: headline; margin: 0; font-size: clamp(1.8rem, 4.6vw, 2.8rem); }
@@ -707,8 +707,67 @@
     grid-template-columns: 42px minmax(0,1fr); gap: 10px; text-align: left;
   }
   .pitch .secondary { grid-area: browse; }
-  .pitch .heroProof { grid-area: trust; }
   .pitch .languageCarousel { grid-area: language; }
+}
+
+/* Keep the phone hero focused on starting a request or finding a provider. */
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
+  .heroProof, .browseIntro, .journey, .assistantBand { display: none; }
+
+  .pitch .location {
+    width: fit-content;
+    max-width: 100%;
+    padding: 4px 9px;
+    border-radius: 5px;
+    background: rgba(10, 13, 11, .83);
+    color: #fff4d6;
+    font-size: .71rem;
+    line-height: 1.35;
+    letter-spacing: .045em;
+    text-shadow: none;
+  }
+
+  .pitch .commandBar {
+    border-color: #ecc064;
+    background: linear-gradient(115deg, #e6ad43, #cd8c23);
+  }
+  .pitch .commandBar strong, .pitch .commandBar small { color: #241704; }
+
+  .pitch .secondary {
+    gap: 8px;
+    padding-inline: 12px;
+    color: #ffe29a;
+    font-size: .9rem;
+    font-weight: 650;
+  }
+  .secondary > span {
+    text-decoration: underline;
+    text-underline-offset: .24em;
+    text-decoration-thickness: 1px;
+  }
+
+  .pitch .languageCarousel {
+    width: min(100%, 18rem);
+    justify-content: center;
+    margin-top: 6px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #252820;
+  }
+  .languageLabel {
+    min-width: 6.7em;
+    justify-content: center;
+    padding: 4px 7px;
+    background: #f3d582;
+    color: #241b09;
+    font-size: .65rem;
+  }
+  .languagePhrase {
+    color: #fff9e9;
+    font-size: .94rem;
+  }
+  .languageDots { display: none; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
