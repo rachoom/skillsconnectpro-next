@@ -610,7 +610,7 @@
 }
 .commandBar {
   border-color: rgba(255,192,62,.8);
-  background: linear-gradient(125deg,rgba(255,205,78,.31),rgba(183,112,16,.27) 55%,rgba(96,57,8,.36));
+  background: linear-gradient(125deg,rgba(230,168,31,.50),rgba(175,101,8,.44) 55%,rgba(107,59,5,.58));
 }
 .mobileAssistantCta::before,
 .commandBar::before,
@@ -621,7 +621,7 @@
 .mobileAssistantCta small,.commandBar small { color: #eddfbd; }
 .mobileAssistantIcon,.commandIcon {
   border-color: rgba(255,224,139,.55);
-  background: linear-gradient(145deg,rgba(255,223,141,.22),rgba(31,27,14,.52));
+  background: linear-gradient(145deg,#171714,#050505 75%);
   color: #ffe9a6;
   box-shadow: inset 0 1px 0 rgba(255,244,204,.32),0 4px 10px rgba(0,0,0,.22);
 }
@@ -646,4 +646,13 @@
 }
 @media(prefers-reduced-motion:reduce) {
   .mobileAssistantCta,.commandBar,.assistantBand .outlineButton { transition: none; transform: none; }
+}
+
+.mobileAssistantCta strong,.commandBar strong { color: #ffe08a; }
+.mobileAssistantIcon,.commandIcon { color: #f5c518; border-color: #b29443; }
+.commandBar small { color: #fff0ce; }
+@media(hover:hover) {
+  .commandBar:hover {
+    background: linear-gradient(125deg,rgba(238,175,34,.58),rgba(190,116,11,.50) 55%,rgba(121,70,8,.62));
+  }
 }
