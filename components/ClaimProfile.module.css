@@ -51,3 +51,78 @@
 .page button:focus-visible,.page summary:focus-visible,.page a:focus-visible {outline:2px solid #f4d186;outline-offset:4px;}.page button {touch-action:manipulation;}.page button:not(:disabled),.page a,.page summary {cursor:pointer;}
 @media(hover:hover) {.uploadSlot:hover,.uploadButton:hover {border-color:#f9d583;background-color:#a5853022;}.avatarUpload:hover {box-shadow:0 0 0 2px #f3d07f;}}
 @media(max-width:600px) {.page {padding-inline:14px;}.nav {padding:16px 0;}.nav img {width:150px;}.nav > span {font-size:9px;gap:4px;}.hero {padding-top:32px;--workshop:url('/provider-profile/workshop-mobile.webp');}.hero > p {font-size:14px;line-height:1.8;}.hero h1 {font-size:34px;}.hero .eyebrow {font-size:9px;letter-spacing:.11em;}.benefits {gap:10px 16px;}.benefits span {font-size:10px;}.steps {gap:7px;}.steps li {flex-direction:column;align-items:flex-start;gap:8px;}.steps span {font-size:11px;}.steps small {font-size:9px;}.steps b {width:30px;height:30px;border-radius:10px;font-size:10px;}.sectionTop {align-items:flex-start;}.sectionTop h2 {font-size:19px;}.sectionTop .eyebrow {font-size:9px;}.sectionTop p {font-size:12px;}.editBadge {font-size:8px;gap:4px;padding:7px;}.cover {min-height:165px;padding:20px;}.coverMessage {max-width:53%;font-size:clamp(17px,4vw,22px);}.identity {padding-inline:18px;gap:13px;flex-wrap:wrap;}.avatarUpload {width:76px;height:76px;border-radius:20px;}.nameBlock {padding-top:14px;flex:1;}.nameBlock h3 {font-size:26px;}.draftBadge {display:none;}.editorBody {padding:0 14px 16px;}.fieldPanel {padding:14px;}.gallery {grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}.uploadSlot {aspect-ratio:1.2;}.uploadSlot:nth-child(n+4) {display:none;}.fieldHeading label,.fieldHeading h4 {font-size:14px;}.fieldHeading p {font-size:11px;}.claimPanel {padding:20px 16px;}.claimPanel h3 {font-size:21px;}.claimPanel [role='checkbox'] {padding:15px;}.claimPanel [data-claim-submit] {font-size:14px;}.photoHint {font-size:11px;}.example summary {padding:14px;}}
+
+:global(html[data-scp-theme='light']) .page,
+:global(html[data-scp-theme='light']) .statusPage {
+  --ink: #172d25;
+  --muted: #485a50;
+  --brass: #77531a;
+  --paper: #fffcf4;
+  --line: #ccbf9e;
+  color: var(--ink);
+  background: #f5f2e9;
+}
+
+:global(html[data-scp-theme='light']) .page {
+  .nav { border-color: var(--line); }
+  .nav a { background: #10241d; border-radius: 12px; }
+  .nav img { object-fit: cover; height: 46px; }
+  .nav > span, .eyebrow, .category, .photoHint svg { color: var(--brass); }
+  .previewNotice, .editBadge, .draftBadge {
+    color: #624712;
+    border-color: var(--line);
+    background: #fff4ce;
+  }
+  .hero::before {
+    background:
+      linear-gradient(0deg, #f5f2e9, transparent 22%, transparent 83%, #f5f2e9),
+      radial-gradient(ellipse at center, #fffbedf5 8%, #fffbeddf 47%, #f5f1db88),
+      var(--workshop) center 54% / cover no-repeat;
+  }
+  .hero h1 em, .benefits svg { color: #76501a; }
+  .hero > p, .benefits span { color: #273c32; }
+  .steps { background: #fffdf2d9; border-color: var(--line); }
+  .steps span, .fieldHeading label, .fieldHeading h4, .privacy strong { color: var(--ink); }
+  .steps small, .sectionTop p, .nameBlock p, .photoHint, .fieldHeading p,
+  .fieldFoot, .optional, .privacy p, .example summary small, .claimPanel p, .footer { color: var(--muted); }
+  .profileCard, .example, .claimPanel {
+    background: var(--paper);
+    border-color: var(--line);
+    box-shadow: 0 14px 40px #23382b12;
+  }
+  .avatarUpload, .avatarUpload > span { border-color: var(--paper); }
+  .fieldPanel, .fieldPanel textarea, .claimPanel [role='checkbox'] {
+    color: var(--ink);
+    background: #fff;
+    border-color: var(--line);
+  }
+  .fieldPanel textarea::placeholder { color: #647067; }
+  .steps b, .uploadSlot, .uploadButton {
+    color: #654917;
+    background: #faf1dc;
+    border-color: #ad9463;
+  }
+  .uploadSlot:hover, .uploadButton:hover { background: #f6e5b9; }
+  .privacy, .claimPanel [role='checkbox'][aria-checked='true'] {
+    color: #164933;
+    background: #e6f0e6;
+    border-color: #94b398;
+  }
+  .privacy svg, .claimPanel > div > svg { color: #26664d; }
+  .example summary, .claimPanel h3, .footer a:hover { color: var(--brass); }
+  .exampleBody { color: var(--ink); background: #f5f2e9; box-shadow: none; }
+  .exampleBody > div:first-child, .exampleBody > div:last-child {
+    border-color: var(--line);
+    p { color: var(--muted); }
+    > div { color: var(--brass); }
+  }
+  .claimPanel [role='alert'] { background: #fff0ec; color: #862e23; }
+  :focus-visible, .avatarUpload:focus-within { outline-color: #805914; }
+}
+
+:global(html[data-scp-theme='light']) .statusPage {
+  .successCard { color: var(--ink); background: var(--paper); border-color: var(--line); }
+  p { color: var(--muted); }
+  svg { color: var(--brass); }
+  .successCard svg { color: #26664d; }
+}

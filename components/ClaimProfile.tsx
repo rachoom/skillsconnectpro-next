@@ -205,7 +205,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white">
+      <main className={`${styles.statusPage} flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white`}>
         <div className="text-center">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-300" />
           <p className="mt-4 text-xs font-black uppercase tracking-[0.25em] text-amber-300">Loading your profile</p>
@@ -216,7 +216,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
 
   if (error && !provider) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white">
+      <main className={`${styles.statusPage} flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white`}>
         <div className="max-w-md text-center">
           <AlertCircle className="mx-auto h-14 w-14 text-red-400" />
           <h1 className="mt-5 text-3xl font-black">Invitation unavailable</h1>
@@ -231,8 +231,8 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
 
   if (success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white">
-        <div className="max-w-xl rounded-3xl border border-emerald-400/20 bg-[#111] p-8 text-center shadow-2xl">
+      <main className={`${styles.statusPage} flex min-h-screen items-center justify-center bg-[#080808] p-6 text-white`}>
+        <div className={`${styles.successCard} max-w-xl rounded-3xl border border-emerald-400/20 bg-[#111] p-8 text-center shadow-2xl`}>
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15">
             <ShieldCheck className="h-10 w-10 text-emerald-300" />
           </div>
@@ -316,7 +316,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
           return (
             <details className={styles.example}>
               <summary><span className={styles.iconTile}><Eye size={19} /></span><span>See an example<small>Explore a completed provider profile</small></span><Plus size={18} /></summary>
-              <div id="claim-profile-example" className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#101010] shadow-[0_20px_55px_rgba(0,0,0,.35)]">
+              <div id="claim-profile-example" className={`${styles.exampleBody} overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#101010] shadow-[0_20px_55px_rgba(0,0,0,.35)]`}>
                 <div className="border-b border-white/10 px-4 py-4 sm:px-5">
                   <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">EXAMPLE ONLY — NOT YOUR PROFILE</div>
                   <h2 className="mt-2 text-lg font-black sm:text-xl">See what a finished profile can look like</h2>
@@ -421,7 +421,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
             </div>
           </button>
 
-          {error ? <div className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-sm text-red-200">{error}</div> : null}
+          {error ? <div role="alert" className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-sm text-red-200">{error}</div> : null}
 
           <button
             type="button"
