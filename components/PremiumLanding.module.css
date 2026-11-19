@@ -617,67 +617,40 @@
   }
 }
 
-/* Tinted glass actions, with distinct champagne and amber finishes. */
 .mobileAssistantCta,
-.commandBar,
 .assistantBand .outlineButton {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255,222,134,.65);
-  background: linear-gradient(125deg,rgba(255,231,166,.25),rgba(189,143,37,.19) 55%,rgba(87,65,19,.32));
-  color: #fff3ca;
-  -webkit-backdrop-filter: blur(16px) saturate(145%);
-  backdrop-filter: blur(16px) saturate(145%);
-  box-shadow: inset 0 1px 0 rgba(255,249,218,.5),inset 0 -1px 0 rgba(255,207,85,.13),0 8px 24px rgba(0,0,0,.22);
-  transition: background 180ms ease,border-color 180ms ease,box-shadow 180ms ease,transform 180ms ease;
+  background: #145953;
+  border-color: #68a99d;
+  color: #fff9eb;
 }
 .commandBar {
-  border-color: rgba(255,192,62,.8);
-  background: linear-gradient(125deg,rgba(230,168,31,.50),rgba(175,101,8,.44) 55%,rgba(107,59,5,.58));
+  background: #f5c518;
+  border-color: #ffdf6c;
+  color: #191507;
 }
-.mobileAssistantCta::before,
-.commandBar::before,
-.assistantBand .outlineButton::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(175deg,rgba(255,255,255,.14),transparent 46%);
+.mobileAssistantCta small { color: #daf1e9; }
+.commandBar small { color: #44350a; }
+.mobileAssistantIcon, .commandIcon {
+  background: #171813;
+  color: #ffda69;
+  border-color: #927a3e;
 }
-.mobileAssistantCta small,.commandBar small { color: #eddfbd; }
-.mobileAssistantIcon,.commandIcon {
-  border-color: rgba(255,224,139,.55);
-  background: linear-gradient(145deg,#171714,#050505 75%);
-  color: #ffe9a6;
-  box-shadow: inset 0 1px 0 rgba(255,244,204,.32),0 4px 10px rgba(0,0,0,.22);
+.mobileAssistantCta, .commandBar, .assistantBand .outlineButton {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 4px 12px rgba(0,0,0,.2);
+  transition: background-color 160ms ease, transform 160ms ease;
 }
-.commandIcon { color: #ffdb79; border-color: rgba(255,194,67,.65); }
-.mobileAssistantCta:focus-visible,.commandBar:focus-visible,.assistantBand .outlineButton:focus-visible {
-  outline: 3px solid #fff1b7; outline-offset: 4px;
+.mobileAssistantCta:focus-visible, .commandBar:focus-visible, .assistantBand .outlineButton:focus-visible {
+  outline: 3px solid #fff1b7;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px #201a0b;
 }
-@media(hover:hover) {
-  .mobileAssistantCta:hover,.commandBar:hover,.assistantBand .outlineButton:hover {
-    background: linear-gradient(125deg,rgba(255,225,132,.4),rgba(191,134,27,.32),rgba(102,69,13,.4));
-    border-color: #ffe39a; transform: translateY(-2px);
-    box-shadow: inset 0 1px 0 rgba(255,252,228,.65),0 10px 28px rgba(133,94,14,.22);
-  }
+@media (hover: hover) {
+  .mobileAssistantCta:hover, .assistantBand .outlineButton:hover { background: #19685f; }
+  .commandBar:hover { background: #ffda45; }
 }
-.mobileAssistantCta:active,.commandBar:active { transform: translateY(1px); }
-:global(html[data-scp-theme='light']) .assistantBand .outlineButton {
-  color: #493108; border-color: #a77c25;
-  background: linear-gradient(125deg,rgba(255,225,144,.7),rgba(209,164,60,.28));
-}
-@supports not (backdrop-filter:blur(1px)) {
-  .mobileAssistantCta,.commandBar { background-color: rgba(42,32,12,.9); }
-}
-@media(prefers-reduced-motion:reduce) {
-  .mobileAssistantCta,.commandBar,.assistantBand .outlineButton { transition: none; transform: none; }
-}
-
-.mobileAssistantCta strong,.commandBar strong { color: #ffe08a; }
-.mobileAssistantIcon,.commandIcon { color: #f5c518; border-color: #b29443; }
-.commandBar small { color: #fff0ce; }
-@media(hover:hover) {
-  .commandBar:hover {
-    background: linear-gradient(125deg,rgba(238,175,34,.58),rgba(190,116,11,.50) 55%,rgba(121,70,8,.62));
-  }
+@media (prefers-reduced-motion: reduce) {
+  .mobileAssistantCta, .commandBar, .assistantBand .outlineButton { transition: none; }
+  .mobileAssistantCta:hover, .commandBar:hover, .assistantBand .outlineButton:hover { transform: none; }
 }
 
 /* Give phone users both entry points when the available height is short. */
@@ -726,12 +699,6 @@
     letter-spacing: .045em;
     text-shadow: none;
   }
-
-  .pitch .commandBar {
-    border-color: #ecc064;
-    background: linear-gradient(115deg, #e6ad43, #cd8c23);
-  }
-  .pitch .commandBar strong, .pitch .commandBar small { color: #241704; }
 
   .pitch .secondary {
     gap: 8px;
