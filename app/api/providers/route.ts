@@ -8,7 +8,8 @@ export async function GET() {
   // This preview is a visual review of the real, publicly listed providers.
   // Staging Supabase is paused; read only the existing public production API.
   // Never inject production credentials into preview deployments.
-  if (process.env.VERCEL_ENV === 'preview') {
+  if (process.env.VERCEL_ENV === 'preview' &&
+      process.env.VERCEL_GIT_COMMIT_REF === 'design/provider-premium-identity-20261119') {
     try {
       const response = await fetch('https://skillsconnectpro.co.za/api/providers', {
         headers: { Accept: 'application/json' },
