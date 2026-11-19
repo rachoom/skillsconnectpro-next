@@ -167,7 +167,7 @@ export function PremiumLanding() {
               </span>
             </div>
             <h1 id="home-heading">The right skills.<br /><span>For the job at hand.</span></h1>
-            <p>Car trouble. A leaking tap. A home that needs care. Connect with suitable local service providers through one simple request.</p>
+            <p><span className={styles.serviceExamples}>Car trouble. A leaking tap. A home that needs care. </span>Connect with local service providers through one simple request.</p>
             <Link href="/assistant" className={styles.mobileAssistantCta}>
               <span className={styles.mobileAssistantIcon}><Sparkles size={20} aria-hidden="true" /></span>
               <span><strong>Try the AI Project Assistant</strong><small>Plan · clarify · estimate</small></span>
