@@ -619,24 +619,32 @@
 
 .mobileAssistantCta,
 .assistantBand .outlineButton {
-  background: #145953;
-  border-color: #68a99d;
-  color: #fff9eb;
+  background: linear-gradient(115deg, rgba(255,255,255,.14), rgba(255,255,255,.035) 60%), rgba(20,20,22,.50);
+  border: 1px solid rgba(255,255,255,.48);
+  color: #fffaf2;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 4px 12px rgba(0,0,0,.2);
 }
 .commandBar {
   background: #f5c518;
   border-color: #ffdf6c;
   color: #191507;
 }
-.mobileAssistantCta small { color: #daf1e9; }
+.mobileAssistantCta small { color: #eeeae3; }
 .commandBar small { color: #44350a; }
 .mobileAssistantIcon, .commandIcon {
   background: #171813;
   color: #ffda69;
   border-color: #927a3e;
 }
+.commandBar { box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 4px 12px rgba(0,0,0,.2); }
+:global(html[data-scp-theme='light']) .assistantBand .outlineButton {
+  background-color: rgba(35,35,38,.08);
+  border-color: #88847c;
+  color: #221f19;
+}
 .mobileAssistantCta, .commandBar, .assistantBand .outlineButton {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 4px 12px rgba(0,0,0,.2);
   transition: background-color 160ms ease, transform 160ms ease;
 }
 .mobileAssistantCta:focus-visible, .commandBar:focus-visible, .assistantBand .outlineButton:focus-visible {
@@ -645,7 +653,8 @@
   box-shadow: 0 0 0 4px #201a0b;
 }
 @media (hover: hover) {
-  .mobileAssistantCta:hover, .assistantBand .outlineButton:hover { background: #19685f; }
+  .mobileAssistantCta:hover, .assistantBand .outlineButton:hover { border-color: #fff6df; background-color: rgba(44,43,42,.62); }
+  :global(html[data-scp-theme='light']) .assistantBand .outlineButton:hover { background-color: rgba(35,35,38,.14); }
   .commandBar:hover { background: #ffda45; }
 }
 @media (prefers-reduced-motion: reduce) {
