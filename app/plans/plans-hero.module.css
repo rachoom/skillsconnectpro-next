@@ -38,15 +38,13 @@
 }
 @media (max-width: 767px) {
   .hero {
-    --art-height: 125vw;
     min-height: 0;
-    padding: calc(var(--art-height) - 16px) 20px 32px;
+    padding: 28px 20px 24px;
   }
-  .art { bottom: auto; height: var(--art-height); }
-  .image { object-fit: contain; object-position: center top; }
+  .image { object-position: center 32%; }
   .shade {
-    bottom: auto;
-    height: var(--art-height);
-    background: linear-gradient(180deg,rgba(6,16,8,.04) 0%,transparent 55%,rgba(6,16,8,.6) 82%,#061008 100%);
+    background:
+      linear-gradient(90deg, rgba(6,16,8,.76), rgba(6,16,8,.48) 70%, rgba(6,16,8,.28)),
+      linear-gradient(0deg, #061008, rgba(6,16,8,.25) 46%, transparent);
   }
 }
