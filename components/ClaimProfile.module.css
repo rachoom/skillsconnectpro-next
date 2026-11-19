@@ -122,3 +122,56 @@
   svg { color: var(--brass); }
   .successCard svg { color: #26664d; }
 }
+
+
+/* Premium identity treatment shared with the public directory profile. */
+.identity {
+  isolation:isolate;
+  margin:0;
+  min-height:122px;
+  padding: 0 24px 22px;
+  border-bottom: 1px solid rgba(244,207,127,.35);
+  background:
+    radial-gradient(ellipse at 0 0,rgba(150,110,41,.26),transparent 70%),
+    linear-gradient(125deg,#0d1a14,#1c291e 55%,#111812);
+  color:#fff7e8;
+}
+.identity[data-trade="wood"] {
+  background:
+    linear-gradient(100deg,rgba(9,9,8,.88),rgba(26,16,9,.76)),
+    repeating-linear-gradient(3deg,#54351e 0 11px,#2a180d 12px 17px,#4b2f1b 18px 32px);
+}
+.identity::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  opacity:.35;
+  pointer-events:none;
+  background:repeating-linear-gradient(177deg,transparent 0 11px,rgba(240,191,116,.07) 12px,transparent 14px);
+}
+.identity[data-trade="wood"]::before {
+  opacity:.52;
+  background:repeating-radial-gradient(ellipse at 20% 80%,transparent 0 17px,rgba(241,174,95,.10) 18px,transparent 20px,transparent 30px);
+}
+.identity .avatarUpload {
+  border-color:#0f1611;
+  background:#10140f;
+  box-shadow:0 0 0 2px #edc76c,0 12px 26px rgba(0,0,0,.4);
+}
+.identity .nameBlock h3 { color:#fff8eb; text-shadow:0 2px 13px #0005; }
+.identity .nameBlock .category {color:#f7d37e;}
+.identity .nameBlock p {color:#e7dfd0;}
+.identity .draftBadge { color:#f9d99c;border-color:#e2c17b66;background:#241e13; }
+:global(html[data-scp-theme='light']) .page .identity {
+  color:#fff8eb;
+  border-color:#d8b66a;
+}
+:global(html[data-scp-theme='light']) .page .identity .nameBlock h3 {color:#fff8eb;}
+:global(html[data-scp-theme='light']) .page .identity .category {color:#f7d37e;}
+:global(html[data-scp-theme='light']) .page .identity .nameBlock p {color:#e7dfd0;}
+:global(html[data-scp-theme='light']) .page .identity .avatarUpload {border-color:#111b15;}
+@media(max-width:600px) {
+  .identity {min-height:106px;padding:0 18px 17px;gap:13px;}
+  .identity .nameBlock h3 {font-size:clamp(21px,6.4vw,26px);}
+}

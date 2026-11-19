@@ -344,7 +344,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
                   }} />
               </label>
             </div>
-            <div className={styles.identity}>
+            <div className={styles.identity} data-trade={/carpent|wood|cabinet|joiner|furniture|shop.?fitt/i.test(provider?.category || '') ? 'wood' : 'standard'}>
               <label className={styles.avatarUpload}>
                 <img src={avatar || '/provider-profile/sample-logo.webp'} alt={avatar ? displayName : 'Example business logo'} width={94} height={94} />
                 <span><Camera size={16} /></span>
