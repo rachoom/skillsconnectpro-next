@@ -1,6 +1,6 @@
 'use client';
 
-import Image, { getImageProps } from 'next/image';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -86,11 +86,6 @@ export function PremiumLanding() {
   }, []);
 
   const activePhrase = mzansiPhrases[languageIndex];
-  const { props: heroImage } = getImageProps({
-    src: '/mzansi-services-hero-v2.webp',
-    alt: 'Local mechanics, electricians, plumbers and other skilled service providers',
-    width: 1983, height: 793, sizes: '100vw', priority: true,
-  });
 
   return (
     <main className={styles.page} data-design="premium-2026">
@@ -150,8 +145,14 @@ export function PremiumLanding() {
 
       <section className={styles.spotlight} aria-labelledby="home-heading">
         <picture className={styles.heroArt}>
-          <source media="(max-width: 640px)" srcSet="/artisans/hero-team-mobile.webp" />
-          <img {...heroImage} className={styles.heroImage} />
+          <source media="(max-width: 640px)" srcSet="https://d2jqrm6oza8nb6.cloudfront.net/datasets/8133b34a-2556-461d-97e5-ff08cf09c865.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzkxMzc2ZTYwZmJlMjRmYiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NTI3Mzk1OH0.mJFOZQIpEfYtK0Zusjyy_Q-ADT3JxjqhAXpxw_sDUhU" />
+          <img
+            src="https://d2jqrm6oza8nb6.cloudfront.net/datasets/74c396be-2754-4182-a72c-c93cacdc52c4.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMWVkYzI5ZTIxOWQ2NmMwMSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NTI1NTUyMn0.DyYiXqMzfMvZVpVsGwTPTXKYSXHwUYeAKPuQ28syTw0"
+            alt="A South African family outside their home while local skilled workers complete renovations"
+            className={styles.heroImage}
+            fetchPriority="high"
+            onError={(event) => { event.currentTarget.style.display = 'none'; }}
+          />
         </picture>
         <div className={styles.scrim} aria-hidden="true" />
         <div className={styles.spotlightInner}>
