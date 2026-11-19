@@ -19,6 +19,7 @@ import {
   Star,
   X,
 } from 'lucide-react';
+import { ProviderBanner } from './ProviderBanner';
 import styles from './ClaimProfile.module.css';
 
 type ClaimProvider = {
@@ -30,6 +31,7 @@ type ClaimProvider = {
   location: string | null;
   phone: string | null;
   bio: string | null;
+  banner_url?: string | null;
   image_url: string | null;
   portfolio_urls: string[] | null;
 };
@@ -79,6 +81,11 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [banner, setBanner] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState('');
+  const [useDefaultBanner, setUseDefaultBanner] = useState(false);
+  const [preparingBanner, setPreparingBanner] = useState(false);
+  const [bannerError, setBannerError] = useState('');
   const [profile, setProfile] = useState<File | null>(null);
   const [profilePreview, setProfilePreview] = useState('');
   const [portfolio, setPortfolio] = useState<File[]>([]);
@@ -146,6 +153,50 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
     return url;
   };
 
+  useEffect(() => {
+    if (!banner) {
+      setBannerPreview('');
+      return;
+    }
+    const url = URL.createObjectURL(banner);
+    setBannerPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [banner]);
+
+  const chooseBanner = async (file?: File) => {
+    if (!file) return;
+    setBannerError('');
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 12 * 1024 * 1024) {
+      setBannerError('Choose a JPG, PNG or WebP image up to 12 MB.');
+      return;
+    }
+    setPreparingBanner(true);
+    const source = URL.createObjectURL(file);
+    try {
+      const photo = new window.Image();
+      photo.src = source;
+      await photo.decode();
+      const scale = Math.min(1, 1600 / Math.max(photo.naturalWidth, photo.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(photo.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(photo.naturalHeight * scale));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(photo, 0, 0, canvas.width, canvas.height);
+      const jpeg = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.84));
+      if (!jpeg) throw new Error();
+      setBanner(new File([jpeg], 'business-banner.jpg', { type: 'image/jpeg' }));
+      setUseDefaultBanner(false);
+    } catch {
+      setBannerError('This image could not be opened. Try another JPG, PNG or WebP.');
+    } finally {
+      URL.revokeObjectURL(source);
+      setPreparingBanner(false);
+    }
+  };
+
   const chooseProfile = (file?: File) => {
     if (!file) return;
     if (profilePreview) URL.revokeObjectURL(profilePreview);
@@ -180,6 +231,8 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
       const form = new FormData();
       form.set('agreed', 'true');
       form.set('bio', bio.trim());
+      if (banner) form.set('banner', banner);
+      else if (useDefaultBanner) form.set('resetBanner', 'true');
       if (profile) form.set('profile', profile);
       portfolio.forEach(file => form.append('portfolio', file));
 
@@ -278,8 +331,18 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
           <div className={styles.sectionTop}><div><span className={styles.eyebrow}>Your business, in the spotlight</span><h2 id="profile-editor-title">Make a first impression that lasts.</h2><p>Your details are ready below. Add your finishing touches.</p></div><span className={styles.editBadge}><span /> Editable preview</span></div>
           <article className={styles.profileCard}>
             <div className={styles.cover}>
-              <span className={styles.coverLabel}><Briefcase size={16} /> Sample business banner</span>
-              <div className={styles.coverMessage}>Local skill.<br /><strong>Professional presence.</strong></div>
+              <ProviderBanner url={bannerPreview || (useDefaultBanner ? null : provider?.banner_url)} />
+              <label className={styles.bannerButton}>
+                <Camera size={16} aria-hidden="true" />
+                {preparingBanner ? 'Preparing…' : 'Change banner'}
+                <input type="file" className={styles.hiddenInput} accept="image/jpeg,image/png,image/webp"
+                  disabled={submitting || preparingBanner}
+                  onChange={event => {
+                    const file = event.currentTarget.files?.[0];
+                    event.currentTarget.value = '';
+                    void chooseBanner(file);
+                  }} />
+              </label>
             </div>
             <div className={styles.identity}>
               <label className={styles.avatarUpload}>
@@ -291,6 +354,12 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
               <span className={styles.draftBadge}>Profile draft</span>
             </div>
             <div className={styles.editorBody}>
+              {bannerError && <p role="alert" className={styles.bannerError}>{bannerError}</p>}
+              {(banner || (provider?.banner_url && !useDefaultBanner)) && <button type="button" className={styles.uploadButton}
+                disabled={submitting || preparingBanner}
+                onClick={() => { setBanner(null); setUseDefaultBanner(true); setBannerError(''); }}>
+                Use SkillsConnectPro banner
+              </button>}
               <div className={styles.photoHint}><Camera size={17} /><span>{avatar ? 'Tap your profile picture to change your photo or logo.' : 'Sample logo shown. Tap the camera to add your own photo or business logo.'}</span></div>
               <section className={styles.fieldPanel}>
                 <div className={styles.fieldHeading}><span className={styles.iconTile}><Briefcase size={19} /></span><div><label htmlFor="claim-bio">Tell customers why to choose you</label><p>Your services, experience and the areas you cover.</p></div></div>
@@ -426,7 +495,7 @@ export const ClaimProfile: React.FC<{ preview?: boolean }> = ({ preview = false 
           <button
             type="button"
             onClick={() => void submit()}
-            disabled={preview || !agreed || submitting}
+            disabled={preview || !agreed || submitting || preparingBanner}
             data-claim-submit className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 text-sm font-black text-black shadow-[0_12px_30px_rgba(245,197,24,.18)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <>Claim my free profile <ArrowUpRight size={18} /></>}

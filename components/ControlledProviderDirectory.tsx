@@ -18,6 +18,7 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
+import { ProviderBanner } from './ProviderBanner';
 import styles from './ControlledProviderDirectory.module.css';
 
 type Provider = {
@@ -27,6 +28,7 @@ type Provider = {
   last_name: string | null;
   category: string | null;
   location: string | null;
+  banner_url: string | null;
   image_url: string | null;
   verified: boolean | null;
   status: string | null;
@@ -228,11 +230,9 @@ export const ControlledProviderDirectory = () => {
         <div className={styles.modalBackdrop} role="presentation" onClick={() => setSelected(null)}>
           <section className={styles.modal} role="dialog" aria-modal="true" aria-label={`${displayName(selected)} profile`} onClick={(event) => event.stopPropagation()}>
             <button type="button" className={styles.closeButton} onClick={() => setSelected(null)} aria-label="Close profile"><X size={22} /></button>
-            <div className={styles.modalImage}>
-              {selected.image_url ? <Image src={selected.image_url} alt={displayName(selected)} fill sizes="100vw" /> : <div className={styles.imageFallback}><Wrench size={42} /></div>}
-              <div className={styles.imageShade} />
-            </div>
+            <ProviderBanner url={selected.banner_url} />
             <div className={styles.modalBody}>
+              {selected.image_url && <img src={selected.image_url} alt={displayName(selected)} width={72} height={72} className="relative -mt-10 mb-3 h-[72px] w-[72px] rounded-2xl border-2 border-white object-cover" />}
               <div className={styles.modalTitleRow}>
                 <div>
                   <span>{selected.category || 'Home services'}</span>

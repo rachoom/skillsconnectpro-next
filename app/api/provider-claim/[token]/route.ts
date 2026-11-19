@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
@@ -43,7 +43,7 @@ export async function GET(
 
     const { data: artisan, error } = await supabase
       .from('artisans')
-      .select('id, first_name, last_name, name, category, location, phone, bio, image_url, portfolio_urls, approval_status, is_claimed')
+      .select('id, first_name, last_name, name, category, location, phone, bio, image_url, banner_url, portfolio_urls, approval_status, is_claimed')
       .eq('id', invite.artisan_id)
       .single();
 
@@ -99,6 +99,17 @@ export async function POST(
     const existingPortfolio = Array.isArray(artisan.portfolio_urls) ? artisan.portfolio_urls.filter(Boolean) : [];
     const uploadedPortfolio: string[] = [];
 
+    const banner = form.get('banner');
+    let bannerBytes: Buffer | undefined;
+    if (banner !== null) {
+      if (!(banner instanceof File) || banner.type !== 'image/jpeg' || !banner.size || banner.size > 3 * 1024 * 1024) {
+        return NextResponse.json({ error: 'Choose your banner image again.' }, { status: 400 });
+      }
+      bannerBytes = Buffer.from(await banner.arrayBuffer());
+      if (bannerBytes.length < 3 || bannerBytes.readUIntBE(0, 3) !== 0xffd8ff) {
+        return NextResponse.json({ error: 'The banner image could not be read.' }, { status: 400 });
+      }
+    }
     const profile = form.get('profile');
     if (profile instanceof File && profile.size > 0) {
       if (!ALLOWED_TYPES.has(profile.type) || profile.size > MAX_UPLOAD_BYTES) {
@@ -132,6 +143,18 @@ export async function POST(
       uploadedPortfolio.push(supabase.storage.from('artisan_media').getPublicUrl(path).data.publicUrl);
     }
 
+    const bannerStore = supabase.storage.from('artisan_media');
+    let bannerPath: string | undefined;
+    let bannerUpdate: { banner_url?: string | null } = {};
+    if (bannerBytes) {
+      bannerPath = `claims/${artisan.id}/banner-${randomUUID()}.jpg`;
+      const { error } = await bannerStore.upload(bannerPath, bannerBytes, { contentType: 'image/jpeg' });
+      if (error) throw error;
+      bannerUpdate = { banner_url: bannerStore.getPublicUrl(bannerPath).data.publicUrl };
+    } else if (form.get('resetBanner') === 'true') {
+      bannerUpdate = { banner_url: null };
+    }
+
     const now = new Date().toISOString();
     const { error: updateError } = await supabase
       .from('artisans')
@@ -140,13 +163,17 @@ export async function POST(
         status: 'draft',
         approval_status: 'claimed_pending_approval',
         verified: false,
+        ...bannerUpdate,
         image_url: imageUrl,
         bio: submittedBio || null,
         portfolio_urls: [...existingPortfolio, ...uploadedPortfolio].slice(0, 10),
         updated_at: now,
       })
       .eq('id', artisan.id);
-    if (updateError) throw updateError;
+    if (updateError) {
+      if (bannerPath) await bannerStore.remove([bannerPath]);
+      throw updateError;
+    }
 
     const { error: inviteError } = await supabase
       .from('provider_claim_invites')
