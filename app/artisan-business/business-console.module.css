@@ -74,14 +74,14 @@
   font-weight: 700;
 }
 
-.businessStats :global(.stat) {
+.businessStats > div {
   position: relative;
   overflow: hidden;
   background: linear-gradient(150deg,#16130b,#0d0d0d 72%) !important;
   border-color: rgba(245,197,24,.24) !important;
 }
 
-.businessStats :global(.stat)::after {
+.businessStats > div::after {
   content: "";
   position: absolute;
   right: -28px;
@@ -138,6 +138,18 @@
 .businessPage[data-theme='light'] .businessMode {
   color: #ffe47d;
   background: rgba(245,197,24,.09);
+}
+
+.businessPage[data-theme='light'] .businessNav a,
+.businessPage[data-theme='light'] .businessNav button {
+  color: #f5f1e7;
+  background: #111;
+  border-color: #333;
+}
+
+.businessPage[data-theme='light'] .businessStats > div {
+  background: linear-gradient(150deg,#fffdf8,#f8f0dc) !important;
+  border-color: #d7c9a3 !important;
 }
 
 .businessPage[data-theme='light'] .businessHero {
