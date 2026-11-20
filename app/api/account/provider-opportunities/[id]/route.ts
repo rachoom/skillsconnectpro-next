@@ -33,6 +33,7 @@ async function getProviderId() {
     .eq('role', 'artisan')
     .eq('status', 'active')
     .not('linked_artisan_id', 'is', null)
+    .limit(1)
     .maybeSingle();
 
   if (error) {
