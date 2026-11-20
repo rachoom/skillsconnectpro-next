@@ -205,6 +205,12 @@ export default async function ArtisanBusinessPage() {
   const projects = (projectsResult.data ?? []) as ProjectSummary[];
   const projectById = new Map(projects.map((project) => [project.id, project]));
   const responseByInvitation = new Map(responses.map((response) => [response.lead_invitation_id, response]));
+  const invitationByProject = new Map<string, (typeof invitations)[number]>();
+  for (const invitation of invitations) {
+    if (!invitationByProject.has(invitation.project_id)) {
+      invitationByProject.set(invitation.project_id, invitation);
+    }
+  }
 
   // Complimentary leads count submitted, non-declined responses, not invitations sent.
   const historicalResponseCount = await admin.from('provider_responses')
@@ -329,13 +335,21 @@ export default async function ArtisanBusinessPage() {
             <div className={styles.list}>
               {selectedJobs.map((match) => {
                 const project = projectById.get(match.project_id);
+                const invitation = invitationByProject.get(match.project_id);
                 return (
                   <div className={styles.row} key={match.id}>
                     <div>
                       <strong>{project?.title ?? 'Selected customer job'}</strong>
                       <small>{[project?.category, project?.location_text, match.status.replaceAll('_', ' ')].filter(Boolean).join(' · ')}</small>
                     </div>
-                    <CheckCircle2 size={19} />
+                    <div className={businessStyles.rowActions}>
+                      <CheckCircle2 size={19} />
+                      {invitation && (
+                        <Link href={`/artisan-business/opportunity/${invitation.id}`} className={businessStyles.workspaceAction}>
+                          Open job folder <ArrowRight size={14} aria-hidden="true" />
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 );
               })}
