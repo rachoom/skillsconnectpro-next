@@ -218,6 +218,7 @@ export default async function ArtisanBusinessPage() {
   });
 
   const openOpportunities = invitations.filter((row) => ['sent', 'delivered', 'viewed'].includes(row.status));
+  const workspaceOpportunities = invitations.filter((row) => ['sent', 'delivered', 'viewed', 'accepted'].includes(row.status)).slice(0, 12);
   const selectedJobs = matches.filter((row) => ['selected', 'accepted', 'contact_released', 'in_progress'].includes(row.status));
   const completedJobs = matches.filter((row) => row.status === 'completed');
   const providerPlan = leadAccess.activePlan?.code ?? null;
@@ -281,9 +282,9 @@ export default async function ArtisanBusinessPage() {
           <div className={`${styles.panel} ${businessStyles.opportunityPanel}`}>
             <span className={`${styles.eyebrow} ${businessStyles.panelLabel}`}><BriefcaseBusiness size={14} aria-hidden="true" /> Incoming work</span>
             <h2>Opportunities</h2>
-            <p className={styles.subtle}>New jobs sent to your provider profile. Customer contact remains protected until you are selected.</p>
+            <p className={styles.subtle}>New jobs and your recent responses. Customer contact remains protected until you are selected.</p>
             <div className={styles.list}>
-              {openOpportunities.map((invitation) => {
+              {workspaceOpportunities.map((invitation) => {
                 const project = projectById.get(invitation.project_id);
                 const response = responseByInvitation.get(invitation.id);
                 return (
@@ -302,7 +303,7 @@ export default async function ArtisanBusinessPage() {
                   </div>
                 );
               })}
-              {!openOpportunities.length && <p className={styles.subtle}>No open opportunities right now. New matched jobs will appear here automatically.</p>}
+              {!workspaceOpportunities.length && <p className={styles.subtle}>No active or recently responded opportunities right now. New matched jobs will appear here automatically.</p>}
             </div>
             <div className={businessStyles.consoleHint}>
               Respond directly from Business Mode using the button above. Your secure WhatsApp opportunity link remains available as a fallback when you are away from your account.
