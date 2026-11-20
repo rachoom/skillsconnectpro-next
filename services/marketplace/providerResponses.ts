@@ -145,6 +145,16 @@ async function findInvitationForProvider(
   return data as InvitationTokenRow | null;
 }
 
+
+export async function getProviderOpportunityHandoff(
+  token: string,
+  providerId: number,
+): Promise<{ invitationId: string } | null> {
+  const invitation = await findInvitationByToken(token);
+  if (!invitation || invitation.provider_id !== providerId) return null;
+  return { invitationId: invitation.id };
+}
+
 async function loadProviderLeadAccess(
   providerId: string | number,
   currentInvitationId: string,
