@@ -58,6 +58,10 @@ export interface ProviderOpportunity {
   } | null;
   currentResponse: {
     responseType: string;
+    siteVisitFee: number | null;
+    estimateMin: number | null;
+    estimateMax: number | null;
+    estimateCurrency: string;
     providerMessage: string | null;
     customerClarification: string | null;
     customerClarificationAt: string | null;
@@ -124,6 +128,23 @@ async function findInvitationByToken(token: string): Promise<InvitationTokenRow 
   return data as InvitationTokenRow | null;
 }
 
+async function findInvitationForProvider(
+  invitationId: string,
+  providerId: number,
+): Promise<InvitationTokenRow | null> {
+  if (!invitationId || !Number.isInteger(providerId) || providerId <= 0) return null;
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('lead_invitations')
+    .select('id, project_id, provider_id, status, response_deadline, response_token_expires_at, provider_snapshot')
+    .eq('id', invitationId)
+    .eq('provider_id', providerId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Unable to load provider opportunity: ${error.message}`);
+  return data as InvitationTokenRow | null;
+}
+
 async function loadProviderLeadAccess(
   providerId: string | number,
   currentInvitationId: string,
@@ -175,10 +196,9 @@ async function consumeLeadPackCredit(access: ProviderLeadAccess): Promise<void> 
   if (!data) throw new Error('That lead credit was just used. Please reopen this opportunity.');
 }
 
-export async function getProviderOpportunity(token: string): Promise<ProviderOpportunity | null> {
-  const invitation = await findInvitationByToken(token);
-  if (!invitation) return null;
-
+async function getProviderOpportunityFromInvitation(
+  invitation: InvitationTokenRow,
+): Promise<ProviderOpportunity | null> {
   const supabase = getSupabaseAdmin();
   const { data: matchData, error: matchError } = await supabase
     .from('project_matches')
@@ -209,7 +229,7 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
 
   const { data: currentResponseData, error: currentResponseError } = await supabase
     .from('provider_responses')
-    .select('response_type, provider_message, customer_clarification, customer_clarification_at')
+    .select('response_type, site_visit_fee, estimate_min, estimate_max, estimate_currency, provider_message, customer_clarification, customer_clarification_at')
     .eq('lead_invitation_id', invitation.id)
     .maybeSingle();
 
@@ -255,6 +275,10 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
     currentResponse: currentResponseData
       ? {
           responseType: currentResponseData.response_type,
+          siteVisitFee: currentResponseData.site_visit_fee,
+          estimateMin: currentResponseData.estimate_min,
+          estimateMax: currentResponseData.estimate_max,
+          estimateCurrency: currentResponseData.estimate_currency,
           providerMessage: currentResponseData.provider_message,
           customerClarification: currentResponseData.customer_clarification,
           customerClarificationAt: currentResponseData.customer_clarification_at,
@@ -293,6 +317,21 @@ export async function getProviderOpportunity(token: string): Promise<ProviderOpp
   };
 }
 
+export async function getProviderOpportunity(token: string): Promise<ProviderOpportunity | null> {
+  const invitation = await findInvitationByToken(token);
+  if (!invitation) return null;
+  return getProviderOpportunityFromInvitation(invitation);
+}
+
+export async function getProviderOpportunityForAccount(
+  invitationId: string,
+  providerId: number,
+): Promise<ProviderOpportunity | null> {
+  const invitation = await findInvitationForProvider(invitationId, providerId);
+  if (!invitation) return null;
+  return getProviderOpportunityFromInvitation(invitation);
+}
+
 function assertOptionalMoney(value: number | null | undefined, field: string): void {
   if (value === undefined || value === null) return;
   if (!Number.isFinite(value) || value < 0) {
@@ -300,12 +339,10 @@ function assertOptionalMoney(value: number | null | undefined, field: string): v
   }
 }
 
-export async function submitProviderResponse(
-  token: string,
+async function submitProviderResponseForInvitation(
+  invitation: InvitationTokenRow,
   input: SubmitProviderResponseInput,
 ): Promise<{ responseId: string; projectId: string; invitationStatus: string }> {
-  const invitation = await findInvitationByToken(token);
-  if (!invitation) throw new Error('Provider opportunity not found.');
   ensureTokenActive(invitation);
 
   if (!input.responseType) throw new Error('responseType is required.');
@@ -411,4 +448,23 @@ export async function submitProviderResponse(
     projectId: invitation.project_id,
     invitationStatus,
   };
+}
+
+export async function submitProviderResponse(
+  token: string,
+  input: SubmitProviderResponseInput,
+): Promise<{ responseId: string; projectId: string; invitationStatus: string }> {
+  const invitation = await findInvitationByToken(token);
+  if (!invitation) throw new Error('Provider opportunity not found.');
+  return submitProviderResponseForInvitation(invitation, input);
+}
+
+export async function submitProviderResponseForAccount(
+  invitationId: string,
+  providerId: number,
+  input: SubmitProviderResponseInput,
+): Promise<{ responseId: string; projectId: string; invitationStatus: string }> {
+  const invitation = await findInvitationForProvider(invitationId, providerId);
+  if (!invitation) throw new Error('Provider opportunity not found.');
+  return submitProviderResponseForInvitation(invitation, input);
 }
