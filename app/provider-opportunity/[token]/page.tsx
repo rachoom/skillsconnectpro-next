@@ -25,7 +25,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import polish from './provider-opportunity-polish.module.css';
 
 type Opportunity = {
@@ -199,6 +199,7 @@ function arrivalWindow(responseType: ResponseType, timeSlot: TimeSlot) {
 
 export default function ProviderOpportunityPage() {
   const params = useParams<{ token: string }>();
+  const router = useRouter();
   const token = params.token;
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [form, setForm] = useState<ResponseForm>(INITIAL_FORM);
@@ -210,26 +211,51 @@ export default function ProviderOpportunityPage() {
 
   useEffect(() => {
     let active = true;
+
     async function load() {
+      const opportunityRequest = fetch(
+        `/api/provider-opportunities/${encodeURIComponent(token)}`,
+        { cache: 'no-store' },
+      );
+
+      const handoffRequest = fetch('/api/account/provider-opportunity-handoff', {
+        method: 'POST',
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+        .then(async (response) => response.ok ? response.json() as Promise<{ target?: string | null }> : { target: null })
+        .catch(() => ({ target: null }));
+
       try {
-        const payload = await readJson(await fetch(`/api/provider-opportunities/${encodeURIComponent(token)}`, { cache: 'no-store' }));
-        if (active) {
-          setOpportunity(payload.opportunity);
-          setForm((current) => ({
-            ...current,
-            responseType: payload.opportunity.currentResponse?.responseType || defaultResponseForUrgency(payload.opportunity.project.urgency),
-            providerMessage: payload.opportunity.currentResponse?.providerMessage || '',
-          }));
+        const [handoff, opportunityResponse] = await Promise.all([handoffRequest, opportunityRequest]);
+
+        if (!active) return;
+        if (handoff.target) {
+          router.replace(handoff.target);
+          return;
         }
+
+        const payload = await readJson(opportunityResponse);
+        if (!active) return;
+
+        setOpportunity(payload.opportunity);
+        setForm((current) => ({
+          ...current,
+          responseType: payload.opportunity.currentResponse?.responseType || defaultResponseForUrgency(payload.opportunity.project.urgency),
+          providerMessage: payload.opportunity.currentResponse?.providerMessage || '',
+        }));
       } catch (requestError) {
         if (active) setError(requestError instanceof Error ? requestError.message : 'Unable to load opportunity.');
       } finally {
         if (active) setLoading(false);
       }
     }
+
     if (token) void load();
     return () => { active = false; };
-  }, [token]);
+  }, [router, token]);
 
   const providerName = useMemo(() => {
     const snapshot = opportunity?.providerSnapshot;
