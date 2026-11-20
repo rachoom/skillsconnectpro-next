@@ -62,6 +62,27 @@ const questions = [
   ['When are my contact details shared?', 'Your contact details stay private until you choose a provider and confirm the connection.'],
 ];
 
+
+type HomeContext = {
+  authenticated: boolean;
+  providerAccess: boolean;
+  latestProject: null | {
+    id: string | number;
+    title: string | null;
+    category: string | null;
+    status: string | null;
+    locationText: string | null;
+    updatedAt: string | null;
+  };
+};
+
+function readableStatus(status: string | null) {
+  if (!status) return 'Active project';
+  return status
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
 const mzansiPhrases = [
   { language: 'isiZulu', phrase: 'Siyakuxhumanisa.' },
   { language: 'Sesotho', phrase: 'Re a u hokahanya.' },
@@ -73,6 +94,7 @@ export function PremiumLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [languageIndex, setLanguageIndex] = useState(0);
   const [introReveal, setIntroReveal] = useState(false);
+  const [homeContext, setHomeContext] = useState<HomeContext | null>(null);
   const revealTimer = useRef<number | null>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const closeMenu = () => setMenuOpen(false);
@@ -81,6 +103,30 @@ export function PremiumLanding() {
     if (revealTimer.current) window.clearTimeout(revealTimer.current);
     revealTimer.current = window.setTimeout(() => setIntroReveal(false), 1100);
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadHomeContext = async () => {
+      try {
+        const response = await fetch('/api/home-context', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        if (!response.ok) return;
+        const context = (await response.json()) as HomeContext;
+        if (!cancelled) setHomeContext(context);
+      } catch {
+        // The public homepage remains fully usable when account context is unavailable.
+      }
+    };
+
+    void loadHomeContext();
+    return () => {
+      cancelled = true;
+      if (revealTimer.current) window.clearTimeout(revealTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -124,7 +170,10 @@ export function PremiumLanding() {
             <Link href="/plans?audience=providers">Provider plans</Link>
           </div>
           <div className={styles.navActions}>
-            <Link href="/join" className={styles.join}><span className={styles.joinIcon}><BriefcaseBusiness size={16} aria-hidden="true" /></span><span>Join as provider</span></Link>
+            <Link href={homeContext?.providerAccess ? "/artisan-business" : "/join"} className={styles.join}>
+              <span className={styles.joinIcon}><BriefcaseBusiness size={16} aria-hidden="true" /></span>
+              <span>{homeContext?.providerAccess ? 'Provider workspace' : 'Join as provider'}</span>
+            </Link>
             <button
               ref={menuButton}
               type="button"
@@ -146,7 +195,9 @@ export function PremiumLanding() {
             <Link href="/browse-providers" onClick={closeMenu}>Find a provider</Link>
             <Link href="/assistant" onClick={closeMenu}>AI Project Assistant</Link>
             <Link href="/estimator" onClick={closeMenu}>Project estimator</Link>
-            <Link href="/plans?audience=providers" onClick={closeMenu}>Provider plans</Link>
+            {homeContext?.providerAccess
+              ? <Link href="/artisan-business" onClick={closeMenu}>Provider workspace</Link>
+              : <Link href="/plans?audience=providers" onClick={closeMenu}>Provider plans</Link>}
             <a href="#support" onClick={closeMenu}>Help & support</a>
           </div>
         )}
@@ -215,6 +266,48 @@ export function PremiumLanding() {
           <a href="#services">Explore services <ArrowRight size={14} aria-hidden="true" /></a>
         </div>
       </section>
+
+      {homeContext?.authenticated && (
+        <section className={styles.returnBand} aria-label="Your Skills Connect Pro activity">
+          <div className={styles.returnBandInner}>
+            <span className={styles.returnMark}>
+              {homeContext.latestProject ? <ClipboardList size={22} aria-hidden="true" /> : <Sparkles size={22} aria-hidden="true" />}
+            </span>
+            <div className={styles.returnCopy}>
+              <span className={styles.returnEyebrow}>
+                {homeContext.latestProject ? 'CONTINUE WHERE YOU LEFT OFF' : 'WELCOME BACK'}
+              </span>
+              <h2>{homeContext.latestProject?.title || 'What are we getting done today?'}</h2>
+              {homeContext.latestProject ? (
+                <p>
+                  <span>{readableStatus(homeContext.latestProject.status)}</span>
+                  {homeContext.latestProject.locationText && <> · {homeContext.latestProject.locationText}</>}
+                  {homeContext.latestProject.updatedAt && <> · Updated {new Date(homeContext.latestProject.updatedAt).toLocaleDateString('en-ZA', { dateStyle: 'medium' })}</>}
+                </p>
+              ) : (
+                <p>Your workspace is ready. Start a new request or reopen your saved projects.</p>
+              )}
+            </div>
+            <div className={styles.returnActions}>
+              {homeContext.latestProject ? (
+                <Link href={`/my-projects/${homeContext.latestProject.id}`} className={styles.returnPrimary}>
+                  Continue project <ArrowRight size={17} aria-hidden="true" />
+                </Link>
+              ) : (
+                <Link href="/get-help" className={styles.returnPrimary}>
+                  Start a request <ArrowRight size={17} aria-hidden="true" />
+                </Link>
+              )}
+              <Link href="/my-projects" className={styles.returnSecondary}>My Projects</Link>
+              {homeContext.providerAccess && (
+                <Link href="/artisan-business" className={styles.returnProvider}>
+                  <BriefcaseBusiness size={16} aria-hidden="true" /> Business workspace
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className={styles.assistantBand} aria-labelledby="assistant-heading">
         <div className={styles.assistantBandInner}>
@@ -317,10 +410,24 @@ export function PremiumLanding() {
         </div>
       </section>
 
-      <section className={styles.provider}>
-        <div><span className={styles.greenKicker}>FOR MZANSI&apos;S SKILLED PROFESSIONALS</span><h2>Good at what you do?</h2><p>Join the local provider network and put your skills where customers can find them. Your first three customer opportunities are on us.</p></div>
-        <div className={styles.providerActions}><Link href="/plans?audience=providers" className={styles.providerPlans}>View provider plans</Link><Link href="/join" className={styles.primary}>Join as provider <ArrowRight size={18} /></Link></div>
-      </section>
+      {homeContext?.providerAccess ? (
+        <section className={`${styles.provider} ${styles.providerActive}`}>
+          <div>
+            <span className={styles.greenKicker}>YOUR PROVIDER BUSINESS</span>
+            <h2>Ready for your next opportunity?</h2>
+            <p>Open your Artisan Business Workspace to review opportunities, active jobs and provider-plan access.</p>
+          </div>
+          <div className={styles.providerActions}>
+            <Link href="/plans?audience=providers" className={styles.providerPlans}>Manage provider plan</Link>
+            <Link href="/artisan-business" className={styles.primary}>Open business workspace <ArrowRight size={18} /></Link>
+          </div>
+        </section>
+      ) : (
+        <section className={styles.provider}>
+          <div><span className={styles.greenKicker}>FOR MZANSI&apos;S SKILLED PROFESSIONALS</span><h2>Good at what you do?</h2><p>Join the local provider network and put your skills where customers can find them. Your first three customer opportunities are on us.</p></div>
+          <div className={styles.providerActions}><Link href="/plans?audience=providers" className={styles.providerPlans}>View provider plans</Link><Link href="/join" className={styles.primary}>Join as provider <ArrowRight size={18} /></Link></div>
+        </section>
+      )}
 
       <nav className={styles.mobileDock} aria-label="Quick actions">
         <Link href="/get-help" className={styles.dockItem}>
@@ -335,10 +442,17 @@ export function PremiumLanding() {
           <UserRoundCheck size={18} aria-hidden="true" />
           <span>Providers</span>
         </Link>
-        <Link href="/sign-in" className={styles.dockItem}>
-          <House size={18} aria-hidden="true" />
-          <span>Account</span>
-        </Link>
+        {homeContext?.providerAccess ? (
+          <Link href="/artisan-business" className={styles.dockItem}>
+            <BriefcaseBusiness size={18} aria-hidden="true" />
+            <span>Business</span>
+          </Link>
+        ) : (
+          <Link href="/sign-in" className={styles.dockItem}>
+            <House size={18} aria-hidden="true" />
+            <span>Account</span>
+          </Link>
+        )}
       </nav>
 
       <footer className={styles.footer}>
