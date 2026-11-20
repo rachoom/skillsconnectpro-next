@@ -105,6 +105,9 @@ export function ProviderOpportunityWorkspace({ invitationId }: { invitationId: s
       setForm((current) => ({
         ...current,
         responseType: (next.currentResponse?.responseType as ProviderResponseType) || current.responseType,
+        siteVisitFee: next.currentResponse?.siteVisitFee === null || next.currentResponse?.siteVisitFee === undefined ? current.siteVisitFee : String(next.currentResponse.siteVisitFee),
+        estimateMin: next.currentResponse?.estimateMin === null || next.currentResponse?.estimateMin === undefined ? current.estimateMin : String(next.currentResponse.estimateMin),
+        estimateMax: next.currentResponse?.estimateMax === null || next.currentResponse?.estimateMax === undefined ? current.estimateMax : String(next.currentResponse.estimateMax),
         providerMessage: next.currentResponse?.providerMessage || current.providerMessage,
       }));
     } catch (requestError) {
