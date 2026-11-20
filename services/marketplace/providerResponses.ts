@@ -194,7 +194,7 @@ async function consumeLeadPackCredit(access: ProviderLeadAccess): Promise<void> 
 
 async function getProviderOpportunityFromInvitation(
   invitation: InvitationTokenRow,
-): Promise<ProviderOpportunity> {
+): Promise<ProviderOpportunity | null> {
   const supabase = getSupabaseAdmin();
   const { data: matchData, error: matchError } = await supabase
     .from('project_matches')
