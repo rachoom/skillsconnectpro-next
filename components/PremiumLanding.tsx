@@ -27,6 +27,7 @@ import {
   Zap,
 } from 'lucide-react';
 import styles from './PremiumLanding.module.css';
+import { AppIntro } from './AppIntro';
 
 const services = [
   { label: 'Mechanics', icon: Car, detail: 'Vehicle service & repairs', image: '/artisans/Cards/Mechanic.png' },
@@ -88,7 +89,7 @@ export function PremiumLanding() {
   const activePhrase = mzansiPhrases[languageIndex];
 
   return (
-    <main className={styles.page} data-design="premium-2026">
+    <main className={styles.page} data-design="premium-2026">\n      <AppIntro />
       <a className={styles.skip} href="#start-request">Skip to request a service</a>
 
       <nav
