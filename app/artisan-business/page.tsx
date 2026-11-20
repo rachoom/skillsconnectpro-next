@@ -293,14 +293,19 @@ export default async function ArtisanBusinessPage() {
                       <small>{[project?.category, project?.location_text, invitation.status.replaceAll('_', ' ')].filter(Boolean).join(' · ')}</small>
                       {response && <small>Response: {response.response_type.replaceAll('_', ' ')}</small>}
                     </div>
-                    <span className={styles.status}>{response ? 'responded' : 'new'}</span>
+                    <div className={businessStyles.rowActions}>
+                      <span className={styles.status}>{response ? 'responded' : 'new'}</span>
+                      <Link href={`/artisan-business/opportunity/${invitation.id}`} className={businessStyles.workspaceAction}>
+                        {response ? 'Update response' : 'Respond here'} <ArrowRight size={14} aria-hidden="true" />
+                      </Link>
+                    </div>
                   </div>
                 );
               })}
               {!openOpportunities.length && <p className={styles.subtle}>No open opportunities right now. New matched jobs will appear here automatically.</p>}
             </div>
             <div className={businessStyles.consoleHint}>
-              Opportunity responses still use the secure link sent to your WhatsApp. This workspace remains your business overview while secure response links protect each customer opportunity.
+              Respond directly from Business Mode using the button above. Your secure WhatsApp opportunity link remains available as a fallback when you are away from your account.
             </div>
           </div>
 
