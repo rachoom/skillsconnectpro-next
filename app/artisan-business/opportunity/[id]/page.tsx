@@ -23,6 +23,7 @@ export default async function ProviderBusinessOpportunityPage({
     .eq('role', 'artisan')
     .eq('status', 'active')
     .not('linked_artisan_id', 'is', null)
+    .limit(1)
     .maybeSingle();
 
   if (!role?.linked_artisan_id) redirect('/artisan-business');
