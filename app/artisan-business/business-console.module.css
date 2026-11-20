@@ -222,3 +222,59 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.workspaceAction {
+  min-height: 34px;
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(245,197,24,.36);
+  border-radius: 9px;
+  background: rgba(245,197,24,.09);
+  color: #ffe47d;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.workspaceAction:hover {
+  transform: translateY(-1px);
+  border-color: #f5c518;
+  background: rgba(245,197,24,.15);
+}
+
+.businessPage[data-theme='light'] .workspaceAction {
+  color: #685000;
+  background: #fff7d6;
+  border-color: #d4b64e;
+}
+
+@media (max-width: 640px) {
+  .rowActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .workspaceAction {
+    min-height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspaceAction {
+    transition: none;
+  }
+}
