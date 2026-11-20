@@ -72,8 +72,15 @@ const mzansiPhrases = [
 export function PremiumLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [languageIndex, setLanguageIndex] = useState(0);
+  const [introReveal, setIntroReveal] = useState(false);
+  const revealTimer = useRef<number | null>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const closeMenu = () => setMenuOpen(false);
+  const revealHomepage = () => {
+    setIntroReveal(true);
+    if (revealTimer.current) window.clearTimeout(revealTimer.current);
+    revealTimer.current = window.setTimeout(() => setIntroReveal(false), 1100);
+  };
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -89,7 +96,8 @@ export function PremiumLanding() {
   const activePhrase = mzansiPhrases[languageIndex];
 
   return (
-    <main className={styles.page} data-design="premium-2026">\n      <AppIntro />
+    <main className={styles.page} data-design="premium-2026">
+      <AppIntro onReveal={revealHomepage} />
       <a className={styles.skip} href="#start-request">Skip to request a service</a>
 
       <nav
@@ -144,7 +152,7 @@ export function PremiumLanding() {
         )}
       </nav>
 
-      <section className={styles.spotlight} aria-labelledby="home-heading">
+      <section className={styles.spotlight} data-intro-reveal={introReveal ? 'true' : 'false'} aria-labelledby="home-heading">
         <picture className={styles.heroArt}>
           <source media="(max-width: 640px)" srcSet="https://d2jqrm6oza8nb6.cloudfront.net/datasets/8133b34a-2556-461d-97e5-ff08cf09c865.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzkxMzc2ZTYwZmJlMjRmYiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5NTI3Mzk1OH0.mJFOZQIpEfYtK0Zusjyy_Q-ADT3JxjqhAXpxw_sDUhU" />
           <img
@@ -313,6 +321,25 @@ export function PremiumLanding() {
         <div><span className={styles.greenKicker}>FOR MZANSI&apos;S SKILLED PROFESSIONALS</span><h2>Good at what you do?</h2><p>Join the local provider network and put your skills where customers can find them. Your first three customer opportunities are on us.</p></div>
         <div className={styles.providerActions}><Link href="/plans?audience=providers" className={styles.providerPlans}>View provider plans</Link><Link href="/join" className={styles.primary}>Join as provider <ArrowRight size={18} /></Link></div>
       </section>
+
+      <nav className={styles.mobileDock} aria-label="Quick actions">
+        <Link href="/get-help" className={styles.dockItem}>
+          <Wrench size={18} aria-hidden="true" />
+          <span>Get help</span>
+        </Link>
+        <Link href="/my-projects" className={styles.dockItem}>
+          <ClipboardList size={18} aria-hidden="true" />
+          <span>Projects</span>
+        </Link>
+        <Link href="/browse-providers" className={styles.dockItem}>
+          <UserRoundCheck size={18} aria-hidden="true" />
+          <span>Providers</span>
+        </Link>
+        <Link href="/sign-in" className={styles.dockItem}>
+          <House size={18} aria-hidden="true" />
+          <span>Account</span>
+        </Link>
+      </nav>
 
       <footer className={styles.footer}>
         <Link href="/" className={styles.brand} aria-label="Skills Connect Pro home"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={220} height={58} /></Link>

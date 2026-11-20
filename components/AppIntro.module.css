@@ -11,13 +11,24 @@
   color: #fff;
   opacity: 1;
   transform: scale(1);
-  transition: opacity 460ms ease, transform 460ms cubic-bezier(.22,.7,.2,1);
+  clip-path: inset(0 0 0 0);
+  transition: opacity 520ms ease, transform 620ms cubic-bezier(.22,.7,.2,1), clip-path 620ms cubic-bezier(.7,0,.2,1);
 }
 
 .intro[data-exiting='true'] {
-  opacity: 0;
-  transform: scale(1.012);
+  opacity: .08;
+  transform: scale(1.018);
+  clip-path: inset(0 0 100% 0);
   pointer-events: none;
+}
+
+.intro[data-exiting='true'] .goldLine {
+  transform: translateY(100svh);
+  opacity: .9;
+}
+
+.goldLine {
+  transition: transform 620ms cubic-bezier(.7,0,.2,1), opacity 420ms ease;
 }
 
 .goldLine {
@@ -317,4 +328,21 @@
   .intro { transition: opacity 180ms linear; }
   .progress span { animation: none; transform: scaleX(1); }
   .primary, .provider, .skip { transition: none; }
+}
+
+
+.primary,
+.provider,
+.skip {
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.primary:active,
+.provider:active,
+.skip:active {
+  transform: scale(.97);
+}
+
+.video {
+  filter: saturate(.96) contrast(1.03);
 }

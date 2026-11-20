@@ -8,7 +8,9 @@ import styles from './AppIntro.module.css';
 
 const SESSION_KEY = 'scp:intro-seen:v1';
 
-export function AppIntro() {
+type AppIntroProps = { onReveal?: () => void };
+
+export function AppIntro({ onReveal }: AppIntroProps) {
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
   const [staticMode, setStaticMode] = useState(false);
@@ -26,9 +28,10 @@ export function AppIntro() {
   const dismiss = () => {
     if (exiting) return;
     remember();
+    onReveal?.();
     setExiting(true);
     if (autoTimer.current) window.clearTimeout(autoTimer.current);
-    exitTimer.current = window.setTimeout(() => setVisible(false), 460);
+    exitTimer.current = window.setTimeout(() => setVisible(false), 620);
   };
 
   useEffect(() => {
