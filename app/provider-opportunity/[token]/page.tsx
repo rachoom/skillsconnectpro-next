@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Banknote,
+  BriefcaseBusiness,
   CalendarClock,
   CalendarDays,
   CheckCircle2,
@@ -309,6 +310,7 @@ export default function ProviderOpportunityPage() {
   if (!opportunity) return null;
   const project = opportunity.project;
   const leadLocked = opportunity.leadAccess.locked;
+  const businessSignInHref = `/sign-in?next=${encodeURIComponent(`/provider-opportunity/${token}`)}`;
 
   if (opportunity.customerContact) {
     const contact = opportunity.customerContact;
@@ -317,7 +319,10 @@ export default function ProviderOpportunityPage() {
       <main className={`${polish.scope} min-h-screen bg-[#9FCB8A] px-4 py-6 text-[#203020] md:px-8 md:py-10`}>
         <div className="mx-auto max-w-3xl space-y-4">
           <header className="rounded-[1.75rem] border-2 border-[#D3A826] bg-[#FFF0A8] p-6 shadow-xl shadow-[#355332]/20 md:p-8">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div>
+              <Link href={businessSignInHref} className="inline-flex items-center gap-2 rounded-full border border-[#8B6C18] bg-[#FFF9DF] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#5B4300]"><BriefcaseBusiness size={14} /> Business Mode</Link>
+            </div>
             <div className="mt-5 flex items-start gap-4"><CheckCircle2 className="mt-1 shrink-0 text-[#21885A]" size={38} /><div><p className="text-xs font-black uppercase tracking-wider text-[#21885A]">Customer selected you</p><h1 className="mt-2 text-3xl font-black md:text-4xl">You’re connected</h1><p className="mt-3 text-sm leading-6 text-[#4F5D4A]">The customer confirmed your response for <strong>{project.title}</strong>. Their details are shown only because you are the selected provider.</p></div></div>
           </header>
 
@@ -368,7 +373,13 @@ export default function ProviderOpportunityPage() {
     <main className={`${polish.scope} min-h-screen bg-[#9FCB8A] px-4 py-5 text-[#203020] md:px-8 md:py-8`}>
       <div className="mx-auto max-w-4xl">
         <header data-provider-header className="mb-4 rounded-[1.75rem] border-2 border-[#D3A826] bg-[#FFF0A8] p-5 shadow-xl shadow-[#355332]/20 md:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div><span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider ${leadLocked ? 'border-[#8B5B00] bg-[#3B2C08] text-[#FFE689]' : 'border-[#D3A826] bg-[#FFE067] text-[#4A3600]'}`}>{leadLocked ? 'New lead · unlock to respond' : 'Quick reply · about 1 minute'}</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#5B4300]"><ShieldCheck size={15} /> Skills Connect Pro</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href={businessSignInHref} className="inline-flex items-center gap-2 rounded-full border border-[#8B6C18] bg-[#FFF9DF] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#5B4300]"><BriefcaseBusiness size={14} /> Manage in Business Mode</Link>
+              <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider ${leadLocked ? 'border-[#8B5B00] bg-[#3B2C08] text-[#FFE689]' : 'border-[#D3A826] bg-[#FFE067] text-[#4A3600]'}`}>{leadLocked ? 'New lead · unlock to respond' : 'Quick reply · about 1 minute'}</span>
+            </div>
+          </div>
           <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">{project.title}</h1>
           <p className="mt-2 text-sm leading-6 text-[#4F5D4A]">Hi {providerName}. Can you assist with this job? <span data-vernac-inline>· Ungakwazi yini ukwenza lo msebenzi?</span></p>
           <div data-opportunity-meta className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wider"><span className="rounded-xl bg-[#FFFFFF]/80 px-3 py-2">{project.category}</span><span className="rounded-xl bg-[#FFD45C] px-3 py-2 text-[#4A3500]">{project.urgency}</span><span className="flex items-center gap-1 rounded-xl bg-[#FFFFFF]/80 px-3 py-2"><MapPin size={13} /> {project.serviceArea}</span></div>
