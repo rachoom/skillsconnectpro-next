@@ -1,0 +1,224 @@
+.businessPage {
+  --business-gold: #f5c518;
+  --business-gold-soft: #ffe789;
+  background:
+    radial-gradient(circle at 82% -8%, rgba(245,197,24,.13), transparent 26rem),
+    radial-gradient(circle at 12% 18%, rgba(245,197,24,.05), transparent 24rem),
+    #080808;
+}
+
+.businessNav {
+  border-bottom-color: rgba(245,197,24,.24);
+  background: rgba(8,8,8,.94);
+}
+
+.brandCluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.businessMode {
+  min-height: 30px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(245,197,24,.32);
+  border-radius: 999px;
+  background: rgba(245,197,24,.08);
+  color: #ffe47d;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.businessHero {
+  border-color: rgba(245,197,24,.34) !important;
+  background:
+    linear-gradient(100deg,rgba(8,8,8,.98),rgba(14,12,8,.89) 55%,rgba(16,13,7,.62)),
+    radial-gradient(circle at 78% 30%,rgba(245,197,24,.18),transparent 28rem) !important;
+  box-shadow: inset 0 1px 0 rgba(255,238,176,.07), 0 22px 60px rgba(0,0,0,.24);
+}
+
+.businessHero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: linear-gradient(90deg,transparent,#7f6818 25%,#f5c518 50%,#7f6818 75%,transparent);
+  opacity: .8;
+}
+
+.heroMeta {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.heroChip {
+  min-height: 30px;
+  padding: 6px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  color: #d8d3c4;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.businessStats > div {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(150deg,#16130b,#0d0d0d 72%) !important;
+  border-color: rgba(245,197,24,.24) !important;
+}
+
+.businessStats > div::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  top: -28px;
+  width: 78px;
+  height: 78px;
+  border: 1px solid rgba(245,197,24,.09);
+  border-radius: 50%;
+}
+
+.opportunityPanel,
+.jobsPanel {
+  border-color: rgba(245,197,24,.3) !important;
+  background:
+    linear-gradient(145deg,rgba(245,197,24,.04),transparent 42%),
+    #111 !important;
+}
+
+.profilePanel,
+.activityPanel {
+  background:
+    linear-gradient(150deg,rgba(255,255,255,.025),transparent 42%),
+    #101010 !important;
+}
+
+.panelLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.consoleHint {
+  margin-top: 16px;
+  padding: 12px 13px;
+  border: 1px solid rgba(245,197,24,.24);
+  border-radius: 12px;
+  background: rgba(245,197,24,.055);
+  color: #d9c979;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.businessPage[data-theme='light'] {
+  background:
+    radial-gradient(circle at 82% -8%, rgba(245,197,24,.12), transparent 25rem),
+    #f3eee3;
+}
+
+.businessPage[data-theme='light'] .businessNav {
+  background: #0a0a0a;
+  border-bottom-color: rgba(245,197,24,.32);
+}
+
+.businessPage[data-theme='light'] .businessMode {
+  color: #ffe47d;
+  background: rgba(245,197,24,.09);
+}
+
+.businessPage[data-theme='light'] .businessNav a,
+.businessPage[data-theme='light'] .businessNav button {
+  color: #f5f1e7;
+  background: #111;
+  border-color: #333;
+}
+
+.businessPage[data-theme='light'] .businessStats > div {
+  background: linear-gradient(150deg,#fffdf8,#f8f0dc) !important;
+  border-color: #d7c9a3 !important;
+}
+
+.businessPage[data-theme='light'] .businessHero {
+  background:
+    linear-gradient(100deg,rgba(255,253,247,.98),rgba(255,250,235,.93) 56%,rgba(245,197,24,.11)) !important;
+  border-color: #d6b84f !important;
+}
+
+.businessPage[data-theme='light'] .businessHero::after {
+  background: linear-gradient(90deg,transparent,#c19a11 25%,#f5c518 50%,#c19a11 75%,transparent);
+}
+
+.businessPage[data-theme='light'] .heroChip {
+  border-color: #d9ccb1;
+  background: rgba(255,255,255,.8);
+  color: #5f584b;
+}
+
+.businessPage[data-theme='light'] .opportunityPanel,
+.businessPage[data-theme='light'] .jobsPanel,
+.businessPage[data-theme='light'] .profilePanel,
+.businessPage[data-theme='light'] .activityPanel {
+  background: #fffdf8 !important;
+  border-color: #d7c9a3 !important;
+}
+
+.businessPage[data-theme='light'] .consoleHint {
+  background: #fff7d6;
+  border-color: #d8bd54;
+  color: #65520d;
+}
+
+@media (max-width: 760px) {
+  .brandCluster {
+    gap: 8px;
+  }
+
+  .businessMode {
+    padding-inline: 8px;
+    font-size: 8px;
+  }
+
+  .businessHero {
+    padding: 22px !important;
+  }
+
+  .heroMeta {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .businessMode span {
+    display: none;
+  }
+
+  .businessMode {
+    width: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .heroChip {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .businessPage * {
+    scroll-behavior: auto !important;
+  }
+}

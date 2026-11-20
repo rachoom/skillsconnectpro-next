@@ -20,6 +20,7 @@ import { buildProviderLeadAccess, parseFreeLeadLimit } from '@/services/marketpl
 import { WorkspaceThemeToggle } from '../my-projects/workspace-theme-toggle';
 import { ProviderBillingControls } from './provider-billing-controls';
 import styles from '../my-projects/workspace.module.css';
+import businessStyles from './business-console.module.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -81,10 +82,13 @@ export default async function ArtisanBusinessPage() {
     const pending = latestApplication?.status === 'pending';
 
     return (
-      <main className={styles.page} data-workspace-shell>
-        <nav className={styles.nav}>
+      <main className={`${styles.page} ${businessStyles.businessPage}`} data-workspace-shell>
+        <nav className={`${styles.nav} ${businessStyles.businessNav}`}>
           <div className={styles.navInner}>
-            <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
+            <div className={businessStyles.brandCluster}>
+              <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
+              <span className={businessStyles.businessMode}><BriefcaseBusiness size={14} aria-hidden="true" /><span>Business mode</span></span>
+            </div>
             <div className={styles.navActions}>
               <Link href="/my-projects" className={styles.navLink}>My Projects</Link>
               <WorkspaceThemeToggle />
@@ -94,7 +98,7 @@ export default async function ArtisanBusinessPage() {
         </nav>
 
         <div className={styles.shell}>
-          <section className={styles.hero}>
+          <section className={`${styles.hero} ${businessStyles.businessHero}`}>
             <div>
               <span className={styles.eyebrow}>Provider access</span>
               <h1>Artisan tools stay separate until you join the provider network.</h1>
@@ -223,10 +227,13 @@ export default async function ArtisanBusinessPage() {
   const providerPlansHref = '/plans?audience=providers&provider=' + providerId;
 
   return (
-    <main className={styles.page} data-workspace-shell>
-      <nav className={styles.nav}>
+    <main className={`${styles.page} ${businessStyles.businessPage}`} data-workspace-shell>
+      <nav className={`${styles.nav} ${businessStyles.businessNav}`}>
         <div className={styles.navInner}>
-          <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
+          <div className={businessStyles.brandCluster}>
+              <Link href="/"><Image src="/logo-new.svg" alt="Skills Connect Pro" width={210} height={56} priority /></Link>
+              <span className={businessStyles.businessMode}><BriefcaseBusiness size={14} aria-hidden="true" /><span>Business mode</span></span>
+            </div>
           <div className={styles.navActions}>
             <Link href="/my-projects" className={styles.navLink}>My Projects</Link>
             <Link href={providerPlansHref} className={styles.navLink}>Provider plans</Link>
@@ -237,18 +244,23 @@ export default async function ArtisanBusinessPage() {
       </nav>
 
       <div className={styles.shell}>
-        <section className={styles.hero}>
+        <section className={`${styles.hero} ${businessStyles.businessHero}`}>
           <div>
             <span className={styles.eyebrow}>Artisan Business Workspace</span>
             <h1>{displayName(profile)}</h1>
             <p>Track incoming Skills Connect Pro opportunities, submitted responses, selected jobs and provider-plan access from one business view.</p>
+            <div className={businessStyles.heroMeta} aria-label="Provider business status">
+              <span className={businessStyles.heroChip}><BriefcaseBusiness size={13} aria-hidden="true" /> {profile.category || 'Service provider'}</span>
+              <span className={businessStyles.heroChip}><UserRoundCheck size={13} aria-hidden="true" /> {profile.verified ? 'Verified profile' : 'Verification pending'}</span>
+              <span className={businessStyles.heroChip}><Clock3 size={13} aria-hidden="true" /> {availability?.availability_status?.replaceAll('_', ' ') || 'Availability not set'}</span>
+            </div>
           </div>
           <Link href={providerPlansHref} className={styles.primaryLink}>
             <WalletCards size={17} /> {leadAccess.locked ? 'Unlock more leads' : 'Manage provider plan'}
           </Link>
         </section>
 
-        <section className={styles.stats} aria-label="Provider business summary">
+        <section className={`${styles.stats} ${businessStyles.businessStats}`} aria-label="Provider business summary">
           <div className={styles.stat}><span>Open opportunities</span><strong>{openOpportunities.length}</strong></div>
           <div className={styles.stat}><span>Responses sent</span><strong>{responses.length}</strong></div>
           <div className={styles.stat}><span>Active jobs</span><strong>{selectedJobs.length}</strong></div>
@@ -266,8 +278,8 @@ export default async function ArtisanBusinessPage() {
         )}
 
         <section className={styles.panelGrid}>
-          <div className={styles.panel}>
-            <span className={styles.eyebrow}>Incoming work</span>
+          <div className={`${styles.panel} ${businessStyles.opportunityPanel}`}>
+            <span className={`${styles.eyebrow} ${businessStyles.panelLabel}`}><BriefcaseBusiness size={14} aria-hidden="true" /> Incoming work</span>
             <h2>Opportunities</h2>
             <p className={styles.subtle}>New jobs sent to your provider profile. Customer contact remains protected until you are selected.</p>
             <div className={styles.list}>
@@ -287,12 +299,12 @@ export default async function ArtisanBusinessPage() {
               })}
               {!openOpportunities.length && <p className={styles.subtle}>No open opportunities right now. New matched jobs will appear here automatically.</p>}
             </div>
-            <div className={styles.notice} style={{ marginTop: 18, marginBottom: 0 }}>
-              Opportunity responses still use the secure link sent to your WhatsApp. The next workspace upgrade can bring that response form directly into this dashboard.
+            <div className={businessStyles.consoleHint}>
+              Opportunity responses still use the secure link sent to your WhatsApp. This workspace remains your business overview while secure response links protect each customer opportunity.
             </div>
           </div>
 
-          <aside className={styles.sidePanel}>
+          <aside className={`${styles.sidePanel} ${businessStyles.profilePanel}`}>
             <UserRoundCheck />
             <h2>Provider profile</h2>
             <p className={styles.subtle}>{profile.category || 'Service provider'} · {profile.location || 'Service area not set'}</p>
@@ -305,8 +317,8 @@ export default async function ArtisanBusinessPage() {
         </section>
 
         <section className={styles.panelGrid} style={{ marginTop: 22 }}>
-          <div className={styles.panel}>
-            <span className={styles.eyebrow}>Won work</span>
+          <div className={`${styles.panel} ${businessStyles.jobsPanel}`}>
+            <span className={`${styles.eyebrow} ${businessStyles.panelLabel}`}><CheckCircle2 size={14} aria-hidden="true" /> Won work</span>
             <h2>Selected & current jobs</h2>
             <div className={styles.list}>
               {selectedJobs.map((match) => {
@@ -325,7 +337,7 @@ export default async function ArtisanBusinessPage() {
             </div>
           </div>
 
-          <aside className={styles.sidePanel}>
+          <aside className={`${styles.sidePanel} ${businessStyles.activityPanel}`}>
             <MessageSquareText />
             <h2>Business activity</h2>
             <div className={styles.list}>
