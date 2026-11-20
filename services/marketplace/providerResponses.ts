@@ -58,6 +58,10 @@ export interface ProviderOpportunity {
   } | null;
   currentResponse: {
     responseType: string;
+    siteVisitFee: number | null;
+    estimateMin: number | null;
+    estimateMax: number | null;
+    estimateCurrency: string;
     providerMessage: string | null;
     customerClarification: string | null;
     customerClarificationAt: string | null;
@@ -225,7 +229,7 @@ async function getProviderOpportunityFromInvitation(
 
   const { data: currentResponseData, error: currentResponseError } = await supabase
     .from('provider_responses')
-    .select('response_type, provider_message, customer_clarification, customer_clarification_at')
+    .select('response_type, site_visit_fee, estimate_min, estimate_max, estimate_currency, provider_message, customer_clarification, customer_clarification_at')
     .eq('lead_invitation_id', invitation.id)
     .maybeSingle();
 
@@ -271,6 +275,10 @@ async function getProviderOpportunityFromInvitation(
     currentResponse: currentResponseData
       ? {
           responseType: currentResponseData.response_type,
+          siteVisitFee: currentResponseData.site_visit_fee,
+          estimateMin: currentResponseData.estimate_min,
+          estimateMax: currentResponseData.estimate_max,
+          estimateCurrency: currentResponseData.estimate_currency,
           providerMessage: currentResponseData.provider_message,
           customerClarification: currentResponseData.customer_clarification,
           customerClarificationAt: currentResponseData.customer_clarification_at,
