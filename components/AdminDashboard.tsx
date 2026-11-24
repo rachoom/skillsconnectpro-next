@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { CustomerOutcomesPanel } from './CustomerOutcomesPanel';
 import { CheckCircle2, ChevronDown, Search, Send, ShieldCheck, UserCheck, UserX } from 'lucide-react';
 
 interface Application {
@@ -75,6 +76,7 @@ function whatsappNumber(phone: string) {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
+  const [section, setSection] = useState<'providers' | 'outcomes'>('providers');
   const [applications, setApplications] = useState<Application[]>([]);
   const [awaitingClaims, setAwaitingClaims] = useState<Provider[]>([]);
   const [finalApprovals, setFinalApprovals] = useState<Provider[]>([]);
@@ -284,11 +286,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           <div>
             <button onClick={onBack} className="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-amber-300">← Back to Home</button>
             <h1 className="text-4xl font-black">Admin <span className="text-amber-300">Dashboard</span></h1>
-            <p className="mt-2 text-zinc-400">Provider consent, final approvals and network moderation.</p>
+            <p className="mt-2 text-zinc-400">Provider management, customer outcomes and network moderation.</p>
           </div>
           <button onClick={() => void fetchData()} className="rounded-xl bg-zinc-800 px-6 py-3 text-xs font-black uppercase tracking-wider hover:bg-zinc-700">Refresh data</button>
         </header>
 
+        <nav aria-label="Admin dashboard sections" className="mb-6 grid grid-cols-2 gap-3">
+          <button type="button" aria-pressed={section === 'providers'} onClick={() => setSection('providers')} className={`min-h-14 rounded-xl border p-3 text-sm font-bold ${section === 'providers' ? 'border-amber-400 bg-amber-400 text-black' : 'border-white/15 bg-zinc-900 text-white'}`}>Provider Management</button>
+          <button type="button" aria-pressed={section === 'outcomes'} onClick={() => setSection('outcomes')} className={`min-h-14 rounded-xl border p-3 text-sm font-bold ${section === 'outcomes' ? 'border-amber-400 bg-amber-400 text-black' : 'border-white/15 bg-zinc-900 text-white'}`}>Customer Outcomes</button>
+        </nav>
+        {section === 'outcomes' ? (
+          <section className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4 md:p-6">
+            <CustomerOutcomesPanel />
+          </section>
+        ) : <>
         {error ? <div className="mb-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">{error}</div> : null}
 
         <section className="mb-10 grid gap-4 md:grid-cols-3">
@@ -486,6 +497,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
             </div>
           </div>
         </section>
+        </>}
       </div>
     </div>
   );
