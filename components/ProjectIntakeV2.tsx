@@ -27,7 +27,12 @@ import {
   isLikelyStreetAddress,
   phoneValidationMessage,
 } from '../services/marketplace/intakePolicy.js';
-import { FloorPlanPreview, type FloorPlan } from './FloorPlanPreview';
+import dynamic from 'next/dynamic';
+import type { FloorPlan } from './FloorPlanPreview';
+
+const FloorPlanPreview = dynamic(() => import('./FloorPlanPreview').then((module) => module.FloorPlanPreview), {
+  loading: () => <p role="status" className="py-3 text-sm">Loading floor plan preview…</p>,
+});
 
 type ProjectUrgency = 'emergency' | 'urgent' | 'planned' | 'large_project';
 
