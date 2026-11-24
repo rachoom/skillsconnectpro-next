@@ -20,7 +20,7 @@ function localDay(offset = 0) {
   return new Date(Date.now() + (2 * 60 * 60 * 1000) + offset * 86_400_000).toISOString().slice(0, 10);
 }
 
-export function CustomerOutcomesPanel({ adminKey }: { adminKey: string }) {
+export function CustomerOutcomesPanel({ adminKey }: { adminKey?: string }) {
   const [from, setFrom] = useState(() => localDay(-6));
   const [to, setTo] = useState(() => localDay());
   const [revision, setRevision] = useState(0);
@@ -33,7 +33,8 @@ export function CustomerOutcomesPanel({ adminKey }: { adminKey: string }) {
     setLoading(true); setError(''); setData(null);
     const query = new URLSearchParams({ from, to });
     fetch('/api/admin/customer-outcomes?' + query.toString(), {
-      headers: { 'x-marketplace-admin-key': adminKey },
+      headers: adminKey ? { 'x-marketplace-admin-key': adminKey } : {},
+      credentials: 'same-origin',
       cache: 'no-store', signal: controller.signal,
     }).then(async response => {
       const result = await response.json();
