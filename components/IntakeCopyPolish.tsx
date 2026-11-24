@@ -6,9 +6,9 @@ const HEADING = 'What do you need done?';
 const INTRO = 'Tell us in your own words. We’ll turn it into a clear project request and ask only the questions that matter.';
 const FIELD_LABEL = 'Describe the job';
 
-function applyCopy() {
-  const openingSection = document.querySelector<HTMLElement>(
-    "body[data-scp-surface='intake'] main > div > section[class~='overflow-hidden']",
+function applyCopy(intake: HTMLElement) {
+  const openingSection = intake.querySelector<HTMLElement>(
+    "[data-intake-stage='describe']",
   );
   if (!openingSection) return;
 
@@ -24,9 +24,12 @@ function applyCopy() {
 
 export const IntakeCopyPolish = () => {
   useEffect(() => {
-    applyCopy();
-    const observer = new MutationObserver(applyCopy);
-    observer.observe(document.body, { childList: true, subtree: true });
+    const intake = document.querySelector<HTMLElement>("[data-scp-page='intake'] main");
+    if (!intake) return;
+    const sync = () => applyCopy(intake);
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(intake, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
 

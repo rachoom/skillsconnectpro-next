@@ -8,13 +8,15 @@ export const IntakeNavigation = () => {
   const [isEditingBrief, setIsEditingBrief] = useState(false);
 
   useEffect(() => {
+    const intake = document.querySelector<HTMLElement>("[data-scp-page='intake'] main");
+    if (!intake) return;
     const sync = () => {
-      setIsEditingBrief(Boolean(document.querySelector("[data-intake-card='brief']")));
+      setIsEditingBrief(Boolean(intake.querySelector("[data-intake-card='brief']")));
     };
 
     sync();
     const observer = new MutationObserver(sync);
-    observer.observe(document.body, { subtree: true, childList: true });
+    observer.observe(intake, { subtree: true, childList: true });
     return () => observer.disconnect();
   }, []);
 
@@ -60,6 +62,7 @@ export const IntakeNavigation = () => {
         <div className="flex items-center gap-2">
           <Link
             href="/"
+            prefetch={false}
             data-intake-nav-action="home"
             aria-label="Home"
             className="flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 text-xs font-black uppercase tracking-wider text-white/85"
