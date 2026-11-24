@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireMarketplaceAdmin } from '@/services/marketplace/adminAuth';
+import { requireProviderAdmin } from '@/services/providerAdminSession';
 import { getSupabaseAdmin } from '@/services/supabaseAdmin';
 
 export const runtime = 'nodejs';
@@ -35,7 +36,9 @@ async function pages<T>(load: (from: number, to: number) => PromiseLike<{ data: 
 
 export async function GET(request: Request) {
   try {
-    requireMarketplaceAdmin(request);
+    // Both existing admin interfaces may read this aggregate report.
+    if (request.headers.has('x-marketplace-admin-key')) requireMarketplaceAdmin(request);
+    else requireProviderAdmin(request);
     const params = new URL(request.url).searchParams;
     const from = localDate(params.get('from'));
     const to = localDate(params.get('to'));
