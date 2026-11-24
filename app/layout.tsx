@@ -1,12 +1,7 @@
 import type { Metadata } from 'next';
-import { CompletedProjectSummary } from '../components/CompletedProjectSummary';
-import { CustomerCompletionAction } from '../components/CustomerCompletionAction';
-import { CustomerDashboardAutoScroll } from '../components/CustomerDashboardAutoScroll';
-import { FeedbackSubmissionAutoClose } from '../components/FeedbackSubmissionAutoClose';
+import { RouteScopedMarketplaceFeatures } from '../components/RouteScopedMarketplaceFeatures';
 import { IntakeHeroAlignment } from '../components/IntakeHeroAlignment';
 import { LaunchThemeRepair } from '../components/LaunchThemeRepair';
-import { MarketplaceFeedbackLauncher } from '../components/MarketplaceFeedbackLauncher';
-import { MarketplaceLifecycleHost } from '../components/MarketplaceLifecycleHost';
 import { MarketplaceVisualConsistency } from '../components/MarketplaceVisualConsistency';
 import { PrimaryServiceTaxonomy } from '../components/PrimaryServiceTaxonomy';
 import { ThemeDetailOverrides } from '../components/ThemeDetailOverrides';
@@ -102,12 +97,7 @@ export default function RootLayout({
         <LaunchThemeRepair />
         <SiteDesignAuditPolish />
         <IntakeHeroAlignment />
-        <CompletedProjectSummary />
-        <MarketplaceLifecycleHost />
-        <CustomerCompletionAction />
-        <CustomerDashboardAutoScroll />
-        <FeedbackSubmissionAutoClose />
-        <MarketplaceFeedbackLauncher />
+        <RouteScopedMarketplaceFeatures />
         <ThemeModeToggle />
       </body>
     </html>
