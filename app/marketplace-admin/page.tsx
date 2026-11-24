@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CustomerOutcomesPanel } from '../../components/CustomerOutcomesPanel';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -83,7 +84,7 @@ type NewProjectForm = {
   guestPhone: string;
 };
 
-type AdminScreen = 'create' | 'projects' | 'routing' | 'delivery';
+type AdminScreen = 'create' | 'projects' | 'routing' | 'delivery' | 'outcomes';
 
 const EMPTY_PROJECT: NewProjectForm = {
   title: '',
@@ -115,6 +116,7 @@ const ADMIN_SCREENS: Array<{ id: AdminScreen; label: string; description: string
   { id: 'projects', label: 'Projects', description: 'Open routing queue' },
   { id: 'routing', label: 'Routing', description: 'Ranked providers' },
   { id: 'delivery', label: 'Delivery', description: 'Manual WhatsApp sends' },
+  { id: 'outcomes', label: 'Customer outcomes', description: 'Conversion and fulfillment' },
 ];
 
 function formatDate(value: string | null): string {
@@ -602,7 +604,7 @@ export default function MarketplaceAdminPage() {
           </div>
         </section>
 
-        <nav role="tablist" aria-label="Marketplace admin sections" className="mb-4 grid grid-cols-2 gap-2 xl:grid-cols-4">
+        <nav role="tablist" aria-label="Marketplace admin sections" className="mb-4 grid grid-cols-2 gap-2 xl:grid-cols-5">
           {ADMIN_SCREENS.map((screen) => {
             const active = screen.id === activeScreen;
             return (
@@ -643,6 +645,7 @@ export default function MarketplaceAdminPage() {
           aria-labelledby={`admin-tab-${activeScreen}`}
           className="min-h-[560px] rounded-3xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl md:p-6"
         >
+          {activeScreen === 'outcomes' && <CustomerOutcomesPanel adminKey={adminKey} />}
           {activeScreen === 'create' && (
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,.8fr)]">
               <form onSubmit={createProject} className="rounded-3xl border border-white/10 bg-black/20 p-4 md:p-5">
