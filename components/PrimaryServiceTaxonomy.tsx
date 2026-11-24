@@ -92,6 +92,8 @@ export const PrimaryServiceTaxonomy = () => {
   const pathname = usePathname();
 
   useLayoutEffect(() => {
+    // The intake contains no promoted service cards or admin taxonomy options.
+    if (pathname === '/get-help') return;
     const apply = () => {
       if (pathname === '/') replaceHomepageCards();
       if (pathname === '/marketplace-admin') replaceAdminCategoryOptions();

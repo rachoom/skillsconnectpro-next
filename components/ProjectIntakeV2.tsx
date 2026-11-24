@@ -28,6 +28,7 @@ import {
   phoneValidationMessage,
 } from '../services/marketplace/intakePolicy.js';
 import dynamic from 'next/dynamic';
+import { intakePhotoDimensions } from '../services/marketplace/intakePhotoPolicy.mjs';
 import type { FloorPlan } from './FloorPlanPreview';
 
 const FloorPlanPreview = dynamic(() => import('./FloorPlanPreview').then((module) => module.FloorPlanPreview), {
@@ -205,28 +206,40 @@ function mergeAnswerHistory(existing: IntakeAnswer[], additions: IntakeAnswer[])
   return Array.from(merged.values()).slice(0, 9);
 }
 
-function compressImage(file: File): Promise<{ data: string; preview: string }> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Unable to read the image.'));
-    reader.onload = () => {
-      const image = new Image();
-      image.onerror = () => reject(new Error('Unable to open the image.'));
-      image.onload = () => {
-        const scale = Math.min(1, 720 / image.width);
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(image.width * scale));
-        canvas.height = Math.max(1, Math.round(image.height * scale));
-        const context = canvas.getContext('2d');
-        if (!context) return reject(new Error('Image processing is unavailable.'));
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        const preview = canvas.toDataURL('image/jpeg', 0.62);
-        resolve({ preview, data: preview.split(',')[1] ?? '' });
-      };
-      image.src = String(reader.result ?? '');
-    };
-    reader.readAsDataURL(file);
-  });
+async function compressImage(file: File): Promise<{ data: string; preview: string }> {
+  // Avoid Base64 encoding the full camera original. Only encode the resized JPEG.
+  const url = URL.createObjectURL(file);
+  const canvas = document.createElement('canvas');
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const source = new Image();
+      source.onload = () => resolve(source);
+      source.onerror = () => reject(new Error('Unable to open the image. Try another photograph.'));
+      source.src = url;
+    });
+    const dimensions = intakePhotoDimensions(image.naturalWidth, image.naturalHeight);
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Image processing is unavailable.');
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const jpeg = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Unable to prepare the image.')), 'image/jpeg', 0.62);
+    });
+    const preview = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Unable to read the resized image.'));
+      reader.readAsDataURL(jpeg);
+    });
+    return { preview, data: preview.split(',')[1] ?? '' };
+  } finally {
+    URL.revokeObjectURL(url);
+    canvas.width = 0;
+    canvas.height = 0;
+  }
 }
 
 function focusField(id: string) {
@@ -241,6 +254,7 @@ export const ProjectIntakeV2: React.FC = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const operationRef = useRef(false);
 
   const [step, setStep] = useState<'describe' | 'clarify' | 'confirm' | 'done'>('describe');
   const [confirmStage, setConfirmStage] = useState<ConfirmStage>('brief');
@@ -316,6 +330,11 @@ export const ProjectIntakeV2: React.FC = () => {
     : 0;
 
   const assessProject = async (includeCurrentAnswers: boolean) => {
+    if (operationRef.current) return;
+    if (navigator.onLine === false) {
+      setError('You appear to be offline. Your request is still here. Reconnect and try Continue again.');
+      return;
+    }
     setError('');
     setQuestionErrors({});
 
@@ -361,9 +380,13 @@ export const ProjectIntakeV2: React.FC = () => {
       setQuestionProgress(null);
     }
 
+    operationRef.current = true;
     setIsWorking(true);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 90_000);
     try {
-      const response = await fetch('/api/project-intake/assess-v2', {
+      const response = await fetch('/api/project-intake/assess-v3', {
+        signal: controller.signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -391,9 +414,15 @@ export const ProjectIntakeV2: React.FC = () => {
       setStep(next.clarifyingQuestions.length ? 'clarify' : 'confirm');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Please try again.');
+      setError(controller.signal.aborted
+        ? 'The assessment is taking longer than expected. Your answers are still here. Please try again.'
+        : reason instanceof TypeError
+          ? 'We could not reach Skills Connect Pro. Check your connection and try again. Your details are still here.'
+          : reason instanceof Error ? reason.message : 'Please try again.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
+      window.clearTimeout(timeout);
+      operationRef.current = false;
       setIsWorking(false);
     }
   };
@@ -401,11 +430,14 @@ export const ProjectIntakeV2: React.FC = () => {
   const handleImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
+    if (operationRef.current) { event.target.value = ''; return; }
+    if (file.type && !file.type.startsWith('image/')) {
       setError('Please choose a photograph or image.');
+      event.target.value = '';
       return;
     }
 
+    operationRef.current = true;
     setIsWorking(true);
     setError('');
     try {
@@ -415,6 +447,7 @@ export const ProjectIntakeV2: React.FC = () => {
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to prepare the image.');
     } finally {
+      operationRef.current = false;
       setIsWorking(false);
       event.target.value = '';
     }
@@ -445,15 +478,27 @@ export const ProjectIntakeV2: React.FC = () => {
       const transcript = event.results[0]?.[0]?.transcript?.trim();
       if (transcript) setDescription((current) => `${current}${current.trim() ? ' ' : ''}${transcript}`);
     };
-    recognition.onerror = () => setError('We could not hear that clearly. Please try again or type.');
+    recognition.onerror = () => {
+      setIsListening(false);
+      setError('Voice input could not start or hear you clearly. You can type instead.');
+    };
     recognition.onend = () => setIsListening(false);
     recognitionRef.current = recognition;
     setIsListening(true);
-    recognition.start();
+    try {
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      setError('Voice input is unavailable in this browser. You can type instead.');
+    }
   };
 
   const submitProject = async () => {
-    if (!assessment) return;
+    if (!assessment || operationRef.current) return;
+    if (navigator.onLine === false) {
+      setError('You appear to be offline. Your project details are still here. Reconnect before submitting.');
+      return;
+    }
     setError('');
 
     const nextErrors: FieldErrors = {};
@@ -478,6 +523,7 @@ export const ProjectIntakeV2: React.FC = () => {
     }
 
     const cleanPhone = phone.replace(/[^0-9+]/g, '');
+    operationRef.current = true;
     setIsWorking(true);
     try {
       const response = await fetch('/api/projects/intake', {
@@ -524,9 +570,12 @@ export const ProjectIntakeV2: React.FC = () => {
       setStep('done');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Unable to create the project.');
+      setError(reason instanceof TypeError
+        ? 'We lost the connection before confirming your request. It may already have been received. Check WhatsApp or contact support before submitting again.'
+        : reason instanceof Error ? reason.message : 'Unable to create the project.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
+      operationRef.current = false;
       setIsWorking(false);
     }
   };
@@ -598,7 +647,6 @@ export const ProjectIntakeV2: React.FC = () => {
                 <h1 className="mt-2 text-4xl font-black tracking-tight">What do you need done?</h1>
                 <p className="mt-2 font-semibold leading-6 text-black/65">Describe the job in your own words. We’ll guide you from there.</p>
               </div>
-              <div data-intake-illustration aria-hidden="true" />
             </div>
             <div data-intake-quickstart-body className="space-y-4 p-5 sm:px-8 sm:pb-8">
               <div data-intake-composer>
@@ -616,6 +664,7 @@ export const ProjectIntakeV2: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      disabled={isWorking}
                       onClick={toggleListening}
                       aria-pressed={isListening}
                       className={isListening ? 'is-listening' : undefined}
@@ -625,6 +674,7 @@ export const ProjectIntakeV2: React.FC = () => {
                     </button>
                     <button
                       type="button"
+                      disabled={isWorking}
                       data-intake-photo-action="camera"
                       onClick={() => cameraInputRef.current?.click()}
                       aria-label="Take a new project photo"
@@ -634,6 +684,7 @@ export const ProjectIntakeV2: React.FC = () => {
                     </button>
                     <button
                       type="button"
+                      disabled={isWorking}
                       data-intake-photo-action="gallery"
                       onClick={() => galleryInputRef.current?.click()}
                       aria-label="Choose a project image from your device"
