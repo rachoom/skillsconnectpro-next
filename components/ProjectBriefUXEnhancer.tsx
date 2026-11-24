@@ -26,8 +26,12 @@ export function ProjectBriefUXEnhancer() {
   const cardRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    // The brief is rendered inside the intake main, not elsewhere in the app.
+    const intake = document.querySelector<HTMLElement>("[data-scp-page='intake'] main");
+    if (!intake) return;
+
     const sync = () => {
-      const next = document.querySelector<HTMLElement>("[data-intake-card='brief']");
+      const next = intake.querySelector<HTMLElement>("[data-intake-card='brief']");
       if (next !== cardRef.current) {
         cardRef.current = next;
         setCard(next);
@@ -36,7 +40,7 @@ export function ProjectBriefUXEnhancer() {
 
     sync();
     const observer = new MutationObserver(sync);
-    observer.observe(document.body, { subtree: true, childList: true });
+    observer.observe(intake, { subtree: true, childList: true });
     return () => observer.disconnect();
   }, []);
 

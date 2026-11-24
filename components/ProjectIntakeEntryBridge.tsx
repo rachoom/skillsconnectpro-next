@@ -67,10 +67,15 @@ export const ProjectIntakeEntryBridge = () => {
       return true;
     };
 
-    const timer = window.setInterval(() => {
-      attempts += 1;
-      if (applyEntryContext() || attempts > 30) window.clearInterval(timer);
-    }, 120);
+    // A normal campaign visit needs no DOM polling or focus manipulation.
+    // Keep the fetch bridge below active for all visits, including plain URLs.
+    let timer: number | undefined;
+    if (mode || descriptionPrefill || service || providerName) {
+      timer = window.setInterval(() => {
+        attempts += 1;
+        if (applyEntryContext() || attempts > 30) window.clearInterval(timer);
+      }, 120);
+    }
 
     const originalFetch = window.fetch.bind(window);
     const bridgedFetch: typeof window.fetch = async (input, init) => {

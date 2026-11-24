@@ -1,37 +1,11 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
 
 export const LaunchThemeRepair = () => {
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (pathname !== '/get-help') return;
-
-    const updateCopy = () => {
-      const headings = Array.from(document.querySelectorAll('main h1'));
-      const openingHeading = headings.find((heading) => heading.textContent?.trim() === 'Show us the job.');
-      if (openingHeading) openingHeading.textContent = 'What do you need done?';
-
-      const labels = Array.from(document.querySelectorAll('main label > span'));
-      const descriptionLabel = labels.find((label) => label.textContent?.trim() === 'What do you need done?');
-      if (descriptionLabel) descriptionLabel.textContent = 'Describe the job';
-
-      const paragraphs = Array.from(document.querySelectorAll('main p'));
-      const openingCopy = paragraphs.find((paragraph) =>
-        paragraph.textContent?.includes('Describe what you need in your own words.'),
-      );
-      if (openingCopy) {
-        openingCopy.textContent = 'Tell us what needs attention. We’ll turn it into a clear project request and guide you through the next steps.';
-      }
-    };
-
-    updateCopy();
-    const observer = new MutationObserver(updateCopy);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [pathname]);
+  // The current intake renders its own heading, label and copy in React.
 
   if (['/', '/assistant', '/get-help'].includes(pathname)) return null;
 
